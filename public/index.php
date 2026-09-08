@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,TicketController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -30,6 +30,7 @@ $routes=[
     ['POST','/tickets/status',[TicketController::class,'changeStatus']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
+    ['GET','/admin/audit',[AuditController::class,'index']],
 ];
 foreach($routes as [$m,$p,$h]){
     if($method===$m&&$path===$p){[$c,$a]=$h;(new $c())->$a();exit;}
