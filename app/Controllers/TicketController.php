@@ -62,7 +62,7 @@ final class TicketController
         [$slaId,$firstDue,$resolutionDue]=$this->sla($categoryId,$priority);
 
         $ticket=Database::transaction(function(PDO $pdo)use($requesterUserId,$email,$name,$phone,$parkId,$areaId,$categoryId,$teamId,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue){
-            $s=$pdo->prepare("INSERT INTO tickets(ticket_number,case_type,visibility_mode,origin,requester_user_id,requester_email,requester_name,requester_phone,park_id,area_id,category_id,support_team_id,subject,description,priority,status,sla_policy_id,first_response_due_at,resolution_due_at,source_ip,created_at,updated_at) VALUES('', 'NORMAL','INTERNAL','PUBLIC_WEB',?,?,?,?,?,?,?,?,?,?,?,?,'AVAILABLE',?,?,?,?,NOW(),NOW())");
+            $s=$pdo->prepare("INSERT INTO tickets(ticket_number,case_type,visibility_mode,origin,requester_user_id,requester_email,requester_name,requester_phone,park_id,area_id,category_id,support_team_id,subject,description,priority,status,sla_policy_id,first_response_due_at,resolution_due_at,source_ip,created_at,updated_at) VALUES('', 'NORMAL','INTERNAL','PUBLIC_WEB',?,?,?,?,?,?,?,?,?,?,?,'AVAILABLE',?,?,?,?,NOW(),NOW())");
             $s->execute([$requesterUserId,$email,$name,$phone?:null,$parkId?:null,$areaId?:null,$categoryId,$teamId?:null,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue,Http::ip()]);
             $id=(int)$pdo->lastInsertId();
             $number='HD-'.date('Y').'-'.str_pad((string)$id,6,'0',STR_PAD_LEFT);
