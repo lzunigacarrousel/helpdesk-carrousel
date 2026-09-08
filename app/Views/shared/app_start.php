@@ -10,7 +10,7 @@ $activeNav=$activeNav??'home';
 $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
 
-/* Atención rápida en topbar. No usa estado leído/no leído: resume trabajo pendiente real. */
+/* Atención rápida en topbar. Resume trabajo pendiente real. */
 $attentionItems=[];
 $attentionCount=0;
 try{
@@ -46,6 +46,7 @@ try{
 }catch(Throwable){
     $attentionItems=[];$attentionCount=0;
 }
+$assetVersion='20260908-1710';
 ?>
 <!doctype html>
 <html lang="es">
@@ -55,11 +56,11 @@ try{
 <meta name="color-scheme" content="light dark">
 <title><?= htmlspecialchars(($pageTitle??'Helpdesk Carrousel').' | Helpdesk Carrousel') ?></title>
 <link rel="icon" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/favicon.ico">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-fixes.css">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/shell-v2.css">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-fixes.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/shell-v2.css?v=<?= $assetVersion ?>">
 <script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
 <body>
@@ -112,8 +113,6 @@ try{
   </div>
 
   <div class="topbar-user">
-    <span class="connection-indicator offline" data-connection-indicator hidden>Sin conexión</span>
-
     <div class="shell-notifications" data-notifications>
       <button class="btn btn-outline-secondary btn-sm shell-icon-btn" type="button" data-notifications-toggle aria-expanded="false" aria-label="Ver atención pendiente" title="Atención pendiente">🔔<?php if($attentionCount>0): ?><span class="shell-notification-badge"><?= $attentionCount>99?'99+':(int)$attentionCount ?></span><?php endif; ?></button>
       <div class="shell-notification-menu" data-notifications-menu hidden>
