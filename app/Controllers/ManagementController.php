@@ -86,7 +86,7 @@ final class ManagementController
             ORDER BY t.created_at DESC LIMIT 500");
         $q->execute($params);
         $rows=$q->fetchAll();
-        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):(int)=>(int)$r['id'],$rows));
+        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r): int => (int)$r['id'],$rows));
         foreach($rows as &$row){
             $row['lifecycle']=$this->lifecycle($row,$events[(int)$row['id']]??[]);
         }
@@ -125,7 +125,7 @@ final class ManagementController
             ORDER BY t.created_at DESC");
         $q->execute($params);
         $rows=$q->fetchAll();
-        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):(int)=>(int)$r['id'],$rows));
+        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r): int => (int)$r['id'],$rows));
 
         Audit::log('REPORT_EXPORTED','report',null,null,null,['filters'=>$filters]);
         header('Content-Type: text/csv; charset=UTF-8');
@@ -157,7 +157,7 @@ final class ManagementController
 
     private function eventsByTicket(PDO $pdo,array $ticketIds): array
     {
-        $ticketIds=array_values(array_unique(array_filter(array_map('intval',$ticketIds),static fn(int $id):bool=>$id>0)));
+        $ticketIds=array_values(array_unique(array_filter(array_map('intval',$ticketIds),static fn(int $id): bool => $id>0)));
         if(!$ticketIds)return[];
         $placeholders=implode(',',array_fill(0,count($ticketIds),'?'));
         $q=$pdo->prepare("SELECT te.ticket_id,te.event_type,te.actor_type,te.old_value,te.new_value,te.created_at,u.full_name actor_name
@@ -257,7 +257,7 @@ final class ManagementController
             if(isset($life['pending_minutes']))$pending[]=(int)$life['pending_minutes'];
             $changes+=count($life['transitions']??[]);
         }
-        $avg=static fn(array $v):?float=>$v?round(array_sum($v)/count($v),1):null;
+        $avg=static fn(array $v): ?float => $v?round(array_sum($v)/count($v),1):null;
         $total=count($rows);
         return[
             'total'=>$total,'documented'=>$documented,'undocumented'=>$total-$documented,
