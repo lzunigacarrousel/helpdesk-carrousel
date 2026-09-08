@@ -18,7 +18,11 @@ $routes=[
     ['GET','/dashboard',[DashboardController::class,'index']],
     ['GET','/tickets',[TicketController::class,'index']],
     ['GET','/tickets/create',[TicketController::class,'create']],
+    ['GET','/tickets/view',[TicketController::class,'show']],
     ['POST','/tickets',[TicketController::class,'store']],
+    ['POST','/tickets/assign',[TicketController::class,'assign']],
+    ['POST','/tickets/status',[TicketController::class,'changeStatus']],
+    ['POST','/tickets/comment',[TicketController::class,'comment']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
 ];
