@@ -25,6 +25,18 @@ $help = [
         'title' => 'Seguimiento del caso',
         'steps' => ['Arriba verás el estado actual.', 'En el centro aparece la información principal.', 'El historial muestra los movimientos del caso.'],
     ],
+    'management' => [
+        'title' => 'Dashboard interno',
+        'steps' => ['Usa los filtros para analizar el periodo, parque, categoría o responsable.', 'Revisa carga, SLA, tiempos y distribución de casos.', 'Abre Informes cuando necesites el detalle o exportar datos.'],
+    ],
+    'reports' => [
+        'title' => 'Informes',
+        'steps' => ['Aplica los mismos filtros del dashboard.', 'Revisa hasta 500 registros en pantalla.', 'Descarga el CSV para análisis, presentación o archivo. La exportación queda auditada.'],
+    ],
+    'externals' => [
+        'title' => 'Proveedores externos',
+        'steps' => ['Crea la cuenta externa con empresa, contacto y correo.', 'Asigna únicamente los tickets especiales que deba consultar.', 'Revoca el acceso cuando termine la participación del proveedor.'],
+    ],
     'users' => [
         'title' => 'Usuarios y estructura',
         'steps' => ['El rol define los permisos dentro del Helpdesk.', 'La asignación define parque o área, puesto y responsable.', 'Un supervisor o gerente operativo no necesita ser técnico del Helpdesk.'],
