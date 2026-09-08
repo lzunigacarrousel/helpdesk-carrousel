@@ -238,3 +238,42 @@
 
   applyFilters();
 })();
+
+/* Proveedor externo · el caso debe ser un espacio de colaboración, no una ficha de solo lectura */
+(function(){
+  const providerCard=document.querySelector('.provider-task-card');
+  const workspace=document.querySelector('.ticket-workspace');
+  if(!(providerCard instanceof HTMLElement)||!(workspace instanceof HTMLElement))return;
+
+  document.body.classList.add('external-session');
+
+  const conversation=document.querySelector('.conversation-card');
+  if(conversation instanceof HTMLElement){
+    providerCard.insertAdjacentElement('afterend',conversation);
+  }
+
+  const actions=document.createElement('div');
+  actions.className='provider-quick-actions';
+
+  if(conversation instanceof HTMLElement){
+    const reply=document.createElement('a');
+    reply.className='btn btn-primary';
+    reply.href='#conversacion';
+    reply.dataset.noLoading='1';
+    reply.textContent='Responder a Carrousel';
+    reply.addEventListener('click',()=>{
+      const field=conversation.querySelector('textarea');
+      window.setTimeout(()=>{if(field instanceof HTMLTextAreaElement)field.focus();},250);
+    });
+    actions.appendChild(reply);
+  }
+
+  const back=document.createElement('a');
+  back.className='btn btn-outline-secondary';
+  back.href='javascript:history.back()';
+  back.dataset.noLoading='1';
+  back.textContent='Volver a mis casos';
+  actions.appendChild(back);
+
+  providerCard.appendChild(actions);
+})();
