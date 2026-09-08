@@ -43,4 +43,6 @@ foreach($routes as [$m,$p,$h]){
     if($method===$m&&$path===$p){[$c,$a]=$h;(new $c())->$a();exit;}
 }
 http_response_code(404);
-echo '404 - Ruta no encontrada';
+$errorTitle='No encontramos esa página';
+$errorMessage='El enlace puede haber cambiado o ya no estar disponible. Puedes volver al inicio y continuar desde allí.';
+require APP_ROOT.'/app/Views/errors/friendly.php';
