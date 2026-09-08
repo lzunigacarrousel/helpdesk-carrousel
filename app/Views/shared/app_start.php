@@ -33,7 +33,7 @@ try{
         if($available>0)$attentionItems[]=['label'=>'Casos por atender','detail'=>'Solicitudes disponibles en la cola de soporte.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue'];
 
         if($canManagement){
-            $overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();
+            $overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND t.status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();
             if($overdue>0)$attentionItems[]=['label'=>'Casos fuera de tiempo','detail'=>'Solicitudes que requieren revisión prioritaria.','count'=>$overdue,'href'=>APP_BASE_URL.'/gestion'];
         }
     }else{
@@ -46,7 +46,7 @@ try{
 }catch(Throwable){
     $attentionItems=[];$attentionCount=0;
 }
-$assetVersion='20260908-1720';
+$assetVersion='20260908-1725';
 ?>
 <!doctype html>
 <html lang="es">
@@ -80,7 +80,7 @@ $assetVersion='20260908-1720';
       <a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a>
     <?php elseif($isExternal): ?>
       <div class="nav-section">Casos</div>
-      <a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis casos asignados</span></a>
+      <a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis casos</span></a>
     <?php else: ?>
       <div class="nav-section">Solicitudes</div>
       <a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a>
