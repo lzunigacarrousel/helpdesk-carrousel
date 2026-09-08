@@ -1,15 +1,18 @@
 <?php
+$isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
+$pageTitle=$isExternal?'Mis casos asignados':'Mis solicitudes';$pageSection=$pageTitle;$activeNav='mine';$helpContext='my_tickets';
+require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><title>Mis solicitudes | Helpdesk Carrousel</title><link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css"><link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-fixes.css"></head>
-<body><div class="brand-strip"></div><main class="content tickets-page">
-<div class="page-heading tickets-heading"><div><div class="ticket-kicker">Seguimiento</div><h1 class="page-title">Mis solicitudes</h1><p class="page-subtitle">Revisa el estado de los casos asociados a <?= htmlspecialchars($user['email']) ?>.</p></div><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Reportar un problema</a><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/dashboard">Inicio</a></div></div>
+<div class="tickets-page">
+<div class="page-heading tickets-heading"><div><div class="ticket-kicker">Seguimiento</div><h1 class="page-title"><?= htmlspecialchars($pageTitle) ?></h1><p class="page-subtitle"><?= $isExternal?'Aquí aparecen únicamente los casos especiales que te asignaron.':'Revisa el estado de los casos asociados a '.htmlspecialchars($user['email']).'.' ?></p></div><?php if(!$isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
 <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-<?php if($tickets): ?><section class="ticket-list" aria-label="Mis solicitudes"><?php foreach($tickets as $t): ?><article class="ticket-list-card">
-  <a class="ticket-card-link" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>" aria-label="Abrir <?= htmlspecialchars($t['ticket_number']) ?>"></a>
-  <div class="ticket-list-top"><div><span class="ticket-number-small"><?= htmlspecialchars($t['ticket_number']) ?></span><h2><?= htmlspecialchars($t['subject']) ?></h2></div><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
-  <div class="ticket-list-meta"><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span><span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span><span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span></div>
-  <div class="ticket-list-bottom"><span><?= !empty($t['assigned_name'])?'Atiende: '.htmlspecialchars($t['assigned_name']):'Aún sin responsable' ?></span><span class="ticket-open-text">Abrir seguimiento →</span></div>
-</article><?php endforeach; ?></section><?php else: ?><section class="card"><div class="empty-state"><h2>Aún no tienes solicitudes</h2><p>Cuando necesites ayuda, puedes reportar un problema desde aquí.</p><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Reportar un problema</a></div></section><?php endif; ?>
-</main><script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js"></script></body></html>
+<?php if($tickets): ?><section class="ticket-list" aria-label="<?= htmlspecialchars($pageTitle) ?>"><?php foreach($tickets as $t): ?><article class="ticket-list-card">
+<a class="ticket-card-link" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>" aria-label="Abrir <?= htmlspecialchars($t['ticket_number']) ?>"></a>
+<div class="ticket-list-top"><div><span class="ticket-number-small"><?= htmlspecialchars($t['ticket_number']) ?></span><h2><?= htmlspecialchars($t['subject']) ?></h2></div><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
+<div class="ticket-list-meta"><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span><span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span><span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span></div>
+<div class="ticket-list-bottom"><span><?= !empty($t['assigned_name'])?'Atiende: '.htmlspecialchars($t['assigned_name']):'Aún sin responsable' ?></span><span class="ticket-open-text">Abrir seguimiento →</span></div>
+</article><?php endforeach; ?></section><?php else: ?><section class="card"><div class="empty-state"><h2><?= $isExternal?'No tienes casos asignados':'Aún no tienes solicitudes' ?></h2><p><?= $isExternal?'Cuando te asignen un caso especial aparecerá aquí.':'Cuando necesites ayuda, registra una nueva solicitud.' ?></p><?php if(!$isExternal): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Nueva solicitud</a><?php endif; ?></div></section><?php endif; ?>
+</div>
+<?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
