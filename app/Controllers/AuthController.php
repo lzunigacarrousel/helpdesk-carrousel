@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\Controllers;
 
-use App\Core\{Auth,Csrf,Database,Flash,Http,View};
+use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,View};
 use App\Services\{AuthService,SessionService};
 
 final class AuthController
@@ -123,6 +123,7 @@ final class AuthController
     public function logout(): void
     {
         Csrf::verify($_POST['_csrf'] ?? null);
+        Audit::log('LOGOUT','user',Auth::id());
         (new SessionService())->revokeCurrent();
         Auth::logoutRuntime();
         header('Location: '.APP_BASE_URL.'/');
