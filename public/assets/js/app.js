@@ -119,9 +119,10 @@
     const el=document.querySelector('[data-connection-indicator]');
     if(!(el instanceof HTMLElement))return;
     const online=navigator.onLine;
+    el.hidden=online;
     el.classList.toggle('offline',!online);
-    el.textContent=online?'Conectado':'Sin conexión';
-    el.title=online?'Conexión disponible':'Revisa tu conexión antes de guardar cambios';
+    el.textContent='Sin conexión';
+    el.title='Revisa tu conexión antes de guardar cambios';
   }
 
   applyTheme(readTheme());
