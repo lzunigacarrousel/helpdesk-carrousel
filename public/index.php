@@ -25,6 +25,9 @@ $routes=[
     ['GET','/tickets/queue',[TicketController::class,'queue']],
     ['GET','/tickets/view',[TicketController::class,'show']],
     ['POST','/tickets/claim',[TicketController::class,'claim']],
+    ['POST','/tickets/assign',[TicketController::class,'assign']],
+    ['POST','/tickets/release',[TicketController::class,'release']],
+    ['POST','/tickets/status',[TicketController::class,'changeStatus']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
 ];
