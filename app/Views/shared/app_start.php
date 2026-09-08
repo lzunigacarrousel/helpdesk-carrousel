@@ -112,7 +112,7 @@ try{
   </div>
 
   <div class="topbar-user">
-    <span class="connection-indicator" data-connection-indicator>Conectado</span>
+    <span class="connection-indicator offline" data-connection-indicator hidden>Sin conexión</span>
 
     <div class="shell-notifications" data-notifications>
       <button class="btn btn-outline-secondary btn-sm shell-icon-btn" type="button" data-notifications-toggle aria-expanded="false" aria-label="Ver atención pendiente" title="Atención pendiente">🔔<?php if($attentionCount>0): ?><span class="shell-notification-badge"><?= $attentionCount>99?'99+':(int)$attentionCount ?></span><?php endif; ?></button>
