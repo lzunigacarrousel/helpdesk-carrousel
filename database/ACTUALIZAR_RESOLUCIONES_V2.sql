@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS ticket_resolutions (
     root_cause TEXT NULL,
     solution_applied TEXT NOT NULL,
     preventive_action TEXT NULL,
-    is_reusable TINYINT(1) NOT NULL DEFAULT 0,
+    is_reusable TINYINT(1) NOT NULL DEFAULT 1,
     resolved_by BIGINT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS ticket_resolutions (
     INDEX idx_resolution_reusable (is_reusable),
     INDEX idx_resolution_user (resolved_by)
 ) ENGINE=InnoDB;
+
+-- Si la tabla ya existía de una prueba anterior, dejamos la regla automática alineada.
+ALTER TABLE ticket_resolutions MODIFY is_reusable TINYINT(1) NOT NULL DEFAULT 1;
+UPDATE ticket_resolutions SET is_reusable=1 WHERE is_reusable<>1;
 
 -- Regla de integridad: un caso no puede quedar Resuelto/Cerrado sin documentar cómo se resolvió.
 DROP TRIGGER IF EXISTS trg_tickets_require_resolution;
