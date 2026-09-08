@@ -26,3 +26,59 @@
   });
   if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(read()==='system')apply('system');});}
 })();
+
+/* Administración de usuarios · patrón funcional reutilizado de PayOutParques */
+(function(){
+  const root=document.querySelector('[data-users-admin]');
+  if(!(root instanceof HTMLElement))return;
+
+  const search=root.querySelector('[data-users-search]');
+  const role=root.querySelector('[data-users-role-filter]');
+  const status=root.querySelector('[data-users-status-filter]');
+  const clear=root.querySelector('[data-users-clear]');
+  const summary=root.querySelector('[data-users-summary]');
+  const badge=root.querySelector('[data-users-count]');
+  const empty=root.querySelector('[data-users-empty]');
+  const rows=[...root.querySelectorAll('[data-user-row]')];
+
+  const norm=value=>String(value||'')
+    .toLocaleLowerCase('es-GT')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  function applyFilters(){
+    const q=norm(search instanceof HTMLInputElement?search.value:'');
+    const roleFilter=norm(role instanceof HTMLSelectElement?role.value:'');
+    const statusFilter=norm(status instanceof HTMLSelectElement?status.value:'');
+    let visible=0;
+
+    rows.forEach(row=>{
+      if(!(row instanceof HTMLElement))return;
+      const text=norm(row.dataset.userSearch||row.textContent||'');
+      const rowRole=norm(row.dataset.userRole||'');
+      const rowStatus=norm(row.dataset.userStatus||'');
+      const show=(!q||text.includes(q))&&(!roleFilter||rowRole===roleFilter)&&(!statusFilter||rowStatus===statusFilter);
+      row.hidden=!show;
+      if(show)visible+=1;
+    });
+
+    if(summary instanceof HTMLElement)summary.textContent=`Mostrando ${visible} de ${rows.length} usuarios`;
+    if(badge instanceof HTMLElement)badge.textContent=`${visible} visible${visible===1?'':'s'}`;
+    if(empty instanceof HTMLElement)empty.hidden=visible!==0;
+  }
+
+  search?.addEventListener('input',applyFilters);
+  role?.addEventListener('change',applyFilters);
+  status?.addEventListener('change',applyFilters);
+  clear?.addEventListener('click',()=>{
+    if(search instanceof HTMLInputElement)search.value='';
+    if(role instanceof HTMLSelectElement)role.value='';
+    if(status instanceof HTMLSelectElement)status.value='';
+    applyFilters();
+    if(search instanceof HTMLInputElement)search.focus();
+  });
+
+  applyFilters();
+})();
