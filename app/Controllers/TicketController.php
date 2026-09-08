@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,View};
+use App\Services\MailService;
 use PDO;
 
 final class TicketController
@@ -145,6 +146,13 @@ final class TicketController
         });
 
         Audit::log('TICKET_CREATED','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['ticket_number'],'subject'=>$subject]);
+        $this->notifySupportPool(
+            'Nueva solicitud '.$ticket['ticket_number'].' | '.APP_NAME,
+            'Nueva solicitud disponible',
+            $ticket['ticket_number'].' · '.$subject."\nPrioridad: ".$priority,
+            (int)$ticket['id'],
+            (string)(Auth::user()['email'] ?? '')
+        );
         Flash::set('Solicitud '.$ticket['ticket_number'].' creada correctamente.','success');
         header('Location: '.APP_BASE_URL.'/tickets/view?id='.(int)$ticket['id']);
         exit;
@@ -162,7 +170,7 @@ final class TicketController
         $pdo = Database::pdo();
         $ticket = $this->findTicket($id);
         $this->assertVisible($ticket);
-        $u = $pdo->prepare("SELECT u.id,u.name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.active=1 AND u.account_status='ACTIVE' AND r.code IN('TECNICO','SUPERVISOR_IT','ADMINISTRADOR') LIMIT 1");
+        $u = $pdo->prepare("SELECT u.id,u.name,u.email FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.active=1 AND u.account_status='ACTIVE' AND r.code IN('TECNICO','SUPERVISOR_IT','ADMINISTRADOR') LIMIT 1");
         $u->execute([$assignedTo]);
         $assignee = $u->fetch();
         if (!$assignee) throw new \RuntimeException('El usuario seleccionado no puede recibir tickets.');
@@ -173,6 +181,13 @@ final class TicketController
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,actor_user_id,event_type,old_values,new_values,note,created_at) VALUES(?,?,?,?,?,?,NOW())")
             ->execute([$id,(int)Auth::id(),'ASSIGNED',json_encode(['assigned_to'=>$oldAssigned,'status'=>$ticket['status']]),json_encode(['assigned_to'=>$assignedTo,'status'=>$newStatus]),'Asignado a '.$assignee['name']]);
         Audit::log('TICKET_ASSIGNED','ticket',$id,['assigned_to'=>$oldAssigned],['assigned_to'=>$assignedTo]);
+
+        $detail = $this->ticketMailData($id);
+        $this->notifyEmail((string)$assignee['email'],'Solicitud '.$detail['ticket_number'].' asignada | '.APP_NAME,'Solicitud asignada','Se te asignó '.$detail['ticket_number'].' · '.$detail['subject'],$id);
+        if (!empty($detail['requester_email']) && strtolower((string)$detail['requester_email'])!==strtolower((string)$assignee['email'])) {
+            $this->notifyEmail((string)$detail['requester_email'],'Tu solicitud '.$detail['ticket_number'].' fue asignada | '.APP_NAME,'Solicitud asignada','Tu solicitud ahora está siendo atendida por '.$assignee['name'].'.',$id);
+        }
+
         Flash::set('Ticket asignado a '.$assignee['name'].'.','success');
         $this->redirectToTicket($id);
     }
@@ -203,6 +218,12 @@ final class TicketController
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,actor_user_id,event_type,old_values,new_values,note,created_at) VALUES(?,?,?,?,?,?,NOW())")
             ->execute([$id,(int)Auth::id(),'STATUS_CHANGED',json_encode(['status'=>$old]),json_encode(['status'=>$status]),'Cambio de estado']);
         Audit::log('TICKET_STATUS_CHANGED','ticket',$id,['status'=>$old],['status'=>$status]);
+
+        $detail = $this->ticketMailData($id);
+        if (!empty($detail['requester_email'])) {
+            $this->notifyEmail((string)$detail['requester_email'],'Actualización '.$detail['ticket_number'].' | '.APP_NAME,'Estado actualizado','Tu solicitud cambió de '.str_replace('_',' ',$old).' a '.str_replace('_',' ',$status).'.',$id);
+        }
+
         Flash::set('Estado actualizado a '.str_replace('_',' ',$status).'.','success');
         $this->redirectToTicket($id);
     }
@@ -231,6 +252,21 @@ final class TicketController
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,actor_user_id,event_type,new_values,note,created_at) VALUES(?,?,?,?,?,NOW())")
             ->execute([$id,(int)Auth::id(),'COMMENTED',json_encode(['visibility'=>$visibility]),$visibility==='INTERNAL'?'Nota interna agregada':'Respuesta pública agregada']);
         Audit::log('TICKET_COMMENTED','ticket',$id,null,['visibility'=>$visibility]);
+
+        if ($visibility==='PUBLIC') {
+            $detail = $this->ticketMailData($id);
+            $authorIsRequester = (int)$ticket['requester_id']===(int)Auth::id();
+            if ($authorIsRequester) {
+                if (!empty($detail['assigned_email'])) {
+                    $this->notifyEmail((string)$detail['assigned_email'],'Nueva respuesta '.$detail['ticket_number'].' | '.APP_NAME,'El solicitante respondió',$detail['ticket_number'].' · '.$detail['subject']."\n\n".$body,$id);
+                } else {
+                    $this->notifySupportPool('Nueva respuesta '.$detail['ticket_number'].' | '.APP_NAME,'El solicitante respondió',$detail['ticket_number'].' · '.$detail['subject']."\n\n".$body,$id,(string)$detail['requester_email']);
+                }
+            } elseif (!empty($detail['requester_email'])) {
+                $this->notifyEmail((string)$detail['requester_email'],'Nueva respuesta '.$detail['ticket_number'].' | '.APP_NAME,'Tienes una nueva respuesta',$detail['ticket_number'].' · '.$detail['subject']."\n\n".$body,$id);
+            }
+        }
+
         Flash::set($visibility==='INTERNAL'?'Nota interna agregada.':'Respuesta agregada.','success');
         $this->redirectToTicket($id);
     }
@@ -242,6 +278,53 @@ final class TicketController
         $ticket = $s->fetch();
         if (!$ticket) throw new \RuntimeException('Ticket no encontrado.');
         return $ticket;
+    }
+
+    private function ticketMailData(int $id): array
+    {
+        $s = Database::pdo()->prepare("SELECT t.id,t.ticket_number,t.subject,t.status,t.assigned_to,
+                                             ru.email requester_email,
+                                             au.email assigned_email
+                                      FROM tickets t
+                                      JOIN users ru ON ru.id=t.requester_id
+                                      LEFT JOIN users au ON au.id=t.assigned_to
+                                      WHERE t.id=? LIMIT 1");
+        $s->execute([$id]);
+        return $s->fetch() ?: [];
+    }
+
+    private function supportEmails(): array
+    {
+        $s = Database::pdo()->query("SELECT DISTINCT u.email
+                                     FROM users u
+                                     JOIN roles r ON r.id=u.role_id
+                                     WHERE u.deleted_at IS NULL
+                                       AND u.active=1
+                                       AND u.account_status='ACTIVE'
+                                       AND r.code IN('TECNICO','SUPERVISOR_IT','ADMINISTRADOR')
+                                       AND u.email IS NOT NULL
+                                       AND u.email<>''");
+        return array_values(array_unique(array_filter(array_map(static fn(array $r): string => strtolower(trim((string)$r['email'])),$s->fetchAll()))));
+    }
+
+    private function notifySupportPool(string $subject,string $title,string $message,int $ticketId,string $exclude=''): void
+    {
+        $exclude = strtolower(trim($exclude));
+        foreach ($this->supportEmails() as $email) {
+            if ($exclude!=='' && $email===$exclude) continue;
+            $this->notifyEmail($email,$subject,$title,$message,$ticketId);
+        }
+    }
+
+    private function notifyEmail(string $email,string $subject,string $title,string $message,int $ticketId): void
+    {
+        $email = trim($email);
+        if ($email==='' || !filter_var($email,FILTER_VALIDATE_EMAIL)) return;
+        try {
+            (new MailService())->sendTicketNotification($email,$subject,$title,$message,APP_BASE_URL.'/tickets/view?id='.$ticketId);
+        } catch (\Throwable $e) {
+            \App\Core\Logger::error($e);
+        }
     }
 
     private function assertVisible(array $ticket): void
