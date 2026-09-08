@@ -45,9 +45,11 @@ final class MailService
             return;
         }
 
-        require_once APP_ROOT.'/vendor/phpmailer/phpmailer/src/Exception.php';
-        require_once APP_ROOT.'/vendor/phpmailer/phpmailer/src/SMTP.php';
-        require_once APP_ROOT.'/vendor/phpmailer/phpmailer/src/PHPMailer.php';
+        $autoload = APP_ROOT.'/vendor/autoload.php';
+        if (!is_file($autoload)) {
+            throw new \RuntimeException('Faltan dependencias PHP. Ejecuta composer install en la carpeta del proyecto.');
+        }
+        require_once $autoload;
 
         $m=new \PHPMailer\PHPMailer\PHPMailer(true);
         try {
