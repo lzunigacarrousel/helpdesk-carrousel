@@ -11,8 +11,10 @@
 /* Shell */
 .app-shell{min-height:100vh}
 .sidebar{width:var(--shell-sidebar);transition:width .18s ease,transform .18s ease;overscroll-behavior:contain}
-.main-wrap{margin-left:var(--shell-sidebar);width:calc(100% - var(--shell-sidebar));transition:margin-left .18s ease,width .18s ease}
+.main-wrap{margin-left:var(--shell-sidebar);width:calc(100% - var(--shell-sidebar));min-height:100vh;display:flex;flex-direction:column;transition:margin-left .18s ease,width .18s ease}
 .topbar{min-height:var(--shell-topbar);height:auto;gap:18px;padding:9px 18px;box-shadow:0 1px 0 rgba(16,24,40,.03)}
+.content{flex:1 0 auto;width:100%;display:flex;flex-direction:column;min-height:calc(100vh - var(--shell-topbar))}
+.content>*:not(.app-corporate-footer){flex:0 0 auto}
 .topbar-left{min-width:0;gap:12px}.topbar-title{min-width:0}.topbar-title span,.topbar-title strong{display:block}.topbar-section{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:800}.topbar-page{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
 .topbar-user{margin-left:auto;gap:8px}.topbar-user .btn{flex:0 0 auto}.topbar-user form{margin:0}.user-summary{min-width:0;max-width:320px;padding:0 6px}.user-summary strong,.user-summary .small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-summary strong{font-size:14px}.user-summary .small{font-size:11px}
 
@@ -32,9 +34,8 @@ body.sidebar-collapsed .side-link{justify-content:center;padding:10px;margin-inl
 body.sidebar-collapsed .side-link .side-label{display:none}
 body.sidebar-collapsed .side-icon{width:28px}
 
-/* Estado de conexión */
-.connection-indicator{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:750;color:var(--success);background:var(--success-bg);border:1px solid color-mix(in srgb,var(--success) 28%,var(--border) 72%);white-space:nowrap}
-.connection-indicator:before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}.connection-indicator.offline{color:var(--warning);background:var(--warning-bg)}
+/* Estado de conexión: la interfaz no muestra un indicador permanente */
+.connection-indicator{display:none!important}
 
 /* Notificaciones / atención */
 .shell-notifications{position:relative}.shell-icon-btn{position:relative;min-width:40px;width:40px;height:40px;padding:0;border-radius:10px}.shell-notification-badge{position:absolute;right:-5px;top:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#d92d20;color:#fff;border:2px solid var(--card);font-size:10px;line-height:15px;font-weight:850;display:grid;place-items:center}
@@ -49,10 +50,10 @@ body.sidebar-collapsed .side-icon{width:28px}
 /* Toasts para avisos JS, no reemplazan mensajes del servidor */
 .app-toast-container{position:fixed;right:18px;top:86px;z-index:4800;display:grid;gap:8px;width:min(360px,calc(100vw - 36px));pointer-events:none}.app-toast{pointer-events:auto;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:11px;box-shadow:var(--shadow-lg);padding:11px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start}.app-toast.success{border-left-color:var(--success)}.app-toast.warning{border-left-color:#f2a900}.app-toast.danger{border-left-color:#d92d20}.app-toast-message{font-size:13px;line-height:1.45}.app-toast-close{border:0;background:transparent;color:var(--muted);font-size:19px;line-height:1;cursor:pointer}
 
-/* Footer más compacto y consistente */
-.app-corporate-footer{min-height:58px;margin-top:32px;padding:15px 2px}.app-footer-actions{display:flex;align-items:center;gap:8px}.app-footer-chip{color:var(--muted);text-decoration:none}.app-footer-chip:hover{color:var(--brand)}
+/* Footer siempre al final real del contenido / viewport */
+.app-corporate-footer{min-height:58px;margin-top:auto!important;padding:18px 2px 12px;border-top:1px solid var(--border)}.app-footer-actions{display:flex;align-items:center;gap:8px}.app-footer-chip{color:var(--muted);text-decoration:none}.app-footer-chip:hover{color:var(--brand)}
 
-@media(max-width:1180px){.connection-indicator{display:none}.user-summary{max-width:240px}}
+@media(max-width:1180px){.user-summary{max-width:240px}}
 @media(max-width:900px){.topbar-page{max-width:220px}.user-summary{display:none}}
 @media(max-width:760px){
   :root{--shell-topbar:62px}
