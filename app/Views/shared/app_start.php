@@ -33,7 +33,7 @@ try{
         if($available>0)$attentionItems[]=['label'=>'Casos por atender','detail'=>'Solicitudes disponibles en la cola de soporte.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue'];
 
         if($canManagement){
-            $overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND t.status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();
+            $overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();
             if($overdue>0)$attentionItems[]=['label'=>'Casos fuera de tiempo','detail'=>'Solicitudes que requieren revisión prioritaria.','count'=>$overdue,'href'=>APP_BASE_URL.'/gestion'];
         }
     }else{
