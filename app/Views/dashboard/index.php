@@ -21,7 +21,7 @@
     <a class="side-link active" href="<?= APP_BASE_URL ?>/dashboard"><span class="side-icon">⌂</span>Dashboard</a>
     <div class="nav-section">Soporte</div>
     <a class="side-link" href="<?= APP_BASE_URL ?>/tickets"><span class="side-icon">▤</span>Mis tickets</a>
-    <?php if(Auth::can('tickets.view_queue')): ?><a class="side-link" href="<?= APP_BASE_URL ?>/tickets?view=queue"><span class="side-icon">◎</span>Cola de soporte</a><?php endif; ?>
+    <?php if(Auth::can('tickets.view_queue')): ?><a class="side-link" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span>Cola de soporte</a><?php endif; ?>
     <?php if($isAdmin||Auth::can('users.manage')): ?><div class="nav-section">Administración</div><a class="side-link" href="<?= APP_BASE_URL ?>/admin/users"><span class="side-icon">♟</span>Usuarios</a><?php endif; ?>
   </nav>
 </aside>
@@ -33,15 +33,12 @@
 <main class="content">
   <div class="page-heading"><div><h1 class="page-title">Dashboard</h1><p class="page-subtitle">Centro de trabajo de Helpdesk Carrousel.</p></div></div>
   <?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-
   <section class="card hero-card"><div class="card-body"><h2>Hola, <?= htmlspecialchars($user['full_name']) ?></h2><p class="subtle" style="margin:0"><?= $isAdmin?'Tienes control administrativo del Helpdesk Carrousel.':'Tu acceso está limitado por rol y alcance.' ?></p><div class="hero-meta"><span class="badge badge-primary"><?= htmlspecialchars($user['role_name']) ?></span><?php if($user['status']==='PENDING'): ?><span class="badge badge-warning">Pendiente de asignación</span><?php else: ?><span class="badge badge-success">Acceso activo</span><?php endif; ?></div></div></section>
-
   <div class="grid grid-3">
     <section class="card stat"><span class="stat-label">Organización</span><b style="font-size:21px"><?= htmlspecialchars($assignment['park_name']??($isAdmin?'Administración global':'Sin parque asignado')) ?></b><div class="stat-note"><?= htmlspecialchars($assignment['area_name']??'') ?><?= !empty($assignment['manager_name'])?' · Responsable: '.htmlspecialchars($assignment['manager_name']):'' ?></div></section>
     <section class="card stat"><span class="stat-label">Tickets abiertos</span><b style="font-size:21px"><?= (int)($ticketStats['open_count']??0) ?></b><div class="stat-note">Solicitudes asociadas a tu correo.</div></section>
     <section class="card stat"><span class="stat-label">Histórico</span><b style="font-size:21px"><?= (int)($ticketStats['total']??0) ?></b><div class="stat-note">Resueltos: <?= (int)($ticketStats['resolved_count']??0) ?> · Cerrados: <?= (int)($ticketStats['closed_count']??0) ?></div></section>
   </div>
-
   <footer class="app-corporate-footer"><div>© <?= date('Y') ?> <strong>Carrousel Guatemala ✨🎠</strong> · Desarrollado por <strong>Luis Fernando Zuniga</strong></div><div class="no-print">Helpdesk Carrousel</div></footer>
 </main>
 </div>
