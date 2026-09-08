@@ -12,36 +12,74 @@ $statusLabels=['PENDING'=>'Pendiente de validar','ACTIVE'=>'Activo','BLOCKED'=>'
   <div><strong>Asignación organizacional</strong><span>Parque/área, puesto y responsable. Son conceptos separados.</span></div>
 </section>
 
-<div class="admin-user-toolbar"><input class="form-control" id="userSearch" placeholder="Buscar por nombre o correo" autocomplete="off"><span class="muted"><?= count($users) ?> usuarios</span></div>
-
-<section class="admin-user-list" id="userList">
-<?php foreach($users as $u):
-  $assignmentText=$u['park_name']??$u['area_name']??'Sin ubicación definida';
-?>
-<article class="admin-user-card" data-user-search="<?= htmlspecialchars(strtolower($u['full_name'].' '.$u['email'].' '.$assignmentText)) ?>">
-  <div class="admin-user-summary">
-    <div class="admin-user-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['full_name'],0,1))) ?></div>
-    <div class="admin-user-main"><h2><?= htmlspecialchars($u['full_name']) ?></h2><p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p><div class="admin-user-badges"><span class="badge badge-primary"><?= htmlspecialchars($u['role_name']) ?></span><span class="badge <?= $u['status']==='ACTIVE'?'badge-success':($u['status']==='PENDING'?'badge-warning':'badge-secondary') ?>"><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span></div></div>
-    <div class="admin-user-org"><strong><?= htmlspecialchars($assignmentText) ?></strong><span><?= htmlspecialchars($u['position_name']??'Puesto pendiente') ?></span><small><?= !empty($u['manager_name'])?'Responsable: '.htmlspecialchars($u['manager_name']):'Responsable pendiente de validar' ?></small></div>
+<section class="admin-users-shell" data-users-admin>
+  <div class="admin-user-toolbar">
+    <label class="admin-user-search-field">
+      <span class="form-label">Buscar usuario</span>
+      <input class="form-control" type="search" placeholder="Nombre, correo, parque, área, puesto o responsable…" autocomplete="off" data-users-search>
+    </label>
+    <label>
+      <span class="form-label">Rol</span>
+      <select class="form-control" data-users-role-filter>
+        <option value="">Todos los roles</option>
+        <?php foreach($roles as $r): ?><option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <label>
+      <span class="form-label">Estado</span>
+      <select class="form-control" data-users-status-filter>
+        <option value="">Todos los estados</option>
+        <?php foreach($statusLabels as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <button class="btn btn-outline-secondary admin-users-clear" type="button" data-users-clear>Limpiar</button>
   </div>
 
-  <details class="admin-user-edit"><summary>Editar usuario y asignación</summary>
-  <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form">
-    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-    <div><label class="form-label">Rol en Helpdesk</label><select class="form-control" name="role_id" required><?php foreach($roles as $r): ?><option value="<?= (int)$r['id'] ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
-    <div><label class="form-label">Tipo de ubicación</label><select class="form-control assignment-type" name="assignment_type" required><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>Parque / ubicación</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>Área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
-    <div><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">No aplica</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-    <div><label class="form-label">Área</label><select class="form-control" name="area_id"><option value="">No aplica</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-    <div><label class="form-label">Región</label><select class="form-control" name="region_id"><option value="">Automática / no aplica</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-    <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-    <div class="admin-manager-field"><label class="form-label">Responsable directo</label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
-    <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
-  </form></details>
-</article>
-<?php endforeach; ?>
+  <div class="admin-users-summary">
+    <span data-users-summary>Mostrando <?= count($users) ?> de <?= count($users) ?> usuarios</span>
+    <strong data-users-count><?= count($users) ?> usuarios</strong>
+  </div>
+
+  <section class="admin-user-list" data-users-list>
+  <?php foreach($users as $u):
+    $assignmentText=$u['park_name']??$u['area_name']??'Sin ubicación definida';
+    $searchText=implode(' ',array_filter([
+      $u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'',
+      $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'',
+      $u['area_name']??'', $u['position_name']??'', $u['manager_name']??''
+    ]));
+  ?>
+  <article class="admin-user-card"
+           data-user-row
+           data-user-search="<?= htmlspecialchars($searchText) ?>"
+           data-user-role="<?= htmlspecialchars($u['role_name']) ?>"
+           data-user-status="<?= htmlspecialchars($u['status']) ?>">
+    <div class="admin-user-summary">
+      <div class="admin-user-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['full_name'],0,1))) ?></div>
+      <div class="admin-user-main"><h2><?= htmlspecialchars($u['full_name']) ?></h2><p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p><div class="admin-user-badges"><span class="badge badge-primary"><?= htmlspecialchars($u['role_name']) ?></span><span class="badge <?= $u['status']==='ACTIVE'?'badge-success':($u['status']==='PENDING'?'badge-warning':'badge-secondary') ?>"><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span></div></div>
+      <div class="admin-user-org"><strong><?= htmlspecialchars($assignmentText) ?></strong><span><?= htmlspecialchars($u['position_name']??'Puesto pendiente') ?></span><small><?= !empty($u['manager_name'])?'Responsable: '.htmlspecialchars($u['manager_name']):'Responsable pendiente de validar' ?></small></div>
+    </div>
+
+    <details class="admin-user-edit"><summary>Editar usuario y asignación</summary>
+    <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form">
+      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+      <div><label class="form-label">Rol en Helpdesk</label><select class="form-control" name="role_id" required><?php foreach($roles as $r): ?><option value="<?= (int)$r['id'] ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
+      <div><label class="form-label">Tipo de ubicación</label><select class="form-control assignment-type" name="assignment_type" required><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>Parque / ubicación</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>Área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
+      <div><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">No aplica</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+      <div><label class="form-label">Área</label><select class="form-control" name="area_id"><option value="">No aplica</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+      <div><label class="form-label">Región</label><select class="form-control" name="region_id"><option value="">Automática / no aplica</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+      <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+      <div class="admin-manager-field"><label class="form-label">Responsable directo</label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
+      <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
+    </form></details>
+  </article>
+  <?php endforeach; ?>
+  </section>
+
+  <div class="admin-users-empty" data-users-empty hidden>
+    <strong>No encontramos usuarios con esos filtros.</strong>
+    <span>Prueba con otro nombre, correo, ubicación, rol o estado.</span>
+  </div>
 </section>
 
-<script>
-(()=>{const q=document.getElementById('userSearch');if(q)q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll('.admin-user-card').forEach(c=>c.hidden=v&&!c.dataset.userSearch.includes(v));});})();
-</script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
