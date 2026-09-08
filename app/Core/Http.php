@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace App\Core;final class Http{public static function ip():string{return substr((string)($_SERVER['REMOTE_ADDR']??'0.0.0.0'),0,45);}public static function userAgent():string{return substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,500);}public static function device():string{$ua=strtolower(self::userAgent());return str_contains($ua,'mobile')?'Móvil':'Escritorio';}public static function post(string $k,string $d=''):string{return trim((string)($_POST[$k]??$d));}}

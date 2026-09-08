@@ -1,0 +1,32 @@
+/config/local.php
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/attachments/*
+!/storage/attachments/.gitkeep
+/storage/exports/*
+!/storage/exports/.gitkeep
+*.sql.gz
+*.zip
+*.bak
+*.log
+.env
+.env.*
+
+# Dependencias regenerables
+/vendor/
+/node_modules/
+
+# Runtime
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/sessions/*
+!/storage/sessions/.gitkeep
+/storage/temp/*
+!/storage/temp/.gitkeep
+
+# Datos y respaldos locales
+/backups/
+/tmp/
+*.dump
+*.backup
+*.old

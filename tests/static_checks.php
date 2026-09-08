@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);$root=dirname(__DIR__);$required=['bootstrap.php','config/config.php','config/local.php.example','database/INSTALAR_FASE1.sql','app/Services/AuthService.php','app/Services/ScopeService.php','app/Core/Auth.php','public/index.php','HELPDESK_ADMIN.bat'];$ok=true;foreach($required as $f){$exists=is_file($root.'/'.$f);echo ($exists?'[OK] ':'[FALTA] ').$f.PHP_EOL;$ok=$ok&&$exists;}exit($ok?0:1);

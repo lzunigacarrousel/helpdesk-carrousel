@@ -1,0 +1,9 @@
+-- DISEÑO PREPARADO, NO EJECUTAR EN FASE 1.
+-- Este archivo documenta el núcleo que seguirá en Fase 2 para asegurar memoria operativa.
+-- tickets: solicitud original + contexto del solicitante
+-- ticket_events: línea de tiempo inmutable (creación/asignación/estado/prioridad/resolución/reapertura)
+-- ticket_comments: respuesta pública vs nota interna
+-- ticket_resolutions: diagnóstico, causa, acciones realizadas, solución final y recomendaciones
+-- ticket_relations: duplicado/relacionado/causado_por/problema_padre/incidente_masivo
+-- knowledge_articles: soluciones conocidas reutilizables
+-- search_terms/índices: número, asunto, descripción, solicitante, correo, parque, categoría, activo y texto de solución

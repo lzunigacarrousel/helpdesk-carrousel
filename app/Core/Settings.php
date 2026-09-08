@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace App\Core;final class Settings{public static function get(string $key,mixed $default=null):mixed{try{$s=Database::pdo()->prepare('SELECT setting_value,value_type FROM settings WHERE setting_key=? LIMIT 1');$s->execute([$key]);$r=$s->fetch();if(!$r)return $default;return match($r['value_type']){'int'=>(int)$r['setting_value'],'bool'=>in_array(strtolower((string)$r['setting_value']),['1','true','yes'],true),default=>$r['setting_value']};}catch(\Throwable){return $default;}}}

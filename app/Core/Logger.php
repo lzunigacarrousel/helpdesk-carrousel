@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace App\Core;final class Logger{private static ?string $rid=null;public static function requestId():string{return self::$rid??=bin2hex(random_bytes(6));}public static function error(\Throwable $e):void{$line='['.date('c').'] ['.self::requestId().'] '.$e::class.': '.$e->getMessage().PHP_EOL;@file_put_contents(STORAGE_PATH.'/logs/app.log',$line,FILE_APPEND|LOCK_EX);}}

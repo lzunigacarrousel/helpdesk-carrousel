@@ -1,0 +1,2 @@
+<?php
+declare(strict_types=1);namespace App\Core;final class Csrf{public static function token():string{if(empty($_SESSION['csrf']))$_SESSION['csrf']=bin2hex(random_bytes(32));return (string)$_SESSION['csrf'];}public static function verify(?string $v):void{if(!$v||!hash_equals(self::token(),$v))throw new \RuntimeException('Solicitud inválida (CSRF).');}public static function rotate():void{$_SESSION['csrf']=bin2hex(random_bytes(32));}}
