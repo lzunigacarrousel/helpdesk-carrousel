@@ -73,10 +73,10 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           <?php if($canComment||$canUpload): ?>
           <div class="external-quick-actions" aria-label="Tipos de actualización rápida">
             <?php if($canComment): ?>
-            <button type="button" class="external-quick-btn" data-external-template="Avance del caso:\n">Enviar avance</button>
-            <button type="button" class="external-quick-btn" data-external-template="Necesito información adicional:\n">Solicitar información</button>
-            <button type="button" class="external-quick-btn is-success" data-external-template="Trabajo realizado / listo para revisión:\n">Trabajo realizado</button>
-            <button type="button" class="external-quick-btn" data-external-template="Observación importante:\n">Agregar observación</button>
+            <button type="button" class="external-quick-btn" data-external-template="Avance del caso:">Enviar avance</button>
+            <button type="button" class="external-quick-btn" data-external-template="Necesito información adicional:">Solicitar información</button>
+            <button type="button" class="external-quick-btn is-success" data-external-template="Trabajo realizado / listo para revisión:">Trabajo realizado</button>
+            <button type="button" class="external-quick-btn" data-external-template="Observación importante:">Agregar observación</button>
             <?php endif; ?>
           </div>
 
@@ -164,12 +164,12 @@ document.querySelectorAll('[data-external-template]').forEach(function(button){
   button.addEventListener('click',function(){
     const field=document.querySelector('[data-external-message]');
     if(!field)return;
-    const template=button.getAttribute('data-external-template')||'';
-    if(!field.value.trim())field.value=template;
-    else if(!field.value.startsWith(template))field.value=template+field.value;
+    const template=(button.getAttribute('data-external-template')||'').trim();
+    const prefix=template+'\n';
+    if(!field.value.trim())field.value=prefix;
+    else if(!field.value.startsWith(template))field.value=prefix+field.value;
     field.focus();
     field.setSelectionRange(field.value.length,field.value.length);
-    document.getElementById('responder')?.scrollIntoView({behavior:'smooth',block:'start'});
   });
 });
 </script>
