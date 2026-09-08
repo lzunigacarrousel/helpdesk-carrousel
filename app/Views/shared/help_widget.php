@@ -29,6 +29,10 @@ $help = [
         'title' => 'Usuarios y estructura',
         'steps' => ['El rol define los permisos dentro del Helpdesk.', 'La asignación define parque o área, puesto y responsable.', 'Un supervisor o gerente operativo no necesita ser técnico del Helpdesk.'],
     ],
+    'audit' => [
+        'title' => 'Auditoría y trazabilidad',
+        'steps' => ['Filtra por persona, acción, origen o fecha.', 'Abre el detalle para comparar valores anteriores y nuevos.', 'Usa este registro para investigar cambios, accesos y movimientos de tickets.'],
+    ],
     'general' => [
         'title' => 'Ayuda de Helpdesk Carrousel',
         'steps' => ['Reporta o consulta solicitudes desde esta aplicación.', 'Los botones principales cambian según tu perfil.', 'Si tienes dudas, contacta al equipo de Sistemas.'],
