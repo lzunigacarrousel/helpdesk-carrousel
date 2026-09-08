@@ -25,6 +25,10 @@ $help = [
         'title' => 'Seguimiento del caso',
         'steps' => ['Arriba verás el estado actual.', 'En el centro aparece la información principal.', 'El historial muestra los movimientos del caso.'],
     ],
+    'users' => [
+        'title' => 'Usuarios y estructura',
+        'steps' => ['El rol define los permisos dentro del Helpdesk.', 'La asignación define parque o área, puesto y responsable.', 'Un supervisor o gerente operativo no necesita ser técnico del Helpdesk.'],
+    ],
     'general' => [
         'title' => 'Ayuda de Helpdesk Carrousel',
         'steps' => ['Reporta o consulta solicitudes desde esta aplicación.', 'Los botones principales cambian según tu perfil.', 'Si tienes dudas, contacta al equipo de Sistemas.'],
