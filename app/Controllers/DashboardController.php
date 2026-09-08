@@ -11,6 +11,8 @@ final class DashboardController
         Auth::requireLogin();
         $pdo = Database::pdo();
         $user = Auth::user();
+        $uid = (int)Auth::id();
+        $isSupport = Auth::can('tickets.view_queue') || Auth::can('tickets.change_status') || Auth::can('tickets.view_all');
 
         $stmt = $pdo->prepare(
             "SELECT ua.*,p.name park_name,a.name area_name,m.full_name manager_name
@@ -21,25 +23,43 @@ final class DashboardController
              WHERE ua.user_id=? AND ua.status='ACTIVE' AND ua.ends_at IS NULL
              ORDER BY ua.id DESC LIMIT 1"
         );
-        $stmt->execute([Auth::id()]);
+        $stmt->execute([$uid]);
         $assignment = $stmt->fetch() ?: null;
 
         $own = $pdo->prepare(
-            "SELECT
-                COUNT(*) total,
-                SUM(status IN ('NEW','AVAILABLE','IN_PROGRESS','PENDING','REOPENED')) open_count,
-                SUM(status='RESOLVED') resolved_count,
-                SUM(status='CLOSED') closed_count
+            "SELECT COUNT(*) total,
+                    SUM(status IN ('NEW','AVAILABLE','IN_PROGRESS','PENDING','REOPENED')) open_count,
+                    SUM(status='RESOLVED') resolved_count,
+                    SUM(status='CLOSED') closed_count
              FROM tickets
              WHERE deleted_at IS NULL AND LOWER(requester_email)=LOWER(?)"
         );
         $own->execute([(string)$user['email']]);
         $ticketStats = $own->fetch() ?: ['total'=>0,'open_count'=>0,'resolved_count'=>0,'closed_count'=>0];
 
+        $recent = $pdo->prepare(
+            "SELECT id,ticket_number,subject,status,created_at
+             FROM tickets
+             WHERE deleted_at IS NULL AND LOWER(requester_email)=LOWER(?)
+             ORDER BY created_at DESC LIMIT 4"
+        );
+        $recent->execute([(string)$user['email']]);
+        $recentTickets = $recent->fetchAll();
+
+        $supportStats = ['mine'=>0,'available'=>0];
+        if ($isSupport) {
+            $mine = $pdo->prepare("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND assigned_to=? AND status IN('IN_PROGRESS','PENDING','REOPENED')");
+            $mine->execute([$uid]);
+            $supportStats['mine'] = (int)$mine->fetchColumn();
+            $supportStats['available'] = (int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED')")->fetchColumn();
+        }
+
         View::render('dashboard/index', [
             'user' => $user,
             'assignment' => $assignment,
             'ticketStats' => $ticketStats,
+            'recentTickets' => $recentTickets,
+            'supportStats' => $supportStats,
             'flash' => Flash::pull(),
         ]);
     }
