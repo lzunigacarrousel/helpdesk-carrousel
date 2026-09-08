@@ -37,13 +37,13 @@ final class ExternalController
         Auth::requirePermission('external.manage');Csrf::verify($_POST['_csrf']??null);
         $email=strtolower(trim(Http::post('email')));$name=trim(Http::post('name'));$phone=trim(Http::post('phone'));
         $organization=trim(Http::post('organization_name'));$type=strtoupper(trim(Http::post('external_type')));$notes=trim(Http::post('notes'));
-        if(!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \RuntimeException('Correo externo no válido.');
+        if(!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \RuntimeException('Ingresa un correo válido.');
         if(mb_strlen($name)<3)throw new \RuntimeException('Ingresa el nombre del contacto.');
         if(mb_strlen($organization)<2)throw new \RuntimeException('Ingresa el proveedor u organización.');
         if(!in_array($type,['PROVIDER','PARTNER','OTHER'],true))$type='PROVIDER';
         $pdo=Database::pdo();
         $exists=$pdo->prepare('SELECT id FROM users WHERE LOWER(email)=? AND deleted_at IS NULL LIMIT 1');$exists->execute([$email]);if($exists->fetchColumn())throw new \RuntimeException('Ese correo ya existe en Helpdesk.');
-        $roleId=(int)$pdo->query("SELECT id FROM roles WHERE code='EXTERNAL' AND is_active=1 LIMIT 1")->fetchColumn();if($roleId<=0)throw new \RuntimeException('No existe el rol Externo.');
+        $roleId=(int)$pdo->query("SELECT id FROM roles WHERE code='EXTERNAL' AND is_active=1 LIMIT 1")->fetchColumn();if($roleId<=0)throw new \RuntimeException('No fue posible habilitar este acceso.');
         $uid=Database::transaction(function(PDO $pdo)use($roleId,$email,$name,$phone,$organization,$type,$notes):int{
             $q=$pdo->prepare("INSERT INTO users(role_id,access_type,email,full_name,phone,status,created_at,updated_at) VALUES(?,'EXTERNAL',?,?,?,'ACTIVE',NOW(),NOW())");
             $q->execute([$roleId,$email,$name,$phone?:null]);$uid=(int)$pdo->lastInsertId();
@@ -52,8 +52,16 @@ final class ExternalController
             return $uid;
         });
         Audit::log('EXTERNAL_USER_CREATED','user',$uid,null,['email'=>$email,'organization_name'=>$organization,'external_type'=>$type]);
-        try{(new MailService())->sendTicketNotification($email,'Acceso a Helpdesk Carrousel','Tu acceso fue creado','Hola '.$name.'. Se creó tu acceso externo a Helpdesk Carrousel. Cuando tengas un caso asignado podrás verlo ingresando con este correo y un código OTP.',APP_BASE_URL.'/login');}catch(\Throwable $e){}
-        Flash::set('Usuario externo creado.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        try{
+            (new MailService())->sendTicketNotification(
+                $email,
+                'Tu acceso a Helpdesk Carrousel está listo',
+                'Acceso habilitado',
+                'Hola '.$name.'.'.PHP_EOL.PHP_EOL.'Carrousel habilitó tu acceso para consultar los casos en los que necesitemos tu apoyo. Para ingresar usa este correo; recibirás un código de acceso por correo cada vez que inicies sesión.'.PHP_EOL.PHP_EOL.'Solo podrás ver los casos que Carrousel comparta contigo.',
+                APP_BASE_URL.'/login'
+            );
+        }catch(\Throwable $e){}
+        Flash::set('Usuario externo creado y notificado por correo.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function grant(): void
@@ -61,10 +69,10 @@ final class ExternalController
         Auth::requirePermission('external.manage');Csrf::verify($_POST['_csrf']??null);
         $ticketId=(int)Http::post('ticket_id');$userId=(int)Http::post('user_id');
         $canComment=Http::post('can_comment','0')==='1'?1:0;$canUpload=Http::post('can_upload','0')==='1'?1:0;
-        if($ticketId<=0||$userId<=0)throw new \RuntimeException('Selecciona ticket y usuario externo.');
+        if($ticketId<=0||$userId<=0)throw new \RuntimeException('Selecciona el caso y el proveedor.');
         $pdo=Database::pdo();
-        $u=$pdo->prepare("SELECT u.id,u.email,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.access_type='EXTERNAL' AND r.code='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL LIMIT 1");$u->execute([$userId]);$external=$u->fetch();if(!$external)throw new \RuntimeException('Usuario externo no disponible.');
-        $t=$pdo->prepare('SELECT id,ticket_number,subject FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$t->execute([$ticketId]);$ticket=$t->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');
+        $u=$pdo->prepare("SELECT u.id,u.email,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.access_type='EXTERNAL' AND r.code='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL LIMIT 1");$u->execute([$userId]);$external=$u->fetch();if(!$external)throw new \RuntimeException('Ese usuario no está disponible.');
+        $t=$pdo->prepare('SELECT id,ticket_number,subject FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$t->execute([$ticketId]);$ticket=$t->fetch();if(!$ticket)throw new \RuntimeException('No encontramos ese caso.');
         Database::transaction(function(PDO $pdo)use($ticketId,$userId,$canComment,$canUpload):void{
             $pdo->prepare("UPDATE tickets SET case_type='SPECIAL',visibility_mode='EXTERNAL_ALLOWED',updated_at=NOW() WHERE id=?")->execute([$ticketId]);
             $pdo->prepare("INSERT INTO external_ticket_access(ticket_id,user_id,can_comment,can_upload,granted_by,granted_at,revoked_at)
@@ -72,17 +80,39 @@ final class ExternalController
                 ->execute([$ticketId,$userId,$canComment,$canUpload,Auth::id()]);
         });
         Audit::log('EXTERNAL_TICKET_GRANTED','ticket',$ticketId,null,['external_user_id'=>$userId,'can_comment'=>$canComment,'can_upload'=>$canUpload]);
-        try{(new MailService())->sendTicketNotification((string)$external['email'],'Caso asignado · '.$ticket['ticket_number'],'Tienes un caso asignado','Se te habilitó acceso al caso '.$ticket['ticket_number'].': '.$ticket['subject'].'. Solo podrás consultar los casos que Carrousel te asigne.',APP_BASE_URL.'/tickets/view?id='.$ticketId);}catch(\Throwable $e){}
-        Flash::set('Caso compartido con el usuario externo.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        try{
+            (new MailService())->sendTicketNotification(
+                (string)$external['email'],
+                'Carrousel compartió un caso contigo · '.$ticket['ticket_number'],
+                'Tienes un caso para revisar',
+                'Hola '.$external['full_name'].'.'.PHP_EOL.PHP_EOL.'Carrousel compartió contigo el caso '.$ticket['ticket_number'].': '.$ticket['subject'].'.'.PHP_EOL.PHP_EOL.'Ingresa para consultar la información y el seguimiento. Solo verás los casos que estén habilitados para tu cuenta.',
+                APP_BASE_URL.'/tickets/view?id='.$ticketId
+            );
+        }catch(\Throwable $e){}
+        Flash::set('Caso compartido y proveedor notificado por correo.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function revoke(): void
     {
         Auth::requirePermission('external.manage');Csrf::verify($_POST['_csrf']??null);
-        $ticketId=(int)Http::post('ticket_id');$userId=(int)Http::post('user_id');if($ticketId<=0||$userId<=0)throw new \RuntimeException('Datos no válidos.');
-        $pdo=Database::pdo();$pdo->prepare('UPDATE external_ticket_access SET revoked_at=NOW() WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL')->execute([$ticketId,$userId]);
+        $ticketId=(int)Http::post('ticket_id');$userId=(int)Http::post('user_id');if($ticketId<=0||$userId<=0)throw new \RuntimeException('No fue posible completar la acción.');
+        $pdo=Database::pdo();
+        $info=$pdo->prepare("SELECT u.email,u.full_name,t.ticket_number,t.subject FROM external_ticket_access eta JOIN users u ON u.id=eta.user_id JOIN tickets t ON t.id=eta.ticket_id WHERE eta.ticket_id=? AND eta.user_id=? AND eta.revoked_at IS NULL LIMIT 1");
+        $info->execute([$ticketId,$userId]);$current=$info->fetch();
+        $pdo->prepare('UPDATE external_ticket_access SET revoked_at=NOW() WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL')->execute([$ticketId,$userId]);
         $left=$pdo->prepare('SELECT COUNT(*) FROM external_ticket_access WHERE ticket_id=? AND revoked_at IS NULL');$left->execute([$ticketId]);if((int)$left->fetchColumn()===0)$pdo->prepare("UPDATE tickets SET visibility_mode='INTERNAL',updated_at=NOW() WHERE id=?")->execute([$ticketId]);
         Audit::log('EXTERNAL_TICKET_REVOKED','ticket',$ticketId,['external_user_id'=>$userId],null);
-        Flash::set('Acceso externo revocado.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        if($current&&filter_var((string)$current['email'],FILTER_VALIDATE_EMAIL)){
+            try{
+                (new MailService())->sendTicketNotification(
+                    (string)$current['email'],
+                    'Actualización de acceso · '.$current['ticket_number'],
+                    'Tu participación en este caso finalizó',
+                    'Hola '.$current['full_name'].'.'.PHP_EOL.PHP_EOL.'Ya no necesitas dar seguimiento al caso '.$current['ticket_number'].': '.$current['subject'].'. El caso dejó de estar disponible en tu cuenta.',
+                    APP_BASE_URL.'/mis-tickets'
+                );
+            }catch(\Throwable $e){}
+        }
+        Flash::set('Acceso retirado y proveedor notificado por correo.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 }
