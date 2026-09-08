@@ -46,7 +46,7 @@ try{
 }catch(Throwable){
     $attentionItems=[];$attentionCount=0;
 }
-$assetVersion='20260908-1725';
+$assetVersion='20260908-1745';
 ?>
 <!doctype html>
 <html lang="es">
