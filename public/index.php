@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,ManagementController,ExternalController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -28,8 +28,15 @@ $routes=[
     ['POST','/tickets/assign',[TicketController::class,'assign']],
     ['POST','/tickets/release',[TicketController::class,'release']],
     ['POST','/tickets/status',[TicketController::class,'changeStatus']],
+    ['GET','/gestion',[ManagementController::class,'dashboard']],
+    ['GET','/gestion/informes',[ManagementController::class,'reports']],
+    ['GET','/gestion/informes/exportar',[ManagementController::class,'export']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
+    ['GET','/admin/externos',[ExternalController::class,'index']],
+    ['POST','/admin/externos/crear',[ExternalController::class,'createUser']],
+    ['POST','/admin/externos/asignar',[ExternalController::class,'grant']],
+    ['POST','/admin/externos/revocar',[ExternalController::class,'revoke']],
     ['GET','/admin/audit',[AuditController::class,'index']],
 ];
 foreach($routes as [$m,$p,$h]){
