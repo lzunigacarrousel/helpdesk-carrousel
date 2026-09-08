@@ -86,11 +86,14 @@ final class Auth
     public static function requirePermission(string $permission): void
     {
         self::requireLogin();
-        if (!self::can($permission)) {
-            http_response_code(403);
-            echo '403 - Sin permiso';
-            exit;
-        }
+        if (self::can($permission)) return;
+
+        // Nunca dejar al usuario en una pantalla 403 sin salida.
+        // Los enlaces de navegación ya se ocultan por rol, pero una URL directa,
+        // favorito antiguo o enlace compartido debe regresar al flujo permitido.
+        Flash::set('Esa sección es solo para el equipo autorizado. Te llevamos a tu inicio.', 'info');
+        header('Location: '.APP_BASE_URL.'/dashboard');
+        exit;
     }
 
     private static function fetch(int $id): ?array
