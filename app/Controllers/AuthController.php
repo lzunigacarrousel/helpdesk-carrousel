@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\Controllers;
 
-use App\Core\{Auth,Csrf,Flash,Http,View};
+use App\Core\{Auth,Csrf,Database,Flash,Http,View};
 use App\Services\{AuthService,SessionService};
 
 final class AuthController
@@ -42,7 +42,19 @@ final class AuthController
         if (Auth::check()) { header('Location: '.APP_BASE_URL.'/dashboard'); exit; }
         $email = (string)($_SESSION['register_email'] ?? $_SESSION['login_email'] ?? '');
         if ($email === '') { header('Location: '.APP_BASE_URL.'/login'); exit; }
-        View::render('auth/register', ['email' => $email, 'flash' => Flash::pull()]);
+
+        $pdo=Database::pdo();
+        $parks=$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll();
+        $areas=$pdo->query("SELECT id,name FROM areas WHERE is_active=1 ORDER BY name")->fetchAll();
+        $positions=$pdo->query("SELECT id,code,name FROM positions WHERE is_active=1 ORDER BY sort_order,name")->fetchAll();
+
+        View::render('auth/register', [
+            'email'=>$email,
+            'parks'=>$parks,
+            'areas'=>$areas,
+            'positions'=>$positions,
+            'flash'=>Flash::pull(),
+        ]);
     }
 
     public function createUser(): void
@@ -55,8 +67,16 @@ final class AuthController
         $phone = trim(Http::post('phone'));
         if (mb_strlen($name) < 3) throw new \RuntimeException('Ingresa tu nombre completo.');
         if ($phone === '') throw new \RuntimeException('Ingresa tu teléfono.');
+
+        $organization=[
+            'assignment_type'=>Http::post('assignment_type'),
+            'park_id'=>Http::post('park_id'),
+            'area_id'=>Http::post('area_id'),
+            'position_id'=>Http::post('position_id'),
+        ];
+
         $svc = new AuthService();
-        $svc->register($email, $name, $phone);
+        $svc->register($email, $name, $phone, $organization);
         $svc->sendOtp($email);
         unset($_SESSION['register_email']);
         header('Location: '.APP_BASE_URL.'/otp');
