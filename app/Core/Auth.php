@@ -77,7 +77,8 @@ final class Auth
     public static function requireLogin(): void
     {
         if (!self::check()) {
-            header('Location: '.APP_BASE_URL.'/');
+            $_SESSION['return_after_login'] = (string)($_SERVER['REQUEST_URI'] ?? '');
+            header('Location: '.APP_BASE_URL.'/login');
             exit;
         }
     }
@@ -106,27 +107,18 @@ final class Auth
     private static function loadPermissions(): void
     {
         self::$permissions = [];
-        if (!self::$user) {
-            return;
-        }
-
+        if (!self::$user) return;
         $stmt = Database::pdo()->prepare(
             "SELECT p.code,
-                    CASE
-                      WHEN uo.effect='DENY' THEN 0
-                      WHEN rp.permission_id IS NOT NULL THEN 1
-                      ELSE 0
-                    END allowed
+                    CASE WHEN uo.effect='DENY' THEN 0
+                         WHEN rp.permission_id IS NOT NULL THEN 1
+                         ELSE 0 END allowed
              FROM permissions p
-             LEFT JOIN role_permissions rp
-               ON rp.permission_id=p.id AND rp.role_id=?
-             LEFT JOIN user_permission_overrides uo
-               ON uo.permission_id=p.id AND uo.user_id=?"
+             LEFT JOIN role_permissions rp ON rp.permission_id=p.id AND rp.role_id=?
+             LEFT JOIN user_permission_overrides uo ON uo.permission_id=p.id AND uo.user_id=?"
         );
         $stmt->execute([(int)self::$user['role_id'], (int)self::$user['id']]);
-        foreach ($stmt->fetchAll() as $row) {
-            self::$permissions[$row['code']] = (bool)$row['allowed'];
-        }
+        foreach ($stmt->fetchAll() as $row) self::$permissions[$row['code']] = (bool)$row['allowed'];
     }
 
     private static function clear(): void
