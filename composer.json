@@ -1,0 +1,13 @@
+{
+  "name": "fernandozl/helpdesk-carrousel",
+  "description": "Helpdesk Carrousel",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true
+  }
+}
