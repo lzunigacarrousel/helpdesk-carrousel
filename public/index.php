@@ -7,7 +7,12 @@ $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
 $method=$_SERVER['REQUEST_METHOD']??'GET';
 $routes=[
-    ['GET','/',[AuthController::class,'home']],
+    ['GET','/',[TicketController::class,'publicHome']],
+    ['GET','/crear-ticket',[TicketController::class,'publicCreate']],
+    ['POST','/crear-ticket',[TicketController::class,'publicStore']],
+    ['GET','/ticket-enviado',[TicketController::class,'publicDone']],
+    ['GET','/mis-tickets',[TicketController::class,'index']],
+    ['GET','/login',[AuthController::class,'home']],
     ['POST','/auth/request',[AuthController::class,'requestOtp']],
     ['GET','/register',[AuthController::class,'register']],
     ['POST','/auth/register',[AuthController::class,'createUser']],
@@ -17,12 +22,9 @@ $routes=[
     ['POST','/logout',[AuthController::class,'logout']],
     ['GET','/dashboard',[DashboardController::class,'index']],
     ['GET','/tickets',[TicketController::class,'index']],
-    ['GET','/tickets/create',[TicketController::class,'create']],
+    ['GET','/tickets/queue',[TicketController::class,'queue']],
     ['GET','/tickets/view',[TicketController::class,'show']],
-    ['POST','/tickets',[TicketController::class,'store']],
-    ['POST','/tickets/assign',[TicketController::class,'assign']],
-    ['POST','/tickets/status',[TicketController::class,'changeStatus']],
-    ['POST','/tickets/comment',[TicketController::class,'comment']],
+    ['POST','/tickets/claim',[TicketController::class,'claim']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
 ];
