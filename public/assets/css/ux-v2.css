@@ -1,0 +1,30 @@
+/* Helpdesk Carrousel V2 · UX estructural */
+html,body{max-width:100%;overflow-x:hidden}
+
+/* Formulario público: aprovechar escritorio sin sacrificar lectura móvil */
+.public-form-page{overflow-x:hidden}
+.public-form-shell{width:min(1180px,calc(100vw - 40px))}
+.public-form-card{padding:28px}
+.public-form-head{max-width:760px;margin-bottom:18px}
+.public-ticket-form{gap:16px}
+.public-form-upper{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-step{height:100%}
+.form-step-problem{width:100%}
+.signed-requester{display:flex;align-items:center;gap:12px;border:1px solid var(--border);background:color-mix(in srgb,var(--card) 94%,#eaf0ff 6%);border-radius:12px;padding:13px 14px;margin:10px 0 2px}
+.signed-requester .signed-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;font-weight:800;flex:0 0 auto}
+.signed-requester strong,.signed-requester span{display:block}.signed-requester span{color:var(--muted);font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+
+/* Ayuda contextual global */
+.help-fab{position:fixed;right:22px;bottom:22px;z-index:990;width:48px;height:48px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:22px;font-weight:900;box-shadow:0 10px 28px rgba(16,24,40,.24);cursor:pointer}
+.help-fab:hover{transform:translateY(-1px)}
+.help-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:995}
+.help-panel{position:fixed;top:0;right:0;z-index:996;width:min(390px,92vw);height:100vh;background:var(--card);color:var(--ink);border-left:1px solid var(--border);box-shadow:-16px 0 45px rgba(16,24,40,.2);padding:26px;transform:translateX(105%);transition:transform .2s ease;overflow:auto}
+.help-panel.open{transform:none}.help-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid var(--border);padding-bottom:16px}.help-panel h2{margin:2px 0 0;font-size:22px}.help-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--brand)}.help-close{border:1px solid var(--border);background:var(--card);color:var(--ink);width:38px;height:38px;border-radius:9px;font-size:24px;cursor:pointer}.help-steps{padding-left:22px;margin:22px 0}.help-steps li{padding:0 0 14px 4px;line-height:1.5}.help-contact{border-radius:12px;padding:14px;background:var(--info-bg);color:var(--ink);font-size:14px}.help-contact strong{display:block;margin-top:3px;overflow-wrap:anywhere}.help-open{overflow:hidden}
+
+/* Inicio: menos repetición, más información útil */
+.dashboard-primary-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.dashboard-primary-row .page-heading{margin:0}.dashboard-primary-button{min-height:48px;padding-inline:20px}
+.dashboard-overview{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(180px,.65fr));gap:14px;margin-bottom:18px}.dashboard-overview .card{margin:0}.dashboard-welcome{padding:20px 22px}.dashboard-welcome h2{margin:0 0 5px;font-size:22px}.dashboard-welcome p{margin:0;color:var(--muted)}
+.dashboard-recent{margin-top:0}.dashboard-recent-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}.dashboard-recent-head h2{margin:0;font-size:19px}.dashboard-recent-list{display:grid}.dashboard-recent-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);text-decoration:none}.dashboard-recent-item:last-child{border-bottom:0}.dashboard-recent-item:hover{background:color-mix(in srgb,var(--card) 92%,#eaf0ff 8%)}.dashboard-recent-item strong{display:block}.dashboard-recent-item span{display:block;color:var(--muted);font-size:13px;margin-top:3px}.dashboard-recent-status{align-self:center;font-size:12px;font-weight:800;color:var(--brand)}
+
+@media(max-width:900px){.public-form-upper{grid-template-columns:1fr}.public-form-shell{width:min(760px,calc(100vw - 28px))}.dashboard-overview{grid-template-columns:1fr 1fr}.dashboard-welcome{grid-column:1/-1}}
+@media(max-width:760px){.public-form-shell{width:100%}.public-form-card{padding:18px 12px 24px}.public-form-upper{gap:14px}.help-fab{right:14px;bottom:14px;width:46px;height:46px}.help-panel{width:100%;padding:22px 18px}.dashboard-primary-row{align-items:stretch;flex-direction:column}.dashboard-primary-button{width:100%}.dashboard-overview{grid-template-columns:1fr}.dashboard-welcome{grid-column:auto}.dashboard-recent-item{grid-template-columns:1fr}.dashboard-recent-status{justify-self:start}.signed-requester{align-items:flex-start}}
