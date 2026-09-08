@@ -2,18 +2,13 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
-<title>Reportar un problema | Helpdesk Carrousel</title>
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark">
+<title>Reportar un problema | Helpdesk Carrousel</title><link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css">
 <script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
-</head>
-<body>
-<div class="brand-strip"></div>
+</head><body><div class="brand-strip"></div>
 <main class="auth-page public-form-page"><div class="auth-shell public-form-shell"><section class="auth-card public-form-card">
 <div class="public-form-head"><img class="auth-logo public-form-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Carrousel"><div class="auth-eyebrow">Soporte Carrousel</div><h1 class="auth-title">Cuéntanos qué pasó</h1><p class="auth-subtitle">Completa los datos y enviaremos tu solicitud al equipo adecuado.</p></div>
-<form method="post" action="<?= APP_BASE_URL ?>/crear-ticket" class="public-ticket-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+<form method="post" action="<?= APP_BASE_URL ?>/crear-ticket" class="public-ticket-form" id="publicTicketForm"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
 <section class="form-step"><div class="form-step-title"><span>1</span><div><strong>Tus datos</strong><small>Para identificarte y mantenerte informado.</small></div></div><div class="grid grid-2 public-form-grid">
 <div><label class="form-label" for="name">Nombre completo</label><input class="form-control" id="name" name="name" required maxlength="180" autocomplete="name" placeholder="Escribe tu nombre completo" value="<?= htmlspecialchars((string)($u['full_name']??'')) ?>"></div>
 <div><label class="form-label" for="email">Correo electrónico</label><input class="form-control" id="email" type="email" name="email" required maxlength="190" autocomplete="email" inputmode="email" placeholder="nombre@carrousel.com.gt" value="<?= htmlspecialchars((string)($u['email']??'')) ?>"><div class="field-help">Aquí recibirás el número y seguimiento de tu solicitud.</div></div>
@@ -25,6 +20,10 @@
 <div><label class="form-label" for="category_id">Tipo de solicitud</label><select class="form-control" id="category_id" name="category_id" required><option value="">Selecciona una opción</option><?php foreach($categories as $c): ?><option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option><?php endforeach; ?></select></div>
 <div><label class="form-label" for="subject">Resumen breve</label><input class="form-control" id="subject" name="subject" required maxlength="220" placeholder="Ej. Internet lento en caja"></div></div>
 <label class="form-label" for="description">Cuéntanos qué está pasando</label><textarea class="form-control public-description" id="description" name="description" rows="6" required placeholder="Describe qué sucede, desde cuándo, a quién o qué equipo afecta y cualquier detalle que pueda ayudarnos."></textarea></section>
-<div class="public-submit-box"><button class="btn btn-primary public-submit" type="submit">Enviar mi solicitud</button><div class="field-help centered">Recibirás un número de caso en tu correo.</div></div></form>
+<div class="public-submit-box"><button class="btn btn-primary public-submit" id="publicSubmitBtn" type="submit">Enviar mi solicitud</button><div class="field-help centered" id="submitHelp">Recibirás un número de caso en tu correo.</div></div></form>
 <div class="auth-actions public-form-actions"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver al inicio</a><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/mis-tickets">Ver mis solicitudes</a><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar tema"><span data-theme-icon>◐</span></button></div>
-</section></div></main><script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js"></script></body></html>
+</section></div></main>
+<script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js"></script>
+<script>
+(()=>{const f=document.getElementById('publicTicketForm'),b=document.getElementById('publicSubmitBtn'),h=document.getElementById('submitHelp');if(!f||!b)return;let sending=false;f.addEventListener('submit',e=>{if(sending){e.preventDefault();return;}if(!f.checkValidity())return;sending=true;b.disabled=true;b.setAttribute('aria-disabled','true');b.textContent='Enviando solicitud…';if(h)h.textContent='Espera un momento. No cierres esta ventana.';});})();
+</script></body></html>
