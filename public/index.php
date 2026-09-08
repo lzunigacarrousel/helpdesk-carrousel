@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,ManagementController,ExternalController,ResolutionController,ConversationController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,ExternalController,ResolutionController,ConversationController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -23,7 +23,7 @@ $routes=[
     ['GET','/dashboard',[DashboardController::class,'index']],
     ['GET','/tickets',[TicketController::class,'index']],
     ['GET','/tickets/queue',[TicketController::class,'queue']],
-    ['GET','/tickets/view',[TicketController::class,'show']],
+    ['GET','/tickets/view',[TicketViewController::class,'show']],
     ['POST','/tickets/claim',[TicketController::class,'claim']],
     ['POST','/tickets/assign',[TicketController::class,'assign']],
     ['POST','/tickets/release',[TicketController::class,'release']],
