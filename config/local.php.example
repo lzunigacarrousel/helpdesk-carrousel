@@ -2,7 +2,7 @@
 declare(strict_types=1);
 return [
     'db_host' => '127.0.0.1',
-    'db_name' => 'helpdesk360_test',
+    'db_name' => 'helpdesk_carrousel_test',
     'db_user' => 'root',
     'db_pass' => '',
     'mail_mode' => 'log', // log | smtp
@@ -12,5 +12,5 @@ return [
     'smtp_username' => '',
     'smtp_password' => '',
     'mail_from' => 'no-reply@carrousel.local',
-    'mail_from_name' => 'Helpdesk Carrousel 360',
+    'mail_from_name' => 'Helpdesk Carrousel',
 ];
