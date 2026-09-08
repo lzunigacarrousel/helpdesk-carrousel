@@ -23,20 +23,15 @@ final class AuthController
     {
         Csrf::verify($_POST['_csrf'] ?? null);
         $email = strtolower(Http::post('email'));
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \RuntimeException('Correo inválido.');
-        }
-
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) throw new \RuntimeException('Correo inválido.');
         $_SESSION['login_email'] = $email;
         $svc = new AuthService();
         $user = $svc->findUserByEmail($email);
-
         if (!$user) {
             $_SESSION['register_email'] = $email;
             header('Location: '.APP_BASE_URL.'/register');
             exit;
         }
-
         $svc->sendOtp($email);
         header('Location: '.APP_BASE_URL.'/otp');
         exit;
@@ -44,15 +39,9 @@ final class AuthController
 
     public function register(): void
     {
-        if (Auth::check()) {
-            header('Location: '.APP_BASE_URL.'/dashboard');
-            exit;
-        }
+        if (Auth::check()) { header('Location: '.APP_BASE_URL.'/dashboard'); exit; }
         $email = (string)($_SESSION['register_email'] ?? $_SESSION['login_email'] ?? '');
-        if ($email === '') {
-            header('Location: '.APP_BASE_URL.'/');
-            exit;
-        }
+        if ($email === '') { header('Location: '.APP_BASE_URL.'/login'); exit; }
         View::render('auth/register', ['email' => $email, 'flash' => Flash::pull()]);
     }
 
@@ -61,19 +50,11 @@ final class AuthController
         Csrf::verify($_POST['_csrf'] ?? null);
         $expected = strtolower((string)($_SESSION['register_email'] ?? $_SESSION['login_email'] ?? ''));
         $email = strtolower(Http::post('email'));
-        if ($expected === '' || !hash_equals($expected, $email)) {
-            throw new \RuntimeException('El correo del registro no coincide con la solicitud de acceso.');
-        }
-
+        if ($expected === '' || !hash_equals($expected, $email)) throw new \RuntimeException('El correo del registro no coincide con la solicitud de acceso.');
         $name = trim(Http::post('name'));
         $phone = trim(Http::post('phone'));
-        if (mb_strlen($name) < 3) {
-            throw new \RuntimeException('Ingresa tu nombre completo.');
-        }
-        if ($phone === '') {
-            throw new \RuntimeException('Ingresa tu teléfono.');
-        }
-
+        if (mb_strlen($name) < 3) throw new \RuntimeException('Ingresa tu nombre completo.');
+        if ($phone === '') throw new \RuntimeException('Ingresa tu teléfono.');
         $svc = new AuthService();
         $svc->register($email, $name, $phone);
         $svc->sendOtp($email);
@@ -85,10 +66,7 @@ final class AuthController
     public function otp(): void
     {
         $email = (string)($_SESSION['otp_email'] ?? $_SESSION['login_email'] ?? '');
-        if ($email === '') {
-            header('Location: '.APP_BASE_URL.'/');
-            exit;
-        }
+        if ($email === '') { header('Location: '.APP_BASE_URL.'/login'); exit; }
         View::render('auth/otp', ['email' => $email, 'flash' => Flash::pull()]);
     }
 
@@ -97,13 +75,17 @@ final class AuthController
         Csrf::verify($_POST['_csrf'] ?? null);
         $expected = strtolower((string)($_SESSION['otp_email'] ?? ''));
         $email = strtolower(Http::post('email'));
-        if ($expected === '' || !hash_equals($expected, $email)) {
-            throw new \RuntimeException('La verificación no corresponde al correo solicitado.');
-        }
+        if ($expected === '' || !hash_equals($expected, $email)) throw new \RuntimeException('La verificación no corresponde al correo solicitado.');
         $code = preg_replace('/\D/', '', Http::post('code'));
         (new AuthService())->verify($email, $code);
         unset($_SESSION['login_email']);
-        header('Location: '.APP_BASE_URL.'/dashboard');
+        $return = (string)($_SESSION['return_after_login'] ?? '');
+        unset($_SESSION['return_after_login']);
+        if ($return !== '' && str_starts_with($return, APP_PUBLIC_PATH.'/')) {
+            header('Location: '.$return);
+        } else {
+            header('Location: '.APP_BASE_URL.'/dashboard');
+        }
         exit;
     }
 
@@ -112,9 +94,7 @@ final class AuthController
         Csrf::verify($_POST['_csrf'] ?? null);
         $expected = strtolower((string)($_SESSION['otp_email'] ?? ''));
         $email = strtolower(Http::post('email'));
-        if ($expected === '' || !hash_equals($expected, $email)) {
-            throw new \RuntimeException('La solicitud no corresponde al correo verificado.');
-        }
+        if ($expected === '' || !hash_equals($expected, $email)) throw new \RuntimeException('La solicitud no corresponde al correo verificado.');
         (new AuthService())->sendOtp($email);
         header('Location: '.APP_BASE_URL.'/otp');
         exit;
