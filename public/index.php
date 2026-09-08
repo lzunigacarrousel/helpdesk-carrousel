@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,ManagementController,ExternalController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,ManagementController,ExternalController,ResolutionController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -28,6 +28,7 @@ $routes=[
     ['POST','/tickets/assign',[TicketController::class,'assign']],
     ['POST','/tickets/release',[TicketController::class,'release']],
     ['POST','/tickets/status',[TicketController::class,'changeStatus']],
+    ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['GET','/gestion',[ManagementController::class,'dashboard']],
     ['GET','/gestion/informes',[ManagementController::class,'reports']],
     ['GET','/gestion/informes/exportar',[ManagementController::class,'export']],
@@ -43,6 +44,4 @@ foreach($routes as [$m,$p,$h]){
     if($method===$m&&$path===$p){[$c,$a]=$h;(new $c())->$a();exit;}
 }
 http_response_code(404);
-$errorTitle='No encontramos esa página';
-$errorMessage='El enlace puede haber cambiado o ya no estar disponible. Puedes volver al inicio y continuar desde allí.';
-require APP_ROOT.'/app/Views/errors/friendly.php';
+\App\Core\View::render('errors/friendly',['user'=>\App\Core\Auth::user(),'title'=>'Página no disponible','message'=>'La página que intentaste abrir no está disponible o cambió de ubicación.']);
