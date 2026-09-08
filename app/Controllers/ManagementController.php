@@ -33,8 +33,10 @@ final class ManagementController
             ROUND(AVG(CASE WHEN t.first_response_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE,t.created_at,t.first_response_at) END),1) promedio_primera_respuesta,
             ROUND(AVG(CASE WHEN t.resolved_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE,t.created_at,t.resolved_at)/60 END),1) promedio_resolucion_horas,
             COALESCE(SUM(CASE WHEN t.resolved_at IS NOT NULL AND t.resolution_due_at IS NOT NULL AND t.resolved_at<=t.resolution_due_at THEN 1 ELSE 0 END),0) sla_ok,
-            COALESCE(SUM(CASE WHEN t.resolved_at IS NOT NULL AND t.resolution_due_at IS NOT NULL THEN 1 ELSE 0 END),0) sla_medidos
-            FROM tickets t {$where}");
+            COALESCE(SUM(CASE WHEN t.resolved_at IS NOT NULL AND t.resolution_due_at IS NOT NULL THEN 1 ELSE 0 END),0) sla_medidos,
+            COALESCE(SUM(tr.ticket_id IS NOT NULL),0) soluciones_documentadas,
+            COALESCE(SUM(tr.is_reusable=1),0) soluciones_reutilizables
+            FROM tickets t LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id {$where}");
         $k->execute($params); $kpis=$k->fetch()?:[];
         $kpis['sla_porcentaje']=(int)($kpis['sla_medidos']??0)>0?round(((int)$kpis['sla_ok']/(int)$kpis['sla_medidos'])*100,1):null;
 
@@ -63,8 +65,10 @@ final class ManagementController
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
         $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,t.requester_name,t.requester_email,t.subject,t.priority,t.status,
             p.name park_name,a.name area_name,c.name category_name,u.full_name assigned_name,
-            t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at
+            t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
+            tr.resolution_type,tr.root_cause,tr.solution_applied,tr.preventive_action,tr.is_reusable,ru.full_name resolution_author
             FROM tickets t LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN users u ON u.id=t.assigned_to
+            LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by
             {$where} ORDER BY t.created_at DESC LIMIT 500");$q->execute($params);
         $catalogs=$this->catalogs($pdo);
         View::render('management/reports',[
@@ -77,14 +81,17 @@ final class ManagementController
         $this->requireManagement();
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
         $q=$pdo->prepare("SELECT t.ticket_number,t.created_at,t.requester_name,t.requester_email,COALESCE(p.name,'') parque,COALESCE(a.name,'') area,COALESCE(c.name,'') categoria,
-            t.subject,t.priority,t.status,COALESCE(u.full_name,'') responsable,t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at
+            t.subject,t.priority,t.status,COALESCE(u.full_name,'') responsable,t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
+            COALESCE(tr.resolution_type,'') tipo_solucion,COALESCE(tr.root_cause,'') causa_raiz,COALESCE(tr.solution_applied,'') solucion_aplicada,COALESCE(tr.preventive_action,'') prevencion,
+            CASE WHEN tr.is_reusable=1 THEN 'Si' ELSE 'No' END reutilizable,COALESCE(ru.full_name,'') documentado_por
             FROM tickets t LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN users u ON u.id=t.assigned_to
+            LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by
             {$where} ORDER BY t.created_at DESC");$q->execute($params);
         Audit::log('REPORT_EXPORTED','report',null,null,null,['filters'=>$filters]);
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="helpdesk_informe_'.date('Ymd_His').'.csv"');
         echo "\xEF\xBB\xBF";$out=fopen('php://output','w');
-        fputcsv($out,['Ticket','Creado','Solicitante','Correo','Parque','Área','Categoría','Asunto','Prioridad','Estado','Responsable','Primera respuesta','Resuelto','Cerrado','Límite primera respuesta','Límite resolución'],';');
+        fputcsv($out,['Ticket','Creado','Solicitante','Correo','Parque','Área','Categoría','Asunto','Prioridad','Estado','Responsable','Primera respuesta','Resuelto','Cerrado','Límite primera respuesta','Límite resolución','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Reutilizable','Documentado por'],';');
         while($r=$q->fetch(PDO::FETCH_ASSOC))fputcsv($out,array_values($r),';');
         fclose($out);exit;
     }
