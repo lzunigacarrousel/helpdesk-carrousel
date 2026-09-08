@@ -115,7 +115,18 @@ final class TicketController
         View::render('tickets/show',['user'=>Auth::user(),'ticket'=>$ticket,'events'=>$e->fetchAll(),'flash'=>Flash::pull(),'isSupport'=>$isSupport,'supportUsers'=>$supportUsers,'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),'canReassign'=>Auth::can('tickets.reassign'),'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),'statusLabels'=>self::STATUS_LABELS,'priorityLabels'=>self::PRIORITY_LABELS]);
     }
 
-    private function visible(array $t):void{if(Auth::can('tickets.view_all'))return;$uid=(int)Auth::id();$email=strtolower((string)(Auth::user()['email']??''));if((int)($t['requester_user_id']??0)===$uid||strtolower((string)$t['requester_email'])===$email||(int)($t['assigned_to']??0)===$uid)return;if((Auth::user()['access_type']??'')==='EXTERNAL'){$s=Database::pdo()->prepare('SELECT COUNT(*) FROM external_ticket_access WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL');$s->execute([(int)$t['id'],$uid]);if((int)$s->fetchColumn()>0&&$t['case_type']==='SPECIAL'&&$t['visibility_mode']==='EXTERNAL_ALLOWED')return;}http_response_code(403);exit('403 - Sin acceso a este ticket');}
+    private function visible(array $t):void{
+        if(Auth::can('tickets.view_all'))return;
+        $uid=(int)Auth::id();$current=Auth::user();$email=strtolower((string)($current['email']??''));
+        if(($current['access_type']??'')==='EXTERNAL'){
+            $s=Database::pdo()->prepare('SELECT COUNT(*) FROM external_ticket_access WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL');
+            $s->execute([(int)$t['id'],$uid]);
+            if((int)$s->fetchColumn()>0&&$t['case_type']==='SPECIAL'&&$t['visibility_mode']==='EXTERNAL_ALLOWED')return;
+            Flash::set('Ese caso no está habilitado para tu cuenta externa.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
+        }
+        if((int)($t['requester_user_id']??0)===$uid||strtolower((string)$t['requester_email'])===$email||(int)($t['assigned_to']??0)===$uid)return;
+        Flash::set('No tienes acceso a ese caso.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
+    }
     private function activeExists(string $table,int $id):bool{if(!in_array($table,['parks','areas'],true))return false;$s=Database::pdo()->prepare("SELECT COUNT(*) FROM {$table} WHERE id=? AND is_active=1");$s->execute([$id]);return(int)$s->fetchColumn()>0;}
     private function sla(int $categoryId,string $priority):array{$s=Database::pdo()->prepare("SELECT id,first_response_minutes,resolution_minutes FROM sla_policies WHERE is_active=1 AND priority=? AND (category_id=? OR category_id IS NULL) ORDER BY category_id IS NULL ASC,id ASC LIMIT 1");$s->execute([$priority,$categoryId]);$r=$s->fetch();if(!$r)return[null,null,null];return[(int)$r['id'],date('Y-m-d H:i:s',time()+(int)$r['first_response_minutes']*60),date('Y-m-d H:i:s',time()+(int)$r['resolution_minutes']*60)];}
     private function rateLimit(string $email):void{$s=Database::pdo()->prepare("SELECT COUNT(*) FROM tickets WHERE requester_email=? AND source_ip=? AND created_at>=DATE_SUB(NOW(),INTERVAL 10 MINUTE)");$s->execute([$email,Http::ip()]);if((int)$s->fetchColumn()>=5)throw new \RuntimeException('Has enviado varias solicitudes recientemente. Espera unos minutos e intenta nuevamente.');}
