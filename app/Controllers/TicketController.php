@@ -94,17 +94,27 @@ final class TicketController
 
     public function release():void{
         Auth::requireLogin();Csrf::verify($_POST['_csrf']??null);$id=(int)Http::post('ticket_id');if($id<=0)throw new \RuntimeException('Ticket no válido.');$pdo=Database::pdo();
-        $q=$pdo->prepare('SELECT assigned_to,status FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$q->execute([$id]);$ticket=$q->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');if((int)($ticket['assigned_to']??0)!==(int)Auth::id()&&!Auth::can('tickets.reassign')){http_response_code(403);exit('403 - Sin permiso');}if(in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true))throw new \RuntimeException('Este caso ya no puede volver a la cola desde su estado actual.');
+        $q=$pdo->prepare('SELECT assigned_to,status FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$q->execute([$id]);$ticket=$q->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');
+        if((int)($ticket['assigned_to']??0)!==(int)Auth::id()&&!Auth::can('tickets.reassign')){Flash::set('No puedes devolver este caso a la cola.','info');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;}
+        if(in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true))throw new \RuntimeException('Este caso ya no puede volver a la cola desde su estado actual.');
         $pdo->prepare("UPDATE tickets SET assigned_to=NULL,assigned_at=NULL,status='AVAILABLE',updated_at=NOW() WHERE id=?")->execute([$id]);$pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'RELEASED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>$ticket['assigned_to'],'status'=>$ticket['status']],JSON_UNESCAPED_UNICODE),json_encode(['assigned_to'=>null,'status'=>'AVAILABLE'],JSON_UNESCAPED_UNICODE)]);
         Audit::log('TICKET_RELEASED','ticket',$id,['assigned_to'=>$ticket['assigned_to']],['assigned_to'=>null,'status'=>'AVAILABLE']);$this->notifySupportGroup($id,'Caso devuelto a la cola','Un caso volvió a estar disponible para que otra persona lo tome.');Flash::set('El caso volvió a la cola de soporte.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
     public function changeStatus():void{
         Auth::requirePermission('tickets.change_status');Csrf::verify($_POST['_csrf']??null);$id=(int)Http::post('ticket_id');$status=strtoupper(trim(Http::post('status')));$allowed=['IN_PROGRESS','PENDING','RESOLVED','CLOSED','REOPENED','CANCELLED'];if($id<=0||!in_array($status,$allowed,true))throw new \RuntimeException('Estado no válido.');
-        $pdo=Database::pdo();$q=$pdo->prepare('SELECT status,assigned_to FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$q->execute([$id]);$ticket=$q->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');if(!Auth::can('tickets.reassign')&&(int)($ticket['assigned_to']??0)!==(int)Auth::id()){http_response_code(403);exit('403 - Solo el responsable del caso puede cambiar su estado.');}$oldStatus=(string)$ticket['status'];if($oldStatus===$status){Flash::set('El caso ya tiene ese estado.','info');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;}
+        $pdo=Database::pdo();$q=$pdo->prepare('SELECT status,assigned_to FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$q->execute([$id]);$ticket=$q->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');
+        if(!Auth::can('tickets.reassign')&&(int)($ticket['assigned_to']??0)!==(int)Auth::id()){Flash::set('Solo la persona responsable puede actualizar este caso.','info');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;}
+        $oldStatus=(string)$ticket['status'];if($oldStatus===$status){Flash::set('El caso ya tiene ese estado.','info');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;}
         $resolvedSql=$status==='RESOLVED'?'resolved_at=NOW(),':($status==='REOPENED'?'resolved_at=NULL,':'');$closedSql=in_array($status,['CLOSED','CANCELLED'],true)?'closed_at=NOW(),':($status==='REOPENED'?'closed_at=NULL,':'');$pdo->prepare("UPDATE tickets SET status=?,{$resolvedSql}{$closedSql}updated_at=NOW() WHERE id=?")->execute([$status,$id]);
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'STATUS_CHANGED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['status'=>$oldStatus],JSON_UNESCAPED_UNICODE),json_encode(['status'=>$status],JSON_UNESCAPED_UNICODE)]);
-        Audit::log('TICKET_STATUS_CHANGED','ticket',$id,['status'=>$oldStatus],['status'=>$status]);$label=self::STATUS_LABELS[$status]??$status;$this->notifyRequester($id,'Actualización de tu solicitud','El estado de tu solicitud cambió a: '.$label.'.');if($status==='REOPENED')$this->notifySupportGroup($id,'Caso reabierto','Un caso fue reabierto y requiere seguimiento.');Flash::set('Estado actualizado a '.$label.'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+        Audit::log('TICKET_STATUS_CHANGED','ticket',$id,['status'=>$oldStatus],['status'=>$status]);
+        $label=self::STATUS_LABELS[$status]??$status;
+        $message='El estado de tu solicitud cambió a: '.$label.'.';
+        $this->notifyRequester($id,'Actualización de tu solicitud',$message);
+        $this->notifyExternalParticipants($id,'Actualización del caso',$message);
+        if($status==='REOPENED')$this->notifySupportGroup($id,'Caso reabierto','Un caso fue reabierto y requiere seguimiento.');
+        Flash::set('Estado actualizado a '.$label.'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
     public function show():void{
@@ -122,11 +132,12 @@ final class TicketController
             $s=Database::pdo()->prepare('SELECT COUNT(*) FROM external_ticket_access WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL');
             $s->execute([(int)$t['id'],$uid]);
             if((int)$s->fetchColumn()>0&&$t['case_type']==='SPECIAL'&&$t['visibility_mode']==='EXTERNAL_ALLOWED')return;
-            Flash::set('Ese caso no está habilitado para tu cuenta externa.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
+            Flash::set('Ese caso no está habilitado para tu cuenta.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
         }
         if((int)($t['requester_user_id']??0)===$uid||strtolower((string)$t['requester_email'])===$email||(int)($t['assigned_to']??0)===$uid)return;
         Flash::set('No tienes acceso a ese caso.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
     }
+
     private function activeExists(string $table,int $id):bool{if(!in_array($table,['parks','areas'],true))return false;$s=Database::pdo()->prepare("SELECT COUNT(*) FROM {$table} WHERE id=? AND is_active=1");$s->execute([$id]);return(int)$s->fetchColumn()>0;}
     private function sla(int $categoryId,string $priority):array{$s=Database::pdo()->prepare("SELECT id,first_response_minutes,resolution_minutes FROM sla_policies WHERE is_active=1 AND priority=? AND (category_id=? OR category_id IS NULL) ORDER BY category_id IS NULL ASC,id ASC LIMIT 1");$s->execute([$priority,$categoryId]);$r=$s->fetch();if(!$r)return[null,null,null];return[(int)$r['id'],date('Y-m-d H:i:s',time()+(int)$r['first_response_minutes']*60),date('Y-m-d H:i:s',time()+(int)$r['resolution_minutes']*60)];}
     private function rateLimit(string $email):void{$s=Database::pdo()->prepare("SELECT COUNT(*) FROM tickets WHERE requester_email=? AND source_ip=? AND created_at>=DATE_SUB(NOW(),INTERVAL 10 MINUTE)");$s->execute([$email,Http::ip()]);if((int)$s->fetchColumn()>=5)throw new \RuntimeException('Has enviado varias solicitudes recientemente. Espera unos minutos e intenta nuevamente.');}
@@ -138,7 +149,21 @@ final class TicketController
             $this->notifySupportGroup($id,'Nuevo ticket · '.$t['ticket_number'],'Se registró una nueva solicitud.'.PHP_EOL.PHP_EOL.'Solicitante: '.$t['requester_name'].' · '.$t['requester_email'].PHP_EOL.'Ubicación: '.($t['park_name']?:'No especificada').PHP_EOL.'Área: '.($t['area_name']?:'No especificada').PHP_EOL.'Tipo: '.($t['category_name']?:'No especificado').PHP_EOL.'Prioridad: '.(self::PRIORITY_LABELS[$t['priority']]??$t['priority']).PHP_EOL.'Asunto: '.$t['subject']);
         }catch(\Throwable $e){Logger::error($e);}
     }
+
     private function notifyRequester(int $id,string $subject,string $message):void{try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification((string)$t['requester_email'],$subject.' · '.$t['ticket_number'],$subject,$message.PHP_EOL.PHP_EOL.'Caso: '.$t['ticket_number'],APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
     private function notifySupportGroup(int $id,string $title,string $message):void{if(!filter_var(SUPPORT_GROUP_EMAIL,FILTER_VALIDATE_EMAIL))return;try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification(SUPPORT_GROUP_EMAIL,$title.' · '.$t['ticket_number'],$title,$message,APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
     private function notifyAssignee(int $id,string $email,string $name):void{if(!filter_var($email,FILTER_VALIDATE_EMAIL))return;try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification($email,'Caso asignado · '.$t['ticket_number'],'Tienes un caso asignado','Hola '.$name.'.'.PHP_EOL.PHP_EOL.'Se te asignó el caso '.$t['ticket_number'].': '.$t['subject'].'.',APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
+
+    private function notifyExternalParticipants(int $id,string $title,string $message):void
+    {
+        try{
+            $t=$this->ticketForMail($id);if(!$t)return;
+            $q=Database::pdo()->prepare("SELECT u.email,u.full_name FROM external_ticket_access eta JOIN users u ON u.id=eta.user_id WHERE eta.ticket_id=? AND eta.revoked_at IS NULL AND u.access_type='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL");
+            $q->execute([$id]);$mail=new MailService();
+            foreach($q->fetchAll() as $external){
+                $email=(string)$external['email'];if(!filter_var($email,FILTER_VALIDATE_EMAIL))continue;
+                $mail->sendTicketNotification($email,$title.' · '.$t['ticket_number'],$title,'Hola '.$external['full_name'].'.'.PHP_EOL.PHP_EOL.$message.PHP_EOL.PHP_EOL.'Caso: '.$t['ticket_number'],APP_BASE_URL.'/tickets/view?id='.$id);
+            }
+        }catch(\Throwable $e){Logger::error($e);}
+    }
 }
