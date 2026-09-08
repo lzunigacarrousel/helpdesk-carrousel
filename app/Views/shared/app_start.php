@@ -1,8 +1,11 @@
 <?php
 use App\Core\{Auth,Csrf};
 $isAdmin=Auth::role()==='ADMIN';
+$isSemi=Auth::role()==='SEMIADMIN';
 $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $isSupport=!$isExternal&&(Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.view_all'));
+$canManagement=!$isExternal&&($isAdmin||$isSemi||Auth::can('management.view'));
+$canExternalManage=!$isExternal&&($isAdmin||$isSemi||Auth::can('external.manage'));
 $activeNav=$activeNav??'home';
 $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
@@ -12,8 +15,10 @@ $helpContext=$helpContext??'general';
 <aside class="sidebar" id="app-sidebar"><div class="sidebar-brand"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Carrousel"><div><strong>Helpdesk Carrousel</strong><div class="small">Corporación Carrousel</div></div></div><nav>
 <div class="nav-section">Inicio</div><a class="side-link <?= $activeNav==='home'?'active':'' ?>" href="<?= APP_BASE_URL ?>/dashboard"><span class="side-icon">⌂</span>Inicio</a>
 <?php if($isSupport): ?><div class="nav-section">Trabajo</div><a class="side-link <?= $activeNav==='support'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span>Centro de soporte</a><div class="nav-section">Personal</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span>Mis solicitudes</a><?php elseif($isExternal): ?><div class="nav-section">Casos</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span>Mis casos asignados</a><?php else: ?><div class="nav-section">Solicitudes</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span>Mis solicitudes</a><?php endif; ?>
-<?php if($isAdmin||Auth::can('users.manage')||Auth::can('audit.view')): ?><div class="nav-section">Administración</div><?php endif; ?>
+<?php if($canManagement): ?><div class="nav-section">Gestión</div><a class="side-link <?= $activeNav==='management'?'active':'' ?>" href="<?= APP_BASE_URL ?>/gestion"><span class="side-icon">◫</span>Dashboard interno</a><a class="side-link <?= $activeNav==='reports'?'active':'' ?>" href="<?= APP_BASE_URL ?>/gestion/informes"><span class="side-icon">▥</span>Informes</a><?php endif; ?>
+<?php if($isAdmin||Auth::can('users.manage')||Auth::can('audit.view')||$canExternalManage): ?><div class="nav-section">Administración</div><?php endif; ?>
 <?php if($isAdmin||Auth::can('users.manage')): ?><a class="side-link <?= $activeNav==='users'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/users"><span class="side-icon">♟</span>Usuarios</a><?php endif; ?>
+<?php if($canExternalManage): ?><a class="side-link <?= $activeNav==='externals'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/externos"><span class="side-icon">◇</span>Proveedores externos</a><?php endif; ?>
 <?php if(Auth::can('audit.view')): ?><a class="side-link <?= $activeNav==='audit'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/audit"><span class="side-icon">◉</span>Auditoría</a><?php endif; ?>
 </nav></aside>
 <div class="main-wrap"><header class="topbar"><div class="topbar-left"><button class="btn btn-outline-secondary sidebar-toggle" data-sidebar-toggle type="button">☰</button><a href="<?= APP_BASE_URL ?>/dashboard" class="topbar-title"><strong><?= htmlspecialchars($pageSection) ?></strong></a></div><div class="topbar-user"><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Claro / Oscuro / Sistema"><span data-theme-icon>◐</span></button><a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars(PORTAL_URL) ?>">← Portal</a><div class="text-end user-summary"><strong><?= htmlspecialchars($user['full_name']) ?></strong><div class="small subtle"><?= htmlspecialchars($user['role_name']) ?> · <?= htmlspecialchars($user['email']) ?></div></div><form method="post" action="<?= APP_BASE_URL ?>/logout" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><button class="btn btn-outline-secondary btn-sm">Salir</button></form></div></header><main class="content">
