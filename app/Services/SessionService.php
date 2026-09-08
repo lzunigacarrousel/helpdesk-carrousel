@@ -1,2 +1,102 @@
 <?php
-declare(strict_types=1);namespace App\Services;use App\Core\{Auth,Database,Http,Settings};final class SessionService{private const COOKIE='hd360_auth';public function create(int $uid,?string $deviceName=null):int{$selector=bin2hex(random_bytes(16));$validator=bin2hex(random_bytes(32));$days=max(1,min(90,(int)Settings::get('session_days',30)));$expires=(new \DateTimeImmutable("+{$days} days"))->format('Y-m-d H:i:s');$s=Database::pdo()->prepare('INSERT INTO persistent_sessions(user_id,selector,validator_hash,device_name,user_agent,ip_address,last_ip_address,last_seen_at,expires_at,created_at) VALUES(?,?,?,?,?,?,?,NOW(),?,NOW())');$s->execute([$uid,$selector,hash('sha256',$validator),$deviceName?:Http::device(),Http::userAgent(),Http::ip(),Http::ip(),$expires]);$id=(int)Database::pdo()->lastInsertId();$this->setCookie(self::COOKIE,$selector.':'.$validator,strtotime($expires));return $id;}public function restoreFromCookie():?array{$raw=(string)($_COOKIE[self::COOKIE]??'');if(!preg_match('/^([a-f0-9]{32}):([a-f0-9]{64})$/',$raw,$m))return null;$s=Database::pdo()->prepare("SELECT ps.id session_id,ps.validator_hash,u.*,r.code role_code,r.name role_name FROM persistent_sessions ps JOIN users u ON u.id=ps.user_id JOIN roles r ON r.id=u.role_id WHERE ps.selector=? AND ps.revoked_at IS NULL AND ps.expires_at>NOW() AND u.active=1 AND u.deleted_at IS NULL LIMIT 1");$s->execute([$m[1]]);$r=$s->fetch();if(!$r||!hash_equals((string)$r['validator_hash'],hash('sha256',$m[2]))){$this->clearCookie();return null;}$nv=bin2hex(random_bytes(32));Database::pdo()->prepare('UPDATE persistent_sessions SET validator_hash=?,last_seen_at=NOW(),last_ip_address=?,user_agent=? WHERE id=?')->execute([hash('sha256',$nv),Http::ip(),Http::userAgent(),(int)$r['session_id']]);$this->setCookie(self::COOKIE,$m[1].':'.$nv,time()+86400*30);return ['session_id'=>(int)$r['session_id'],'user'=>$r];}public function isActive(int $sid,int $uid):bool{$s=Database::pdo()->prepare('SELECT COUNT(*) FROM persistent_sessions WHERE id=? AND user_id=? AND revoked_at IS NULL AND expires_at>NOW()');$s->execute([$sid,$uid]);return (int)$s->fetchColumn()>0;}public function revokeCurrent(string $reason='Cierre de sesión'):void{$id=Auth::sessionId();if($id)Database::pdo()->prepare('UPDATE persistent_sessions SET revoked_at=NOW(),revoke_reason=? WHERE id=? AND revoked_at IS NULL')->execute([$reason,$id]);$this->clearCookie();}private function setCookie(string $n,string $v,int $e):void{setcookie($n,$v,['expires'=>$e,'path'=>rtrim(APP_PUBLIC_PATH,'/').'/', 'secure'=>APP_CAN_USE_SECURE_FEATURES,'httponly'=>true,'samesite'=>'Lax']);}private function clearCookie():void{$this->setCookie(self::COOKIE,'',time()-3600);unset($_COOKIE[self::COOKIE]);}}
+declare(strict_types=1);
+namespace App\Services;
+
+use App\Core\{Auth,Database,Http};
+
+final class SessionService
+{
+    private const COOKIE = 'helpdesk_carrousel_auth';
+
+    public function create(int $userId, ?string $deviceName = null): int
+    {
+        $token = bin2hex(random_bytes(32));
+        $hash = hash('sha256', $token);
+        $expires = (new \DateTimeImmutable('+30 days'))->format('Y-m-d H:i:s');
+
+        $stmt = Database::pdo()->prepare(
+            'INSERT INTO user_sessions(user_id,token_hash,device_name,ip_address,user_agent,last_seen_at,expires_at,created_at)
+             VALUES(?,?,?,?,?,NOW(),?,NOW())'
+        );
+        $stmt->execute([
+            $userId,
+            $hash,
+            $deviceName ?: Http::device(),
+            Http::ip(),
+            Http::userAgent(),
+            $expires,
+        ]);
+
+        $id = (int)Database::pdo()->lastInsertId();
+        $this->setCookie(self::COOKIE, $token, strtotime($expires));
+        return $id;
+    }
+
+    public function restoreFromCookie(): ?array
+    {
+        $token = (string)($_COOKIE[self::COOKIE] ?? '');
+        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+            return null;
+        }
+
+        $hash = hash('sha256', $token);
+        $stmt = Database::pdo()->prepare(
+            "SELECT s.id session_id,u.*,r.code role_code,r.name role_name
+             FROM user_sessions s
+             JOIN users u ON u.id=s.user_id
+             JOIN roles r ON r.id=u.role_id
+             WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>NOW()
+               AND u.deleted_at IS NULL AND u.status IN ('ACTIVE','PENDING')
+             LIMIT 1"
+        );
+        $stmt->execute([$hash]);
+        $row = $stmt->fetch();
+        if (!$row) {
+            $this->clearCookie();
+            return null;
+        }
+
+        $newToken = bin2hex(random_bytes(32));
+        Database::pdo()->prepare(
+            'UPDATE user_sessions SET token_hash=?,last_seen_at=NOW(),ip_address=?,user_agent=? WHERE id=?'
+        )->execute([hash('sha256', $newToken), Http::ip(), Http::userAgent(), (int)$row['session_id']]);
+        $this->setCookie(self::COOKIE, $newToken, time() + 86400 * 30);
+
+        return ['session_id' => (int)$row['session_id'], 'user' => $row];
+    }
+
+    public function isActive(int $sessionId, int $userId): bool
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT COUNT(*) FROM user_sessions WHERE id=? AND user_id=? AND revoked_at IS NULL AND expires_at>NOW()'
+        );
+        $stmt->execute([$sessionId, $userId]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
+    public function revokeCurrent(): void
+    {
+        $id = Auth::sessionId();
+        if ($id) {
+            Database::pdo()->prepare('UPDATE user_sessions SET revoked_at=NOW() WHERE id=? AND revoked_at IS NULL')->execute([$id]);
+        }
+        $this->clearCookie();
+    }
+
+    private function setCookie(string $name, string $value, int $expires): void
+    {
+        setcookie($name, $value, [
+            'expires' => $expires,
+            'path' => rtrim(APP_PUBLIC_PATH, '/').'/',
+            'secure' => APP_CAN_USE_SECURE_FEATURES,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
+
+    private function clearCookie(): void
+    {
+        $this->setCookie(self::COOKIE, '', time() - 3600);
+        unset($_COOKIE[self::COOKIE]);
+    }
+}
