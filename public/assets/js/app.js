@@ -9,5 +9,17 @@
     const t=e.target.closest('[data-theme-toggle]');if(t){const current=read();const next=current==='system'?'light':current==='light'?'dark':'system';localStorage.setItem(KEY,next);apply(next);return;}
     const s=e.target.closest('[data-sidebar-toggle]');if(s){document.body.classList.toggle('sidebar-collapsed');const sidebar=document.getElementById('app-sidebar');if(window.innerWidth<=760&&sidebar)sidebar.classList.toggle('open');}
   });
+  document.addEventListener('submit',function(e){
+    const form=e.target.closest('form[data-single-submit]');
+    if(!form)return;
+    if(form.dataset.submitting==='1'){e.preventDefault();return;}
+    if(!form.checkValidity())return;
+    form.dataset.submitting='1';
+    form.querySelectorAll('button[type="submit"],input[type="submit"]').forEach(btn=>{
+      btn.disabled=true;
+      btn.setAttribute('aria-disabled','true');
+      if(btn.tagName==='BUTTON'&&!btn.dataset.keepLabel){btn.dataset.originalText=btn.textContent;btn.textContent='Procesando…';}
+    });
+  });
   if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(read()==='system')apply('system');});}
 })();
