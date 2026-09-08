@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-define('APP_NAME','Helpdesk Carrousel 360');
+define('APP_NAME','Helpdesk Carrousel');
 define('APP_VERSION','1.0.2');
 
 $scriptName = str_replace('\\','/',(string)($_SERVER['SCRIPT_NAME']??'/Helpdesk360/public/index.php'));
