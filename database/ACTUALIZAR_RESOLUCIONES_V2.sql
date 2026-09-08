@@ -20,4 +20,20 @@ CREATE TABLE IF NOT EXISTS ticket_resolutions (
     INDEX idx_resolution_user (resolved_by)
 ) ENGINE=InnoDB;
 
+-- Regla de integridad: un caso no puede quedar Resuelto/Cerrado sin documentar cómo se resolvió.
+DROP TRIGGER IF EXISTS trg_tickets_require_resolution;
+DELIMITER $$
+CREATE TRIGGER trg_tickets_require_resolution
+BEFORE UPDATE ON tickets
+FOR EACH ROW
+BEGIN
+    IF NEW.status IN ('RESOLVED','CLOSED')
+       AND OLD.status <> NEW.status
+       AND NOT EXISTS (SELECT 1 FROM ticket_resolutions tr WHERE tr.ticket_id=NEW.id)
+    THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Debe registrar la solucion antes de finalizar el caso';
+    END IF;
+END$$
+DELIMITER ;
+
 SELECT 'OK - Resoluciones V2' AS resultado;
