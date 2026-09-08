@@ -32,7 +32,8 @@ final class ResolutionController
         $rootCause=trim(Http::post('root_cause'));
         $solution=trim(Http::post('solution_applied'));
         $preventive=trim(Http::post('preventive_action'));
-        $reusable=Http::post('is_reusable','0')==='1'?1:0;
+        // Toda resolución documentada pasa automáticamente a formar parte del conocimiento reutilizable.
+        $reusable=1;
 
         if($ticketId<=0) throw new \RuntimeException('Caso no válido.');
         if(!isset(self::TYPES[$type])) throw new \RuntimeException('Selecciona cómo se resolvió el caso.');
@@ -55,7 +56,7 @@ final class ResolutionController
         }
 
         $before=['status'=>$ticket['status']];
-        Database::transaction(function(PDO $pdo)use($ticketId,$type,$rootCause,$solution,$preventive,$reusable):void{
+        Database::transaction(function(PDO $pdo)use($ticketId,$type,$rootCause,$solution,$preventive,$reusable,$before):void{
             $pdo->prepare("INSERT INTO ticket_resolutions(ticket_id,resolution_type,root_cause,solution_applied,preventive_action,is_reusable,resolved_by,created_at,updated_at)
                 VALUES(?,?,?,?,?,?,?,NOW(),NOW())
                 ON DUPLICATE KEY UPDATE resolution_type=VALUES(resolution_type),root_cause=VALUES(root_cause),solution_applied=VALUES(solution_applied),preventive_action=VALUES(preventive_action),is_reusable=VALUES(is_reusable),resolved_by=VALUES(resolved_by),updated_at=NOW()")
@@ -63,11 +64,11 @@ final class ResolutionController
             $pdo->prepare("UPDATE tickets SET status='RESOLVED',resolved_at=NOW(),updated_at=NOW() WHERE id=?")->execute([$ticketId]);
             $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
                 VALUES(?,'RESOLUTION_RECORDED',?,'USER',?,?,?,NOW())")
-                ->execute([$ticketId,Auth::id(),json_encode(['status'=>$before['status']],JSON_UNESCAPED_UNICODE),json_encode(['status'=>'RESOLVED'],JSON_UNESCAPED_UNICODE),json_encode(['resolution_type'=>$type,'reusable'=>$reusable],JSON_UNESCAPED_UNICODE)]);
+                ->execute([$ticketId,Auth::id(),json_encode(['status'=>$before['status']],JSON_UNESCAPED_UNICODE),json_encode(['status'=>'RESOLVED'],JSON_UNESCAPED_UNICODE),json_encode(['resolution_type'=>$type,'reusable'=>true],JSON_UNESCAPED_UNICODE)]);
         });
 
         Audit::log('TICKET_RESOLUTION_RECORDED','ticket',$ticketId,$before,[
-            'status'=>'RESOLVED','resolution_type'=>$type,'is_reusable'=>$reusable
+            'status'=>'RESOLVED','resolution_type'=>$type,'is_reusable'=>1
         ]);
 
         $publicMessage='Tu solicitud fue resuelta.'.PHP_EOL.PHP_EOL.'Solución aplicada: '.$solution;
