@@ -29,11 +29,11 @@ final class AdminController
              LEFT JOIN areas a ON a.id=ua.area_id
              LEFT JOIN positions pos ON pos.id=ua.position_id
              LEFT JOIN users m ON m.id=ua.manager_user_id
-             WHERE u.deleted_at IS NULL
+             WHERE u.deleted_at IS NULL AND u.access_type='INTERNAL'
              ORDER BY FIELD(u.status,'PENDING','ACTIVE','BLOCKED','DISABLED'),u.full_name"
         )->fetchAll();
 
-        $roles=$pdo->query("SELECT id,code,name FROM roles WHERE is_active=1 ORDER BY FIELD(code,'REQUESTER','TECHNICIAN','SEMIADMIN','ADMIN','EXTERNAL'),name")->fetchAll();
+        $roles=$pdo->query("SELECT id,code,name FROM roles WHERE is_active=1 AND code<>'EXTERNAL' ORDER BY FIELD(code,'REQUESTER','TECHNICIAN','SEMIADMIN','ADMIN'),name")->fetchAll();
         $regions=$pdo->query('SELECT id,name FROM regions WHERE is_active=1 ORDER BY name')->fetchAll();
         $parks=$pdo->query('SELECT id,name,region_id FROM parks WHERE is_active=1 ORDER BY name')->fetchAll();
         $areas=$pdo->query('SELECT id,name FROM areas WHERE is_active=1 ORDER BY name')->fetchAll();
@@ -43,7 +43,7 @@ final class AdminController
              FROM users u
              JOIN user_assignments ua ON ua.user_id=u.id AND ua.status='ACTIVE' AND ua.ends_at IS NULL
              JOIN positions pos ON pos.id=ua.position_id
-             WHERE u.deleted_at IS NULL AND u.status IN('ACTIVE','PENDING')
+             WHERE u.deleted_at IS NULL AND u.access_type='INTERNAL' AND u.status IN('ACTIVE','PENDING')
                AND pos.code IN('PARK_MANAGER','REGIONAL_SUPERVISOR','MANAGEMENT')
              ORDER BY u.full_name"
         )->fetchAll();
@@ -72,15 +72,15 @@ final class AdminController
         if(!$position) throw new \RuntimeException('Selecciona el puesto o función.');
         if($manager===$uid) throw new \RuntimeException('Una persona no puede ser su propio responsable.');
 
-        $old=$pdo->prepare('SELECT role_id,status,access_type FROM users WHERE id=? AND deleted_at IS NULL LIMIT 1');
+        $old=$pdo->prepare("SELECT role_id,status,access_type FROM users WHERE id=? AND deleted_at IS NULL AND access_type='INTERNAL' LIMIT 1");
         $old->execute([$uid]);
         $before=$old->fetch();
-        if(!$before) throw new \RuntimeException('Usuario no encontrado.');
+        if(!$before) throw new \RuntimeException('Usuario interno no encontrado.');
 
         $role=$pdo->prepare('SELECT code FROM roles WHERE id=? AND is_active=1 LIMIT 1');
         $role->execute([$rid]);
         $roleCode=(string)$role->fetchColumn();
-        if($roleCode==='') throw new \RuntimeException('Rol no disponible.');
+        if($roleCode===''||$roleCode==='EXTERNAL') throw new \RuntimeException('Para proveedores utiliza la sección Proveedores externos.');
 
         if($park){
             $q=$pdo->prepare('SELECT region_id FROM parks WHERE id=? AND is_active=1 LIMIT 1');
@@ -96,8 +96,7 @@ final class AdminController
                  VALUES(?,?,?,?,?,?,?,'ACTIVE',NOW(),'Asignación administrativa Helpdesk',?,NOW())"
             )->execute([$uid,$region,$park,$area,$position,$type,$manager,Auth::id()]);
 
-            $accessType=$roleCode==='EXTERNAL'?'EXTERNAL':'INTERNAL';
-            $pdo->prepare("UPDATE users SET role_id=?,access_type=?,status='ACTIVE',updated_at=NOW() WHERE id=?")->execute([$rid,$accessType,$uid]);
+            $pdo->prepare("UPDATE users SET role_id=?,access_type='INTERNAL',status='ACTIVE',updated_at=NOW() WHERE id=?")->execute([$rid,$uid]);
 
             $teamId=(int)$pdo->query("SELECT id FROM support_teams WHERE code='IT' LIMIT 1")->fetchColumn();
             if($teamId>0){
