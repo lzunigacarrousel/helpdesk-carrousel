@@ -41,7 +41,8 @@ final class ExternalController
                 APP_BASE_URL.'/login',true,true
             );
         }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
-        Flash::set($this->deliveryMessage('Usuario externo creado.',$result['email_status']??null),'success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        $status=$result['email_status']??null;
+        Flash::set($this->deliveryMessage('Usuario externo creado.',$status),$this->deliveryFlashType($status));header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function grant(): void
@@ -69,7 +70,8 @@ final class ExternalController
                 APP_BASE_URL.'/tickets/view?id='.$ticketId,true,true
             );
         }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
-        Flash::set($this->deliveryMessage('Caso compartido.',$result['email_status']??null),'success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        $status=$result['email_status']??null;
+        Flash::set($this->deliveryMessage('Caso compartido.',$status),$this->deliveryFlashType($status));header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function revoke(): void
@@ -95,7 +97,8 @@ final class ExternalController
                     APP_BASE_URL.'/mis-tickets',true,true
                 );
             }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
-            Flash::set($this->deliveryMessage('Acceso retirado.',$result['email_status']??null),'success');
+            $status=$result['email_status']??null;
+            Flash::set($this->deliveryMessage('Acceso retirado.',$status),$this->deliveryFlashType($status));
         }else Flash::set('Acceso retirado.','success');
         header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
@@ -107,6 +110,15 @@ final class ExternalController
             'SKIPPED'=>$base.' En PC TEST el correo quedó registrado en modo de prueba.',
             'FAILED'=>$base.' El correo no pudo enviarse; revisa Correo y notificaciones.',
             default=>$base,
+        };
+    }
+
+    private function deliveryFlashType(?string $status): string
+    {
+        return match($status){
+            'FAILED'=>'danger',
+            'SKIPPED'=>'info',
+            default=>'success',
         };
     }
 }
