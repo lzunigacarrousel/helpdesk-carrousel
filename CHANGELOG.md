@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v2.3.3-dev · Contexto por perfil + lenguaje visible · 2026-09-09
+- Se elimina del dashboard externo el bloque `Acceso restringido y seguro`; el usuario ya no recibe lenguaje técnico de permisos como contenido principal.
+- Dashboard de solicitante y colaborador describe capacidades concretas en lenguaje de tarea: revisar casos, responder, adjuntar información y consultar soluciones.
+- La vista externa deja de repetir la marca en títulos, botones, ayudas y conversación; se reemplaza por términos funcionales como `Equipo de soporte`, `Responsable`, `Enviar actualización` y `Mis casos`.
+- La prioridad interna deja de mostrarse en listados y encabezado del colaborador externo; se conserva únicamente el contexto necesario para ejecutar el trabajo compartido.
+- El listado externo deja de mostrar frases negativas como `No tienes acceso a...`; ahora explica de forma positiva qué información concentra ese espacio.
+- Shell corporativo reduce redundancia de marca: sidebar `Helpdesk / Corporación Carrousel`, topbar `Helpdesk` y etiquetas de usuario adaptadas a `Administrador/Técnico`, `Usuario` o `Colaborador` según contexto.
+- `Externo` deja de mostrarse como etiqueta de rol al colaborador; la interfaz usa `Colaborador`, mientras el valor técnico de autorización permanece sin cambios en backend.
+- El acceso público cambia `Acceso de soporte` por `Iniciar sesión` y simplifica el texto de validación por código temporal.
+- Se agregan checks estáticos que bloquean la reaparición de textos redundantes o demasiado técnicos en las vistas externas principales.
+
 ## v2.3.2-dev · Notificaciones reales + correo + vista externa · 2026-09-09
 - La campana deja de ser un contador de carga de trabajo y se convierte en centro persistente de notificaciones con novedades no leídas, historial reciente y acción para marcar como leído.
 - `notification_events` y `notification_deliveries` se aprovechan como infraestructura real; se añade canal `IN_APP`, contenido legible, URL de acción y fecha de lectura mediante migración incremental.
