@@ -10,6 +10,7 @@ $activeNav=$activeNav??'home';
 $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
 $searchValue=$activeNav==='search'?trim((string)($_GET['q']??'')):'';
+$supportView=$activeNav==='support'?strtolower(trim((string)($_GET['view']??''))):'';
 
 /* Atención rápida en topbar. Resume trabajo pendiente real. */
 $attentionItems=[];
@@ -28,14 +29,14 @@ try{
         $q=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND deleted_at IS NULL AND status IN('IN_PROGRESS','PENDING','REOPENED')");
         $q->execute([$uid]);
         $mine=(int)$q->fetchColumn();
-        if($mine>0)$attentionItems[]=['label'=>'Mis casos activos','detail'=>'Casos que ya están bajo tu responsabilidad.','count'=>$mine,'href'=>APP_BASE_URL.'/tickets/queue'];
+        if($mine>0)$attentionItems[]=['label'=>'Mis casos activos','detail'=>'Casos que ya están bajo tu responsabilidad.','count'=>$mine,'href'=>APP_BASE_URL.'/tickets/queue?view=mine'];
 
         $available=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE assigned_to IS NULL AND deleted_at IS NULL AND status IN('NEW','AVAILABLE','REOPENED')")->fetchColumn();
-        if($available>0)$attentionItems[]=['label'=>'Casos por atender','detail'=>'Solicitudes disponibles en la cola de soporte.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue'];
+        if($available>0)$attentionItems[]=['label'=>'Casos por atender','detail'=>'Solicitudes disponibles en la cola de soporte.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue?view=available'];
 
         if($canManagement){
             $overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();
-            if($overdue>0)$attentionItems[]=['label'=>'Casos fuera de tiempo','detail'=>'Solicitudes que requieren revisión prioritaria.','count'=>$overdue,'href'=>APP_BASE_URL.'/gestion'];
+            if($overdue>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$overdue,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];
         }
     }else{
         $q=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND status NOT IN('CLOSED','CANCELLED') AND (requester_user_id=? OR LOWER(requester_email)=?)");
@@ -47,7 +48,7 @@ try{
 }catch(Throwable){
     $attentionItems=[];$attentionCount=0;
 }
-$assetVersion='20260909-001';
+$assetVersion='20260909-004';
 ?>
 <!doctype html>
 <html lang="es">
@@ -78,8 +79,10 @@ $assetVersion='20260909-001';
     <a class="side-link <?= $activeNav==='search'?'active':'' ?>" href="<?= APP_BASE_URL ?>/buscar"><span class="side-icon">⌕</span><span class="side-label">Buscar</span></a>
 
     <?php if($isSupport): ?>
-      <div class="nav-section">Trabajo</div>
-      <a class="side-link <?= $activeNav==='support'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span><span class="side-label">Centro de soporte</span></a>
+      <div class="nav-section">Soporte</div>
+      <a class="side-link <?= $activeNav==='support'&&$supportView===''?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span><span class="side-label">Centro de soporte</span></a>
+      <a class="side-link <?= $activeNav==='support'&&$supportView==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=mine"><span class="side-icon">◉</span><span class="side-label">Mis casos</span></a>
+      <a class="side-link <?= $activeNav==='support'&&$supportView==='available'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=available"><span class="side-icon">○</span><span class="side-label">Disponibles</span></a>
       <div class="nav-section">Personal</div>
       <a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a>
     <?php elseif($isExternal): ?>
@@ -119,7 +122,7 @@ $assetVersion='20260909-001';
 
   <form class="topbar-search" method="get" action="<?= APP_BASE_URL ?>/buscar" role="search">
     <span aria-hidden="true">⌕</span>
-    <input type="search" name="q" value="<?= htmlspecialchars($searchValue) ?>" placeholder="Buscar caso, problema, parque…" autocomplete="off" aria-label="Buscar en Helpdesk">
+    <input type="search" name="q" value="<?= htmlspecialchars($searchValue) ?>" placeholder="Buscar ticket, problema, parque…" autocomplete="off" aria-label="Buscar en Helpdesk">
     <kbd>Ctrl K</kbd>
   </form>
 
