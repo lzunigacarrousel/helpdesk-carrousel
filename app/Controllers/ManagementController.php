@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Database,View};
+use App\Services\ScopeService;
 use PDO;
 
 final class ManagementController
@@ -56,10 +57,10 @@ final class ManagementController
             {$where} ORDER BY t.created_at DESC LIMIT 80");
         $detail->execute($params);
 
-        $catalogs=$this->catalogs($pdo);
+        $catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
         View::render('management/dashboard',[
             'user'=>Auth::user(),'filters'=>$filters,'kpis'=>$kpis,'byStatus'=>$byStatus,'byCategory'=>$byCategory,'byPark'=>$byPark,'byAssignee'=>$byAssignee,'byPendingReason'=>$byPendingReason,'trend'=>$trend,
-            'tickets'=>$detail->fetchAll(),'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,
+            'tickets'=>$detail->fetchAll(),'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,'scopeLabel'=>$scopeLabel,
         ]);
     }
 
@@ -81,10 +82,10 @@ final class ManagementController
         foreach($rows as &$row)$row['lifecycle']=$this->lifecycle($row,$events[(int)$row['id']]??[]);
         unset($row);
 
-        $reportStats=$this->reportStats($rows);$catalogs=$this->catalogs($pdo);
+        $reportStats=$this->reportStats($rows);$catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
         View::render('management/reports',[
             'user'=>Auth::user(),'filters'=>$filters,'rows'=>$rows,'reportStats'=>$reportStats,
-            'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,
+            'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,'scopeLabel'=>$scopeLabel,
         ]);
     }
 
@@ -143,7 +144,12 @@ final class ManagementController
 
     private function catalogs(PDO $pdo):array
     {
-        return['parks'=>$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll(),'categories'=>$pdo->query("SELECT id,name FROM ticket_categories WHERE is_active=1 ORDER BY name")->fetchAll(),'supportUsers'=>$pdo->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.status='ACTIVE' AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll()];
+        $parks=$pdo->query("SELECT id,name,region_id FROM parks WHERE is_active=1 ORDER BY name")->fetchAll();
+        if(Auth::role()==='SUPERVISOR'){
+            $scope=new ScopeService();
+            $parks=array_values(array_filter($parks,static fn(array $p):bool=>$scope->canAccessOrganization((int)($p['region_id']??0),(int)$p['id'],null)));
+        }
+        return['parks'=>$parks,'categories'=>$pdo->query("SELECT id,name FROM ticket_categories WHERE is_active=1 ORDER BY name")->fetchAll(),'supportUsers'=>$pdo->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.status='ACTIVE' AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll()];
     }
 
     private function filters():array
@@ -154,6 +160,8 @@ final class ManagementController
     private function where(array $f):array
     {
         $w=['t.deleted_at IS NULL','t.created_at>=?','t.created_at<DATE_ADD(?,INTERVAL 1 DAY)'];$p=[$f['from'],$f['to']];
+        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+        if($scopeSql!=='1=1'){$w[]=$scopeSql;array_push($p,...$scopeParams);}
         if($f['park_id']>0){$w[]='t.park_id=?';$p[]=$f['park_id'];}if($f['category_id']>0){$w[]='t.category_id=?';$p[]=$f['category_id'];}if($f['assigned_to']>0){$w[]='t.assigned_to=?';$p[]=$f['assigned_to'];}
         if(in_array($f['status'],array_keys(self::STATUS_LABELS),true)){$w[]='t.status=?';$p[]=$f['status'];}if(in_array($f['priority'],['LOW','MEDIUM','HIGH','CRITICAL'],true)){$w[]='t.priority=?';$p[]=$f['priority'];}
         return[' WHERE '.implode(' AND ',$w),$p];
