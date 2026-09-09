@@ -24,6 +24,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/mis-tickets"><span>Seguimiento</span><strong>Ver mis solicitudes</strong><small>Consulta respuestas, archivos, estado y solución.</small></a>
       <?php endif; ?>
       <?php if($canManagement): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/gestion"><span>Consulta</span><strong>Dashboard e informes</strong><small>Analiza volumen, SLA, tiempos, carga y tendencias según tu alcance.</small></a><?php endif; ?>
+      <?php if($canAdmin): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/admin/correo"><span>Operación</span><strong>Correo y notificaciones</strong><small>Prueba el canal, revisa entregas y detecta fallos antes de que afecten el seguimiento.</small></a><?php endif; ?>
     </div>
   </section>
 
@@ -97,6 +98,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <article><strong>Usuarios y estructura</strong><p>El perfil define qué puede hacer; el alcance define qué puede consultar; atender soporte indica si participa en la operación de tickets.</p></article>
       <article><strong>Proveedores externos</strong><p>Comparte únicamente tickets específicos y revoca el acceso al terminar la colaboración.</p></article>
       <article><strong>Auditoría</strong><p>Consulta quién cambió qué y cuándo. Úsala para trazabilidad, no como actividad diaria del técnico.</p></article>
+      <article><strong>Correo y notificaciones</strong><p>Comprueba si el canal está en SMTP o en modo de prueba, envía una prueba real y revisa entregas fallidas o pendientes sin exponer credenciales.</p><a href="<?= APP_BASE_URL ?>/admin/correo">Abrir Correo y notificaciones →</a></article>
     </div>
   </section>
   <?php endif; ?>
@@ -111,6 +113,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <?php if($canProblems): ?><details><summary>¿Cuándo conviene crear un problema conocido?</summary><div>Cuando varios tickets representan la misma falla o cuando necesitas investigar una causa que trasciende un solo caso. Relaciona las ocurrencias en vez de documentar el mismo problema varias veces.</div></details><?php endif; ?>
       <?php if($canKnowledge): ?><details><summary>¿Cuándo debo crear un artículo?</summary><div>Cuando una solución o procedimiento sea suficientemente claro y reutilizable. Créalo como borrador, elimina información específica del caso y publícalo únicamente después de revisarlo.</div></details><?php endif; ?>
       <?php if($canManagement): ?><details><summary>¿Por qué Gerencia o Supervisión no ven botones para atender?</summary><div>Porque consultar información y atender soporte son responsabilidades distintas. Estos perfiles pueden revisar dashboard, informes y conocimiento dentro de su alcance sin convertirse en técnicos.</div></details><?php endif; ?>
+      <?php if($canAdmin): ?><details><summary>¿Cómo sé si un correo realmente salió?</summary><div>Abre <b>Correo y notificaciones</b>. <b>Enviado</b> significa que el servidor SMTP aceptó la entrega; <b>Falló</b> requiere revisión; <b>Pendiente</b> no ha terminado; <b>Modo prueba</b> significa que solo se registró localmente y no salió a Internet.</div></details><?php endif; ?>
     </div>
   </section>
 </div>
