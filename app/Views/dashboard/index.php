@@ -3,92 +3,23 @@ $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $isSupport=!$isExternal&&(\App\Core\Auth::can('tickets.view_queue')||\App\Core\Auth::can('tickets.change_status')||\App\Core\Auth::can('tickets.view_all'));
 $helpContext=$isSupport?'support_center':($isExternal?'my_tickets':'requester_home');
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Por atender','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
-$activityLabels=['CREATED'=>'Nuevo ticket','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','COMMENTED'=>'Nueva respuesta','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto','STATUS_CHANGED'=>'Estado actualizado'];
+$activityLabels=['CREATED'=>'Nuevo ticket','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','COMMENTED'=>'Nueva respuesta','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto','STATUS_CHANGED'=>'Estado actualizado','PROBLEM_LINKED'=>'Relacionado con problema conocido','KNOWLEDGE_CREATED'=>'Artículo creado desde caso'];
 $pageTitle='Inicio';$pageSection='Inicio';$activeNav='home';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="dashboard-page <?= $isSupport?'dashboard-support':'dashboard-requester' ?>">
-  <div class="dashboard-primary-row">
-    <div class="page-heading"><div>
-      <div class="ticket-kicker"><?= $isSupport?'Soporte Carrousel':($isExternal?'Colaboración externa':'Mi Helpdesk') ?></div>
-      <h1 class="page-title"><?= $isSupport?'Centro de trabajo':($isExternal?'Mis casos':'Mis solicitudes') ?></h1>
-      <p class="page-subtitle"><?= $isSupport?'Prioriza lo urgente, continúa tu trabajo y toma nuevos casos cuando tengas capacidad.':($isExternal?'Revisa los casos que Carrousel compartió contigo y responde desde cada seguimiento.':'Crea solicitudes, revisa avances y consulta soluciones de tus casos.') ?></p>
-    </div></div>
-    <div class="dashboard-quick-actions">
-      <?php if($isSupport): ?>
-        <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/tickets/queue">Centro de soporte</a>
-        <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/queue?view=mine">Mis casos</a>
-        <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/queue?view=available">Disponibles</a>
-      <?php elseif(!$isExternal): ?>
-        <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a>
-        <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/mis-tickets">Ver mis solicitudes</a>
-      <?php endif; ?>
-    </div>
-  </div>
-
+  <div class="dashboard-primary-row"><div class="page-heading"><div><div class="ticket-kicker"><?= $isSupport?'Soporte Carrousel':($isExternal?'Colaboración externa':'Mi Helpdesk') ?></div><h1 class="page-title"><?= $isSupport?'Centro de trabajo':($isExternal?'Mis casos':'Mis solicitudes') ?></h1><p class="page-subtitle"><?= $isSupport?'Prioriza lo urgente, continúa tu trabajo y reutiliza conocimiento antes de empezar desde cero.':($isExternal?'Revisa los casos que Carrousel compartió contigo y responde desde cada seguimiento.':'Crea solicitudes, revisa avances y consulta soluciones de tus casos.') ?></p></div></div><div class="dashboard-quick-actions"><?php if($isSupport): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/tickets/queue">Centro de soporte</a><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/queue?view=mine">Mis casos</a><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/queue?view=available">Disponibles</a><?php elseif(!$isExternal): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/mis-tickets">Ver mis solicitudes</a><?php endif; ?></div></div>
   <?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-
   <?php if($isSupport): ?>
-    <section class="dashboard-action-section dashboard-action-now">
-      <div class="dashboard-section-head"><div><span class="ticket-kicker">Prioridad operativa</span><h2>Requiere acción ahora</h2><p>Empieza por los casos con mayor riesgo de incumplimiento o impacto.</p></div></div>
-      <div class="dashboard-action-grid">
-        <a class="dashboard-action-card danger" href="<?= APP_BASE_URL ?>/tickets/queue?view=overdue"><span>SLA vencidos</span><strong><?= (int)($supportStats['overdue']??0) ?></strong><small>Casos fuera del tiempo objetivo.</small></a>
-        <a class="dashboard-action-card warning" href="<?= APP_BASE_URL ?>/tickets/queue?view=near_due"><span>Próximos a vencer</span><strong><?= (int)($supportStats['near_due']??0) ?></strong><small>Vencen dentro de las próximas 2 horas.</small></a>
-        <a class="dashboard-action-card critical" href="<?= APP_BASE_URL ?>/tickets/queue?view=critical"><span>Críticos</span><strong><?= (int)($supportStats['critical']??0) ?></strong><small>Casos activos con prioridad crítica.</small></a>
-      </div>
-    </section>
+    <section class="dashboard-action-section dashboard-action-now"><div class="dashboard-section-head"><div><span class="ticket-kicker">Prioridad operativa</span><h2>Requiere acción ahora</h2><p>Empieza por los casos con mayor riesgo de incumplimiento o impacto.</p></div></div><div class="dashboard-action-grid"><a class="dashboard-action-card danger" href="<?= APP_BASE_URL ?>/tickets/queue?view=overdue"><span>SLA vencidos</span><strong><?= (int)($supportStats['overdue']??0) ?></strong><small>Casos fuera del tiempo objetivo.</small></a><a class="dashboard-action-card warning" href="<?= APP_BASE_URL ?>/tickets/queue?view=near_due"><span>Próximos a vencer</span><strong><?= (int)($supportStats['near_due']??0) ?></strong><small>Vencen dentro de las próximas 2 horas.</small></a><a class="dashboard-action-card critical" href="<?= APP_BASE_URL ?>/tickets/queue?view=critical"><span>Críticos</span><strong><?= (int)($supportStats['critical']??0) ?></strong><small>Casos activos con prioridad crítica.</small></a></div></section>
+    <div class="dashboard-work-grid"><section class="card dashboard-work-card"><div class="dashboard-section-head compact"><div><span class="ticket-kicker">Mi trabajo</span><h2>Lo que ya está en tus manos</h2></div><a href="<?= APP_BASE_URL ?>/tickets/queue?view=mine">Ver mis casos</a></div><div class="dashboard-work-stats"><a href="<?= APP_BASE_URL ?>/tickets/queue?view=mine"><strong><?= (int)($supportStats['mine']??0) ?></strong><span>Asignados a mí</span></a><a href="<?= APP_BASE_URL ?>/tickets/queue?view=pending"><strong><?= (int)($supportStats['pending']??0) ?></strong><span>En espera</span></a><a href="<?= APP_BASE_URL ?>/tickets/queue?view=reopened"><strong><?= (int)($supportStats['reopened']??0) ?></strong><span>Reabiertos</span></a></div></section><section class="card dashboard-queue-card"><div class="dashboard-section-head compact"><div><span class="ticket-kicker">Cola</span><h2>Casos disponibles</h2></div><a href="<?= APP_BASE_URL ?>/tickets/queue?view=available">Abrir cola</a></div><div class="dashboard-queue-number"><strong><?= (int)($supportStats['available']??0) ?></strong><span>casos esperando responsable</span></div><p><?= (int)($supportStats['available']??0)>0?'Toma un caso únicamente cuando puedas comenzar a atenderlo.':'La cola está al día en este momento.' ?></p></section></div>
 
-    <div class="dashboard-work-grid">
-      <section class="card dashboard-work-card">
-        <div class="dashboard-section-head compact"><div><span class="ticket-kicker">Mi trabajo</span><h2>Lo que ya está en tus manos</h2></div><a href="<?= APP_BASE_URL ?>/tickets/queue?view=mine">Ver mis casos</a></div>
-        <div class="dashboard-work-stats">
-          <a href="<?= APP_BASE_URL ?>/tickets/queue?view=mine"><strong><?= (int)($supportStats['mine']??0) ?></strong><span>Asignados a mí</span></a>
-          <a href="<?= APP_BASE_URL ?>/tickets/queue?view=pending"><strong><?= (int)($supportStats['pending']??0) ?></strong><span>En espera</span></a>
-          <a href="<?= APP_BASE_URL ?>/tickets/queue?view=reopened"><strong><?= (int)($supportStats['reopened']??0) ?></strong><span>Reabiertos</span></a>
-        </div>
-      </section>
+    <?php if(\App\Core\Auth::can('problems.view')||\App\Core\Auth::can('knowledge.manage')): ?><section class="card dashboard-itsm-card"><div class="dashboard-section-head compact"><div><span class="ticket-kicker">Aprendizaje operativo</span><h2>Problemas y conocimiento</h2><p>Convierte recurrencias y resoluciones en información reutilizable.</p></div></div><div class="dashboard-work-stats dashboard-itsm-stats"><?php if(\App\Core\Auth::can('problems.view')): ?><a href="<?= APP_BASE_URL ?>/problems"><strong><?= (int)($itsmStats['problems_open']??0) ?></strong><span>Problemas abiertos</span></a><a href="<?= APP_BASE_URL ?>/problems?status=INVESTIGATING"><strong><?= (int)($itsmStats['problems_investigating']??0) ?></strong><span>En investigación</span></a><?php endif; ?><?php if(\App\Core\Auth::can('knowledge.manage')): ?><a href="<?= APP_BASE_URL ?>/knowledge?status=DRAFT"><strong><?= (int)($itsmStats['knowledge_drafts']??0) ?></strong><span>Artículos en borrador</span></a><?php endif; ?></div></section><?php endif; ?>
 
-      <section class="card dashboard-queue-card">
-        <div class="dashboard-section-head compact"><div><span class="ticket-kicker">Cola</span><h2>Casos disponibles</h2></div><a href="<?= APP_BASE_URL ?>/tickets/queue?view=available">Abrir cola</a></div>
-        <div class="dashboard-queue-number"><strong><?= (int)($supportStats['available']??0) ?></strong><span>casos esperando responsable</span></div>
-        <p><?= (int)($supportStats['available']??0)>0?'Toma un caso únicamente cuando puedas comenzar a atenderlo.':'La cola está al día en este momento.' ?></p>
-      </section>
-    </div>
-
-    <section class="card dashboard-activity-card">
-      <div class="dashboard-section-head compact"><div><span class="ticket-kicker">Seguimiento</span><h2>Actividad reciente</h2><p>Movimientos operativos recientes del Helpdesk.</p></div><a href="<?= APP_BASE_URL ?>/buscar">Buscar caso</a></div>
-      <div class="dashboard-activity-list">
-        <?php foreach(($supportActivity??[]) as $a): ?>
-          <a class="dashboard-activity-item" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$a['ticket_id'] ?>">
-            <span class="dashboard-activity-dot"></span>
-            <div><strong><?= htmlspecialchars($activityLabels[$a['event_type']]??'Actividad del caso') ?></strong><span><?= htmlspecialchars($a['ticket_number'].' · '.$a['subject']) ?></span></div>
-            <small><?= !empty($a['actor_name'])?htmlspecialchars($a['actor_name']).' · ':'' ?><?= htmlspecialchars(date('d/m H:i',strtotime($a['created_at']))) ?></small>
-          </a>
-        <?php endforeach; ?>
-        <?php if(empty($supportActivity)): ?><div class="empty-state compact-empty"><strong>Sin actividad reciente</strong><span>Los nuevos movimientos aparecerán aquí.</span></div><?php endif; ?>
-      </div>
-    </section>
+    <section class="card dashboard-activity-card"><div class="dashboard-section-head compact"><div><span class="ticket-kicker">Seguimiento</span><h2>Actividad reciente</h2><p>Movimientos operativos recientes del Helpdesk.</p></div><a href="<?= APP_BASE_URL ?>/buscar">Buscar caso o solución</a></div><div class="dashboard-activity-list"><?php foreach(($supportActivity??[]) as $a): ?><a class="dashboard-activity-item" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$a['ticket_id'] ?>"><span class="dashboard-activity-dot"></span><div><strong><?= htmlspecialchars($activityLabels[$a['event_type']]??'Actividad del caso') ?></strong><span><?= htmlspecialchars($a['ticket_number'].' · '.$a['subject']) ?></span></div><small><?= !empty($a['actor_name'])?htmlspecialchars($a['actor_name']).' · ':'' ?><?= htmlspecialchars(date('d/m H:i',strtotime($a['created_at']))) ?></small></a><?php endforeach; ?><?php if(empty($supportActivity)): ?><div class="empty-state compact-empty"><strong>Sin actividad reciente</strong><span>Los nuevos movimientos aparecerán aquí.</span></div><?php endif; ?></div></section>
   <?php else: ?>
-    <div class="dashboard-requester-grid">
-      <section class="card dashboard-requester-main">
-        <span class="ticket-kicker"><?= $isExternal?'Tu acceso':'Resumen' ?></span>
-        <h2>Hola, <?= htmlspecialchars($user['full_name']) ?></h2>
-        <p><?= $isExternal?'Solo puedes ver y responder los casos que Carrousel comparte expresamente contigo.':'Desde aquí puedes registrar una nueva solicitud o continuar el seguimiento de las que ya existen.' ?></p>
-        <div class="dashboard-requester-stats">
-          <div><strong><?= (int)($ticketStats['open_count']??0) ?></strong><span><?= $isExternal?'Casos activos':'Solicitudes abiertas' ?></span></div>
-          <div><strong><?= (int)($ticketStats['resolved_count']??0)+(int)($ticketStats['closed_count']??0) ?></strong><span>Historial resuelto</span></div>
-        </div>
-      </section>
-      <?php if(!$isExternal): ?><section class="card dashboard-profile-card"><span class="ticket-kicker">Tu estructura</span><h2><?= htmlspecialchars($assignment['position_name']??'Asignación pendiente') ?></h2><?php if($assignment): ?><p><?php if(!empty($assignment['park_name'])): ?><?= htmlspecialchars($assignment['park_name']) ?><?php elseif(!empty($assignment['area_name'])): ?><?= htmlspecialchars($assignment['area_name']) ?><?php else: ?>Ubicación aún no definida<?php endif; ?><?php if(!empty($assignment['manager_name'])): ?><br>Responsable: <?= htmlspecialchars($assignment['manager_name']) ?><?php endif; ?></p><?php else: ?><p>Tu asignación organizacional todavía no está completa.</p><?php endif; ?></section><?php endif; ?>
-    </div>
-
-    <section class="card dashboard-recent">
-      <div class="dashboard-recent-head"><div><span class="ticket-kicker">Recientes</span><h2><?= $isExternal?'Casos compartidos':'Mis solicitudes recientes' ?></h2></div><a href="<?= APP_BASE_URL ?>/mis-tickets">Ver todas</a></div>
-      <div class="dashboard-recent-list">
-        <?php foreach(($recentTickets??[]) as $t): ?><a class="dashboard-recent-item" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>"><div><strong><?= htmlspecialchars($t['subject']) ?></strong><p><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,120,'…')) ?></p><span><?= htmlspecialchars($t['ticket_number']) ?> · <?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span></div><div class="dashboard-recent-status"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?> →</div></a><?php endforeach; ?>
-        <?php if(empty($recentTickets)): ?><div class="empty-state compact-empty"><strong><?= $isExternal?'No tienes casos compartidos':'Aún no tienes solicitudes' ?></strong><span><?= $isExternal?'Cuando Carrousel necesite tu apoyo aparecerán aquí.':'Cuando necesites ayuda, registra una nueva solicitud.' ?></span><?php if(!$isExternal): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Nueva solicitud</a><?php endif; ?></div><?php endif; ?>
-      </div>
-    </section>
+    <div class="dashboard-requester-grid"><section class="card dashboard-requester-main"><span class="ticket-kicker"><?= $isExternal?'Tu acceso':'Resumen' ?></span><h2>Hola, <?= htmlspecialchars($user['full_name']) ?></h2><p><?= $isExternal?'Solo puedes ver y responder los casos que Carrousel comparte expresamente contigo.':'Desde aquí puedes registrar una nueva solicitud o continuar el seguimiento de las que ya existen.' ?></p><div class="dashboard-requester-stats"><div><strong><?= (int)($ticketStats['open_count']??0) ?></strong><span><?= $isExternal?'Casos activos':'Solicitudes abiertas' ?></span></div><div><strong><?= (int)($ticketStats['resolved_count']??0)+(int)($ticketStats['closed_count']??0) ?></strong><span>Historial resuelto</span></div></div></section><?php if(!$isExternal): ?><section class="card dashboard-profile-card"><span class="ticket-kicker">Tu estructura</span><h2><?= htmlspecialchars($assignment['position_name']??'Asignación pendiente') ?></h2><?php if($assignment): ?><p><?php if(!empty($assignment['park_name'])): ?><?= htmlspecialchars($assignment['park_name']) ?><?php elseif(!empty($assignment['area_name'])): ?><?= htmlspecialchars($assignment['area_name']) ?><?php else: ?>Ubicación aún no definida<?php endif; ?><?php if(!empty($assignment['manager_name'])): ?><br>Responsable: <?= htmlspecialchars($assignment['manager_name']) ?><?php endif; ?></p><?php else: ?><p>Tu asignación organizacional todavía no está completa.</p><?php endif; ?></section><?php endif; ?></div>
+    <section class="card dashboard-recent"><div class="dashboard-recent-head"><div><span class="ticket-kicker">Recientes</span><h2><?= $isExternal?'Casos compartidos':'Mis solicitudes recientes' ?></h2></div><a href="<?= APP_BASE_URL ?>/mis-tickets">Ver todas</a></div><div class="dashboard-recent-list"><?php foreach(($recentTickets??[]) as $t): ?><a class="dashboard-recent-item" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>"><div><strong><?= htmlspecialchars($t['subject']) ?></strong><p><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,120,'…')) ?></p><span><?= htmlspecialchars($t['ticket_number']) ?> · <?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span></div><div class="dashboard-recent-status"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?> →</div></a><?php endforeach; ?><?php if(empty($recentTickets)): ?><div class="empty-state compact-empty"><strong><?= $isExternal?'No tienes casos compartidos':'Aún no tienes solicitudes' ?></strong><span><?= $isExternal?'Cuando Carrousel necesite tu apoyo aparecerán aquí.':'Cuando necesites ayuda, registra una nueva solicitud.' ?></span><?php if(!$isExternal): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Nueva solicitud</a><?php endif; ?></div><?php endif; ?></div></section>
   <?php endif; ?>
 </div>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
