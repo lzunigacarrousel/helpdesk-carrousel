@@ -1,0 +1,21 @@
+<?php
+use App\Core\Csrf;
+$pageTitle='Nuevo problema';$pageSection='Problemas conocidos';$activeNav='problems';$helpContext='problems';
+require APP_ROOT.'/app/Views/shared/app_start.php';
+$p=$problem?:[];$src=$problem?:$prefill;
+?>
+<div class="itsm-page itsm-editor-page">
+  <div class="page-heading"><div><span class="ticket-kicker">Problem Management</span><h1 class="page-title"><?= $problem?'Editar problema':'Crear problema conocido' ?></h1><p class="page-subtitle">Un problema puede comenzar en investigación; causa y solución no son obligatorias al inicio.</p></div><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/problems">← Volver</a></div>
+  <section class="card"><div class="card-body">
+    <form method="post" action="<?= APP_BASE_URL ?><?= $problem?'/problems/update':'/problems/create' ?>" data-single-submit class="itsm-editor-form">
+      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><?php if($problem): ?><input type="hidden" name="problem_id" value="<?= (int)$problem['id'] ?>"><?php endif; ?>
+      <div class="grid grid-2"><label>Título<input class="form-control" name="title" maxlength="220" required value="<?= htmlspecialchars((string)($src['title']??'')) ?>" placeholder="Ej. Caídas recurrentes de conexión en parque"></label><label>Estado<select class="form-control" name="status"><?php foreach($statuses as $code=>$label): ?><option value="<?= $code ?>" <?= (($src['status']??'INVESTIGATING')===$code)?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label></div>
+      <label>Descripción<textarea class="form-control" name="description" rows="4" required placeholder="Qué ocurre, cómo se manifiesta y qué patrón has observado."><?= htmlspecialchars((string)($src['description']??'')) ?></textarea></label>
+      <div class="grid grid-3"><label>Categoría<select class="form-control" name="category_id"><option value="0">Sin categoría</option><?php foreach($categories as $c): ?><option value="<?= (int)$c['id'] ?>" <?= (int)($src['category_id']??0)===(int)$c['id']?'selected':'' ?>><?= htmlspecialchars($c['name']) ?></option><?php endforeach; ?></select></label><label>Parque opcional<select class="form-control" name="park_id"><option value="0">General / varios parques</option><?php foreach($parks as $park): ?><option value="<?= (int)$park['id'] ?>" <?= (int)($src['park_id']??0)===(int)$park['id']?'selected':'' ?>><?= htmlspecialchars($park['name']) ?></option><?php endforeach; ?></select></label><label>Propietario<select class="form-control" name="owner_user_id"><option value="0">Sin propietario</option><?php foreach($owners as $o): ?><option value="<?= (int)$o['id'] ?>" <?= (int)($src['owner_user_id']??0)===(int)$o['id']?'selected':'' ?>><?= htmlspecialchars($o['full_name']) ?></option><?php endforeach; ?></select></label></div>
+      <div class="itsm-learning-grid"><label><span>Qué encontramos</span><strong>Causa raíz</strong><textarea class="form-control" name="root_cause" rows="3" placeholder="Puede quedar vacía mientras se investiga."><?= htmlspecialchars((string)($src['root_cause']??'')) ?></textarea></label><label><span>Qué hacemos mientras tanto</span><strong>Workaround</strong><textarea class="form-control" name="workaround" rows="3" placeholder="Solución temporal o pasos para mantener operación."><?= htmlspecialchars((string)($src['workaround']??'')) ?></textarea></label><label><span>Qué corrige definitivamente</span><strong>Solución permanente</strong><textarea class="form-control" name="permanent_solution" rows="3" placeholder="Completar cuando exista una solución definitiva."><?= htmlspecialchars((string)($src['permanent_solution']??'')) ?></textarea></label></div>
+      <?php if(!$problem): ?><label>Tickets relacionados <span class="subtle">(opcional)</span><input class="form-control" name="related_tickets" value="<?= htmlspecialchars((string)($src['related_tickets']??'')) ?>" placeholder="HD-2026-000120, HD-2026-000125"><small class="field-help">Puedes ingresar uno o varios números separados por coma. No se duplican tickets.</small></label><?php endif; ?>
+      <div class="auth-actions"><button class="btn btn-primary" type="submit"><?= $problem?'Guardar cambios':'Crear problema conocido' ?></button></div>
+    </form>
+  </div></section>
+</div>
+<?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
