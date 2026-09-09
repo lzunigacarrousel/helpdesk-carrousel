@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-002'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-003'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -27,7 +27,7 @@
     <div class="auth-card-v2">
       <span class="auth-eyebrow">Acceso seguro</span>
       <h2>Ingresa con tu correo</h2>
-      <p class="auth-lead">Te enviaremos un código temporal de seis dígitos. No necesitas contraseña.</p>
+      <p class="auth-lead">Te enviaremos un código temporal de seis dígitos.</p>
 
       <?php if(!empty($flash)): ?><div class="alert <?= htmlspecialchars(($flash['type']??'')==='success'?'alert-success':'alert-info') ?>"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
@@ -39,7 +39,7 @@
         <button class="btn btn-primary auth-primary" type="submit">Enviar código</button>
       </form>
 
-      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong><br>Si tu correo aún no existe, el sistema te pedirá completar tus datos antes de enviarte el código.</div></div>
+      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong> Si tu correo aún no existe, el sistema te pedirá completar tus datos antes de enviarte el código.</div></div>
       <p class="auth-security-v2">Nunca compartas tu código OTP. El personal de Carrousel no necesita solicitártelo.</p>
 
       <div class="auth-actions-v2">
