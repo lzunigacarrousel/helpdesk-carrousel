@@ -56,8 +56,43 @@ SELECT 'TICKETS_NO_ESPERA_CON_MOTIVO' prueba, COUNT(*) hallazgos
 FROM tickets
 WHERE deleted_at IS NULL AND status<>'PENDING' AND (pending_reason_code IS NOT NULL OR pending_note IS NOT NULL);
 
+SELECT 'PROBLEMAS_NUMERO_VACIO' prueba, COUNT(*) hallazgos
+FROM known_problems
+WHERE problem_number IS NULL OR problem_number='';
+
+SELECT 'PROBLEMAS_REURRENCIA_DESFASADA' prueba, COUNT(*) hallazgos
+FROM known_problems kp
+LEFT JOIN (
+    SELECT po.problem_id,COUNT(*) occurrences,MIN(t.created_at) first_seen,MAX(t.created_at) last_seen
+    FROM problem_occurrences po
+    JOIN tickets t ON t.id=po.ticket_id AND t.deleted_at IS NULL
+    GROUP BY po.problem_id
+) x ON x.problem_id=kp.id
+WHERE kp.occurrence_count<>COALESCE(x.occurrences,0)
+   OR NOT (kp.first_seen_at <=> x.first_seen)
+   OR NOT (kp.last_seen_at <=> x.last_seen);
+
+SELECT 'PROBLEMAS_CON_VARIAS_SOLUCIONES_PRINCIPALES' prueba, COUNT(*) hallazgos
+FROM (
+    SELECT problem_id
+    FROM problem_solutions
+    WHERE is_primary=1
+    GROUP BY problem_id
+    HAVING COUNT(*)>1
+) x;
+
+SELECT 'ARTICULOS_NUMERO_VACIO' prueba, COUNT(*) hallazgos
+FROM knowledge_articles
+WHERE article_number IS NULL OR article_number='';
+
+SELECT 'ARTICULOS_PUBLICADOS_SIN_FECHA' prueba, COUNT(*) hallazgos
+FROM knowledge_articles
+WHERE status='PUBLISHED' AND published_at IS NULL;
+
 SELECT 'MIGRACIONES_REGISTRADAS' prueba, COUNT(*) hallazgos FROM schema_migrations;
 SELECT 'TOTAL_TICKETS' prueba, COUNT(*) hallazgos FROM tickets WHERE deleted_at IS NULL;
 SELECT 'TOTAL_USUARIOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL;
 SELECT 'TOTAL_EXTERNOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL AND access_type='EXTERNAL';
 SELECT 'ACCESOS_EXTERNOS_ACTIVOS' prueba, COUNT(*) hallazgos FROM external_ticket_access WHERE revoked_at IS NULL;
+SELECT 'TOTAL_PROBLEMAS_CONOCIDOS' prueba, COUNT(*) hallazgos FROM known_problems;
+SELECT 'TOTAL_ARTICULOS_CONOCIMIENTO' prueba, COUNT(*) hallazgos FROM knowledge_articles;
