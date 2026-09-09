@@ -63,7 +63,11 @@ $help = [
     ],
     'audit' => [
         'title' => 'Auditoría y trazabilidad',
-        'steps' => ['Filtra por persona, acción, origen o fecha.', 'Abre el detalle para comparar valores anteriores y nuevos.', 'Usa este registro para investigar cambios, accesos y movimientos de tickets.'],
+        'steps' => ['Filtra por persona, acción, origen o fecha.', 'Abre el detalle para comparar valores anteriores y nuevos.', 'Usa este registro para investigar cambios, accesos y movimientos de tickets.', 'Desde aquí puedes abrir Correo y notificaciones para comprobar entregas.'],
+    ],
+    'mail' => [
+        'title' => 'Correo y notificaciones',
+        'steps' => ['Comprueba primero si el canal está en SMTP activo o en modo de prueba.', 'Usa Enviar correo de prueba para validar conexión y entrega antes de depender del correo en operación.', 'Los estados Enviado, Falló, Pendiente y Modo prueba permiten distinguir una entrega real de un registro local.', 'Reintenta solo correos fallidos o pendientes; los códigos OTP siempre deben solicitarse nuevamente.'],
     ],
     'manual' => [
         'title' => 'Manual del Helpdesk',
