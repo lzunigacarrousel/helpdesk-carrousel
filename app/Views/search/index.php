@@ -1,89 +1,18 @@
 <?php
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
-$searchTerm=(string)($q??'');
-$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
-require APP_ROOT.'/app/Views/shared/app_start.php';
-$total=count($tickets)+count($problems)+count($articles);
+$searchTerm=(string)($q??'');$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
+require APP_ROOT.'/app/Views/shared/app_start.php';$total=count($tickets)+count($problems)+count($articles);
 ?>
 <div class="global-search-page">
-  <div class="page-heading search-page-heading">
-    <div>
-      <span class="ticket-kicker">Búsqueda global</span>
-      <h1 class="page-title">Encuentra un caso o una solución</h1>
-      <p class="page-subtitle">Busca por número, problema reportado, solicitante, correo, parque o categoría.</p>
-    </div>
-  </div>
-
-  <form class="search-page-form" method="get" action="<?= APP_BASE_URL ?>/buscar" data-no-loading="1">
-    <input class="form-control" type="search" name="q" value="<?= htmlspecialchars($searchTerm) ?>" placeholder="Ej. HD-2026-000004, internet, Semnox, Tikal Futura…" autocomplete="off" autofocus>
-    <button class="btn btn-primary" type="submit">Buscar</button>
-  </form>
-
-  <?php if($searchTerm===''): ?>
-    <section class="card search-empty-card"><div class="card-body"><strong>Escribe qué necesitas encontrar.</strong><p>El buscador respeta tu acceso: un solicitante solo ve sus casos y un proveedor solo los casos compartidos con su cuenta.</p></div></section>
-  <?php elseif($total===0): ?>
-    <section class="card search-empty-card"><div class="card-body"><strong>No encontramos coincidencias para “<?= htmlspecialchars($searchTerm) ?>”.</strong><p>Prueba con menos palabras, el número del ticket, el parque o el tipo de problema.</p></div></section>
-  <?php else: ?>
-    <div class="search-result-summary"><strong><?= $total ?></strong><span>resultado<?= $total===1?'':'s' ?> encontrado<?= $total===1?'':'s' ?></span></div>
-
-    <?php if($tickets): ?>
-    <section class="search-result-section">
-      <div class="search-section-head"><div><span class="ticket-kicker">Casos</span><h2>Tickets relacionados</h2></div><span><?= count($tickets) ?></span></div>
-      <div class="search-ticket-list">
-        <?php foreach($tickets as $t): ?>
-        <a class="search-ticket-card" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">
-          <div class="search-ticket-main">
-            <div class="search-ticket-top"><span><?= htmlspecialchars($t['ticket_number']) ?></span><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
-            <h3><?= htmlspecialchars($t['subject']) ?></h3>
-            <p><?= htmlspecialchars(mb_strimwidth(trim((string)$t['description']),0,260,'…')) ?></p>
-          </div>
-          <div class="search-ticket-meta">
-            <span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span>
-            <span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span>
-            <span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span>
-            <span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span>
-          </div>
-        </a>
-        <?php endforeach; ?>
-      </div>
-    </section>
-    <?php endif; ?>
-
-    <?php if($problems): ?>
-    <section class="search-result-section">
-      <div class="search-section-head"><div><span class="ticket-kicker">Problemas conocidos</span><h2>Patrones ya identificados</h2></div><span><?= count($problems) ?></span></div>
-      <div class="search-knowledge-grid">
-        <?php foreach($problems as $p): ?>
-        <article class="card search-knowledge-card"><div class="card-body">
-          <div class="search-knowledge-kicker"><strong><?= htmlspecialchars($p['problem_number']) ?></strong><span><?= htmlspecialchars($p['status']) ?></span></div>
-          <h3><?= htmlspecialchars($p['title']) ?></h3>
-          <p><?= htmlspecialchars(mb_strimwidth(trim((string)$p['description']),0,220,'…')) ?></p>
-          <?php if(!empty($p['workaround'])): ?><div class="search-answer"><span>Solución temporal</span><p><?= htmlspecialchars(mb_strimwidth(trim((string)$p['workaround']),0,260,'…')) ?></p></div><?php endif; ?>
-          <?php if(!empty($p['permanent_solution'])): ?><div class="search-answer"><span>Solución permanente</span><p><?= htmlspecialchars(mb_strimwidth(trim((string)$p['permanent_solution']),0,260,'…')) ?></p></div><?php endif; ?>
-          <small><?= htmlspecialchars($p['park_name']??'Todos los parques') ?> · <?= htmlspecialchars($p['category_name']??'Sin categoría') ?> · <?= (int)$p['occurrence_count'] ?> caso(s)</small>
-        </div></article>
-        <?php endforeach; ?>
-      </div>
-    </section>
-    <?php endif; ?>
-
-    <?php if($articles): ?>
-    <section class="search-result-section">
-      <div class="search-section-head"><div><span class="ticket-kicker">Conocimiento</span><h2>Documentación relacionada</h2></div><span><?= count($articles) ?></span></div>
-      <div class="search-knowledge-grid">
-        <?php foreach($articles as $a): ?>
-        <article class="card search-knowledge-card"><div class="card-body">
-          <div class="search-knowledge-kicker"><strong><?= htmlspecialchars($a['article_number']) ?></strong><span><?= htmlspecialchars($a['status']) ?></span></div>
-          <h3><?= htmlspecialchars($a['title']) ?></h3>
-          <?php if(!empty($a['summary'])): ?><p><?= htmlspecialchars(mb_strimwidth(trim((string)$a['summary']),0,240,'…')) ?></p><?php endif; ?>
-          <div class="search-answer"><span>Contenido</span><p><?= nl2br(htmlspecialchars(mb_strimwidth(trim(strip_tags((string)$a['content'])),0,420,'…'))) ?></p></div>
-          <small><?= htmlspecialchars($a['category_name']??'Sin categoría') ?> · <?= htmlspecialchars($a['visibility']) ?></small>
-        </div></article>
-        <?php endforeach; ?>
-      </div>
-    </section>
-    <?php endif; ?>
+  <div class="page-heading search-page-heading"><div><span class="ticket-kicker">Búsqueda global</span><h1 class="page-title">Encuentra un caso o una solución</h1><p class="page-subtitle">Busca tickets, problemas conocidos y artículos de conocimiento respetando tu nivel de acceso.</p></div></div>
+  <form class="search-page-form" method="get" action="<?= APP_BASE_URL ?>/buscar" data-no-loading="1"><input class="form-control" type="search" name="q" value="<?= htmlspecialchars($searchTerm) ?>" placeholder="Ej. HD-2026-000004, PRB-2026-0001, internet, Semnox…" autocomplete="off" autofocus><button class="btn btn-primary" type="submit">Buscar</button></form>
+  <?php if($searchTerm===''): ?><section class="card search-empty-card"><div class="card-body"><strong>Escribe qué necesitas encontrar.</strong><p>El buscador respeta permisos: solicitantes solo ven sus tickets y conocimiento público; externos no acceden al conocimiento interno.</p></div></section>
+  <?php elseif($total===0): ?><section class="card search-empty-card"><div class="card-body"><strong>No encontramos coincidencias para “<?= htmlspecialchars($searchTerm) ?>”.</strong><p>Prueba con menos palabras, un número de ticket/problema, parque o categoría.</p></div></section>
+  <?php else: ?><div class="search-result-summary"><strong><?= $total ?></strong><span>resultado<?= $total===1?'':'s' ?> encontrado<?= $total===1?'':'s' ?></span></div>
+    <?php if($tickets): ?><section class="search-result-section"><div class="search-section-head"><div><span class="ticket-kicker">Tickets</span><h2>Casos relacionados</h2></div><span><?= count($tickets) ?></span></div><div class="search-ticket-list"><?php foreach($tickets as $t): ?><a class="search-ticket-card" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>"><div class="search-ticket-main"><div class="search-ticket-top"><span><?= htmlspecialchars($t['ticket_number']) ?></span><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div><h3><?= htmlspecialchars($t['subject']) ?></h3><p><?= htmlspecialchars(mb_strimwidth(trim((string)$t['description']),0,260,'…')) ?></p></div><div class="search-ticket-meta"><span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span><span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span><span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span></div></a><?php endforeach; ?></div></section><?php endif; ?>
+    <?php if($problems): ?><section class="search-result-section"><div class="search-section-head"><div><span class="ticket-kicker">Problemas conocidos</span><h2>Patrones identificados</h2></div><span><?= count($problems) ?></span></div><div class="search-knowledge-grid"><?php foreach($problems as $p): ?><a class="card search-knowledge-card itsm-result-link" href="<?= APP_BASE_URL ?>/problems/view?id=<?= (int)$p['id'] ?>"><div class="card-body"><div class="search-knowledge-kicker"><strong><?= htmlspecialchars($p['problem_number']) ?></strong><span><?= htmlspecialchars($p['status']) ?></span></div><h3><?= htmlspecialchars($p['title']) ?></h3><p><?= htmlspecialchars(mb_strimwidth(trim((string)$p['description']),0,220,'…')) ?></p><?php if(!empty($p['workaround'])): ?><div class="search-answer"><span>Solución temporal</span><p><?= htmlspecialchars(mb_strimwidth(trim((string)$p['workaround']),0,260,'…')) ?></p></div><?php endif; ?><small><?= htmlspecialchars($p['park_name']??'Todos los parques') ?> · <?= htmlspecialchars($p['category_name']??'Sin categoría') ?> · <?= (int)$p['occurrence_count'] ?> ocurrencia(s)</small></div></a><?php endforeach; ?></div></section><?php endif; ?>
+    <?php if($articles): ?><section class="search-result-section"><div class="search-section-head"><div><span class="ticket-kicker">Conocimiento</span><h2>Documentación relacionada</h2></div><span><?= count($articles) ?></span></div><div class="search-knowledge-grid"><?php foreach($articles as $a): ?><a class="card search-knowledge-card itsm-result-link" href="<?= APP_BASE_URL ?>/knowledge/view?id=<?= (int)$a['id'] ?>"><div class="card-body"><div class="search-knowledge-kicker"><strong><?= htmlspecialchars($a['article_number']) ?></strong><span><?= htmlspecialchars($a['status']) ?></span></div><h3><?= htmlspecialchars($a['title']) ?></h3><?php if(!empty($a['summary'])): ?><p><?= htmlspecialchars(mb_strimwidth(trim((string)$a['summary']),0,240,'…')) ?></p><?php endif; ?><div class="search-answer"><span>Contenido</span><p><?= nl2br(htmlspecialchars(mb_strimwidth(trim(strip_tags((string)$a['content'])),0,420,'…'))) ?></p></div><small><?= htmlspecialchars($a['category_name']??'Sin categoría') ?> · <?= htmlspecialchars($a['visibility']) ?></small></div></a><?php endforeach; ?></div></section><?php endif; ?>
   <?php endif; ?>
 </div>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
