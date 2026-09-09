@@ -56,6 +56,15 @@ SELECT 'TICKETS_NO_ESPERA_CON_MOTIVO' prueba, COUNT(*) hallazgos
 FROM tickets
 WHERE deleted_at IS NULL AND status<>'PENDING' AND (pending_reason_code IS NOT NULL OR pending_note IS NOT NULL);
 
+SELECT 'FEEDBACK_NPS_FUERA_DE_RANGO' prueba, COUNT(*) hallazgos
+FROM ticket_feedback
+WHERE nps_score<0 OR nps_score>10;
+
+SELECT 'FEEDBACK_EN_TICKET_NO_CERRADO' prueba, COUNT(*) hallazgos
+FROM ticket_feedback tf
+JOIN tickets t ON t.id=tf.ticket_id
+WHERE t.deleted_at IS NULL AND t.status<>'CLOSED';
+
 SELECT 'PROBLEMAS_NUMERO_VACIO' prueba, COUNT(*) hallazgos
 FROM known_problems
 WHERE problem_number IS NULL OR problem_number='';
@@ -116,6 +125,10 @@ SELECT 'TOTAL_EXTERNOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at I
 SELECT 'ACCESOS_EXTERNOS_ACTIVOS' prueba, COUNT(*) hallazgos FROM external_ticket_access WHERE revoked_at IS NULL;
 SELECT 'TOTAL_PROBLEMAS_CONOCIDOS' prueba, COUNT(*) hallazgos FROM known_problems;
 SELECT 'TOTAL_ARTICULOS_CONOCIMIENTO' prueba, COUNT(*) hallazgos FROM knowledge_articles;
+SELECT 'TOTAL_RESPUESTAS_NPS' prueba, COUNT(*) hallazgos FROM ticket_feedback;
+SELECT 'NPS_PROMOTORES' prueba, COUNT(*) hallazgos FROM ticket_feedback WHERE nps_score>=9;
+SELECT 'NPS_PASIVOS' prueba, COUNT(*) hallazgos FROM ticket_feedback WHERE nps_score BETWEEN 7 AND 8;
+SELECT 'NPS_DETRACTORES' prueba, COUNT(*) hallazgos FROM ticket_feedback WHERE nps_score<=6;
 SELECT 'TOTAL_NOTIFICACIONES_INAPP' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP';
 SELECT 'NOTIFICACIONES_NO_LEIDAS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP' AND read_at IS NULL;
 SELECT 'CORREOS_ENVIADOS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='SENT';
