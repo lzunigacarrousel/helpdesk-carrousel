@@ -1,12 +1,12 @@
 <?php
 use App\Core\Csrf;
-$pageTitle='Correo y notificaciones';$pageSection='Administración';$activeNav='audit';$helpContext='mail';
+$pageTitle='Correo y notificaciones';$pageSection='Administración';$activeNav='mail';$helpContext='mail';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $statusLabels=['SENT'=>'Enviado','FAILED'=>'Falló','PENDING'=>'Pendiente','SKIPPED'=>'Modo prueba'];
 $statusClasses=['SENT'=>'status-resolved','FAILED'=>'status-cancelled','PENDING'=>'status-pending','SKIPPED'=>''];
 ?>
 <div class="audit-page mail-admin-page">
-  <div class="page-heading audit-heading" style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start">
+  <div class="page-heading audit-heading" style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap">
     <div><div class="ticket-kicker">Entregas</div><h1 class="page-title">Correo y notificaciones</h1><p class="page-subtitle">Comprueba que los avisos salgan correctamente y revisa fallos sin exponer credenciales ni detalles técnicos al usuario final.</p></div>
     <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/audit">← Auditoría</a>
   </div>
@@ -21,7 +21,7 @@ $statusClasses=['SENT'=>'status-resolved','FAILED'=>'status-cancelled','PENDING'
   </div>
 
   <section class="card" style="margin-bottom:18px"><div class="card-body">
-    <div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:18px;align-items:start">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:18px;align-items:start">
       <div>
         <div class="ticket-kicker">Estado general</div>
         <h2 style="margin:5px 0 8px;font-size:20px"><?= $health['ready']?'Configuración lista':'Hay algo que revisar' ?></h2>
