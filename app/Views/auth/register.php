@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-002'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-003'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/auth-v2.css?v=<?= $assetVersion ?>">
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
-<body class="auth-body-v2">
+<body class="auth-body-v2 auth-register-page">
 <div class="brand-strip"></div>
 <main class="auth-layout-v2">
   <section class="auth-brand-v2" aria-label="Helpdesk Carrousel">
