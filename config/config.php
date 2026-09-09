@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 define('APP_NAME', 'Helpdesk Carrousel');
-define('APP_VERSION', '2.3.5-dev');
+define('APP_VERSION', '2.3.6-dev');
 
 $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? '/HelpdeskCarrousel/public/index.php'));
 $publicPath = rtrim(str_replace('/index.php', '', $scriptName), '/');
@@ -26,14 +26,14 @@ define('DB_USER', (string)($local['db_user'] ?? 'root'));
 define('DB_PASS', (string)($local['db_pass'] ?? ''));
 define('DB_CHARSET', 'utf8mb4');
 
-define('MAIL_MODE', (string)($local['mail_mode'] ?? 'log'));
-define('SMTP_HOST', (string)($local['smtp_host'] ?? ''));
+define('MAIL_MODE', strtolower(trim((string)($local['mail_mode'] ?? 'log'))));
+define('SMTP_HOST', trim((string)($local['smtp_host'] ?? '')));
 define('SMTP_PORT', (int)($local['smtp_port'] ?? 587));
-define('SMTP_SECURE', (string)($local['smtp_secure'] ?? 'tls'));
-define('SMTP_USERNAME', (string)($local['smtp_username'] ?? ''));
+define('SMTP_SECURE', strtolower(trim((string)($local['smtp_secure'] ?? 'tls'))));
+define('SMTP_USERNAME', trim((string)($local['smtp_username'] ?? '')));
 define('SMTP_PASSWORD', (string)($local['smtp_password'] ?? ''));
-define('MAIL_FROM', (string)($local['mail_from'] ?? 'no-reply@carrousel.local'));
-define('MAIL_FROM_NAME', (string)($local['mail_from_name'] ?? APP_NAME));
+define('MAIL_FROM', strtolower(trim((string)($local['mail_from'] ?? 'no-reply@carrousel.local'))));
+define('MAIL_FROM_NAME', trim((string)($local['mail_from_name'] ?? APP_NAME)) ?: APP_NAME);
 define('SUPPORT_GROUP_EMAIL', strtolower(trim((string)($local['support_group_email'] ?? 'sistemas@carrousel.com.gt'))));
 
 $https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
@@ -41,6 +41,11 @@ $host = preg_replace('/:\\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhos
 $scheme = $https ? 'https' : 'http';
 $basePath = APP_PUBLIC_PATH === '/' ? '' : APP_PUBLIC_PATH;
 define('APP_BASE_URL', $scheme.'://'.$host.$basePath);
+
+$configuredAppUrl = rtrim(trim((string)($local['app_url'] ?? '')), '/');
+$canonicalConfigured = $configuredAppUrl !== '' && filter_var($configuredAppUrl, FILTER_VALIDATE_URL) !== false;
+define('APP_CANONICAL_CONFIGURED', $canonicalConfigured);
+define('APP_CANONICAL_URL', $canonicalConfigured ? $configuredAppUrl : APP_BASE_URL);
 define('APP_CAN_USE_SECURE_FEATURES', $https || in_array($host, ['localhost', '127.0.0.1'], true));
 
 ini_set('session.use_strict_mode', '1');
