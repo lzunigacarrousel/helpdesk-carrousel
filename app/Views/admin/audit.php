@@ -4,13 +4,14 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 $sourceLabels=['PUBLIC_WEB'=>'Público','AUTHENTICATED_WEB'=>'Autenticado','SYSTEM'=>'Sistema','IMPORT'=>'Importación'];
 $actionLabels=[
 'USER_REGISTERED'=>'Usuario registrado','OTP_REQUESTED'=>'OTP solicitado','OTP_FAILED'=>'OTP fallido','LOGIN_SUCCESS'=>'Inicio de sesión','LOGOUT'=>'Cierre de sesión',
-'TICKET_CREATED_PUBLIC'=>'Ticket creado','TICKET_CLAIMED'=>'Caso tomado','TICKET_ASSIGNED'=>'Caso asignado','TICKET_RELEASED'=>'Caso devuelto','TICKET_STATUS_CHANGED'=>'Estado cambiado','USER_ASSIGNMENT_UPDATED'=>'Asignación actualizada'
+'TICKET_CREATED_PUBLIC'=>'Ticket creado','TICKET_CLAIMED'=>'Caso tomado','TICKET_ASSIGNED'=>'Caso asignado','TICKET_RELEASED'=>'Caso devuelto','TICKET_STATUS_CHANGED'=>'Estado cambiado','USER_ASSIGNMENT_UPDATED'=>'Asignación actualizada',
+'MAIL_TEST'=>'Prueba de correo','MAIL_RETRIED'=>'Correo reenviado'
 ];
 $pages=max(1,(int)ceil($total/$perPage));
 $baseQuery=$_GET;$baseQuery['page']=1;
 ?>
 <div class="audit-page">
-<div class="page-heading audit-heading"><div><div class="ticket-kicker">Trazabilidad</div><h1 class="page-title">Auditoría</h1><p class="page-subtitle">Quién hizo qué, cuándo, desde dónde y sobre qué registro.</p></div></div>
+<div class="page-heading audit-heading" style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start"><div><div class="ticket-kicker">Trazabilidad</div><h1 class="page-title">Auditoría</h1><p class="page-subtitle">Quién hizo qué, cuándo, desde dónde y sobre qué registro.</p></div><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/correo">Correo y notificaciones</a></div>
 
 <div class="audit-stats">
 <section class="card stat"><span class="stat-label">Hoy</span><b><?= (int)$stats['today'] ?></b><div class="stat-note">Eventos registrados.</div></section>
