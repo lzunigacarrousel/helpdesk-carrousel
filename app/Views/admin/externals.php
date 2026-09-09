@@ -62,7 +62,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </div><?php else: ?><div class="empty-state">No hay casos compartidos con proveedores en este momento.</div><?php endif; ?>
 </section>
 </div>
-<script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (function(){const root=document.querySelector('[data-external-directory]');if(!root)return;const q=root.querySelector('[data-external-search]');const rows=[...root.querySelectorAll('[data-external-user]')];const empty=root.querySelector('[data-external-empty]');const norm=v=>String(v||'').toLocaleLowerCase('es-GT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();q?.addEventListener('input',()=>{const term=norm(q.value);let visible=0;rows.forEach(r=>{const show=!term||norm(r.dataset.search).includes(term);r.hidden=!show;if(show)visible++});if(empty)empty.hidden=visible!==0;});})();
 </script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
