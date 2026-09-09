@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -32,6 +32,26 @@ $routes=[
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
     ['GET','/tickets/attachment',[ConversationController::class,'download']],
+
+    ['GET','/problems',[ProblemController::class,'index']],
+    ['GET','/problems/new',[ProblemController::class,'form']],
+    ['POST','/problems/create',[ProblemController::class,'create']],
+    ['GET','/problems/view',[ProblemController::class,'view']],
+    ['POST','/problems/update',[ProblemController::class,'update']],
+    ['POST','/problems/link-ticket',[ProblemController::class,'linkTicket']],
+    ['POST','/problems/unlink-ticket',[ProblemController::class,'unlinkTicket']],
+    ['POST','/problems/link-article',[ProblemController::class,'linkArticle']],
+    ['POST','/problems/unlink-article',[ProblemController::class,'unlinkArticle']],
+
+    ['GET','/knowledge',[KnowledgeController::class,'index']],
+    ['GET','/knowledge/new',[KnowledgeController::class,'form']],
+    ['GET','/knowledge/edit',[KnowledgeController::class,'form']],
+    ['POST','/knowledge/create',[KnowledgeController::class,'create']],
+    ['POST','/knowledge/update',[KnowledgeController::class,'update']],
+    ['GET','/knowledge/view',[KnowledgeController::class,'view']],
+    ['POST','/knowledge/publish',[KnowledgeController::class,'publish']],
+    ['POST','/knowledge/archive',[KnowledgeController::class,'archive']],
+
     ['GET','/gestion',[ManagementController::class,'dashboard']],
     ['GET','/gestion/informes',[ManagementController::class,'reports']],
     ['GET','/gestion/informes/exportar',[XlsxExportController::class,'export']],
