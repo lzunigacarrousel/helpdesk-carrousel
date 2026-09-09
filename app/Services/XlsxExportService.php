@@ -118,7 +118,11 @@ final class XlsxExportService
 
     private static function safeSheetName(string $name): string
     {
-        $name=preg_replace('/[\\\/\?\*\[\]:]+/',' ',trim($name));return mb_substr($name!==''?$name:'Hoja',0,31);
+        // Excel no permite estos caracteres en nombres de hojas: \\ / ? * [ ] :
+        // Usamos ~ como delimitador para evitar ambigüedad con la barra /.
+        $name=preg_replace('~[\\\\/?*\[\]:]+~u',' ',trim($name))??'';
+        $name=trim(preg_replace('/\s+/u',' ',$name)??'');
+        return mb_substr($name!==''?$name:'Hoja',0,31);
     }
     private static function xml(string $value): string{return htmlspecialchars($value,ENT_XML1|ENT_QUOTES,'UTF-8');}
     private static function col(int $n): string{$s='';while($n>0){$n--; $s=chr(65+($n%26)).$s;$n=intdiv($n,26);}return$s;}
