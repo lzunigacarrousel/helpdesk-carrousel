@@ -7,7 +7,7 @@ $required=[
     'app/Services/AuthService.php','app/Services/ScopeService.php','app/Services/ProblemService.php','app/Services/SolutionSuggestionService.php','app/Services/NotificationService.php','app/Core/Auth.php',
     'app/Controllers/SearchController.php','app/Controllers/WorkflowController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/HelpController.php','app/Controllers/NotificationController.php','app/Controllers/ManagementController.php','app/Controllers/XlsxExportController.php',
     'app/Views/search/index.php','app/Views/problems/index.php','app/Views/problems/form.php','app/Views/problems/show.php',
-    'app/Views/knowledge/index.php','app/Views/knowledge/form.php','app/Views/knowledge/show.php','app/Views/help/manual.php',
+    'app/Views/knowledge/index.php','app/Views/knowledge/form.php','app/Views/knowledge/show.php','app/Views/help/manual.php','app/Views/tickets/public_create.php',
     'public/assets/js/help-tour.js','public/assets/js/notifications.js','public/assets/css/components.css','public/index.php','HELPDESK_ADMIN.bat'
 ];
 $ok=true;
@@ -22,9 +22,12 @@ $checks=[
     'app/Controllers/XlsxExportController.php'=>['ScopeService','ticketConstraint','scopeLabel'],
     'app/Views/shared/app_start.php'=>['Problemas conocidos','Base de conocimiento','Tutorial guiado','<span class="side-label">Manual</span>','Notificaciones','data-notification-link','profileLabel','isSupportOperator','isManagementViewer'],
     'app/Views/admin/users.php'=>['Perfiles predefinidos','Atiende soporte','No atiende tickets','Gerencia','Supervisor','Alcance:'],
-    'app/Views/shared/help_widget.php'=>['Iniciar tutorial guiado','Abrir manual completo'],
-    'public/assets/js/help-tour.js'=>['support_dashboard','reports','ticket','problems','knowledge'],
+    'app/Views/shared/help_widget.php'=>['Iniciar tutorial guiado','Abrir manual completo','Empieza con esta guía rápida'],
+    'public/assets/js/help-tour.js'=>['public_create','support_dashboard','reports','ticket','problems','knowledge','tour-tip'],
     'public/assets/js/notifications.js'=>['data-notification-link','delivery_id','readAllUrl'],
+    'public/assets/css/components.css'=>['public-problem-layout','public-reporting-help','manual-quick-grid','manual-faq','tour-tip'],
+    'app/Views/tickets/public_create.php'=>['public-problem-layout','public-reporting-help','data-public-step="submit"','assets/js/help-tour.js'],
+    'app/Views/help/manual.php'=>['manual-quick-grid','manual-faq','Preguntas frecuentes'],
     'app/Services/NotificationService.php'=>['IN_APP','notification_events','notification_deliveries','read_at'],
     'app/Services/MailService.php'=>['Abrir en Helpdesk','gradient','Mensaje automático'],
     'app/Views/tickets/show.php'=>['Posibles soluciones','Crear artículo desde solución','Problema conocido relacionado'],
