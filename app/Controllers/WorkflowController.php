@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger};
-use App\Services\MailService;
+use App\Services\NotificationService;
 
 final class WorkflowController
 {
@@ -34,15 +34,12 @@ final class WorkflowController
 
         $pendingReason=strtoupper(trim(Http::post('pending_reason_code')));
         $pendingNote=trim(Http::post('pending_note'));
-        if($status==='PENDING'&&!isset(self::PENDING_REASONS[$pendingReason])){
-            throw new \RuntimeException('Selecciona por qué el caso quedará en espera.');
-        }
+        if($status==='PENDING'&&!isset(self::PENDING_REASONS[$pendingReason]))throw new \RuntimeException('Selecciona por qué el caso quedará en espera.');
         if(mb_strlen($pendingNote)>500)throw new \RuntimeException('La nota de espera es demasiado larga.');
         if($status!=='PENDING'){$pendingReason='';$pendingNote='';}
 
         $pdo=Database::pdo();
-        $q=$pdo->prepare("SELECT id,ticket_number,subject,status,assigned_to,requester_email,requester_name,pending_reason_code,pending_note
-            FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1");
+        $q=$pdo->prepare("SELECT id,ticket_number,subject,status,assigned_to,requester_email,requester_name,pending_reason_code,pending_note FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1");
         $q->execute([$id]);$ticket=$q->fetch();
         if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');
 
@@ -67,58 +64,37 @@ final class WorkflowController
         $before=['status'=>$oldStatus,'pending_reason_code'=>$oldReason?:null,'pending_note'=>$oldNote?:null];
         $after=['status'=>$status,'pending_reason_code'=>$pendingReason?:null,'pending_note'=>$pendingNote?:null];
         $eventType=$oldStatus===$status?'PENDING_REASON_CHANGED':'STATUS_CHANGED';
-        $event=$pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
-            VALUES(?,?,?,'USER',?,?,?,NOW())");
-        $event->execute([
-            $id,$eventType,(int)Auth::id(),
-            json_encode($before,JSON_UNESCAPED_UNICODE),
-            json_encode($after,JSON_UNESCAPED_UNICODE),
-            json_encode(['pending_reason_label'=>$pendingReason!==''?(self::PENDING_REASONS[$pendingReason]??$pendingReason):null],JSON_UNESCAPED_UNICODE),
-        ]);
+        $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at) VALUES(?,?,?,'USER',?,?,?,NOW())")
+            ->execute([
+                $id,$eventType,(int)Auth::id(),
+                json_encode($before,JSON_UNESCAPED_UNICODE),
+                json_encode($after,JSON_UNESCAPED_UNICODE),
+                json_encode(['pending_reason_label'=>$pendingReason!==''?(self::PENDING_REASONS[$pendingReason]??$pendingReason):null],JSON_UNESCAPED_UNICODE),
+            ]);
 
         Audit::log('TICKET_STATUS_CHANGED','ticket',$id,$before,$after);
 
         $label=self::STATUS_LABELS[$status]??$status;
-        $message='El estado de tu solicitud cambió a: '.$label.'.';
+        $message='El caso '.$ticket['ticket_number'].' cambió de '.(self::STATUS_LABELS[$oldStatus]??$oldStatus).' a '.$label.'.';
         if($status==='PENDING'){
             $message.=' Motivo: '.self::PENDING_REASONS[$pendingReason].'.';
+            if($pendingNote!=='')$message.=' Detalle: '.$pendingNote;
         }
-        $this->notifyRequester($ticket,$id,'Actualización de tu solicitud',$message);
-        $this->notifyExternalParticipants($id,'Actualización del caso',$message);
-        if($status==='REOPENED')$this->notifySupportGroup($ticket,$id,'Caso reabierto','Un caso fue reabierto y requiere seguimiento.');
+        $audiences=['requester','assignee','externals','admins'];
+        if($status==='REOPENED'){$audiences[]='support';$audiences[]='support_group';}
+        try{
+            (new NotificationService())->publishTicket(
+                $id,
+                $eventType,
+                'Estado actualizado · '.$ticket['ticket_number'],
+                $message,
+                $audiences,
+                APP_BASE_URL.'/tickets/view?id='.$id,
+                ['old_status'=>$oldStatus,'new_status'=>$status,'pending_reason'=>$pendingReason?:null]
+            );
+        }catch(\Throwable $e){Logger::error($e);}
 
         Flash::set($status==='PENDING'?'Caso puesto en espera: '.self::PENDING_REASONS[$pendingReason].'.':'Estado actualizado a '.$label.'.','success');
         header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
-    }
-
-    private function notifyRequester(array $ticket,int $id,string $title,string $message): void
-    {
-        $email=(string)($ticket['requester_email']??'');
-        if(!filter_var($email,FILTER_VALIDATE_EMAIL))return;
-        try{
-            (new MailService())->sendTicketNotification($email,$title.' · '.$ticket['ticket_number'],$title,$message.PHP_EOL.PHP_EOL.'Caso: '.$ticket['ticket_number'],APP_BASE_URL.'/tickets/view?id='.$id);
-        }catch(\Throwable $e){Logger::error($e);}
-    }
-
-    private function notifySupportGroup(array $ticket,int $id,string $title,string $message): void
-    {
-        if(!filter_var(SUPPORT_GROUP_EMAIL,FILTER_VALIDATE_EMAIL))return;
-        try{
-            (new MailService())->sendTicketNotification(SUPPORT_GROUP_EMAIL,$title.' · '.$ticket['ticket_number'],$title,$message,APP_BASE_URL.'/tickets/view?id='.$id);
-        }catch(\Throwable $e){Logger::error($e);}
-    }
-
-    private function notifyExternalParticipants(int $id,string $title,string $message): void
-    {
-        try{
-            $q=Database::pdo()->prepare("SELECT u.email,t.ticket_number FROM external_ticket_access eta JOIN users u ON u.id=eta.user_id JOIN tickets t ON t.id=eta.ticket_id
-                WHERE eta.ticket_id=? AND eta.revoked_at IS NULL AND u.access_type='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL");
-            $q->execute([$id]);
-            $mail=new MailService();
-            foreach($q->fetchAll() as $row){
-                $email=(string)$row['email'];if(!filter_var($email,FILTER_VALIDATE_EMAIL))continue;
-                $mail->sendTicketNotification($email,$title.' · '.$row['ticket_number'],$title,$message,APP_BASE_URL.'/tickets/view?id='.$id);
-            }
-        }catch(\Throwable $e){Logger::error($e);}
     }
 }
