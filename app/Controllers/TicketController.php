@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\MailService;
+use App\Services\NotificationService;
 use PDO;
 
 final class TicketController
@@ -52,7 +52,8 @@ final class TicketController
             return['id'=>$id,'number'=>$number];
         });
         Audit::log('TICKET_CREATED_PUBLIC','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['number'],'email'=>$email],[],'PUBLIC_WEB');
-        $this->notifyCreated((int)$ticket['id']);$_SESSION['public_ticket_created']=$ticket['number'];header('Location: '.APP_BASE_URL.'/ticket-enviado');exit;
+        $this->notifyCreated((int)$ticket['id']);
+        $_SESSION['public_ticket_created']=$ticket['number'];header('Location: '.APP_BASE_URL.'/ticket-enviado');exit;
     }
 
     public function publicDone():void{$number=(string)($_SESSION['public_ticket_created']??'');unset($_SESSION['public_ticket_created']);View::render('tickets/public_done',['ticketNumber'=>$number,'user'=>Auth::user()]);}
@@ -80,7 +81,9 @@ final class TicketController
         $pdo=Database::pdo();$s=$pdo->prepare("UPDATE tickets SET assigned_to=?,assigned_at=NOW(),status='IN_PROGRESS',first_response_at=COALESCE(first_response_at,NOW()),updated_at=NOW() WHERE id=? AND assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED') AND deleted_at IS NULL");$s->execute([(int)Auth::id(),$id]);
         if($s->rowCount()!==1){Flash::set('Ese caso ya fue tomado por otra persona.','info');header('Location: '.APP_BASE_URL.'/tickets/queue');exit;}
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,created_at) VALUES(?,'CLAIMED',?,'USER',?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>(int)Auth::id(),'status'=>'IN_PROGRESS'],JSON_UNESCAPED_UNICODE)]);
-        Audit::log('TICKET_CLAIMED','ticket',$id,null,['assigned_to'=>(int)Auth::id(),'status'=>'IN_PROGRESS']);$this->notifyRequester($id,'Tu solicitud ya está siendo atendida','El equipo de soporte ya comenzó a trabajar en tu solicitud.');Flash::set('Caso tomado correctamente.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+        Audit::log('TICKET_CLAIMED','ticket',$id,null,['assigned_to'=>(int)Auth::id(),'status'=>'IN_PROGRESS']);
+        $this->publish($id,'TICKET_CLAIMED','Tu solicitud ya está siendo atendida','El equipo de soporte comenzó a trabajar en tu solicitud.',['requester','admins']);
+        Flash::set('Caso tomado correctamente.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
     public function assign():void{
@@ -89,7 +92,9 @@ final class TicketController
         $old=$pdo->prepare('SELECT assigned_to,status FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$old->execute([$id]);$before=$old->fetch();if(!$before)throw new \RuntimeException('Ticket no encontrado.');if(in_array((string)$before['status'],['CLOSED','CANCELLED'],true))throw new \RuntimeException('No puedes reasignar un caso cerrado o cancelado.');
         $pdo->prepare("UPDATE tickets SET assigned_to=?,assigned_at=NOW(),status='IN_PROGRESS',first_response_at=COALESCE(first_response_at,NOW()),updated_at=NOW() WHERE id=?")->execute([$userId,$id]);
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'REASSIGNED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>$before['assigned_to'],'status'=>$before['status']],JSON_UNESCAPED_UNICODE),json_encode(['assigned_to'=>$userId,'status'=>'IN_PROGRESS','assigned_name'=>$target['full_name']],JSON_UNESCAPED_UNICODE)]);
-        Audit::log('TICKET_REASSIGNED','ticket',$id,['assigned_to'=>$before['assigned_to']],['assigned_to'=>$userId]);if($userId!==(int)Auth::id())$this->notifyAssignee($id,(string)$target['email'],(string)$target['full_name']);if(in_array((string)$before['status'],['NEW','AVAILABLE','REOPENED'],true))$this->notifyRequester($id,'Tu solicitud fue asignada','Tu solicitud ya tiene una persona responsable y está en proceso.');Flash::set('Caso asignado a '.$target['full_name'].'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+        Audit::log('TICKET_REASSIGNED','ticket',$id,['assigned_to'=>$before['assigned_to']],['assigned_to'=>$userId]);
+        $this->publish($id,'TICKET_REASSIGNED','Responsable actualizado','El caso fue asignado a '.$target['full_name'].' y quedó en proceso.',['requester','assignee','admins']);
+        Flash::set('Caso asignado a '.$target['full_name'].'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
     public function release():void{
@@ -97,8 +102,11 @@ final class TicketController
         $q=$pdo->prepare('SELECT assigned_to,status FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$q->execute([$id]);$ticket=$q->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');
         if((int)($ticket['assigned_to']??0)!==(int)Auth::id()&&!Auth::can('tickets.reassign')){Flash::set('No puedes devolver este caso a la cola.','info');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;}
         if(in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true))throw new \RuntimeException('Este caso ya no puede volver a la cola desde su estado actual.');
-        $pdo->prepare("UPDATE tickets SET assigned_to=NULL,assigned_at=NULL,status='AVAILABLE',updated_at=NOW() WHERE id=?")->execute([$id]);$pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'RELEASED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>$ticket['assigned_to'],'status'=>$ticket['status']],JSON_UNESCAPED_UNICODE),json_encode(['assigned_to'=>null,'status'=>'AVAILABLE'],JSON_UNESCAPED_UNICODE)]);
-        Audit::log('TICKET_RELEASED','ticket',$id,['assigned_to'=>$ticket['assigned_to']],['assigned_to'=>null,'status'=>'AVAILABLE']);$this->notifySupportGroup($id,'Caso devuelto a la cola','Un caso volvió a estar disponible para que otra persona lo tome.');Flash::set('El caso volvió a la cola de soporte.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+        $pdo->prepare("UPDATE tickets SET assigned_to=NULL,assigned_at=NULL,status='AVAILABLE',updated_at=NOW() WHERE id=?")->execute([$id]);
+        $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'RELEASED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>$ticket['assigned_to'],'status'=>$ticket['status']],JSON_UNESCAPED_UNICODE),json_encode(['assigned_to'=>null,'status'=>'AVAILABLE'],JSON_UNESCAPED_UNICODE)]);
+        Audit::log('TICKET_RELEASED','ticket',$id,['assigned_to'=>$ticket['assigned_to']],['assigned_to'=>null,'status'=>'AVAILABLE']);
+        $this->publish($id,'TICKET_RELEASED','Caso disponible nuevamente','El caso volvió a la cola y está pendiente de un nuevo responsable.',['requester','support','support_group']);
+        Flash::set('El caso volvió a la cola de soporte.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
     public function changeStatus():void{
@@ -110,10 +118,7 @@ final class TicketController
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,created_at) VALUES(?,'STATUS_CHANGED',?,'USER',?,?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['status'=>$oldStatus],JSON_UNESCAPED_UNICODE),json_encode(['status'=>$status],JSON_UNESCAPED_UNICODE)]);
         Audit::log('TICKET_STATUS_CHANGED','ticket',$id,['status'=>$oldStatus],['status'=>$status]);
         $label=self::STATUS_LABELS[$status]??$status;
-        $message='El estado de tu solicitud cambió a: '.$label.'.';
-        $this->notifyRequester($id,'Actualización de tu solicitud',$message);
-        $this->notifyExternalParticipants($id,'Actualización del caso',$message);
-        if($status==='REOPENED')$this->notifySupportGroup($id,'Caso reabierto','Un caso fue reabierto y requiere seguimiento.');
+        $this->publish($id,'STATUS_CHANGED','Estado actualizado','El caso cambió de '.(self::STATUS_LABELS[$oldStatus]??$oldStatus).' a '.$label.'.',['requester','assignee','externals','admins']);
         Flash::set('Estado actualizado a '.$label.'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
@@ -143,27 +148,24 @@ final class TicketController
     private function rateLimit(string $email):void{$s=Database::pdo()->prepare("SELECT COUNT(*) FROM tickets WHERE requester_email=? AND source_ip=? AND created_at>=DATE_SUB(NOW(),INTERVAL 10 MINUTE)");$s->execute([$email,Http::ip()]);if((int)$s->fetchColumn()>=5)throw new \RuntimeException('Has enviado varias solicitudes recientemente. Espera unos minutos e intenta nuevamente.');}
     private function ticketForMail(int $id):?array{$s=Database::pdo()->prepare("SELECT t.ticket_number,t.requester_email,t.requester_name,t.subject,t.description,t.priority,t.status,p.name park_name,a.name area_name,c.name category_name FROM tickets t LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id WHERE t.id=? LIMIT 1");$s->execute([$id]);return$s->fetch()?:null;}
 
-    private function notifyCreated(int $id):void{
-        try{$t=$this->ticketForMail($id);if(!$t)return;$mail=new MailService();$ticketUrl=APP_BASE_URL.'/tickets/view?id='.$id;
-            $mail->sendTicketNotification((string)$t['requester_email'],'Solicitud recibida · '.$t['ticket_number'],'Recibimos tu solicitud','Hola '.$t['requester_name'].'.'.PHP_EOL.PHP_EOL.'Número de caso: '.$t['ticket_number'].PHP_EOL.'Asunto: '.$t['subject'].PHP_EOL.'Estado: '.(self::STATUS_LABELS[$t['status']]??$t['status']).'.'.PHP_EOL.PHP_EOL.'Te avisaremos por correo cuando haya novedades.',$ticketUrl);
-            $this->notifySupportGroup($id,'Nuevo ticket · '.$t['ticket_number'],'Se registró una nueva solicitud.'.PHP_EOL.PHP_EOL.'Solicitante: '.$t['requester_name'].' · '.$t['requester_email'].PHP_EOL.'Ubicación: '.($t['park_name']?:'No especificada').PHP_EOL.'Área: '.($t['area_name']?:'No especificada').PHP_EOL.'Tipo: '.($t['category_name']?:'No especificado').PHP_EOL.'Prioridad: '.(self::PRIORITY_LABELS[$t['priority']]??$t['priority']).PHP_EOL.'Asunto: '.$t['subject']);
-        }catch(\Throwable $e){Logger::error($e);}
-    }
-
-    private function notifyRequester(int $id,string $subject,string $message):void{try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification((string)$t['requester_email'],$subject.' · '.$t['ticket_number'],$subject,$message.PHP_EOL.PHP_EOL.'Caso: '.$t['ticket_number'],APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
-    private function notifySupportGroup(int $id,string $title,string $message):void{if(!filter_var(SUPPORT_GROUP_EMAIL,FILTER_VALIDATE_EMAIL))return;try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification(SUPPORT_GROUP_EMAIL,$title.' · '.$t['ticket_number'],$title,$message,APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
-    private function notifyAssignee(int $id,string $email,string $name):void{if(!filter_var($email,FILTER_VALIDATE_EMAIL))return;try{$t=$this->ticketForMail($id);if(!$t)return;(new MailService())->sendTicketNotification($email,'Caso asignado · '.$t['ticket_number'],'Tienes un caso asignado','Hola '.$name.'.'.PHP_EOL.PHP_EOL.'Se te asignó el caso '.$t['ticket_number'].': '.$t['subject'].'.',APP_BASE_URL.'/tickets/view?id='.$id);}catch(\Throwable $e){Logger::error($e);}}
-
-    private function notifyExternalParticipants(int $id,string $title,string $message):void
+    private function notifyCreated(int $id):void
     {
         try{
             $t=$this->ticketForMail($id);if(!$t)return;
-            $q=Database::pdo()->prepare("SELECT u.email,u.full_name FROM external_ticket_access eta JOIN users u ON u.id=eta.user_id WHERE eta.ticket_id=? AND eta.revoked_at IS NULL AND u.access_type='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL");
-            $q->execute([$id]);$mail=new MailService();
-            foreach($q->fetchAll() as $external){
-                $email=(string)$external['email'];if(!filter_var($email,FILTER_VALIDATE_EMAIL))continue;
-                $mail->sendTicketNotification($email,$title.' · '.$t['ticket_number'],$title,'Hola '.$external['full_name'].'.'.PHP_EOL.PHP_EOL.$message.PHP_EOL.PHP_EOL.'Caso: '.$t['ticket_number'],APP_BASE_URL.'/tickets/view?id='.$id);
-            }
+            $service=new NotificationService();
+            $service->publishTicket(
+                $id,'TICKET_CREATED_REQUESTER','Solicitud recibida · '.$t['ticket_number'],
+                'Recibimos tu solicitud “'.$t['subject'].'”. El caso quedó registrado y te avisaremos cuando exista una actualización.',
+                ['requester'],APP_BASE_URL.'/tickets/view?id='.$id,
+                ['priority'=>$t['priority'],'status'=>$t['status']]
+            );
+            $supportMessage='Nueva solicitud: '.$t['subject'].'. Solicitante: '.$t['requester_name'].'. Ubicación: '.($t['park_name']?:'No especificada').'. Prioridad: '.(self::PRIORITY_LABELS[$t['priority']]??$t['priority']).'.';
+            $service->publishTicket($id,'TICKET_CREATED_SUPPORT','Nuevo ticket · '.$t['ticket_number'],$supportMessage,['support','support_group'],APP_BASE_URL.'/tickets/view?id='.$id);
         }catch(\Throwable $e){Logger::error($e);}
+    }
+
+    private function publish(int $id,string $eventKey,string $title,string $message,array $audiences,array $options=[]):void
+    {
+        try{(new NotificationService())->publishTicket($id,$eventKey,$title,$message,$audiences,APP_BASE_URL.'/tickets/view?id='.$id,[],$options);}catch(\Throwable $e){Logger::error($e);}
     }
 }
