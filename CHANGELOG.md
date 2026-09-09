@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v2.4.0-dev · Pulido operativo + comunicación simple · 2026-09-09
+- El formulario público elimina la captura duplicada `Resumen breve`: el usuario describe el problema una sola vez y el `subject` se genera automáticamente para mantener compatibilidad con tickets, listados y reportes existentes sin borrar columnas.
+- Jerarquía visual transversal reforzada con superficies suaves reutilizables, secciones mejor diferenciadas, botones secundarios menos dominantes y reducción de microtexto sin perder controles táctiles ni responsive.
+- Dashboard de soporte incorpora un resumen compacto de colaboración externa: casos activos, casos esperando proveedor, proveedores participando y respuestas del día; el Dashboard de gestión muestra el mismo contexto respetando el alcance del perfil.
+- El workspace del ticket simplifica tecnicismos visibles y convierte el seguimiento en una conversación profesional con canales claramente identificados: Solicitante, Equipo de soporte, Colaborador y Conversación interna.
+- Las notas internas existentes evolucionan visualmente a `Conversación interna`; siguen siendo privadas del equipo de soporte y no se envían ni muestran a solicitantes o proveedores.
+- La vista del colaborador externo prioriza problema, conversación, respuesta/evidencia y solución final; se eliminan paneles redundantes de permisos y lenguaje técnico innecesario.
+- El Manual incorpora búsqueda instantánea, filtrado de secciones/FAQ, accesos por tarea y contenido simplificado según perfil.
+- Tutoriales flotantes se actualizan al formulario de un solo campo, conversación por canales, colaboración externa, manual buscable y lenguaje menos técnico.
+- El correo HTML incrusta el logo local mediante CID con PHPMailer y conserva URL pública como respaldo; se simplifica texto, CTA y pie sin mostrar enlaces crudos.
+- Se mantienen las reglas de notificación existentes: respuestas/cambios relevantes a partes involucradas, grupo de Sistemas solo cuando requiere atención general y ninguna salida de correo por conversación interna.
+- No hay migración de BD en esta fase; se conserva `subject`, `description`, comentarios, adjuntos, notificaciones y trazabilidad existentes.
+- Checks estáticos actualizados para bloquear la reaparición del resumen duplicado y validar logo embebido, búsqueda del manual, colaboración externa y separación de conversaciones.
+
 ## v2.3.6-dev · Correo confiable + diagnóstico de entregas · 2026-09-09
 - El modo `log` deja de contabilizar correos como enviados: las entregas locales quedan registradas como `SKIPPED / Modo prueba`, diferenciándolas de un envío SMTP real.
 - `MailService` valida configuración básica, normaliza TLS/SSL, incorpora timeout y devuelve el resultado real de entrega; los errores visibles permanecen genéricos y los detalles quedan en trazabilidad administrativa.
