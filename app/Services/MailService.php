@@ -8,6 +8,7 @@ final class MailService
 {
     public const RESULT_SENT='SENT';
     public const RESULT_LOGGED='LOGGED';
+    private const LOGO_CID='carrousel-logo';
 
     public static function mode(): string
     {
@@ -26,6 +27,7 @@ final class MailService
             if(SMTP_USERNAME!==''&&SMTP_PASSWORD==='')$issues[]='La cuenta SMTP tiene usuario pero no contraseña configurada.';
         }
         if(!APP_CANONICAL_CONFIGURED)$warnings[]='La URL estable del Helpdesk no está configurada; los botones del correo usarán la dirección desde la que se abrió la aplicación.';
+        if(!is_file(self::logoPath()))$warnings[]='No encontramos el logo local para incrustarlo en los correos; se usará la URL pública como respaldo.';
         return [
             'mode'=>self::mode(),
             'ready'=>$issues===[],
@@ -48,8 +50,8 @@ final class MailService
             .'<div style="font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#667085;margin-bottom:8px">Tu código</div>'
             .'<div style="font-size:38px;line-height:1;font-weight:850;letter-spacing:9px;color:#173b8f">'.$safeCode.'</div>'
             .'</div>'
-            .'<p style="margin:0;color:#667085;font-size:13px;line-height:1.55">Vence en <strong style="color:#101828">'.$minutes.' minutos</strong>. Si no solicitaste este acceso, puedes ignorar el mensaje.</p>';
-        $html=$this->layout('Helpdesk','Tu código de acceso',$content,null,null,'Acceso','Código temporal para ingresar al Helpdesk.');
+            .'<p style="margin:0;color:#667085;font-size:13px;line-height:1.55">Vence en <strong style="color:#101828">'.$minutes.' minutos</strong>. Si no solicitaste este acceso, puedes ignorar este mensaje.</p>';
+        $html=$this->layout('Acceso','Tu código de acceso',$content,null,null,'Código temporal para ingresar al Helpdesk.');
         $text="Tu código de acceso es {$code}. Vence en {$minutes} minutos. No compartas este código.";
         return $this->send($to,$subject,$html,$text,'OTP');
     }
@@ -60,45 +62,44 @@ final class MailService
         string $title,
         string $message,
         ?string $ticketUrl=null,
-        string $buttonLabel='Abrir en Helpdesk'
+        string $buttonLabel='Ver solicitud'
     ): string {
         $safeMessage=nl2br(htmlspecialchars($message,ENT_QUOTES,'UTF-8'));
         $content='<div style="color:#344054;font-size:15px;line-height:1.65">'.$safeMessage.'</div>';
-        $html=$this->layout('Helpdesk',$title,$content,$ticketUrl,$buttonLabel,'Actualización',$message);
+        $html=$this->layout('Actualización',$title,$content,$ticketUrl,$buttonLabel,$message);
         $text=$title.PHP_EOL.PHP_EOL.$message;
-        if($ticketUrl)$text.=PHP_EOL.PHP_EOL.'Abre el Helpdesk para consultar el detalle y continuar el seguimiento.';
+        if($ticketUrl)$text.=PHP_EOL.PHP_EOL.'Abre el Helpdesk para consultar el detalle.';
         return $this->send($to,$subject,$html,$text,'TICKET');
     }
 
-    private function layout(string $eyebrow,string $title,string $content,?string $actionUrl,?string $actionLabel,string $badge,string $preheader=''): string
+    private function layout(string $badge,string $title,string $content,?string $actionUrl,?string $actionLabel,string $preheader=''): string
     {
-        $logo=htmlspecialchars(APP_CANONICAL_URL.'/assets/images/logo.png',ENT_QUOTES,'UTF-8');
-        $safeEyebrow=htmlspecialchars($eyebrow,ENT_QUOTES,'UTF-8');
+        $logoSource=is_file(self::logoPath())?'cid:'.self::LOGO_CID:APP_CANONICAL_URL.'/assets/images/logo.png';
+        $logo=htmlspecialchars($logoSource,ENT_QUOTES,'UTF-8');
         $safeTitle=htmlspecialchars($title,ENT_QUOTES,'UTF-8');
         $safeBadge=htmlspecialchars($badge,ENT_QUOTES,'UTF-8');
         $safePreheader=htmlspecialchars(mb_strimwidth(trim($preheader),0,120,'…'),ENT_QUOTES,'UTF-8');
         $button='';
         if($actionUrl){
             $safeUrl=htmlspecialchars($actionUrl,ENT_QUOTES,'UTF-8');
-            $safeLabel=htmlspecialchars($actionLabel?:'Abrir en Helpdesk',ENT_QUOTES,'UTF-8');
-            $button='<div style="margin-top:26px"><a href="'.$safeUrl.'" style="display:inline-block;background:#1677ff;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;padding:13px 20px;border-radius:10px">'.$safeLabel.'</a></div>';
+            $safeLabel=htmlspecialchars($actionLabel?:'Ver solicitud',ENT_QUOTES,'UTF-8');
+            $button='<div style="margin-top:24px"><a href="'.$safeUrl.'" style="display:inline-block;background:#1677ff;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;padding:13px 20px;border-radius:10px">'.$safeLabel.'</a></div>';
         }
         return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
             .'<body style="margin:0;padding:0;background:#eef3f9;font-family:Arial,Helvetica,sans-serif;color:#101828">'
             .'<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">'.$safePreheader.'</div>'
             .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#eef3f9;padding:28px 12px"><tr><td align="center">'
-            .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border:1px solid #d7deea;border-radius:18px;overflow:hidden;box-shadow:0 12px 35px rgba(20,45,90,.10)">'
+            .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#ffffff;border:1px solid #d7deea;border-radius:18px;overflow:hidden">'
             .'<tr><td style="height:4px;background:#2748a0;background:linear-gradient(90deg,#2748a0 0%,#773db8 35%,#eb2f7d 67%,#f6a800 100%)"></td></tr>'
-            .'<tr><td style="padding:24px 30px 12px">'
-            .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td><img src="'.$logo.'" alt="Carrousel" width="112" style="display:block;max-width:112px;height:auto"></td><td align="right"><span style="display:inline-block;padding:6px 9px;border-radius:999px;background:#eef4ff;color:#214697;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em">'.$safeBadge.'</span></td></tr></table>'
+            .'<tr><td style="padding:24px 30px 10px">'
+            .'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td><img src="'.$logo.'" alt="Carrousel" width="108" style="display:block;max-width:108px;height:auto"></td><td align="right"><span style="display:inline-block;padding:6px 9px;border-radius:999px;background:#eef4ff;color:#214697;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em">'.$safeBadge.'</span></td></tr></table>'
             .'</td></tr>'
-            .'<tr><td style="padding:8px 30px 30px">'
-            .'<div style="font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#2748a0;margin-bottom:8px">'.$safeEyebrow.'</div>'
-            .'<h1 style="margin:0 0 16px;font-size:25px;line-height:1.25;color:#14213d">'.$safeTitle.'</h1>'
+            .'<tr><td style="padding:10px 30px 30px">'
+            .'<h1 style="margin:0 0 16px;font-size:24px;line-height:1.25;color:#14213d">'.$safeTitle.'</h1>'
             .$content.$button
-            .'<div style="margin-top:28px;padding-top:18px;border-top:1px solid #e4e7ec;color:#667085;font-size:11px;line-height:1.55">Mensaje automático. Para mantener el seguimiento ordenado, abre el caso desde el botón de este mensaje o desde tus solicitudes en el Helpdesk.</div>'
+            .'<div style="margin-top:26px;padding-top:16px;border-top:1px solid #e4e7ec;color:#667085;font-size:11px;line-height:1.55">Mensaje automático del Helpdesk. Puedes continuar el seguimiento desde el botón de este mensaje.</div>'
             .'</td></tr></table>'
-            .'<div style="max-width:640px;padding:14px 8px 0;color:#98a2b3;font-size:10px;line-height:1.5;text-align:center">Corporación Carrousel · Soporte</div>'
+            .'<div style="max-width:620px;padding:13px 8px 0;color:#98a2b3;font-size:10px;line-height:1.5;text-align:center">Corporación Carrousel</div>'
             .'</td></tr></table></body></html>';
     }
 
@@ -142,6 +143,8 @@ final class MailService
             $m->Encoding='base64';
             $m->setFrom(MAIL_FROM,MAIL_FROM_NAME);
             $m->addAddress($to);
+            $logoPath=self::logoPath();
+            if(is_file($logoPath))$m->addEmbeddedImage($logoPath,self::LOGO_CID,'carrousel-logo.png','base64','image/png');
             $m->isHTML(true);
             $m->Subject=$subject;
             $m->Body=$html;
@@ -152,5 +155,10 @@ final class MailService
             Logger::error($e);
             throw new \RuntimeException('No fue posible enviar la notificación por correo.');
         }
+    }
+
+    private static function logoPath(): string
+    {
+        return APP_ROOT.'/public/assets/images/logo.png';
     }
 }
