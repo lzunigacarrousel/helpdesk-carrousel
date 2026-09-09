@@ -26,7 +26,7 @@ $s=$reportStats??[];
   </div>
   <div class="mgmt-head-actions">
     <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion?<?= htmlspecialchars($q) ?>">← Dashboard</a>
-    <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/gestion/informes/exportar?<?= htmlspecialchars($q) ?>">Descargar CSV completo</a>
+    <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/gestion/informes/exportar?<?= htmlspecialchars($q) ?>" data-action-message="Preparando archivo Excel…">Descargar Excel (.xlsx)</a>
   </div>
 </div>
 
@@ -55,7 +55,7 @@ $s=$reportStats??[];
 <section class="mgmt-card report-results-card">
   <div class="mgmt-card-head report-results-head">
     <div><span>Detalle operativo</span><h2><?= count($rows) ?> tickets analizados</h2></div>
-    <small class="muted">Aquí se concentra la trazabilidad útil del caso. La exportación descarga todos los registros del filtro.</small>
+    <small class="muted">La exportación Excel conserva el filtro actual e incluye resumen, tiempos, cambios de estado y resolución documentada.</small>
   </div>
 
   <?php if(!$rows): ?>
@@ -112,18 +112,11 @@ $s=$reportStats??[];
             <?php if(!empty($life['transitions'])): ?>
               <ol class="report-timeline">
                 <?php foreach($life['transitions'] as $t): ?>
-                  <li>
-                    <span class="report-timeline-dot"></span>
-                    <div><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?></small></div>
-                  </li>
+                  <li><span class="report-timeline-dot"></span><div><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?></small></div></li>
                 <?php endforeach; ?>
               </ol>
-              <details class="report-status-durations"><summary>Ver tiempo acumulado por estado</summary><div>
-                <?php foreach(($life['durations']??[]) as $code=>$minutes): ?><span><b><?= htmlspecialchars($statusLabels[$code]??$code) ?>:</b> <?= htmlspecialchars($fmtMinutes($minutes)) ?></span><?php endforeach; ?>
-              </div></details>
-            <?php else: ?>
-              <div class="report-empty-info">Sin cambios de estado registrados todavía.</div>
-            <?php endif; ?>
+              <details class="report-status-durations"><summary>Ver tiempo acumulado por estado</summary><div><?php foreach(($life['durations']??[]) as $code=>$minutes): ?><span><b><?= htmlspecialchars($statusLabels[$code]??$code) ?>:</b> <?= htmlspecialchars($fmtMinutes($minutes)) ?></span><?php endforeach; ?></div></details>
+            <?php else: ?><div class="report-empty-info">Sin cambios de estado registrados todavía.</div><?php endif; ?>
           </section>
 
           <section class="report-block report-resolution-panel <?= empty($r['solution_applied'])?'is-missing':'' ?>">
