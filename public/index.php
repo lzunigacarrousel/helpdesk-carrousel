@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -65,6 +65,9 @@ $routes=[
     ['POST','/admin/externos/asignar',[ExternalController::class,'grant']],
     ['POST','/admin/externos/revocar',[ExternalController::class,'revoke']],
     ['GET','/admin/audit',[AuditController::class,'index']],
+    ['GET','/admin/correo',[MailAdminController::class,'index']],
+    ['POST','/admin/correo/probar',[MailAdminController::class,'test']],
+    ['POST','/admin/correo/reintentar',[MailAdminController::class,'retry']],
 ];
 foreach($routes as [$m,$p,$h]){
     if($method===$m&&$path===$p){[$c,$a]=$h;(new $c())->$a();exit;}
