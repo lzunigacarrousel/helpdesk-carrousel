@@ -15,6 +15,17 @@ $isFullAdmin=Auth::role()==='ADMIN';
 $activeCount=count(array_filter($users,static fn(array $u):bool=>($u['status']??'')==='ACTIVE'));
 $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']??'')==='PENDING'));
 ?>
+<style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.admin-create-panel{max-width:1180px;margin:14px 0 0 auto!important;background:var(--card)!important;padding:22px!important}
+.admin-create-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.admin-create-head h2{margin:0;font-size:22px}.admin-create-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.admin-user-create-flow{display:grid;gap:12px}.admin-form-section{border:1px solid var(--border);border-radius:13px;padding:16px 17px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.admin-form-section:nth-child(3){background:color-mix(in srgb,var(--brand) 4%,var(--card) 96%)}
+.admin-form-section-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:13px}.admin-form-section-head>span{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:900}.admin-form-section-head strong,.admin-form-section-head small{display:block}.admin-form-section-head strong{font-size:16px}.admin-form-section-head small{margin-top:2px;color:var(--muted);font-size:12.5px;line-height:1.4}
+.admin-form-grid{display:grid;gap:12px}.admin-form-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}.admin-form-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.admin-form-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-user-create-flow .form-label{margin-top:0!important}.admin-user-create-flow .admin-manager-field{grid-column:auto}.admin-user-create-flow>.admin-form-action{display:flex;justify-content:flex-end;padding-top:2px}.admin-user-create-flow>.admin-form-action .btn{min-width:180px}
+.admin-user-remove{border-top:1px solid var(--border)}.admin-user-remove>summary{cursor:pointer;list-style:none;padding:11px 18px;color:var(--muted);font-size:12.5px;font-weight:750}.admin-user-remove>summary::-webkit-details-marker{display:none}.admin-user-remove>summary:after{content:"+";float:right}.admin-user-remove[open]>summary:after{content:"−"}.admin-user-remove .admin-user-danger-zone{margin-top:0}
+[data-location-park][hidden],[data-location-area][hidden],[data-location-region][hidden]{display:none!important}
+@media(max-width:1180px){.admin-form-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-form-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-create-panel{max-width:none}}
+@media(max-width:760px){.admin-create-panel{padding:14px!important}.admin-form-grid-4,.admin-form-grid-3,.admin-form-grid-2{grid-template-columns:1fr}.admin-form-section{padding:14px}.admin-user-create-flow>.admin-form-action .btn{width:100%}}
+</style>
 <div class="page-heading admin-users-heading">
   <div>
     <h1 class="page-title">Usuarios</h1>
