@@ -9,6 +9,7 @@ $canExternalManage=!$isExternal&&($isAdmin||$isSemi||Auth::can('external.manage'
 $activeNav=$activeNav??'home';
 $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
+$searchValue=$activeNav==='search'?trim((string)($_GET['q']??'')):'';
 
 /* Atención rápida en topbar. Resume trabajo pendiente real. */
 $attentionItems=[];
@@ -46,7 +47,7 @@ try{
 }catch(Throwable){
     $attentionItems=[];$attentionCount=0;
 }
-$assetVersion='20260908-2115';
+$assetVersion='20260909-001';
 ?>
 <!doctype html>
 <html lang="es">
@@ -64,7 +65,7 @@ $assetVersion='20260908-2115';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/content-priority.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/shell-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/management.css?v=<?= $assetVersion ?>">
-<script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
 <body>
 <div class="brand-strip"></div>
@@ -74,6 +75,7 @@ $assetVersion='20260908-2115';
   <nav>
     <div class="nav-section">Inicio</div>
     <a class="side-link <?= $activeNav==='home'?'active':'' ?>" href="<?= APP_BASE_URL ?>/dashboard"><span class="side-icon">⌂</span><span class="side-label">Inicio</span></a>
+    <a class="side-link <?= $activeNav==='search'?'active':'' ?>" href="<?= APP_BASE_URL ?>/buscar"><span class="side-icon">⌕</span><span class="side-label">Buscar</span></a>
 
     <?php if($isSupport): ?>
       <div class="nav-section">Trabajo</div>
@@ -114,6 +116,12 @@ $assetVersion='20260908-2115';
       <strong class="topbar-page"><?= htmlspecialchars($pageSection) ?></strong>
     </a>
   </div>
+
+  <form class="topbar-search" method="get" action="<?= APP_BASE_URL ?>/buscar" role="search">
+    <span aria-hidden="true">⌕</span>
+    <input type="search" name="q" value="<?= htmlspecialchars($searchValue) ?>" placeholder="Buscar caso, problema, parque…" autocomplete="off" aria-label="Buscar en Helpdesk">
+    <kbd>Ctrl K</kbd>
+  </form>
 
   <div class="topbar-user">
     <div class="shell-notifications" data-notifications>
