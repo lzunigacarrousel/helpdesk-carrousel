@@ -65,7 +65,7 @@ final class ResolutionController
                     ON DUPLICATE KEY UPDATE resolution_type=VALUES(resolution_type),root_cause=VALUES(root_cause),solution_applied=VALUES(solution_applied),preventive_action=VALUES(preventive_action),is_reusable=1,resolved_by=VALUES(resolved_by),updated_at=NOW()")
                     ->execute([$ticketId,$type,$rootCause,$solution,$preventive!==''?$preventive:null,Auth::id()]);
 
-                $pdo->prepare("UPDATE tickets SET status='RESOLVED',pending_reason_code=NULL,pending_note=NULL,resolved_at=NOW(),updated_at=NOW() WHERE id=?")
+                $pdo->prepare("UPDATE tickets SET status='RESOLVED',pending_reason_code=NULL,pending_note=NULL,resolved_at=NOW(),closed_at=NULL,updated_at=NOW() WHERE id=?")
                     ->execute([$ticketId]);
 
                 $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
@@ -75,25 +75,32 @@ final class ResolutionController
                         Auth::id(),
                         json_encode(['status'=>$before['status']],JSON_UNESCAPED_UNICODE),
                         json_encode(['status'=>'RESOLVED'],JSON_UNESCAPED_UNICODE),
-                        json_encode(['resolution_type'=>$type,'reusable'=>true],JSON_UNESCAPED_UNICODE),
+                        json_encode(['resolution_type'=>$type,'reusable'=>true,'awaiting_requester_confirmation'=>true],JSON_UNESCAPED_UNICODE),
                     ]);
             });
         }catch(\Throwable $e){
             Logger::error($e);
-            $this->fail($ticketId,'No pudimos guardar la solución. Intenta nuevamente; si continúa, revisa el registro técnico de la aplicación.','warning');
+            $this->fail($ticketId,'No pudimos guardar la solución. Intenta nuevamente.','warning');
         }
 
-        Audit::log('TICKET_RESOLUTION_RECORDED','ticket',$ticketId,$before,['status'=>'RESOLVED','resolution_type'=>$type,'is_reusable'=>1]);
+        Audit::log('TICKET_RESOLUTION_RECORDED','ticket',$ticketId,$before,['status'=>'RESOLVED','resolution_type'=>$type,'is_reusable'=>1,'awaiting_requester_confirmation'=>true]);
         try{
-            (new NotificationService())->publishTicket(
-                $ticketId,'RESOLUTION_RECORDED','Caso resuelto · '.$ticket['ticket_number'],
-                'El caso fue resuelto. Solución aplicada: '.$solution,
-                ['requester','externals','admins'],APP_BASE_URL.'/tickets/view?id='.$ticketId,
-                ['resolution_type'=>$type,'root_cause'=>$rootCause]
+            $notifications=new NotificationService();
+            $notifications->publishTicket(
+                $ticketId,'RESOLUTION_RECORDED','Tu solicitud fue resuelta · '.$ticket['ticket_number'],
+                'El equipo registró una solución. Revísala para confirmar que quedó resuelto o devolver el caso si necesitas más ayuda.',
+                ['requester'],APP_BASE_URL.'/tickets/feedback?id='.$ticketId,
+                ['resolution_type'=>$type,'awaiting_requester_confirmation'=>true]
+            );
+            $notifications->publishTicket(
+                $ticketId,'RESOLUTION_RECORDED_INTERNAL','Solución registrada · '.$ticket['ticket_number'],
+                'La solución fue registrada y quedó pendiente de confirmación del solicitante.',
+                ['externals','admins'],APP_BASE_URL.'/tickets/view?id='.$ticketId,
+                ['resolution_type'=>$type],['email'=>false,'in_app'=>true]
             );
         }catch(\Throwable $e){Logger::error($e);}
 
-        Flash::set('Solución guardada. El caso quedó resuelto.','success');
+        Flash::set('Solución guardada. Ahora esperamos la confirmación del solicitante.','success');
         $this->redirectTicket($ticketId);
     }
 
