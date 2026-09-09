@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v2.3.0-dev · ITSM Problemas + Conocimiento · 2026-09-09
+- Problem Management operativo sobre las tablas existentes: listado con filtros, creación, edición, estados, propietario, causa raíz, workaround y solución permanente.
+- Tickets recurrentes se relacionan mediante `problem_occurrences`; el sistema recalcula automáticamente cantidad de ocurrencias, primera aparición y última aparición.
+- Creación de problema conocido desde un ticket o desde varios números de ticket, sin duplicar los casos originales.
+- Workspace del problema con tickets relacionados, conocimiento relacionado, solución principal y timeline respaldado por auditoría.
+- Knowledge Management operativo sobre `knowledge_articles`: listado, borradores, edición, publicación explícita, visibilidad interna/pública y archivado.
+- Creación de artículo desde una resolución de ticket o desde un problema conocido; el contenido se prellena con información técnica y excluye datos personales del solicitante.
+- Relación Problema ↔ Artículo mediante `problem_solutions`, incluyendo artículo marcado como solución principal.
+- Workspace del ticket incorpora Problema conocido relacionado, workaround disponible y Posibles soluciones.
+- Sugerencias sin IA externa combinan categoría, parque, términos del caso, recurrencia, tags de problemas y resoluciones reutilizables anteriores.
+- Búsqueda global ampliada y agrupada en Tickets, Problemas conocidos y Conocimiento respetando permisos y visibilidad.
+- Sidebar incorpora la sección Conocimiento según permisos; proveedores externos no reciben acceso a los módulos internos.
+- Dashboard de soporte añade métricas funcionales de problemas abiertos, problemas en investigación y artículos en borrador según permisos.
+- Auditoría registra creación/edición de problemas, relaciones ticket-problema, vínculos problema-artículo, creación/edición/publicación/archivado de conocimiento.
+- Nueva migración incremental `ACTUALIZAR_ITSM_PROBLEMAS_CONOCIMIENTO_V2.sql`, sin borrado de datos, para asegurar tablas/permisos ITSM en TEST.
+- Verificación de estabilidad ampliada con consistencia de recurrencias, números ITSM, solución principal y publicación de artículos.
+- Checks estáticos ampliados para controladores, servicios, vistas, rutas y migración de Problemas + Conocimiento.
+
 ## v2.2.0-dev · UX operacional · 2026-09-09
 - Dashboard de soporte reorganizado por prioridad operativa: SLA vencidos, próximos a vencer, críticos, trabajo propio, cola y actividad reciente.
 - Navegación de soporte simplificada con accesos directos a Centro de soporte, Mis casos y Disponibles; se conserva Mis solicitudes como espacio personal.
