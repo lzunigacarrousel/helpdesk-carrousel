@@ -40,7 +40,7 @@ try{
     $notificationUnread=$notificationService->unreadCount((int)Auth::id());
 }catch(Throwable){$recentNotifications=[];$notificationUnread=0;}
 
-$assetVersion='20260909-012';
+$assetVersion='20260909-021';
 ?>
 <!doctype html>
 <html lang="es">
