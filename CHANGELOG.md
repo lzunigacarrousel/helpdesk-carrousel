@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v2.3.6-dev · Correo confiable + diagnóstico de entregas · 2026-09-09
+- El modo `log` deja de contabilizar correos como enviados: las entregas locales quedan registradas como `SKIPPED / Modo prueba`, diferenciándolas de un envío SMTP real.
+- `MailService` valida configuración básica, normaliza TLS/SSL, incorpora timeout y devuelve el resultado real de entrega; los errores visibles permanecen genéricos y los detalles quedan en trazabilidad administrativa.
+- Nueva configuración opcional `app_url` permite usar una URL estable en botones y logo de los correos, evitando enlaces `localhost`, IP LAN o host temporal cuando el Helpdesk esté publicado.
+- Los correos HTML conservan la línea Carrousel, agregan preheader, eliminan URLs visibles en crudo y reducen texto redundante; la versión de texto tampoco expone enlaces largos.
+- OTP se integra a `notification_events / notification_deliveries` sin almacenar el código temporal en la trazabilidad; si el correo falla, el OTP recién generado se invalida correctamente.
+- La creación de colaboradores externos deja de enviar correo fuera del sistema de notificaciones y pasa a registrar estado de entrega igual que asignación/revocación de casos.
+- Se agrega `Correo y notificaciones` en Administración con estado del canal, prueba controlada, enviados del día, fallos, pendientes, modo prueba y últimas entregas.
+- Los administradores pueden reintentar correos normales fallidos o pendientes; los OTP no se reenvían y siempre deben solicitarse de nuevo.
+- `VERIFICAR_ESTABILIDAD_V2.sql` incorpora controles de enviados sin fecha, fallidos sin motivo y pendientes antiguos, además de contadores separados para enviados, fallidos, pendientes y modo prueba.
+- Ayuda contextual, tutorial guiado y Manual incluyen el diagnóstico de correo y explican la diferencia entre SMTP real y registro local.
+- No se agrega migración: se reutilizan los estados y columnas existentes de `notification_deliveries`.
+
 ## v2.3.5-dev · UX compacta + ayuda progresiva · 2026-09-09
 - El formulario público aprovecha mejor pantallas amplias sin reducir objetivos táctiles ni convertir el flujo en una pantalla densa; se amplía el contenedor, se compactan márgenes y se mantiene lectura cómoda en tablet y móvil.
 - Encabezado de `Reportar un problema` reducido y alineado para evitar espacio muerto, manteniendo logo, título y contexto en una sola zona visual.
