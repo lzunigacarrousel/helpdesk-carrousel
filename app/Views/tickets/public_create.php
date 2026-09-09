@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-027'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-028'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -9,6 +9,12 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
+<style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.public-form-card{position:relative}.public-form-head-compact{display:grid!important;grid-template-columns:132px minmax(0,1fr) 132px!important;align-items:center!important;gap:18px!important;max-width:none!important;min-height:94px!important;margin:0 0 14px!important;text-align:center!important}.public-form-head-compact:after{content:"";width:132px}.public-form-head-compact>div{text-align:center}.public-form-head-compact .public-form-logo{position:static!important;width:120px!important;height:auto!important;margin:0!important;justify-self:start!important}.public-form-head-compact .auth-title{margin:0!important;font-size:clamp(27px,2vw,33px)!important}.public-form-head-compact .auth-subtitle{margin:5px 0 0!important;font-size:14px!important}
+.public-problem-main{width:100%}.public-classification-row{max-width:560px}.public-inline-help{margin-top:12px;border:1px solid color-mix(in srgb,var(--brand) 18%,var(--border) 82%);border-radius:11px;background:color-mix(in srgb,var(--brand) 4%,var(--card) 96%);overflow:hidden}.public-inline-help>summary{cursor:pointer;list-style:none;padding:12px 14px;color:var(--brand);font-weight:800;font-size:13px}.public-inline-help>summary::-webkit-details-marker{display:none}.public-inline-help>summary:after{content:"+";float:right;font-size:18px;line-height:1}.public-inline-help[open]>summary:after{content:"−"}.public-inline-help-body{padding:0 14px 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.public-inline-help-body>div{padding:10px 11px;border:1px solid var(--border);border-radius:9px;background:var(--card)}.public-inline-help-body strong,.public-inline-help-body span{display:block}.public-inline-help-body strong{font-size:12px}.public-inline-help-body span{margin-top:3px;color:var(--muted);font-size:12.5px;line-height:1.4}.public-after-submit{grid-column:1/-1}.public-after-submit ol{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:12.5px;line-height:1.5}
+@media(max-width:900px){.public-form-head-compact{grid-template-columns:104px minmax(0,1fr) 104px!important}.public-form-head-compact:after{width:104px}.public-form-head-compact .public-form-logo{width:94px!important}.public-inline-help-body{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.public-form-head-compact{display:flex!important;flex-direction:column!important;gap:6px!important;min-height:0!important}.public-form-head-compact:after{display:none}.public-form-head-compact .public-form-logo{width:90px!important;margin:0 auto!important}.public-inline-help-body{grid-template-columns:1fr}}
+</style>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head><body><div class="brand-strip"></div>
 <main class="auth-page public-form-page"><div class="auth-shell public-form-shell"><section class="auth-card public-form-card">
