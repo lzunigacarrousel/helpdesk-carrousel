@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 define('APP_NAME', 'Helpdesk Carrousel');
-define('APP_VERSION', '2.3.4-dev');
+define('APP_VERSION', '2.3.5-dev');
 
 $scriptName = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? '/HelpdeskCarrousel/public/index.php'));
 $publicPath = rtrim(str_replace('/index.php', '', $scriptName), '/');
