@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-004'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-041'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -16,15 +16,16 @@
   <section class="auth-brand-v2" aria-label="Helpdesk Carrousel">
     <div class="auth-brand-content">
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
-      <span class="auth-product-pill">Helpdesk</span>
-      <h1>Un paso más para entrar de forma segura.</h1>
-      <p>El código confirma que tienes acceso al correo registrado, sin utilizar contraseñas permanentes.</p>
-      <div class="auth-points-v2"><span>Código de 6 dígitos</span><span>Acceso temporal</span><span>Sin contraseña</span></div>
+      <span class="auth-product-pill">Helpdesk Carrousel</span>
+      <h1>Acceso seguro sin contraseñas permanentes.</h1>
+      <p>El código confirma el acceso al correo registrado y protege la sesión del Helpdesk.</p>
+      <div class="auth-points-v2"><span>OTP de 6 dígitos</span><span>Acceso temporal</span><span>Sesión segura</span></div>
     </div>
   </section>
 
   <section class="auth-panel-v2">
     <div class="auth-card-v2">
+      <div class="auth-mobile-brand-v2"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><strong>Helpdesk Carrousel</strong></div>
       <span class="auth-eyebrow">Verificación</span>
       <h2>Escribe tu código</h2>
       <p class="auth-lead">Lo enviamos a <strong><?= htmlspecialchars((string)$email) ?></strong>.</p>
@@ -32,11 +33,11 @@
       <form class="auth-form-v2" method="post" action="<?= APP_BASE_URL ?>/auth/verify" data-single-submit data-action-message="Validando código…">
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
         <input type="hidden" name="email" value="<?= htmlspecialchars((string)$email) ?>">
-        <label for="otp-code">Código OTP<input class="form-control otp-input-v2" id="otp-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus placeholder="000000"></label>
-        <button class="btn btn-primary auth-primary" type="submit">Verificar e ingresar</button>
+        <label for="otp-code">Código de 6 dígitos<input class="form-control otp-input-v2" id="otp-code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus placeholder="000000"></label>
+        <button class="btn btn-primary auth-primary" type="submit">Ingresar</button>
       </form>
-      <div class="auth-helper-v2"><span>ℹ</span><div>El código es temporal. Si expiró o no lo recibiste, solicita uno nuevo.</div></div>
-      <p class="auth-security-v2">Nunca compartas tu código OTP con otra persona.</p>
+      <div class="auth-helper-v2"><span>i</span><div>Si el código expiró o no lo recibiste, puedes solicitar uno nuevo.</div></div>
+      <p class="auth-security-v2">El código OTP es personal y temporal. El equipo de soporte no necesita pedírtelo.</p>
       <div class="auth-actions-v2"><div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/login">Cambiar correo</a><form method="post" action="<?= APP_BASE_URL ?>/auth/resend" data-single-submit data-action-message="Reenviando código…"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="email" value="<?= htmlspecialchars((string)$email) ?>"><button class="btn btn-outline-primary btn-sm" type="submit">Reenviar código</button></form></div><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button></div>
     </div>
   </section>
