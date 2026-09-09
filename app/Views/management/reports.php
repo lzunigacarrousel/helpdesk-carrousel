@@ -17,6 +17,11 @@ $fmtMinutes=static function($minutes):string{
 };
 $s=$reportStats??[];
 ?>
+<style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.report-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.report-summary-grid article{padding:16px 17px;min-height:104px}.report-summary-grid strong{font-size:25px}.report-summary-grid small{font-size:11px}.report-records{gap:16px;padding:16px}.report-record{border-radius:15px}.report-record-head{padding:14px 16px}.report-ticket-id strong{font-size:15px}.report-record-grid{grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)}.report-block{padding:16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.report-block:nth-child(2n){border-right:0}.report-block:nth-last-child(-n+2){border-bottom:0}.report-context h3{font-size:17px}.report-context>p{font-size:13px;max-height:none;overflow:visible;line-height:1.55}.report-context dt{font-size:10px}.report-context dd{font-size:12px}.report-time-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.report-time-grid>div{padding:9px 10px}.report-time-grid strong{font-size:14px}.report-timeline strong{font-size:12px}.report-timeline small{font-size:10.5px}.report-resolution-content p{font-size:12px;max-height:none;overflow:visible}.report-label{font-size:10.5px}.report-head p{max-width:840px}.report-filterbar{grid-template-columns:repeat(4,minmax(150px,1fr))}.report-filterbar .mgmt-filter-actions{grid-column:1/-1;justify-content:flex-end}.report-results-head{align-items:flex-start}.report-results-head small{max-width:540px;line-height:1.5}
+@media(max-width:1100px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-record-grid{grid-template-columns:1fr}.report-block{border-right:0!important;border-bottom:1px solid var(--border)!important}.report-block:last-child{border-bottom:0!important}.report-filterbar{grid-template-columns:repeat(2,minmax(0,1fr))}.report-time-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.report-summary-grid{grid-template-columns:1fr 1fr}.report-summary-grid article{min-height:94px;padding:13px}.report-summary-grid strong{font-size:20px}.report-filterbar{grid-template-columns:1fr}.report-time-grid{grid-template-columns:1fr 1fr}.report-records{padding:8px}.report-block{padding:13px}.report-results-head{flex-direction:column}.report-results-head small{text-align:left}.report-head .mgmt-head-actions{width:100%}.report-head .mgmt-head-actions .btn{flex:1}}
+</style>
 
 <div class="mgmt-head report-head">
   <div>
@@ -62,7 +67,7 @@ $s=$reportStats??[];
 <section class="mgmt-card report-results-card">
   <div class="mgmt-card-head report-results-head">
     <div><span>Detalle operativo</span><h2><?= count($rows) ?> tickets analizados</h2></div>
-    <small class="muted">La exportación Excel conserva el filtro actual e incluye resumen, tiempos, motivos de espera, cambios de estado y resolución documentada.</small>
+    <small class="muted">Cada caso concentra contexto, tiempos, historial y resolución. La exportación Excel conserva el filtro actual y agrega hojas de resumen y esperas.</small>
   </div>
 
   <?php if(!$rows): ?>
@@ -85,7 +90,7 @@ $s=$reportStats??[];
 
         <div class="report-record-grid">
           <section class="report-block report-context">
-            <span class="report-label">Contexto</span>
+            <span class="report-label">Qué ocurrió</span>
             <h3><?= htmlspecialchars($r['subject']) ?></h3>
             <p><?= nl2br(htmlspecialchars($r['description'])) ?></p>
             <dl>
@@ -99,7 +104,7 @@ $s=$reportStats??[];
           </section>
 
           <section class="report-block report-times">
-            <span class="report-label">Tiempos de ejecución</span>
+            <span class="report-label">Cuánto tomó</span>
             <div class="report-time-grid">
               <div><span>Hasta asignación</span><strong><?= htmlspecialchars($fmtMinutes($life['assignment_minutes']??null)) ?></strong></div>
               <div><span>Primera respuesta</span><strong><?= htmlspecialchars($fmtMinutes($life['first_response_minutes']??null)) ?></strong></div>
@@ -117,7 +122,7 @@ $s=$reportStats??[];
           </section>
 
           <section class="report-block report-status-history">
-            <span class="report-label">Cambios de estado</span>
+            <span class="report-label">Cómo avanzó</span>
             <?php if(!empty($life['transitions'])): ?>
               <ol class="report-timeline">
                 <?php foreach($life['transitions'] as $t): ?>
@@ -129,14 +134,14 @@ $s=$reportStats??[];
           </section>
 
           <section class="report-block report-resolution-panel <?= empty($r['solution_applied'])?'is-missing':'' ?>">
-            <span class="report-label">Resolución y aprendizaje</span>
+            <span class="report-label">Qué aprendimos</span>
             <?php if(!empty($r['solution_applied'])): ?>
               <strong class="report-resolution-type"><?= htmlspecialchars($resolutionLabels[$r['resolution_type']]??'Solución documentada') ?></strong>
               <div class="report-resolution-content"><b>Causa encontrada</b><p><?= nl2br(htmlspecialchars($r['root_cause']??'No indicada')) ?></p><b>Solución aplicada</b><p><?= nl2br(htmlspecialchars($r['solution_applied'])) ?></p><?php if(!empty($r['preventive_action'])):?><b>Prevención / seguimiento</b><p><?= nl2br(htmlspecialchars($r['preventive_action'])) ?></p><?php endif; ?></div>
               <small>Documentado por <?= htmlspecialchars($r['resolution_author']??'equipo de soporte') ?></small>
             <?php else: ?>
               <strong>Falta documentar la resolución</strong>
-              <p class="muted">Cuando se resuelva el caso deben quedar registrados causa, solución aplicada y prevención para alimentar los informes y casos similares.</p>
+              <p class="muted">Cuando se resuelva el caso deben quedar registrados causa, solución aplicada y prevención para alimentar informes, casos similares y conocimiento.</p>
             <?php endif; ?>
           </section>
         </div>
