@@ -22,16 +22,19 @@ final class XlsxExportController
             t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
             COALESCE(tr.resolution_type,'') resolution_type,COALESCE(tr.root_cause,'') root_cause,
             COALESCE(tr.solution_applied,'') solution_applied,COALESCE(tr.preventive_action,'') preventive_action,
-            COALESCE(ru.full_name,'') resolution_author
+            COALESCE(ru.full_name,'') resolution_author,
+            tf.nps_score,COALESCE(tf.comment,'') feedback_comment,tf.created_at feedback_at
             FROM tickets t
             LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id
             LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by
+            LEFT JOIN ticket_feedback tf ON tf.ticket_id=t.id
             {$where} ORDER BY t.created_at DESC");
         $q->execute($params);$records=$q->fetchAll();
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$records));
 
-        $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Motivo de espera','Detalle de espera','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
+        $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Motivo de espera','Detalle de espera','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Calificación (0-10)','Comentario de servicio','Fecha de calificación','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
         $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;$pendingReasonCounts=[];
+        $npsResponses=0;$npsPromoters=0;$npsDetractors=0;$npsSum=0;
 
         foreach($records as $r){
             $life=$this->lifecycle($r,$events[(int)$r['id']]??[]);$history=[];
@@ -42,26 +45,36 @@ final class XlsxExportController
             if($life['resolution_minutes']!==null){$totalResolution+=(int)$life['resolution_minutes'];$countResolution++;}
             $statusChanges+=count($life['transitions']);
             if(!empty($r['pending_reason_code']))$pendingReasonCounts[$r['pending_reason_code']]=($pendingReasonCounts[$r['pending_reason_code']]??0)+1;
+            if($r['nps_score']!==null&&$r['nps_score']!==''){
+                $score=(int)$r['nps_score'];$npsResponses++;$npsSum+=$score;
+                if($score>=9)$npsPromoters++;elseif($score<=6)$npsDetractors++;
+            }
             $rows[]=[
                 $r['ticket_number'],$this->date($r['created_at']),$r['requester_name'],$r['requester_email'],$r['requester_phone'],$r['park_name'],$r['area_name'],$r['category_name'],$r['subject'],$r['description'],
-                self::PRIORITY_LABELS[$r['priority']]??$r['priority'],self::STATUS_LABELS[$r['status']]??$r['status'],WorkflowController::PENDING_REASONS[$r['pending_reason_code']]??($r['pending_reason_code']?:''),$r['pending_note'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),$this->date($r['first_response_due_at']),$this->date($r['resolution_due_at']),
+                self::PRIORITY_LABELS[$r['priority']]??$r['priority'],self::STATUS_LABELS[$r['status']]??$r['status'],WorkflowController::PENDING_REASONS[$r['pending_reason_code']]??($r['pending_reason_code']?:''),$r['pending_note'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),
+                $r['nps_score']??'',$r['feedback_comment'],$this->date($r['feedback_at']),$this->date($r['first_response_due_at']),$this->date($r['resolution_due_at']),
                 $life['assignment_minutes']??'', $life['first_response_minutes']??'',(int)$life['queue_minutes'],(int)$life['work_minutes'],(int)$life['pending_minutes'],(int)$life['resolved_wait_minutes'],$life['resolution_minutes']??'', $life['total_minutes']??'',count($life['transitions']),implode("\n",$history),
                 self::RESOLUTION_LABELS[$r['resolution_type']]??$r['resolution_type'],$r['root_cause'],$r['solution_applied'],$r['preventive_action'],$r['resolution_author']
             ];
         }
 
+        $nps=$npsResponses>0?round((($npsPromoters-$npsDetractors)/$npsResponses)*100):'';
+        $avgScore=$npsResponses>0?round($npsSum/$npsResponses,1):'';
         $filterText=$this->filterDescription($pdo,$filters).' · '.(new ScopeService())->scopeLabel();
         $summaryRows=[
             ['Tickets exportados',count($records)],['Resueltos / cerrados',$resolved],['Con solución documentada',$documented],['Sin solución documentada',max(0,count($records)-$documented)],
+            ['Respuestas de satisfacción',$npsResponses],['NPS',$nps],['Calificación promedio',$avgScore!==''?$avgScore.'/10':''],
             ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
         ];
         $pendingRows=[];
         foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0)];
+        $satisfactionRows=[['Respuestas',$npsResponses],['Promotores (9-10)',$npsPromoters],['Pasivos (7-8)',max(0,$npsResponses-$npsPromoters-$npsDetractors)],['Detractores (0-6)',$npsDetractors],['NPS',$nps],['Promedio',$avgScore!==''?$avgScore.'/10':'']];
 
-        Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'scope'=>(new ScopeService())->scopeLabel(),'rows'=>count($records)]);
+        Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'scope'=>(new ScopeService())->scopeLabel(),'rows'=>count($records),'nps_responses'=>$npsResponses]);
         XlsxExportService::download('helpdesk_informe_'.date('Ymd_His').'.xlsx',[
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Resumen del informe','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$summaryRows],
             ['name'=>'Tickets','title'=>'Helpdesk Carrousel · Detalle de tickets','subtitle'=>$filterText,'headers'=>$headers,'rows'=>$rows],
+            ['name'=>'Satisfacción','title'=>'Helpdesk Carrousel · Satisfacción del servicio','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$satisfactionRows],
             ['name'=>'Esperas','title'=>'Helpdesk Carrousel · Motivos de espera actuales','subtitle'=>$filterText,'headers'=>['Motivo','Casos'],'rows'=>$pendingRows],
         ]);
     }
