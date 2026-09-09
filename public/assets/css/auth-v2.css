@@ -1,22 +1,27 @@
 /* Helpdesk Carrousel · autenticación alineada visualmente con Caja Chica Carrousel */
 .auth-body-v2{
-  min-height:100vh;
+  min-height:100dvh;
+  height:100dvh;
   margin:0;
   background:radial-gradient(circle at 15% 15%,#2e679f 0,#143968 33%,#0c294f 72%);
   color:var(--ink,#1e2a3a);
   font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:24px;
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  padding:clamp(18px,4vh,40px) 24px;
+  overflow:auto;
 }
 .auth-body-v2 .brand-strip{position:fixed;inset:0 0 auto;height:4px;z-index:20}
 .auth-layout-v2{
   width:min(1050px,100%);
-  min-height:0;
+  min-height:440px;
   display:grid;
   grid-template-columns:1.15fr .85fr;
   align-items:stretch;
+  justify-self:center;
+  align-self:center;
+  margin:auto;
   padding:0;
   border-radius:24px;
   overflow:hidden;
@@ -221,15 +226,15 @@ html[data-theme="dark"] .auth-actions-v2,html[data-theme="dark"] .auth-register-
 html[data-theme="dark"] .auth-work-option label{background:var(--card,#111827);border-color:var(--border,#344256);color:var(--ink,#e5edf7)}
 
 @media(max-width:900px){
-  .auth-body-v2{padding:18px}
-  .auth-layout-v2,.auth-register-page .auth-layout-v2{grid-template-columns:1fr;max-width:520px}
+  .auth-body-v2{padding:18px;min-height:100dvh;height:auto}
+  .auth-layout-v2,.auth-register-page .auth-layout-v2{grid-template-columns:1fr;max-width:520px;margin:auto}
   .auth-brand-v2,.auth-register-page .auth-brand-v2{display:none}
   .auth-card-v2,.auth-register-shell{padding:36px 28px}
   .auth-panel-v2{min-height:0}
 }
 @media(max-width:640px){
-  .auth-body-v2{padding:12px;align-items:flex-start}
-  .auth-layout-v2,.auth-register-page .auth-layout-v2{width:100%;max-width:520px;border-radius:18px;margin-top:18px}
+  .auth-body-v2{padding:12px;align-items:start}
+  .auth-layout-v2,.auth-register-page .auth-layout-v2{width:100%;max-width:520px;min-height:0;border-radius:18px;margin:18px auto}
   .auth-card-v2,.auth-register-shell{padding:30px 20px}
   .auth-card-v2 h2{font-size:1.45rem}
   .auth-actions-v2{align-items:stretch}
