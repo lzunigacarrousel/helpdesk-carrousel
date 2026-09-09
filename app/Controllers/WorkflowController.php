@@ -67,9 +67,14 @@ final class WorkflowController
         $before=['status'=>$oldStatus,'pending_reason_code'=>$oldReason?:null,'pending_note'=>$oldNote?:null];
         $after=['status'=>$status,'pending_reason_code'=>$pendingReason?:null,'pending_note'=>$pendingNote?:null];
         $eventType=$oldStatus===$status?'PENDING_REASON_CHANGED':'STATUS_CHANGED';
-        $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
-            VALUES(?,?,'".((int)Auth::id())."','USER',?,?,?,NOW())")
-            ->execute([$id,$eventType,json_encode($before,JSON_UNESCAPED_UNICODE),json_encode($after,JSON_UNESCAPED_UNICODE),json_encode(['pending_reason_label'=>$pendingReason!==''?(self::PENDING_REASONS[$pendingReason]??$pendingReason):null],JSON_UNESCAPED_UNICODE)]);
+        $event=$pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
+            VALUES(?,?,?,'USER',?,?,?,NOW())");
+        $event->execute([
+            $id,$eventType,(int)Auth::id(),
+            json_encode($before,JSON_UNESCAPED_UNICODE),
+            json_encode($after,JSON_UNESCAPED_UNICODE),
+            json_encode(['pending_reason_label'=>$pendingReason!==''?(self::PENDING_REASONS[$pendingReason]??$pendingReason):null],JSON_UNESCAPED_UNICODE),
+        ]);
 
         Audit::log('TICKET_STATUS_CHANGED','ticket',$id,$before,$after);
 
