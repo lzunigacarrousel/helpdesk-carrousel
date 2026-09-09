@@ -1,0 +1,44 @@
+name: Helpdesk Carrousel CI
+
+on:
+  push:
+    branches: [v2-rebuild]
+  pull_request:
+    branches: [v2-rebuild]
+
+permissions:
+  contents: read
+
+jobs:
+  php-quality:
+    name: PHP quality checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, fileinfo, zip
+          coverage: none
+
+      - name: Validate Composer
+        run: composer validate --no-check-publish
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find app config public tests -type f -name '*.php' -print0)
+
+      - name: Static project checks
+        run: php tests/static_checks.php
