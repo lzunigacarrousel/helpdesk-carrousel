@@ -14,6 +14,15 @@ final class ResolutionController
         'PERMISSION'=>'Acceso / permisos','MAINTENANCE'=>'Mantenimiento','OTHER'=>'Otro',
     ];
 
+    public function index(): void
+    {
+        Auth::requirePermission('tickets.resolve');
+        $ticketId=(int)($_GET['ticket_id']??0);
+        Flash::set('Para resolver un caso, ábrelo y completa la sección “Documentar solución”.','info');
+        if($ticketId>0)$this->redirectTicket($ticketId);
+        $this->redirectQueue();
+    }
+
     public function store(): void
     {
         Auth::requirePermission('tickets.resolve');
