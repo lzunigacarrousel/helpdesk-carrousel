@@ -16,142 +16,135 @@ $activeCount=count(array_filter($users,static fn(array $u):bool=>($u['status']??
 $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']??'')==='PENDING'));
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.admin-create-panel{max-width:1180px;margin:14px 0 0 auto!important;background:var(--card)!important;padding:22px!important}
-.admin-create-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.admin-create-head h2{margin:0;font-size:22px}.admin-create-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
-.admin-user-create-flow{display:grid;gap:12px}.admin-form-section{border:1px solid var(--border);border-radius:13px;padding:16px 17px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.admin-form-section:nth-child(3){background:color-mix(in srgb,var(--brand) 4%,var(--card) 96%)}
-.admin-form-section-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:13px}.admin-form-section-head>span{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:900}.admin-form-section-head strong,.admin-form-section-head small{display:block}.admin-form-section-head strong{font-size:16px}.admin-form-section-head small{margin-top:2px;color:var(--muted);font-size:12.5px;line-height:1.4}
-.admin-form-grid{display:grid;gap:12px}.admin-form-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}.admin-form-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.admin-form-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-user-create-flow .form-label{margin-top:0!important}.admin-user-create-flow .admin-manager-field{grid-column:auto}.admin-user-create-flow>.admin-form-action{display:flex;justify-content:flex-end;padding-top:2px}.admin-user-create-flow>.admin-form-action .btn{min-width:180px}
-.admin-user-remove{border-top:1px solid var(--border)}.admin-user-remove>summary{cursor:pointer;list-style:none;padding:11px 18px;color:var(--muted);font-size:12.5px;font-weight:750}.admin-user-remove>summary::-webkit-details-marker{display:none}.admin-user-remove>summary:after{content:"+";float:right}.admin-user-remove[open]>summary:after{content:"−"}.admin-user-remove .admin-user-danger-zone{margin-top:0}
+.admin-users-page{width:100%;max-width:1450px;margin:0 auto}.admin-users-heading{align-items:center;margin-bottom:16px}.admin-users-heading .page-subtitle{max-width:760px}.admin-access-toggle{white-space:nowrap}
+.admin-access-panel{margin:0 0 18px;overflow:hidden}.admin-access-panel[hidden]{display:none!important}.admin-access-panel .card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.admin-access-panel .card-header strong{font-size:16px;color:var(--brand-dark)}.admin-access-panel .card-header span{display:block;margin-top:2px;color:var(--muted);font-size:12px;font-weight:500}.admin-access-close{border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:4px 6px}
+.admin-access-form{padding:18px;display:grid;gap:14px}.admin-access-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px;align-items:end}.admin-access-grid .form-label{margin:0 0 6px;font-size:13px}.admin-access-wide{grid-column:span 2}.admin-access-org{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px;align-items:end;padding-top:14px;border-top:1px solid var(--border)}.admin-access-org .form-label{margin:0 0 6px;font-size:13px}.admin-access-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}.admin-access-actions .btn-primary{min-width:150px}
 [data-location-park][hidden],[data-location-area][hidden],[data-location-region][hidden]{display:none!important}
-@media(max-width:1180px){.admin-form-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-form-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-create-panel{max-width:none}}
-@media(max-width:760px){.admin-create-panel{padding:14px!important}.admin-form-grid-4,.admin-form-grid-3,.admin-form-grid-2{grid-template-columns:1fr}.admin-form-section{padding:14px}.admin-user-create-flow>.admin-form-action .btn{width:100%}}
+.admin-user-remove{border-top:1px solid var(--border)}.admin-user-remove>summary{cursor:pointer;list-style:none;padding:11px 18px;color:var(--muted);font-size:12.5px;font-weight:750}.admin-user-remove>summary::-webkit-details-marker{display:none}.admin-user-remove>summary:after{content:"+";float:right}.admin-user-remove[open]>summary:after{content:"−"}.admin-user-remove .admin-user-danger-zone{margin-top:0}
+@media(max-width:1180px){.admin-access-grid,.admin-access-org{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-access-wide{grid-column:span 2}}
+@media(max-width:760px){.admin-users-heading{align-items:stretch}.admin-users-heading .admin-access-toggle{width:100%}.admin-access-grid,.admin-access-org{grid-template-columns:1fr}.admin-access-wide{grid-column:auto}.admin-access-form{padding:14px}.admin-access-panel .card-header{padding:13px 14px}.admin-access-actions{display:grid;grid-template-columns:1fr}.admin-access-actions .btn{width:100%}}
 </style>
-<div class="page-heading admin-users-heading">
-  <div>
-    <h1 class="page-title">Usuarios</h1>
-    <p class="page-subtitle">Administra accesos internos y asignaciones.</p>
+<div class="admin-users-page">
+  <div class="page-heading admin-users-heading">
+    <div>
+      <h1 class="page-title">Usuarios</h1>
+      <p class="page-subtitle">Administra accesos, perfiles y asignaciones del Helpdesk.</p>
+    </div>
+    <button class="btn btn-primary admin-access-toggle" type="button" data-access-toggle aria-expanded="false">+ Dar acceso</button>
   </div>
-  <details class="admin-create-user" data-create-user>
-    <summary class="btn btn-primary">+ Nuevo usuario</summary>
-    <div class="admin-create-panel">
-      <div class="admin-create-head">
-        <div><h2>Nuevo usuario</h2><p>Completa los datos básicos y define dónde trabaja.</p></div>
+
+  <section class="card admin-access-panel" data-access-panel hidden>
+    <div class="card-header">
+      <div><strong>Acceso interno</strong><span>Crea la cuenta y define únicamente los datos necesarios para su perfil.</span></div>
+      <button class="admin-access-close" type="button" data-access-close aria-label="Cerrar">×</button>
+    </div>
+    <form method="post" action="<?= APP_BASE_URL ?>/admin/users/create" data-single-submit class="admin-access-form" data-user-admin-form>
+      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+      <div class="admin-access-grid">
+        <div class="admin-access-wide"><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" required autocomplete="name" placeholder="Nombre de la persona"></div>
+        <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" required autocomplete="email" placeholder="nombre@correo.com"></div>
+        <div><label class="form-label">Teléfono <span class="optional">Opcional</span></label><input class="form-control" type="text" name="phone" autocomplete="tel" placeholder="Número de contacto"></div>
+        <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><option value="">Selecciona</option><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
+        <div><label class="form-label">Estado</label><select class="form-control" name="status"><option value="ACTIVE">Activo</option><option value="PENDING">Pendiente</option><option value="BLOCKED">Bloqueado</option><option value="DISABLED">Deshabilitado</option></select></div>
+        <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+        <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="">Selecciona</option><option value="PARK">Parque / ubicación</option><option value="CORPORATE">Área corporativa</option><option value="OTHER">Otro</option></select></div>
       </div>
-      <form method="post" action="<?= APP_BASE_URL ?>/admin/users/create" data-single-submit class="admin-user-create-flow" data-user-admin-form>
-        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-
-        <section class="admin-form-section">
-          <div class="admin-form-section-head"><span>1</span><div><strong>Datos básicos</strong><small>Información necesaria para identificar a la persona.</small></div></div>
-          <div class="admin-form-grid admin-form-grid-4">
-            <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" required autocomplete="name"></div>
-            <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" required autocomplete="email"></div>
-            <div><label class="form-label">Teléfono <span class="optional">Opcional</span></label><input class="form-control" type="text" name="phone" autocomplete="tel"></div>
-            <div><label class="form-label">Estado</label><select class="form-control" name="status"><option value="ACTIVE">Activo</option><option value="PENDING">Pendiente</option><option value="BLOCKED">Bloqueado</option><option value="DISABLED">Deshabilitado</option></select></div>
-          </div>
-        </section>
-
-        <section class="admin-form-section">
-          <div class="admin-form-section-head"><span>2</span><div><strong>Acceso</strong><small>Define qué puede hacer dentro del Helpdesk.</small></div></div>
-          <div class="admin-form-grid admin-form-grid-2">
-            <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><option value="">Selecciona un perfil</option><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
-            <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona un puesto</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-          </div>
-        </section>
-
-        <section class="admin-form-section">
-          <div class="admin-form-section-head"><span>3</span><div><strong>Organización</strong><small>Indica dónde trabaja y, si corresponde, quién es su responsable.</small></div></div>
-          <div class="admin-form-grid admin-form-grid-3">
-            <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="">Selecciona una opción</option><option value="PARK">En un parque</option><option value="CORPORATE">En un área corporativa</option><option value="OTHER">Otro</option></select></div>
-            <div data-location-park hidden><label class="form-label">Parque</label><select class="form-control" name="park_id" disabled><option value="">Selecciona un parque</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-            <div data-location-area hidden><label class="form-label">Área corporativa</label><select class="form-control" name="area_id" disabled><option value="">Selecciona un área</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-            <div data-location-region hidden><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id" disabled><option value="">Selecciona una región</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-            <div class="admin-manager-field"><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): ?><option value="<?= (int)$m['id'] ?>"><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
-          </div>
-        </section>
-
-        <div class="admin-form-action"><button class="btn btn-primary" type="submit">Crear usuario</button></div>
-      </form>
-    </div>
-  </details>
-</div>
-<?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-
-<section class="admin-users-shell" data-users-admin>
-  <div class="admin-users-kpis" aria-label="Resumen de usuarios">
-    <div><strong><?= count($users) ?></strong><span>Total</span></div>
-    <div><strong><?= $activeCount ?></strong><span>Activos</span></div>
-    <div><strong><?= $pendingCount ?></strong><span>Pendientes</span></div>
-  </div>
-
-  <div class="admin-user-toolbar">
-    <label class="admin-user-search-field"><span class="form-label">Buscar</span><input class="form-control" type="search" placeholder="Nombre, correo, parque, área o puesto…" autocomplete="off" data-users-search></label>
-    <label><span class="form-label">Perfil</span><select class="form-control" data-users-role-filter><option value="">Todos</option><?php foreach($roles as $r): ?><option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></label>
-    <label><span class="form-label">Estado</span><select class="form-control" data-users-status-filter><option value="">Todos</option><?php foreach($statusLabels as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label>
-    <button class="btn btn-outline-secondary admin-users-clear" type="button" data-users-clear>Limpiar</button>
-  </div>
-
-  <div class="admin-users-summary"><span data-users-summary>Mostrando <?= count($users) ?> de <?= count($users) ?> usuarios</span><strong data-users-count><?= count($users) ?> visibles</strong></div>
-
-  <section class="admin-user-list" data-users-list>
-  <?php foreach($users as $u):
-    $assignmentText=$u['park_name']??$u['area_name']??'Sin ubicación definida';
-    $preset=$profileHelp[$u['role_code']]??['label'=>$u['role_name']];
-    $scopeText=match($u['role_code']){
-      'ADMIN','SEMIADMIN','MANAGEMENT'=>'Global',
-      'SUPERVISOR'=>($u['region_name']?'Región · '.$u['region_name']:($u['park_name']?'Parque · '.$u['park_name']:($u['area_name']?'Área · '.$u['area_name']:'Pendiente'))),
-      'TECHNICIAN'=>'Equipo de soporte',
-      default=>'Información propia',
-    };
-    $searchText=implode(' ',array_filter([$u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'', $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'', $u['area_name']??'', $u['position_name']??'', $u['manager_name']??'']));
-    $canEditThis=!($u['role_code']==='ADMIN'&&!$isFullAdmin);
-  ?>
-  <article class="admin-user-card" data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
-    <div class="admin-user-summary">
-      <div class="admin-user-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['full_name'],0,1))) ?></div>
-      <div class="admin-user-main"><h2><?= htmlspecialchars($u['full_name']) ?></h2><p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p><div class="admin-user-meta"><span><?= htmlspecialchars($preset['label']) ?></span><span>·</span><span><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span><span>·</span><span><?= htmlspecialchars($scopeText) ?></span></div></div>
-      <div class="admin-user-org"><strong><?= htmlspecialchars($assignmentText) ?></strong><span><?= htmlspecialchars($u['position_name']??'Puesto pendiente') ?></span><?php if(!empty($u['manager_name'])): ?><small>Responsable: <?= htmlspecialchars($u['manager_name']) ?></small><?php endif; ?></div>
-    </div>
-
-    <?php if($canEditThis): ?>
-    <details class="admin-user-edit" id="user-<?= (int)$u['id'] ?>"><summary>Editar</summary>
-      <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form" data-user-admin-form>
-        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-        <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required></div>
-        <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" value="<?= htmlspecialchars($u['email']) ?>" required></div>
-        <div><label class="form-label">Teléfono</label><input class="form-control" type="text" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></div>
-        <div><label class="form-label">Estado</label><select class="form-control" name="status"><?php foreach($statusLabels as $code=>$label): ?><option value="<?= $code ?>" <?= $u['status']===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></div>
-        <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
-        <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-        <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>En un parque</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>En un área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
-        <div data-location-park><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-        <div data-location-area><label class="form-label">Área corporativa</label><select class="form-control" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-        <div data-location-region><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id"><option value="">Selecciona</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-        <div class="admin-manager-field"><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
-        <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
-      </form>
-
-      <?php if((int)$u['id']!==(int)Auth::id()): ?>
-      <details class="admin-user-remove">
-        <summary>Retirar acceso</summary>
-        <div class="admin-user-danger-zone">
-          <div><strong>Retirar acceso</strong><span>El historial y los tickets se conservan.</span></div>
-          <?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes.</div><?php else: ?>
-            <form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo que quiero retirar el acceso.</label><button class="btn btn-danger" type="submit">Retirar acceso</button></form>
-          <?php endif; ?>
-        </div>
-      </details>
-      <?php endif; ?>
-    </details>
-    <?php endif; ?>
-  </article>
-  <?php endforeach; ?>
+      <div class="admin-access-org">
+        <div data-location-park hidden><label class="form-label">Parque</label><select class="form-control" name="park_id" disabled><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+        <div data-location-area hidden><label class="form-label">Área corporativa</label><select class="form-control" name="area_id" disabled><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+        <div data-location-region hidden><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id" disabled><option value="">Selecciona</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+        <div class="admin-manager-field"><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): ?><option value="<?= (int)$m['id'] ?>"><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
+      </div>
+      <div class="admin-access-actions"><button class="btn btn-outline-secondary" type="button" data-access-cancel>Cancelar</button><button class="btn btn-primary" type="submit">Dar acceso</button></div>
+    </form>
   </section>
 
-  <div class="admin-users-empty" data-users-empty hidden><strong>No encontramos usuarios con esos filtros.</strong><span>Prueba con otro nombre, correo, ubicación, perfil o estado.</span></div>
-</section>
+  <?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
+
+  <section class="admin-users-shell" data-users-admin>
+    <div class="admin-users-kpis" aria-label="Resumen de usuarios">
+      <div><strong><?= count($users) ?></strong><span>Total</span></div>
+      <div><strong><?= $activeCount ?></strong><span>Activos</span></div>
+      <div><strong><?= $pendingCount ?></strong><span>Pendientes</span></div>
+    </div>
+
+    <div class="admin-user-toolbar">
+      <label class="admin-user-search-field"><span class="form-label">Buscar</span><input class="form-control" type="search" placeholder="Nombre, correo, parque, área o puesto…" autocomplete="off" data-users-search></label>
+      <label><span class="form-label">Perfil</span><select class="form-control" data-users-role-filter><option value="">Todos</option><?php foreach($roles as $r): ?><option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></label>
+      <label><span class="form-label">Estado</span><select class="form-control" data-users-status-filter><option value="">Todos</option><?php foreach($statusLabels as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label>
+      <button class="btn btn-outline-secondary admin-users-clear" type="button" data-users-clear>Limpiar</button>
+    </div>
+
+    <div class="admin-users-summary"><span data-users-summary>Mostrando <?= count($users) ?> de <?= count($users) ?> usuarios</span><strong data-users-count><?= count($users) ?> visibles</strong></div>
+
+    <section class="admin-user-list" data-users-list>
+    <?php foreach($users as $u):
+      $assignmentText=$u['park_name']??$u['area_name']??'Sin ubicación definida';
+      $preset=$profileHelp[$u['role_code']]??['label'=>$u['role_name']];
+      $scopeText=match($u['role_code']){
+        'ADMIN','SEMIADMIN','MANAGEMENT'=>'Global',
+        'SUPERVISOR'=>($u['region_name']?'Región · '.$u['region_name']:($u['park_name']?'Parque · '.$u['park_name']:($u['area_name']?'Área · '.$u['area_name']:'Pendiente'))),
+        'TECHNICIAN'=>'Equipo de soporte',
+        default=>'Información propia',
+      };
+      $searchText=implode(' ',array_filter([$u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'', $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'', $u['area_name']??'', $u['position_name']??'', $u['manager_name']??'']));
+      $canEditThis=!($u['role_code']==='ADMIN'&&!$isFullAdmin);
+    ?>
+    <article class="admin-user-card" data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
+      <div class="admin-user-summary">
+        <div class="admin-user-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['full_name'],0,1))) ?></div>
+        <div class="admin-user-main"><h2><?= htmlspecialchars($u['full_name']) ?></h2><p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p><div class="admin-user-meta"><span><?= htmlspecialchars($preset['label']) ?></span><span>·</span><span><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span><span>·</span><span><?= htmlspecialchars($scopeText) ?></span></div></div>
+        <div class="admin-user-org"><strong><?= htmlspecialchars($assignmentText) ?></strong><span><?= htmlspecialchars($u['position_name']??'Puesto pendiente') ?></span><?php if(!empty($u['manager_name'])): ?><small>Responsable: <?= htmlspecialchars($u['manager_name']) ?></small><?php endif; ?></div>
+      </div>
+
+      <?php if($canEditThis): ?>
+      <details class="admin-user-edit" id="user-<?= (int)$u['id'] ?>"><summary>Editar</summary>
+        <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form" data-user-admin-form>
+          <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+          <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required></div>
+          <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" value="<?= htmlspecialchars($u['email']) ?>" required></div>
+          <div><label class="form-label">Teléfono</label><input class="form-control" type="text" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></div>
+          <div><label class="form-label">Estado</label><select class="form-control" name="status"><?php foreach($statusLabels as $code=>$label): ?><option value="<?= $code ?>" <?= $u['status']===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></div>
+          <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
+          <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+          <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>En un parque</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>En un área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
+          <div data-location-park><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+          <div data-location-area><label class="form-label">Área corporativa</label><select class="form-control" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+          <div data-location-region><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id"><option value="">Selecciona</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+          <div class="admin-manager-field"><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select></div>
+          <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
+        </form>
+
+        <?php if((int)$u['id']!==(int)Auth::id()): ?>
+        <details class="admin-user-remove">
+          <summary>Retirar acceso</summary>
+          <div class="admin-user-danger-zone">
+            <div><strong>Retirar acceso</strong><span>El historial y los tickets se conservan.</span></div>
+            <?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes.</div><?php else: ?>
+              <form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo que quiero retirar el acceso.</label><button class="btn btn-danger" type="submit">Retirar acceso</button></form>
+            <?php endif; ?>
+          </div>
+        </details>
+        <?php endif; ?>
+      </details>
+      <?php endif; ?>
+    </article>
+    <?php endforeach; ?>
+    </section>
+
+    <div class="admin-users-empty" data-users-empty hidden><strong>No encontramos usuarios con esos filtros.</strong><span>Prueba con otro nombre, correo, ubicación, perfil o estado.</span></div>
+  </section>
+</div>
 
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (function(){
+  const panel=document.querySelector('[data-access-panel]');
+  const toggle=document.querySelector('[data-access-toggle]');
+  const closeButtons=document.querySelectorAll('[data-access-close],[data-access-cancel]');
+  const setPanel=function(open){if(!panel||!toggle)return;panel.hidden=!open;toggle.setAttribute('aria-expanded',open?'true':'false');toggle.textContent=open?'Cerrar':' + Dar acceso';if(open){panel.querySelector('input[name="full_name"]')?.focus();}};
+  toggle?.addEventListener('click',function(){setPanel(panel?.hidden??true)});
+  closeButtons.forEach(function(button){button.addEventListener('click',function(){setPanel(false)})});
+
   const sync=function(form){
     const type=form.querySelector('[data-assignment-type]');
     const role=form.querySelector('[data-role-select]');
