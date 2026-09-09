@@ -3,9 +3,9 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $required=[
     'bootstrap.php','config/config.php','config/local.php.example','database/INSTALAR_FASE1.sql',
-    'database/ACTUALIZAR_FLUJO_ESPERA_P1.sql','database/ACTUALIZAR_ITSM_PROBLEMAS_CONOCIMIENTO_V2.sql','database/ACTUALIZAR_NOTIFICACIONES_EVENTOS_V2.sql','database/VERIFICAR_ESTABILIDAD_V2.sql',
+    'database/ACTUALIZAR_FLUJO_ESPERA_P1.sql','database/ACTUALIZAR_ITSM_PROBLEMAS_CONOCIMIENTO_V2.sql','database/ACTUALIZAR_NOTIFICACIONES_EVENTOS_V2.sql','database/ACTUALIZAR_PERFILES_ALCANCES_V2.sql','database/VERIFICAR_ESTABILIDAD_V2.sql',
     'app/Services/AuthService.php','app/Services/ScopeService.php','app/Services/ProblemService.php','app/Services/SolutionSuggestionService.php','app/Services/NotificationService.php','app/Core/Auth.php',
-    'app/Controllers/SearchController.php','app/Controllers/WorkflowController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/HelpController.php','app/Controllers/NotificationController.php',
+    'app/Controllers/SearchController.php','app/Controllers/WorkflowController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/HelpController.php','app/Controllers/NotificationController.php','app/Controllers/ManagementController.php','app/Controllers/XlsxExportController.php',
     'app/Views/search/index.php','app/Views/problems/index.php','app/Views/problems/form.php','app/Views/problems/show.php',
     'app/Views/knowledge/index.php','app/Views/knowledge/form.php','app/Views/knowledge/show.php','app/Views/help/manual.php',
     'public/assets/js/help-tour.js','public/assets/js/notifications.js','public/assets/css/components.css','public/index.php','HELPDESK_ADMIN.bat'
@@ -15,7 +15,13 @@ foreach($required as $f){$exists=is_file($root.'/'.$f);echo ($exists?'[OK] ':'[F
 
 $checks=[
     'public/index.php'=>['/problems','/knowledge','/manual','/notifications/read','/notifications/read-all'],
-    'app/Views/shared/app_start.php'=>['Problemas conocidos','Base de conocimiento','Tutorial guiado','<span class="side-label">Manual</span>','Notificaciones','data-notification-link','userContextLabel'],
+    'app/Core/Auth.php'=>['isSupportOperator','isManagementViewer','profileLabel'],
+    'app/Services/ScopeService.php'=>['ticketConstraint','SUPERVISOR','supportScopes','scopeLabel'],
+    'app/Controllers/DashboardController.php'=>['isManagementViewer','/gestion','isSupportOperator'],
+    'app/Controllers/ManagementController.php'=>['ScopeService','ticketConstraint','scopeLabel'],
+    'app/Controllers/XlsxExportController.php'=>['ScopeService','ticketConstraint','scopeLabel'],
+    'app/Views/shared/app_start.php'=>['Problemas conocidos','Base de conocimiento','Tutorial guiado','<span class="side-label">Manual</span>','Notificaciones','data-notification-link','profileLabel','isSupportOperator','isManagementViewer'],
+    'app/Views/admin/users.php'=>['Perfiles predefinidos','Atiende soporte','No atiende tickets','Gerencia','Supervisor','Alcance:'],
     'app/Views/shared/help_widget.php'=>['Iniciar tutorial guiado','Abrir manual completo'],
     'public/assets/js/help-tour.js'=>['support_dashboard','reports','ticket','problems','knowledge'],
     'public/assets/js/notifications.js'=>['data-notification-link','delivery_id','readAllUrl'],
