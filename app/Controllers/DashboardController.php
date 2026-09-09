@@ -75,6 +75,8 @@ final class DashboardController
         ];
         $supportActivity = [];
         if ($isSupport) {
+            /* El dashboard operativo usa el mismo alcance visible del Centro de soporte actual:
+               mis casos + casos aún sin responsable. Así los contadores siempre coinciden con la cola. */
             $support = $pdo->prepare(
                 "SELECT
                     SUM(assigned_to=? AND status IN('IN_PROGRESS','PENDING','REOPENED')) mine,
@@ -86,24 +88,26 @@ final class DashboardController
                     SUM(resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) overdue,
                     SUM(resolution_due_at IS NOT NULL AND resolution_due_at>=NOW() AND resolution_due_at<=DATE_ADD(NOW(),INTERVAL 2 HOUR) AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) near_due
                  FROM tickets
-                 WHERE deleted_at IS NULL"
+                 WHERE deleted_at IS NULL AND (assigned_to=? OR assigned_to IS NULL)"
             );
-            $support->execute([$uid]);
+            $support->execute([$uid,$uid]);
             $row = $support->fetch() ?: [];
             foreach ($supportStats as $key=>$value) {
                 $supportStats[$key] = (int)($row[$key] ?? 0);
             }
 
-            $activity = $pdo->query(
+            $activity = $pdo->prepare(
                 "SELECT te.event_type,te.created_at,t.id ticket_id,t.ticket_number,t.subject,u.full_name actor_name
                  FROM ticket_events te
                  JOIN tickets t ON t.id=te.ticket_id
                  LEFT JOIN users u ON u.id=te.actor_user_id
                  WHERE t.deleted_at IS NULL
+                   AND (t.assigned_to=? OR t.assigned_to IS NULL)
                    AND te.event_type IN('CREATED','CLAIMED','REASSIGNED','COMMENTED','RESOLUTION_RECORDED','RESOLVED','CLOSED','REOPENED','STATUS_CHANGED')
                  ORDER BY te.created_at DESC,te.id DESC
                  LIMIT 8"
             );
+            $activity->execute([$uid]);
             $supportActivity = $activity->fetchAll();
         }
 
