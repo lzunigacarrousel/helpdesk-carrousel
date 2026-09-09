@@ -11,6 +11,8 @@
   const actionStatus=document.getElementById('global-action-status');
   const actionMessage=actionStatus?.querySelector('[data-action-message]');
   const toastContainer=document.getElementById('app-toast-container');
+  const topbarSearch=document.querySelector('.topbar-search');
+  const topbarSearchInput=topbarSearch?.querySelector('input[name="q"]');
 
   function systemTheme(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
   function readTheme(){return localStorage.getItem(THEME_KEY)||'system';}
@@ -125,6 +127,13 @@
     el.title='Revisa tu conexión antes de guardar cambios';
   }
 
+  function openSearch(){
+    if(topbarSearchInput instanceof HTMLInputElement&&topbarSearch instanceof HTMLElement&&topbarSearch.offsetParent!==null){
+      topbarSearchInput.focus();topbarSearchInput.select();return;
+    }
+    if(topbarSearch instanceof HTMLFormElement&&topbarSearch.action)window.location.href=topbarSearch.action;
+  }
+
   applyTheme(readTheme());
   restoreSidebar();
   setConnectionState();
@@ -160,6 +169,9 @@
   });
 
   document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
+      e.preventDefault();openSearch();return;
+    }
     if(e.key!=='Escape')return;
     setHelp(false);closeNotifications();closeMobileSidebar();
   });
