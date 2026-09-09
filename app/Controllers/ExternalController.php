@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{MailService,NotificationService};
+use App\Services\NotificationService;
 use PDO;
 
 final class ExternalController
@@ -33,14 +33,15 @@ final class ExternalController
             $pdo->prepare("INSERT INTO external_profiles(user_id,organization_name,external_type,notes,created_at,updated_at) VALUES(?,?,?,?,NOW(),NOW())")->execute([$uid,$organization,$type,$notes?:null]);return $uid;
         });
         Audit::log('EXTERNAL_USER_CREATED','user',$uid,null,['email'=>$email,'organization_name'=>$organization,'external_type'=>$type]);
+        $result=['email_status'=>null];
         try{
-            (new MailService())->sendTicketNotification(
-                $email,'Tu acceso a Helpdesk Carrousel está listo','Acceso habilitado',
-                'Hola '.$name.'.'.PHP_EOL.PHP_EOL.'Carrousel habilitó tu acceso para colaborar únicamente en los casos que compartamos contigo. Para ingresar usa este correo y el código temporal que recibirás cada vez que inicies sesión.',
-                APP_BASE_URL.'/login','Ingresar a Helpdesk'
+            $result=(new NotificationService())->notifyUser(
+                $uid,$email,null,'EXTERNAL_USER_CREATED','Tu acceso al Helpdesk está listo',
+                'Hola '.$name.'. Tu acceso quedó habilitado para colaborar en los casos que se asignen a tu cuenta. Para ingresar usa este correo y el código temporal que recibirás al iniciar sesión.',
+                APP_BASE_URL.'/login',true,true
             );
-        }catch(\Throwable $e){Logger::error($e);}
-        Flash::set('Usuario externo creado y notificado por correo.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
+        Flash::set($this->deliveryMessage('Usuario externo creado.',$result['email_status']??null),'success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function grant(): void
@@ -59,15 +60,16 @@ final class ExternalController
                 ->execute([$ticketId,Auth::id(),json_encode(['external_user_id'=>$userId],JSON_UNESCAPED_UNICODE),json_encode(['can_comment'=>$canComment,'can_upload'=>$canUpload],JSON_UNESCAPED_UNICODE)]);
         });
         Audit::log('EXTERNAL_TICKET_GRANTED','ticket',$ticketId,null,['external_user_id'=>$userId,'can_comment'=>$canComment,'can_upload'=>$canUpload]);
+        $result=['email_status'=>null];
         try{
-            (new NotificationService())->notifyUser(
+            $result=(new NotificationService())->notifyUser(
                 (int)$external['id'],(string)$external['email'],$ticketId,'EXTERNAL_GRANTED',
-                'Carrousel compartió un caso contigo · '.$ticket['ticket_number'],
-                'Necesitamos tu apoyo en “'.$ticket['subject'].'”. Ingresa al caso para revisar el contexto, responder y adjuntar evidencia según los permisos habilitados.',
+                'Nuevo caso compartido · '.$ticket['ticket_number'],
+                'Necesitamos tu apoyo en “'.$ticket['subject'].'”. Abre el caso para revisar el contexto, responder o adjuntar evidencia según lo que esté habilitado.',
                 APP_BASE_URL.'/tickets/view?id='.$ticketId,true,true
             );
-        }catch(\Throwable $e){Logger::error($e);}
-        Flash::set('Caso compartido y proveedor notificado.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+        }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
+        Flash::set($this->deliveryMessage('Caso compartido.',$result['email_status']??null),'success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
     public function revoke(): void
@@ -84,15 +86,27 @@ final class ExternalController
         });
         Audit::log('EXTERNAL_TICKET_REVOKED','ticket',$ticketId,['external_user_id'=>$userId],null);
         if($current){
+            $result=['email_status'=>null];
             try{
-                (new NotificationService())->notifyUser(
+                $result=(new NotificationService())->notifyUser(
                     (int)$current['id'],(string)$current['email'],$ticketId,'EXTERNAL_REVOKED',
                     'Participación finalizada · '.$current['ticket_number'],
-                    'Tu participación en “'.$current['subject'].'” finalizó. El caso ya no está disponible dentro de tu cuenta.',
+                    'Tu participación en “'.$current['subject'].'” finalizó. El caso ya no aparece entre tus casos asignados.',
                     APP_BASE_URL.'/mis-tickets',true,true
                 );
-            }catch(\Throwable $e){Logger::error($e);}
-        }
-        Flash::set('Acceso retirado y proveedor notificado.','success');header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+            }catch(\Throwable $e){Logger::error($e);$result['email_status']='FAILED';}
+            Flash::set($this->deliveryMessage('Acceso retirado.',$result['email_status']??null),'success');
+        }else Flash::set('Acceso retirado.','success');
+        header('Location: '.APP_BASE_URL.'/admin/externos');exit;
+    }
+
+    private function deliveryMessage(string $base,?string $status): string
+    {
+        return match($status){
+            'SENT'=>$base.' Correo enviado correctamente.',
+            'SKIPPED'=>$base.' En PC TEST el correo quedó registrado en modo de prueba.',
+            'FAILED'=>$base.' El correo no pudo enviarse; revisa Correo y notificaciones.',
+            default=>$base,
+        };
     }
 }
