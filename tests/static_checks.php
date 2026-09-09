@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $root=dirname(__DIR__);$ok=true;
 $required=[
-'bootstrap.php','config/config.php','config/local.php.example','database/VERIFICAR_ESTABILIDAD_V2.sql','database/ACTUALIZAR_NPS_CIERRE_V2.sql',
+'bootstrap.php','config/config.php','config/local.php.example','database/VERIFICAR_ESTABILIDAD_V2.sql','database/ACTUALIZAR_NPS_CIERRE_V2.sql','database/DIAGNOSTICO_LIMPIEZA_V2.sql','database/LIMPIAR_DATOS_PRUEBA_V2.sql',
 'app/Core/Auth.php','app/Services/AuthService.php','app/Services/ScopeService.php','app/Services/NotificationService.php','app/Services/MailService.php','app/Services/ProblemService.php','app/Services/SolutionSuggestionService.php','app/Services/XlsxExportService.php',
 'app/Controllers/DashboardController.php','app/Controllers/WorkflowController.php','app/Controllers/ConversationController.php','app/Controllers/ResolutionController.php','app/Controllers/TicketFeedbackController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/MailAdminController.php','app/Controllers/AdminController.php',
 'app/Views/dashboard/index.php','app/Views/management/dashboard.php','app/Views/tickets/public_create.php','app/Views/tickets/index.php','app/Views/tickets/feedback.php','app/Views/tickets/show.php','app/Views/tickets/show_external.php','app/Views/help/manual.php','app/Views/admin/mail.php','app/Views/admin/users.php','app/Views/shared/app_start.php','app/Views/shared/help_widget.php',
@@ -31,11 +31,13 @@ $checks=[
 'app/Controllers/ResolutionController.php'=>['tickets.resolve','RESOLUTION_RECORDED','tickets/feedback?id=','confirmación del solicitante'],
 'app/Controllers/TicketFeedbackController.php'=>['public function submit','public function reopen','ticket_feedback','TICKET_FEEDBACK_SUBMITTED','TICKET_REOPENED_BY_REQUESTER'],
 'app/Controllers/AdminController.php'=>['public function create','public function assign','public function delete','USER_CREATED','USER_UPDATED','USER_DELETED','assertAnotherActiveAdmin'],
-'app/Views/admin/users.php'=>['+ Nuevo usuario','Datos básicos','Dónde trabaja','Retirar acceso','data-assignment-type'],
+'app/Views/admin/users.php'=>['+ Dar acceso','Acceso interno','Dónde trabaja','Retirar acceso','data-assignment-type'],
 'app/Views/admin/mail.php'=>['Enviar correo de prueba','Entregas recientes','Reintentar','Modo prueba'],
-'app/Views/shared/help_widget.php'=>['Administrar usuarios','Nuevo usuario','Abrir manual'],
+'app/Views/shared/help_widget.php'=>['Administrar usuarios','Dar acceso','Abrir manual'],
 'public/index.php'=>['/tickets/feedback','/tickets/feedback/reopen','/tickets/resolve','/gestion/informes/exportar','/admin/users/create','/admin/users/assign','/admin/users/delete'],
 'database/ACTUALIZAR_NPS_CIERRE_V2.sql'=>['CREATE TABLE IF NOT EXISTS ticket_feedback','nps_score','2026-09-09_nps_cierre_v2'],
+'database/DIAGNOSTICO_LIMPIEZA_V2.sql'=>['SOLO LECTURA','ticket_feedback_sin_ticket','diagnóstico completado'],
+'database/LIMPIAR_DATOS_PRUEBA_V2.sql'=>['helpdesk_carrousel_test','START TRANSACTION','COMMIT','limpieza controlada completada'],
 'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['CORREOS_ENVIADOS_SIN_FECHA','CORREOS_FALLIDOS_SIN_MOTIVO','CORREOS_PENDIENTES_MAS_10_MIN']];
 foreach($checks as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle){$found=is_string($content)&&str_contains($content,$needle);echo ($found?'[OK] ':'[FALTA] ').$file.' contiene '.$needle.PHP_EOL;$ok=$ok&&$found;}}
 $forbidden=[
@@ -43,7 +45,7 @@ $forbidden=[
 'app/Views/dashboard/index.php'=>['Acceso restringido y seguro','Tu espacio de colaboración'],
 'app/Views/tickets/show_external.php'=>['Mensaje para Carrousel','Enviar a Carrousel','Disponible en este caso','Tu equipo</strong>'],
 'app/Views/tickets/show.php'=>['Problem Management','Nota interna · Solo Soporte'],
-'app/Views/admin/users.php'=>['Perfiles predefinidos','Qué hace cada perfil','Selecciona el perfil según la responsabilidad real','Nuevo acceso</span><h2>Crear usuario','Tipo de ubicación'],
+'app/Views/admin/users.php'=>['Perfiles predefinidos','Qué hace cada perfil','Selecciona el perfil según la responsabilidad real','Nuevo acceso</span><h2>Crear usuario','Tipo de ubicación','+ Nuevo usuario'],
 'app/Controllers/ExternalController.php'=>['new MailService']];
 foreach($forbidden as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle){$found=is_string($content)&&str_contains($content,$needle);echo (!$found?'[OK] ':'[NO DEBE ESTAR] ').$file.' no contiene '.$needle.PHP_EOL;$ok=$ok&&!$found;}}
 exit($ok?0:1);
