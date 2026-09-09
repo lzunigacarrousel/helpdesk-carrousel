@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-025'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-026'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -10,9 +10,11 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.public-form-head-compact .public-form-logo{width:112px;height:auto}
-@media(max-width:900px){.public-form-head-compact .public-form-logo{width:94px}}
-@media(max-width:760px){.public-form-head-compact .public-form-logo{width:82px}}
+.public-form-head-compact{position:relative;display:block;max-width:none;margin:0 0 16px;min-height:96px;text-align:center;padding:10px 150px 8px}
+.public-form-head-compact>div{text-align:center}
+.public-form-head-compact .public-form-logo{position:absolute;left:10px;top:8px;width:132px;height:auto;margin:0;transform:none}
+@media(max-width:1100px){.public-form-head-compact{padding-inline:126px}.public-form-head-compact .public-form-logo{width:108px}}
+@media(max-width:760px){.public-form-head-compact{display:grid;grid-template-columns:1fr;gap:6px;min-height:0;padding:0;margin-bottom:12px}.public-form-head-compact .public-form-logo{position:static;width:94px;margin:0 auto;transform:none}.public-form-head-compact>div{text-align:center}}
 </style>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head><body><div class="brand-strip"></div>
