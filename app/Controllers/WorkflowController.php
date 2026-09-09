@@ -49,6 +49,11 @@ final class WorkflowController
         }
 
         $oldStatus=(string)$ticket['status'];
+        if($status==='CLOSED'&&$oldStatus==='RESOLVED'){
+            Flash::set('La solución ya fue registrada. El cierre final queda pendiente de confirmación del solicitante.','info');
+            header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+        }
+
         $oldReason=(string)($ticket['pending_reason_code']??'');
         $oldNote=(string)($ticket['pending_note']??'');
         if($oldStatus===$status&&$oldReason===$pendingReason&&$oldNote===$pendingNote){
