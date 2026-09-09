@@ -4,7 +4,7 @@ use App\Services\NotificationService;
 $isAdmin=Auth::role()==='ADMIN';
 $isSemi=Auth::role()==='SEMIADMIN';
 $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
-$isSupport=!$isExternal&&(Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.view_all'));
+$isSupport=Auth::isSupportOperator();
 $canManagement=!$isExternal&&($isAdmin||$isSemi||Auth::can('management.view'));
 $canExternalManage=!$isExternal&&($isAdmin||$isSemi||Auth::can('external.manage'));
 $canProblems=!$isExternal&&Auth::can('problems.view');
@@ -14,7 +14,7 @@ $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
 $searchValue=$activeNav==='search'?trim((string)($_GET['q']??'')):'';
 $supportView=$activeNav==='support'?strtolower(trim((string)($_GET['view']??''))):'';
-$userContextLabel=$isExternal?'Colaborador':($isSupport?(string)($user['role_name']??'Soporte'):'Usuario');
+$userContextLabel=Auth::profileLabel();
 
 $attentionItems=[];$attentionCount=0;$recentNotifications=[];$notificationUnread=0;
 try{
@@ -25,6 +25,8 @@ try{
         $q=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND deleted_at IS NULL AND status IN('IN_PROGRESS','PENDING','REOPENED')");$q->execute([$uid]);$mine=(int)$q->fetchColumn();if($mine>0)$attentionItems[]=['label'=>'Mis casos activos','detail'=>'Casos que están bajo tu responsabilidad.','count'=>$mine,'href'=>APP_BASE_URL.'/tickets/queue?view=mine'];
         $available=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE assigned_to IS NULL AND deleted_at IS NULL AND status IN('NEW','AVAILABLE','REOPENED')")->fetchColumn();if($available>0)$attentionItems[]=['label'=>'Casos disponibles','detail'=>'Solicitudes pendientes de responsable.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue?view=available'];
         if($canManagement){$overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();if($overdue>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$overdue,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];}
+    }elseif(Auth::isManagementViewer()){
+        $attentionItems=[];
     }else{
         $q=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND status NOT IN('CLOSED','CANCELLED') AND (requester_user_id=? OR LOWER(requester_email)=?)");$q->execute([$uid,$email]);$open=(int)$q->fetchColumn();if($open>0)$attentionItems[]=['label'=>'Solicitudes abiertas','detail'=>'Solicitudes que todavía están en seguimiento.','count'=>$open,'href'=>APP_BASE_URL.'/mis-tickets'];
     }
@@ -37,7 +39,7 @@ try{
     $notificationUnread=$notificationService->unreadCount((int)Auth::id());
 }catch(Throwable){$recentNotifications=[];$notificationUnread=0;}
 
-$assetVersion='20260909-010';
+$assetVersion='20260909-011';
 ?>
 <!doctype html>
 <html lang="es">
@@ -59,7 +61,7 @@ $assetVersion='20260909-010';
 <body><div class="brand-strip"></div><div class="app-shell">
 <aside class="sidebar" id="app-sidebar" aria-label="Navegación principal"><div class="sidebar-brand"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Carrousel"><div><strong>Helpdesk</strong><div class="small">Corporación Carrousel</div></div></div><nav>
 <div class="nav-section">Inicio</div><a class="side-link <?= $activeNav==='home'?'active':'' ?>" href="<?= APP_BASE_URL ?>/dashboard"><span class="side-icon">⌂</span><span class="side-label">Inicio</span></a><a class="side-link <?= $activeNav==='search'?'active':'' ?>" href="<?= APP_BASE_URL ?>/buscar"><span class="side-icon">⌕</span><span class="side-label">Buscar</span></a>
-<?php if($isSupport): ?><div class="nav-section">Soporte</div><a class="side-link <?= $activeNav==='support'&&$supportView===''?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span><span class="side-label">Centro de soporte</span></a><a class="side-link <?= $activeNav==='support'&&$supportView==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=mine"><span class="side-icon">◉</span><span class="side-label">Mis casos</span></a><a class="side-link <?= $activeNav==='support'&&$supportView==='available'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=available"><span class="side-icon">○</span><span class="side-label">Disponibles</span></a><div class="nav-section">Personal</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a><?php elseif($isExternal): ?><div class="nav-section">Casos</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis casos</span></a><?php else: ?><div class="nav-section">Solicitudes</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a><?php endif; ?>
+<?php if($isSupport): ?><div class="nav-section">Soporte</div><a class="side-link <?= $activeNav==='support'&&$supportView===''?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue"><span class="side-icon">◎</span><span class="side-label">Centro de soporte</span></a><a class="side-link <?= $activeNav==='support'&&$supportView==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=mine"><span class="side-icon">◉</span><span class="side-label">Mis casos</span></a><a class="side-link <?= $activeNav==='support'&&$supportView==='available'?'active':'' ?>" href="<?= APP_BASE_URL ?>/tickets/queue?view=available"><span class="side-icon">○</span><span class="side-label">Disponibles</span></a><div class="nav-section">Personal</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a><?php elseif($isExternal): ?><div class="nav-section">Casos</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis casos</span></a><?php elseif(Auth::isManagementViewer()): ?><?php else: ?><div class="nav-section">Solicitudes</div><a class="side-link <?= $activeNav==='mine'?'active':'' ?>" href="<?= APP_BASE_URL ?>/mis-tickets"><span class="side-icon">▤</span><span class="side-label">Mis solicitudes</span></a><?php endif; ?>
 <?php if($canProblems||$canKnowledge): ?><div class="nav-section">Conocimiento</div><?php endif; ?>
 <?php if($canProblems): ?><a class="side-link <?= $activeNav==='problems'?'active':'' ?>" href="<?= APP_BASE_URL ?>/problems"><span class="side-icon">◇</span><span class="side-label">Problemas conocidos</span></a><?php endif; ?>
 <?php if($canKnowledge): ?><a class="side-link <?= $activeNav==='knowledge'?'active':'' ?>" href="<?= APP_BASE_URL ?>/knowledge"><span class="side-icon">▧</span><span class="side-label">Base de conocimiento</span></a><?php endif; ?>
