@@ -20,25 +20,18 @@ final class NotificationService
         ?string $actionUrl=null,
         array $payload=[],
         array $options=[]
-    ): void {
-        if($ticketId<=0 || trim($eventKey)==='' || trim($title)==='') return;
+    ): array {
+        if($ticketId<=0 || trim($eventKey)==='' || trim($title)==='') return ['event_id'=>null,'emails'=>[]];
         $pdo=Database::pdo();
         $actorId=(int)(Auth::id()??0);
-        $actionUrl=$actionUrl ?: APP_BASE_URL.'/tickets/view?id='.$ticketId;
+        $actionUrl=$this->normalizeActionUrl($actionUrl ?: APP_BASE_URL.'/tickets/view?id='.$ticketId);
         $recipients=$this->resolveTicketRecipients($pdo,$ticketId,$audiences,$actorId);
-        if(!$recipients) return;
+        if(!$recipients) return ['event_id'=>null,'emails'=>[]];
 
-        $event=$pdo->prepare("INSERT INTO notification_events(event_key,ticket_id,actor_user_id,payload_json,created_at) VALUES(?,?,?,?,NOW())");
-        $event->execute([
-            strtoupper(trim($eventKey)),
-            $ticketId,
-            $actorId>0?$actorId:null,
-            json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
-        ]);
-        $eventId=(int)$pdo->lastInsertId();
+        $eventId=$this->insertEvent($pdo,$ticketId,$eventKey,$actorId,$payload);
         $globalEmail=array_key_exists('email',$options)?(bool)$options['email']:true;
         $globalInApp=array_key_exists('in_app',$options)?(bool)$options['in_app']:true;
-        $mail=new MailService();
+        $mail=new MailService();$emailResults=[];
 
         foreach($recipients as $recipient){
             $userId=(int)($recipient['user_id']??0);
@@ -52,18 +45,13 @@ final class NotificationService
             }
 
             if($allowEmail){
-                $q=$pdo->prepare("INSERT INTO notification_deliveries(event_id,channel,recipient_user_id,recipient_email,title,message,action_url,status,attempts,created_at,updated_at) VALUES(?,'EMAIL',?,?,?,?,?,'PENDING',0,NOW(),NOW())");
-                $q->execute([$eventId,$userId>0?$userId:null,$email,$title,mb_strimwidth($message,0,500,'…'),$actionUrl]);
-                $deliveryId=(int)$pdo->lastInsertId();
-                try{
-                    $mail->sendTicketNotification($email,$title,$title,$message,$actionUrl,'Abrir en Helpdesk');
-                    $pdo->prepare("UPDATE notification_deliveries SET status='SENT',attempts=attempts+1,sent_at=NOW(),last_error=NULL,updated_at=NOW() WHERE id=?")->execute([$deliveryId]);
-                }catch(\Throwable $e){
-                    Logger::error($e);
-                    $pdo->prepare("UPDATE notification_deliveries SET status='FAILED',attempts=attempts+1,last_error=?,updated_at=NOW() WHERE id=?")->execute([mb_strimwidth($e->getMessage(),0,1000,'…'),$deliveryId]);
-                }
+                $emailResults[]=$this->deliverEmail(
+                    $pdo,$eventId,$userId?:null,$email,$title,$message,$actionUrl,
+                    fn()=> $mail->sendTicketNotification($email,$title,$title,$message,$actionUrl,'Abrir en Helpdesk')
+                );
             }
         }
+        return ['event_id'=>$eventId,'emails'=>$emailResults];
     }
 
     public function notifyUser(
@@ -76,28 +64,74 @@ final class NotificationService
         string $actionUrl,
         bool $emailChannel=true,
         bool $inApp=true
-    ): void {
+    ): array {
         $pdo=Database::pdo();
         $actorId=(int)(Auth::id()??0);
-        $event=$pdo->prepare("INSERT INTO notification_events(event_key,ticket_id,actor_user_id,payload_json,created_at) VALUES(?,?,?,?,NOW())");
-        $event->execute([strtoupper(trim($eventKey)),$ticketId,$actorId>0?$actorId:null,json_encode([],JSON_UNESCAPED_UNICODE)]);
-        $eventId=(int)$pdo->lastInsertId();
+        $eventId=$this->insertEvent($pdo,$ticketId,$eventKey,$actorId,[]);
         $email=strtolower(trim($email));
+        $actionUrl=$this->normalizeActionUrl($actionUrl);
+        $result=['event_id'=>$eventId,'email_status'=>null,'email_delivery_id'=>null];
+
         if($inApp && ($userId??0)>0 && (int)$userId!==$actorId){
             $pdo->prepare("INSERT INTO notification_deliveries(event_id,channel,recipient_user_id,recipient_email,title,message,action_url,status,sent_at,created_at,updated_at) VALUES(?,'IN_APP',?,?,?,?,?,'SENT',NOW(),NOW(),NOW())")
                 ->execute([$eventId,(int)$userId,$email,$title,mb_strimwidth($message,0,500,'…'),$actionUrl]);
         }
         if($emailChannel && filter_var($email,FILTER_VALIDATE_EMAIL)){
-            $pdo->prepare("INSERT INTO notification_deliveries(event_id,channel,recipient_user_id,recipient_email,title,message,action_url,status,attempts,created_at,updated_at) VALUES(?,'EMAIL',?,?,?,?,?,'PENDING',0,NOW(),NOW())")
-                ->execute([$eventId,($userId??0)>0?(int)$userId:null,$email,$title,mb_strimwidth($message,0,500,'…'),$actionUrl]);
-            $deliveryId=(int)$pdo->lastInsertId();
-            try{
-                (new MailService())->sendTicketNotification($email,$title,$title,$message,$actionUrl,'Abrir en Helpdesk');
+            $delivery=$this->deliverEmail(
+                $pdo,$eventId,($userId??0)>0?(int)$userId:null,$email,$title,$message,$actionUrl,
+                fn()=> (new MailService())->sendTicketNotification($email,$title,$title,$message,$actionUrl,'Abrir en Helpdesk')
+            );
+            $result['email_status']=$delivery['status'];$result['email_delivery_id']=$delivery['id'];
+        }
+        return $result;
+    }
+
+    /** Registra y envía OTP sin guardar el código en la trazabilidad. */
+    public function sendOtpDelivery(int $userId,string $email,string $code,int $minutes): array
+    {
+        $pdo=Database::pdo();$email=strtolower(trim($email));
+        if($userId<=0||!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \RuntimeException('No fue posible preparar el código de acceso.');
+        $eventId=$this->insertEvent($pdo,null,'OTP_REQUESTED',0,['recipient_user_id'=>$userId,'expires_minutes'=>$minutes]);
+        $message='Código temporal solicitado. Vence en '.$minutes.' minutos.';
+        $delivery=$this->deliverEmail(
+            $pdo,$eventId,$userId,$email,'Código de acceso',$message,null,
+            fn()=> (new MailService())->sendOtp($email,$code,$minutes),true
+        );
+        return ['event_id'=>$eventId,'email_status'=>$delivery['status'],'email_delivery_id'=>$delivery['id']];
+    }
+
+    /** Reintenta solo entregas normales; un OTP vencido siempre debe solicitarse de nuevo. */
+    public function retryEmailDelivery(int $deliveryId): string
+    {
+        if($deliveryId<=0)throw new \RuntimeException('No encontramos el correo que deseas reintentar.');
+        if(MailService::mode()!=='smtp')throw new \RuntimeException('El Helpdesk está en modo de prueba; activa SMTP antes de reintentar correos.');
+        $pdo=Database::pdo();
+        $q=$pdo->prepare("SELECT d.*,e.event_key FROM notification_deliveries d JOIN notification_events e ON e.id=d.event_id WHERE d.id=? AND d.channel='EMAIL' LIMIT 1");
+        $q->execute([$deliveryId]);$delivery=$q->fetch();
+        if(!$delivery)throw new \RuntimeException('No encontramos el correo que deseas reintentar.');
+        if((string)$delivery['event_key']==='OTP_REQUESTED')throw new \RuntimeException('Los códigos de acceso no se reenvían. Solicita un código nuevo.');
+        if(!in_array((string)$delivery['status'],['FAILED','PENDING'],true))throw new \RuntimeException('Ese correo ya no necesita reintento.');
+        $email=strtolower(trim((string)$delivery['recipient_email']));
+        if(!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \RuntimeException('El destinatario del correo no es válido.');
+
+        try{
+            $result=(new MailService())->sendTicketNotification(
+                $email,(string)($delivery['title']?:APP_NAME),(string)($delivery['title']?:'Actualización'),
+                (string)($delivery['message']?:'Hay una actualización disponible.'),
+                $delivery['action_url']? $this->normalizeActionUrl((string)$delivery['action_url']):null,
+                'Abrir en Helpdesk'
+            );
+            if($result===MailService::RESULT_SENT){
                 $pdo->prepare("UPDATE notification_deliveries SET status='SENT',attempts=attempts+1,sent_at=NOW(),last_error=NULL,updated_at=NOW() WHERE id=?")->execute([$deliveryId]);
-            }catch(\Throwable $e){
-                Logger::error($e);
-                $pdo->prepare("UPDATE notification_deliveries SET status='FAILED',attempts=attempts+1,last_error=?,updated_at=NOW() WHERE id=?")->execute([mb_strimwidth($e->getMessage(),0,1000,'…'),$deliveryId]);
+                return 'SENT';
             }
+            $pdo->prepare("UPDATE notification_deliveries SET status='SKIPPED',last_error=NULL,updated_at=NOW() WHERE id=?")->execute([$deliveryId]);
+            return 'SKIPPED';
+        }catch(\Throwable $e){
+            Logger::error($e);
+            $pdo->prepare("UPDATE notification_deliveries SET status='FAILED',attempts=attempts+1,last_error=?,updated_at=NOW() WHERE id=?")
+                ->execute([mb_strimwidth($e->getMessage(),0,1000,'…'),$deliveryId]);
+            throw new \RuntimeException('El correo no pudo enviarse. Revisa la configuración o intenta más tarde.');
         }
     }
 
@@ -135,6 +169,51 @@ final class NotificationService
             ->execute([$userId]);
     }
 
+    private function insertEvent(PDO $pdo,?int $ticketId,string $eventKey,int $actorId,array $payload): int
+    {
+        $event=$pdo->prepare("INSERT INTO notification_events(event_key,ticket_id,actor_user_id,payload_json,created_at) VALUES(?,?,?,?,NOW())");
+        $event->execute([
+            strtoupper(trim($eventKey)),
+            ($ticketId??0)>0?$ticketId:null,
+            $actorId>0?$actorId:null,
+            json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+        ]);
+        return (int)$pdo->lastInsertId();
+    }
+
+    private function deliverEmail(
+        PDO $pdo,int $eventId,?int $userId,string $email,string $title,string $message,?string $actionUrl,callable $sender,bool $throwOnFailure=false
+    ): array {
+        $actionUrl=$this->normalizeActionUrl($actionUrl);
+        $q=$pdo->prepare("INSERT INTO notification_deliveries(event_id,channel,recipient_user_id,recipient_email,title,message,action_url,status,attempts,created_at,updated_at) VALUES(?,'EMAIL',?,?,?,?,?,'PENDING',0,NOW(),NOW())");
+        $q->execute([$eventId,$userId,$email,$title,mb_strimwidth($message,0,500,'…'),$actionUrl]);
+        $deliveryId=(int)$pdo->lastInsertId();
+        try{
+            $result=$sender();
+            if($result===MailService::RESULT_LOGGED){
+                $pdo->prepare("UPDATE notification_deliveries SET status='SKIPPED',attempts=0,sent_at=NULL,last_error=NULL,updated_at=NOW() WHERE id=?")->execute([$deliveryId]);
+                return ['id'=>$deliveryId,'status'=>'SKIPPED'];
+            }
+            $pdo->prepare("UPDATE notification_deliveries SET status='SENT',attempts=attempts+1,sent_at=NOW(),last_error=NULL,updated_at=NOW() WHERE id=?")->execute([$deliveryId]);
+            return ['id'=>$deliveryId,'status'=>'SENT'];
+        }catch(\Throwable $e){
+            Logger::error($e);
+            $pdo->prepare("UPDATE notification_deliveries SET status='FAILED',attempts=attempts+1,last_error=?,updated_at=NOW() WHERE id=?")
+                ->execute([mb_strimwidth($e->getMessage(),0,1000,'…'),$deliveryId]);
+            if($throwOnFailure)throw $e;
+            return ['id'=>$deliveryId,'status'=>'FAILED'];
+        }
+    }
+
+    private function normalizeActionUrl(?string $url): ?string
+    {
+        $url=trim((string)$url);if($url==='')return null;
+        if(APP_CANONICAL_URL===APP_BASE_URL)return $url;
+        if(str_starts_with($url,APP_BASE_URL))return APP_CANONICAL_URL.substr($url,strlen(APP_BASE_URL));
+        if(str_starts_with($url,'/'))return APP_CANONICAL_URL.$url;
+        return $url;
+    }
+
     private function resolveTicketRecipients(PDO $pdo,int $ticketId,array $audiences,int $actorId): array
     {
         $audiences=array_values(array_unique(array_map('strtolower',$audiences)));
@@ -145,8 +224,9 @@ final class NotificationService
             $userId=(int)($userId??0);$email=strtolower(trim((string)$email));
             if($userId>0&&$userId===$actorId)return;
             if($userId<=0&&!filter_var($email,FILTER_VALIDATE_EMAIL))return;
-            $key=$userId>0?'u:'.$userId:'e:'.$email;
+            $key=$email!==''?'e:'.$email:'u:'.$userId;
             if(isset($recipients[$key])){
+                if(!$recipients[$key]['user_id']&&$userId>0)$recipients[$key]['user_id']=$userId;
                 $recipients[$key]['email_channel']=$recipients[$key]['email_channel']||$emailChannel;
                 $recipients[$key]['in_app']=$recipients[$key]['in_app']||$inApp;
                 return;
