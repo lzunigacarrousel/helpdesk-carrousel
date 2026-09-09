@@ -97,6 +97,18 @@ SELECT 'NOTIFICACIONES_INAPP_SIN_CONTENIDO' prueba, COUNT(*) hallazgos
 FROM notification_deliveries
 WHERE channel='IN_APP' AND (title IS NULL OR title='' OR action_url IS NULL OR action_url='');
 
+SELECT 'CORREOS_ENVIADOS_SIN_FECHA' prueba, COUNT(*) hallazgos
+FROM notification_deliveries
+WHERE channel='EMAIL' AND status='SENT' AND sent_at IS NULL;
+
+SELECT 'CORREOS_FALLIDOS_SIN_MOTIVO' prueba, COUNT(*) hallazgos
+FROM notification_deliveries
+WHERE channel='EMAIL' AND status='FAILED' AND (last_error IS NULL OR last_error='');
+
+SELECT 'CORREOS_PENDIENTES_MAS_10_MIN' prueba, COUNT(*) hallazgos
+FROM notification_deliveries
+WHERE channel='EMAIL' AND status='PENDING' AND created_at<DATE_SUB(NOW(),INTERVAL 10 MINUTE);
+
 SELECT 'MIGRACIONES_REGISTRADAS' prueba, COUNT(*) hallazgos FROM schema_migrations;
 SELECT 'TOTAL_TICKETS' prueba, COUNT(*) hallazgos FROM tickets WHERE deleted_at IS NULL;
 SELECT 'TOTAL_USUARIOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL;
@@ -106,4 +118,7 @@ SELECT 'TOTAL_PROBLEMAS_CONOCIDOS' prueba, COUNT(*) hallazgos FROM known_problem
 SELECT 'TOTAL_ARTICULOS_CONOCIMIENTO' prueba, COUNT(*) hallazgos FROM knowledge_articles;
 SELECT 'TOTAL_NOTIFICACIONES_INAPP' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP';
 SELECT 'NOTIFICACIONES_NO_LEIDAS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP' AND read_at IS NULL;
+SELECT 'CORREOS_ENVIADOS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='SENT';
 SELECT 'CORREOS_NOTIFICACION_FALLIDOS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='FAILED';
+SELECT 'CORREOS_PENDIENTES' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='PENDING';
+SELECT 'CORREOS_MODO_PRUEBA' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='SKIPPED';
