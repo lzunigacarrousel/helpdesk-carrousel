@@ -53,21 +53,26 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-problem-card">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">1 · Revisa el caso</span><h2>Qué necesita Carrousel</h2></div>
+            <div><span class="ticket-kicker">1 · Entiende el problema</span><h2>Qué está pasando</h2><p>Este es el dato principal del caso. Revísalo antes de responder o realizar cualquier trabajo.</p></div>
             <span class="external-responsible"><?= !empty($ticket['assigned_name'])?'Responsable: '.htmlspecialchars($ticket['assigned_name']):'Pendiente de responsable interno' ?></span>
           </div>
-          <div class="external-problem-facts">
-            <div><span>Ubicación</span><strong><?= htmlspecialchars($ticket['park_name']??'No especificada') ?></strong><small><?= htmlspecialchars($ticket['area_name']??'Área no especificada') ?></small></div>
-            <div><span>Tipo</span><strong><?= htmlspecialchars($ticket['category_name']??'No especificado') ?></strong></div>
+
+          <div class="external-problem-primary">
+            <span>Problema reportado</span>
+            <p><?= nl2br(htmlspecialchars($ticket['description'])) ?></p>
           </div>
-          <div class="external-problem-description"><span>Detalle reportado</span><p><?= nl2br(htmlspecialchars($ticket['description'])) ?></p></div>
+
+          <div class="external-problem-facts external-problem-facts-secondary">
+            <div><span>Ubicación</span><strong><?= htmlspecialchars($ticket['park_name']??'No especificada') ?></strong><small><?= htmlspecialchars($ticket['area_name']??'Área no especificada') ?></small></div>
+            <div><span>Tipo de solicitud</span><strong><?= htmlspecialchars($ticket['category_name']??'No especificado') ?></strong></div>
+          </div>
         </div>
       </section>
 
       <section class="card external-reply-card" id="responder">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">2 · Actualiza el caso</span><h2>¿Qué necesitas informar a Carrousel?</h2><p>Elige una opción para empezar y agrega el detalle necesario.</p></div>
+            <div><span class="ticket-kicker">2 · Actúa sobre el caso</span><h2>¿Qué necesitas informar a Carrousel?</h2><p>Elige una opción para empezar y agrega el detalle necesario.</p></div>
           </div>
 
           <?php if($canComment||$canUpload): ?>
@@ -91,7 +96,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             <?php endif; ?>
             <?php if($canUpload): ?>
             <label class="external-upload-label">Evidencia o archivo <span class="subtle">Opcional · máximo 10 MB</span>
-              <input class="external-file-input" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx">
+              <input class="external-file-input" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx">
             </label>
             <?php endif; ?>
             <div class="external-send-row">
@@ -108,7 +113,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-conversation-card" id="conversacion">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">3 · Seguimiento</span><h2>Conversación</h2><p>Aquí queda el registro de lo que Carrousel y tu equipo han informado sobre este caso.</p></div>
+            <div><span class="ticket-kicker">3 · Revisa el seguimiento</span><h2>Conversación</h2><p>Aquí queda el registro de lo que Carrousel y tu equipo han informado sobre este caso.</p></div>
             <span class="external-message-count"><?= count($comments)+(count($looseAttachments)) ?> actualización(es)</span>
           </div>
           <div class="conversation-list external-conversation-list">
