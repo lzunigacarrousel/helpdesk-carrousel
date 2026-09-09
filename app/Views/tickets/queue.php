@@ -10,7 +10,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div>
         <div class="ticket-kicker">Equipo de soporte</div>
         <h1 class="page-title">Centro de soporte</h1>
-        <p class="page-subtitle">Aquí ves de inmediato qué estás atendiendo y qué casos siguen disponibles.</p>
+        <p class="page-subtitle">Primero entiende qué está pasando. Después decide qué caso continuar o tomar.</p>
     </div>
     <div class="support-hero-stats">
         <div><strong><?= count($myTickets) ?></strong><span>Mis activos</span></div>
@@ -41,6 +41,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
                     <span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span>
                 </div>
                 <h3><?= htmlspecialchars($t['subject']) ?></h3>
+                <p class="support-ticket-problem"><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,180,'…')) ?></p>
                 <div class="support-ticket-meta">
                     <span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span>
                     <span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span>
@@ -63,7 +64,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <div>
             <span class="support-lane-kicker">Disponibles</span>
             <h2>Casos por atender</h2>
-            <p>Revisa la prioridad y toma únicamente el caso que puedas comenzar.</p>
+            <p>El problema reportado tiene prioridad visual sobre el número y los datos administrativos.</p>
         </div>
         <span class="support-count"><?= count($tickets) ?></span>
     </div>
@@ -78,6 +79,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
                     <span class="priority-chip priority-<?= strtolower((string)$t['priority']) ?>"><?= htmlspecialchars($priorityLabels[$t['priority']]??$t['priority']) ?></span>
                 </div>
                 <h3><?= htmlspecialchars($t['subject']) ?></h3>
+                <p class="support-ticket-problem"><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,180,'…')) ?></p>
                 <div class="support-ticket-meta">
                     <span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span>
                     <span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span>
