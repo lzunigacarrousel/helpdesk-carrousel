@@ -13,12 +13,12 @@ foreach($tickets as $t){
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="tickets-page <?= $isExternal?'external-cases-page':'' ?>">
-<div class="page-heading tickets-heading"><div><div class="ticket-kicker"><?= $isExternal?'Portal de colaboración':'Seguimiento' ?></div><h1 class="page-title"><?= htmlspecialchars($pageTitle) ?></h1><p class="page-subtitle"><?= $isExternal?'Aquí ves únicamente los casos que Carrousel compartió contigo. Abre uno para responder, enviar evidencia o revisar el seguimiento.':'Revisa el estado de los casos asociados a '.htmlspecialchars($user['email']).'.' ?></p></div><?php if(!$isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
+<div class="page-heading tickets-heading"><div><div class="ticket-kicker"><?= $isExternal?'Portal de colaboración':'Seguimiento' ?></div><h1 class="page-title"><?= htmlspecialchars($pageTitle) ?></h1><p class="page-subtitle"><?= $isExternal?'Aquí ves únicamente los casos que Carrousel compartió contigo. El problema reportado es el dato principal; abre el caso para colaborar.':'Revisa primero qué reportaste y después consulta estado, responsable y seguimiento.' ?></p></div><?php if(!$isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
 <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
 <?php if($isExternal): ?>
 <section class="external-case-overview">
-  <div class="external-case-guide"><span class="ticket-kicker">Cómo trabajar aquí</span><strong>Abre el caso, revisa lo solicitado y responde dentro de la conversación.</strong><small>No tienes acceso a otros tickets, usuarios ni información administrativa de Carrousel.</small></div>
+  <div class="external-case-guide"><span class="ticket-kicker">Cómo trabajar aquí</span><strong>Abre el caso, entiende qué está pasando y responde dentro del seguimiento.</strong><small>No tienes acceso a otros tickets, usuarios ni información administrativa de Carrousel.</small></div>
   <div class="external-case-stats"><div><span>Activos</span><strong><?= $openCount ?></strong></div><div><span>En espera</span><strong><?= $waitingCount ?></strong></div><div><span>Finalizados</span><strong><?= $doneCount ?></strong></div></div>
 </section>
 <?php endif; ?>
@@ -27,7 +27,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 <article class="ticket-list-card <?= $isExternal?'external-ticket-card':'' ?>">
 <a class="ticket-card-link" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>" aria-label="Abrir <?= htmlspecialchars($t['ticket_number']) ?>"></a>
 <div class="ticket-list-top"><div><span class="ticket-number-small"><?= htmlspecialchars($t['ticket_number']) ?></span><h2><?= htmlspecialchars($t['subject']) ?></h2></div><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
-<div class="ticket-list-meta"><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span><span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span><span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span><span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span></div>
+<p class="ticket-list-problem"><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,220,'…')) ?></p>
+<div class="ticket-list-meta"><span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span><span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?></span><span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['created_at']))) ?></span></div>
 <div class="ticket-list-bottom"><span><?= !empty($t['assigned_name'])?'Responsable Carrousel: '.htmlspecialchars($t['assigned_name']):'Aún sin responsable Carrousel' ?></span><span class="ticket-open-text"><?= $isExternal?'Abrir y colaborar →':'Abrir seguimiento →' ?></span></div>
 </article><?php endforeach; ?></section><?php else: ?><section class="card"><div class="empty-state"><h2><?= $isExternal?'No tienes casos compartidos':'Aún no tienes solicitudes' ?></h2><p><?= $isExternal?'Cuando Carrousel necesite tu apoyo en un caso, aparecerá aquí y recibirás una notificación por correo.':'Cuando necesites ayuda, registra una nueva solicitud.' ?></p><?php if(!$isExternal): ?><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">Nueva solicitud</a><?php endif; ?></div></section><?php endif; ?>
 </div>
