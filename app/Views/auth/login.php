@@ -1,7 +1,55 @@
-<?php use App\Core\Csrf; ?>
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Corporación Carrousel | Helpdesk</title><link rel="icon" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/favicon.ico"><link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css"><link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css"><script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script></head><body>
-<div class="brand-strip"></div><main class="auth-page"><div class="auth-shell"><section class="auth-card"><img class="auth-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><div class="auth-eyebrow">Acceso seguro</div><h1 class="auth-title">Helpdesk Carrousel</h1><p class="auth-subtitle">Ingresa con tu correo. Te enviaremos un código OTP y no necesitas contraseña.</p>
-<?php if(!empty($flash)): ?><div class="alert <?= htmlspecialchars($flash['type']==='success'?'alert-success':'alert-info') ?>"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
-<form method="post" action="<?= APP_BASE_URL ?>/auth/request" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><label class="form-label" for="email">Correo electrónico</label><input class="form-control" id="email" name="email" type="email" value="<?= htmlspecialchars((string)($email??'')) ?>" required autocomplete="email" autofocus placeholder="nombre@correo.com"><button class="btn btn-primary" style="width:100%;margin-top:18px" type="submit">Continuar</button></form>
-<div class="auth-actions"><a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars(PORTAL_URL) ?>">← Portal de Sistemas</a><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar tema"><span data-theme-icon>◐</span></button></div>
-</section></div></main><script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js"></script></body></html>
+<?php use App\Core\Csrf; $assetVersion='20260908-2018'; ?>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#173d75">
+<title>Acceso | Helpdesk Carrousel</title>
+<link rel="icon" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/favicon.ico">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/auth-v2.css?v=<?= $assetVersion ?>">
+<script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
+</head>
+<body class="auth-body-v2">
+<div class="brand-strip"></div>
+<main class="auth-layout-v2">
+  <section class="auth-brand-v2" aria-label="Helpdesk Carrousel">
+    <div class="auth-brand-content">
+      <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
+      <span class="auth-product-pill">Helpdesk Carrousel</span>
+      <h1>Soporte claro, seguimiento real y soluciones documentadas.</h1>
+      <p>Consulta tus solicitudes, atiende casos asignados o colabora como proveedor mediante acceso seguro con código de un solo uso.</p>
+      <div class="auth-points-v2"><span>OTP seguro</span><span>Seguimiento de casos</span><span>Diseño responsive</span></div>
+    </div>
+  </section>
+
+  <section class="auth-panel-v2">
+    <div class="auth-card-v2">
+      <span class="auth-eyebrow">Acceso seguro</span>
+      <h2>Ingresa con tu correo</h2>
+      <p class="auth-lead">Te enviaremos un código temporal de seis dígitos. No necesitas contraseña.</p>
+
+      <?php if(!empty($flash)): ?><div class="alert <?= htmlspecialchars(($flash['type']??'')==='success'?'alert-success':'alert-info') ?>"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
+
+      <form class="auth-form-v2" method="post" action="<?= APP_BASE_URL ?>/auth/request" data-single-submit data-action-message="Enviando código de acceso…">
+        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+        <label for="email">Correo electrónico
+          <input class="form-control" id="email" name="email" type="email" value="<?= htmlspecialchars((string)($email??'')) ?>" required autocomplete="email" autofocus placeholder="nombre@correo.com">
+        </label>
+        <button class="btn btn-primary auth-primary" type="submit">Enviar código</button>
+      </form>
+
+      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong><br>Si tu correo aún no existe, el sistema te pedirá completar tus datos antes de enviarte el código.</div></div>
+      <p class="auth-security-v2">Nunca compartas tu código OTP. El personal de Carrousel no necesita solicitártelo.</p>
+
+      <div class="auth-actions-v2">
+        <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver al Helpdesk</a><a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars(PORTAL_URL) ?>">Portal</a></div>
+        <button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="global-action-status" class="global-action-status" role="status" aria-live="polite" aria-hidden="true"><div class="global-action-card"><span class="global-action-spinner" aria-hidden="true"></span><strong>Procesando información</strong><span data-action-message>Espera un momento…</span></div></div>
+<div id="app-toast-container" class="app-toast-container" aria-live="polite" aria-atomic="false"></div>
+<script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= $assetVersion ?>"></script>
+</body></html>
