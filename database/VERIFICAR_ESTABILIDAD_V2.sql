@@ -48,6 +48,15 @@ SELECT 'TICKETS_SIN_CATEGORIA' prueba, COUNT(*) hallazgos
 FROM tickets
 WHERE deleted_at IS NULL AND category_id IS NULL;
 
+SELECT 'TICKETS_EN_ESPERA_SIN_MOTIVO' prueba, COUNT(*) hallazgos
+FROM tickets
+WHERE deleted_at IS NULL AND status='PENDING' AND (pending_reason_code IS NULL OR pending_reason_code='');
+
+SELECT 'TICKETS_NO_ESPERA_CON_MOTIVO' prueba, COUNT(*) hallazgos
+FROM tickets
+WHERE deleted_at IS NULL AND status<>'PENDING' AND (pending_reason_code IS NOT NULL OR pending_note IS NOT NULL);
+
+SELECT 'MIGRACIONES_REGISTRADAS' prueba, COUNT(*) hallazgos FROM schema_migrations;
 SELECT 'TOTAL_TICKETS' prueba, COUNT(*) hallazgos FROM tickets WHERE deleted_at IS NULL;
 SELECT 'TOTAL_USUARIOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL;
 SELECT 'TOTAL_EXTERNOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL AND access_type='EXTERNAL';
