@@ -3,6 +3,8 @@
 !/storage/logs/.gitkeep
 /storage/attachments/*
 !/storage/attachments/.gitkeep
+/storage/ticket_uploads/*
+!/storage/ticket_uploads/.gitkeep
 /storage/exports/*
 !/storage/exports/.gitkeep
 *.sql.gz
