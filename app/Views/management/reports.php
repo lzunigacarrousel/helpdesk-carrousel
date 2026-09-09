@@ -4,6 +4,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
 $resolutionLabels=['CONFIGURATION'=>'Configuración','RESTART'=>'Reinicio','REPLACEMENT'=>'Cambio / reemplazo','PROVIDER'=>'Gestión con proveedor','USER_GUIDANCE'=>'Orientación al usuario','SOFTWARE'=>'Software','NETWORK'=>'Red / conectividad','HARDWARE'=>'Hardware','PERMISSION'=>'Acceso / permisos','MAINTENANCE'=>'Mantenimiento','OTHER'=>'Otro'];
+$pendingReasons=$pendingReasons??[];
 $q=http_build_query($filters);
 $fmtMinutes=static function($minutes):string{
   if($minutes===null||$minutes==='')return '—';
@@ -16,13 +17,12 @@ $fmtMinutes=static function($minutes):string{
 };
 $s=$reportStats??[];
 ?>
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/management.css">
 
 <div class="mgmt-head report-head">
   <div>
     <span class="mgmt-kicker">Reportería operativa y aprendizaje</span>
     <h1>Informes de tickets</h1>
-    <p>Seguimiento completo del caso: qué ocurrió, quién lo atendió, cuánto tiempo pasó en cada estado y cómo se resolvió.</p>
+    <p>Seguimiento completo del caso: qué ocurrió, quién lo atendió, cuánto tiempo pasó en cada estado, por qué estuvo en espera y cómo se resolvió.</p>
   </div>
   <div class="mgmt-head-actions">
     <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion?<?= htmlspecialchars($q) ?>">← Dashboard</a>
@@ -41,6 +41,13 @@ $s=$reportStats??[];
   <article><span>Cambios de estado</span><strong><?= (int)($s['status_changes']??0) ?></strong><small>Movimientos registrados</small></article>
 </section>
 
+<?php if(!empty($s['pending_reasons'])): ?>
+<section class="report-pending-summary" aria-label="Motivos de espera actuales">
+  <div><span class="mgmt-kicker">Casos actualmente en espera</span><strong>¿Por qué están pausados?</strong></div>
+  <div class="report-pending-chips"><?php foreach($s['pending_reasons'] as $code=>$count): ?><span><b><?= (int)$count ?></b><?= htmlspecialchars($pendingReasons[$code]??$code) ?></span><?php endforeach; ?></div>
+</section>
+<?php endif; ?>
+
 <form class="mgmt-filterbar report-filterbar" method="get" action="<?= APP_BASE_URL ?>/gestion/informes" data-processing-form>
 <label>Desde<input class="form-control" type="date" name="from" value="<?= htmlspecialchars($filters['from']) ?>"></label>
 <label>Hasta<input class="form-control" type="date" name="to" value="<?= htmlspecialchars($filters['to']) ?>"></label>
@@ -55,7 +62,7 @@ $s=$reportStats??[];
 <section class="mgmt-card report-results-card">
   <div class="mgmt-card-head report-results-head">
     <div><span>Detalle operativo</span><h2><?= count($rows) ?> tickets analizados</h2></div>
-    <small class="muted">La exportación Excel conserva el filtro actual e incluye resumen, tiempos, cambios de estado y resolución documentada.</small>
+    <small class="muted">La exportación Excel conserva el filtro actual e incluye resumen, tiempos, motivos de espera, cambios de estado y resolución documentada.</small>
   </div>
 
   <?php if(!$rows): ?>
@@ -71,6 +78,7 @@ $s=$reportStats??[];
           </div>
           <div class="report-record-status">
             <span class="badge badge-primary"><?= htmlspecialchars($statusLabels[$r['status']]??$r['status']) ?></span>
+            <?php if($r['status']==='PENDING'&&!empty($r['pending_reason_code'])): ?><span class="report-waiting-reason"><?= htmlspecialchars($pendingReasons[$r['pending_reason_code']]??$r['pending_reason_code']) ?></span><?php endif; ?>
             <small><?= htmlspecialchars($r['assigned_name']??'Sin asignar') ?></small>
           </div>
         </header>
@@ -86,6 +94,7 @@ $s=$reportStats??[];
               <div><dt>Teléfono</dt><dd><?= htmlspecialchars($r['requester_phone']?:'—') ?></dd></div>
               <div><dt>Ubicación</dt><dd><?= htmlspecialchars($r['park_name']??'Sin parque') ?><?= !empty($r['area_name'])?' · '.htmlspecialchars($r['area_name']):'' ?></dd></div>
               <div><dt>Categoría</dt><dd><?= htmlspecialchars($r['category_name']??'—') ?></dd></div>
+              <?php if($r['status']==='PENDING'&&!empty($r['pending_reason_code'])): ?><div class="report-context-wide"><dt>Motivo de espera</dt><dd><?= htmlspecialchars($pendingReasons[$r['pending_reason_code']]??$r['pending_reason_code']) ?><?= !empty($r['pending_note'])?' · '.htmlspecialchars($r['pending_note']):'' ?></dd></div><?php endif; ?>
             </dl>
           </section>
 
@@ -112,7 +121,7 @@ $s=$reportStats??[];
             <?php if(!empty($life['transitions'])): ?>
               <ol class="report-timeline">
                 <?php foreach($life['transitions'] as $t): ?>
-                  <li><span class="report-timeline-dot"></span><div><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?></small></div></li>
+                  <li><span class="report-timeline-dot"></span><div><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><?php if(!empty($t['pending_reason'])): ?><em><?= htmlspecialchars($pendingReasons[$t['pending_reason']]??$t['pending_reason']) ?><?= !empty($t['pending_note'])?' · '.htmlspecialchars($t['pending_note']):'' ?></em><?php endif; ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?></small></div></li>
                 <?php endforeach; ?>
               </ol>
               <details class="report-status-durations"><summary>Ver tiempo acumulado por estado</summary><div><?php foreach(($life['durations']??[]) as $code=>$minutes): ?><span><b><?= htmlspecialchars($statusLabels[$code]??$code) ?>:</b> <?= htmlspecialchars($fmtMinutes($minutes)) ?></span><?php endforeach; ?></div></details>
@@ -138,6 +147,6 @@ $s=$reportStats??[];
 </section>
 
 <div class="processing-overlay" data-processing-overlay hidden><div class="processing-box"><div class="processing-spinner"></div><h2>Procesando información</h2><p>Aplicando filtros al informe…</p><div class="processing-line"><i></i></div><small>Preparando métricas, tiempos e historial de los casos.</small></div></div>
-<script>document.querySelectorAll('[data-processing-form]').forEach(f=>f.addEventListener('submit',()=>{const x=document.querySelector('[data-processing-overlay]');if(x)x.hidden=false;}));</script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">document.querySelectorAll('[data-processing-form]').forEach(f=>f.addEventListener('submit',()=>{const x=document.querySelector('[data-processing-overlay]');if(x)x.hidden=false;}));</script>
 
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
