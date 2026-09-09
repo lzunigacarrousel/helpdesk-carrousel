@@ -17,7 +17,7 @@ $donePct=$total>0?round($done/$total*100):0;
 
 <div class="mgmt-head">
   <div><span class="mgmt-kicker">Control interno</span><h1>Dashboard de gestión</h1><p>Métricas, carga de trabajo, cumplimiento y detalle para toma de decisiones.</p></div>
-  <div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/informes?<?= htmlspecialchars($q) ?>">Ver informes</a><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/gestion/informes/exportar?<?= htmlspecialchars($q) ?>">Exportar CSV</a></div>
+  <div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/informes?<?= htmlspecialchars($q) ?>">Ver informes</a><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/gestion/informes/exportar?<?= htmlspecialchars($q) ?>" data-action-message="Preparando archivo Excel…">Exportar Excel (.xlsx)</a></div>
 </div>
 
 <form class="mgmt-filterbar" method="get" action="<?= APP_BASE_URL ?>/gestion" data-processing-form>
