@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-023'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-024'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -34,12 +34,12 @@
 <div class="public-problem-layout">
 <div class="public-problem-main">
 <div class="public-classification-row" data-public-step="classification"><label class="form-label" for="category_id">Tipo de solicitud</label><select class="form-control" id="category_id" name="category_id" required><option value="">Selecciona una opción</option><?php foreach($categories as $c): ?><option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option><?php endforeach; ?></select></div>
-<label class="form-label public-description-label" for="description">Detalles</label><textarea class="form-control public-description" id="description" name="description" rows="6" required aria-describedby="description-help" placeholder="Describe lo que ocurre, desde cuándo y qué usuario, equipo o proceso está afectado."></textarea>
+<label class="form-label public-description-label" for="description">Detalles</label><textarea class="form-control public-description" id="description" name="description" rows="6" required aria-describedby="description-help" placeholder="Describe lo que ocurre, desde cuándo y cualquier detalle que ayude a entender el caso."></textarea>
 <div class="field-help public-description-help">No necesitas conocer la causa técnica. Describe lo que observas y el equipo continuará la investigación.</div>
 </div>
 <aside class="public-reporting-help" id="description-help" data-public-step="guidance" aria-label="Ayuda para describir el problema">
 <span class="public-help-kicker">Guía rápida</span><h3>Incluye, si lo sabes</h3>
-<ul><li><strong>Situación</strong><span>El mensaje, síntoma o comportamiento observado.</span></li><li><strong>Inicio</strong><span>Desde cuándo ocurre o si sucede con frecuencia.</span></li><li><strong>Impacto</strong><span>Usuario, caja, equipo, parque o proceso afectado.</span></li><li><strong>Pruebas realizadas</strong><span>Solo si ya intentaste alguna acción.</span></li></ul>
+<ul><li><strong>Situación</strong><span>El mensaje, síntoma o comportamiento observado.</span></li><li><strong>Inicio</strong><span>Desde cuándo ocurre o si sucede con frecuencia.</span></li><li><strong>Impacto</strong><span>Qué parte del servicio, equipo, parque o proceso está afectada.</span></li><li><strong>Pruebas realizadas</strong><span>Solo si ya intentaste alguna acción.</span></li></ul>
 <details><summary>¿Qué pasa después de enviarlo?</summary><ol><li>Recibes un número de caso.</li><li>El equipo revisa y da seguimiento.</li><li>Las novedades aparecen en tu caso y por correo.</li></ol></details>
 </aside>
 </div>
