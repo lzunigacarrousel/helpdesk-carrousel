@@ -7,7 +7,7 @@ $help = [
     ],
     'public_create' => [
         'title' => 'Cómo registrar una solicitud',
-        'steps' => ['Indica dónde ocurre el problema.', 'Selecciona el tipo de solicitud más parecido.', 'Describe qué pasa y envía el caso.'],
+        'steps' => ['Indica dónde ocurre el problema.', 'Selecciona el tipo de solicitud más parecido.', 'Describe qué pasa, desde cuándo y qué está afectando.'],
     ],
     'requester_home' => [
         'title' => 'Tu espacio de soporte',
@@ -15,15 +15,19 @@ $help = [
     ],
     'my_tickets' => [
         'title' => 'Mis solicitudes',
-        'steps' => ['Aquí aparecen los casos asociados a tu correo.', 'Toca un caso para ver el seguimiento completo.', 'Las novedades importantes también llegan por correo.'],
+        'steps' => ['Aquí aparecen los casos asociados a tu correo.', 'Abre un caso para leer primero qué se reportó y después su seguimiento.', 'Las novedades importantes también llegan por correo.'],
     ],
     'support_center' => [
         'title' => 'Centro de soporte',
-        'steps' => ['Continúa primero tus casos activos.', 'Toma un caso disponible cuando puedas atenderlo.', 'Actualiza el estado desde el mismo caso.'],
+        'steps' => ['Continúa primero tus casos activos.', 'Lee el problema antes de tomar un caso nuevo.', 'Si debe esperar, registra el motivo para que los tiempos queden explicados.'],
     ],
     'ticket' => [
-        'title' => 'Seguimiento del caso',
-        'steps' => ['Arriba verás el estado actual.', 'En el centro aparece la información principal.', 'El historial muestra los movimientos del caso.'],
+        'title' => 'Atención del caso',
+        'steps' => ['Empieza por el problema reportado: es la información principal.', 'Usa el seguimiento para dejar respuestas o notas internas.', 'Antes de resolver documenta causa y solución; esa información alimenta informes y casos similares.'],
+    ],
+    'search' => [
+        'title' => 'Búsqueda global',
+        'steps' => ['Busca por número de caso, problema, solicitante, correo, parque o categoría.', 'El buscador respeta los permisos de tu cuenta.', 'El equipo de soporte también puede encontrar problemas conocidos y documentación relacionada.'],
     ],
     'management' => [
         'title' => 'Dashboard interno',
@@ -31,11 +35,11 @@ $help = [
     ],
     'reports' => [
         'title' => 'Informes',
-        'steps' => ['Aplica los mismos filtros del dashboard.', 'Revisa hasta 500 registros en pantalla.', 'Descarga el CSV para análisis, presentación o archivo. La exportación queda auditada.'],
+        'steps' => ['Aplica filtros por período, parque, categoría, responsable, estado o prioridad.', 'Revisa tiempos, cambios de estado, motivos de espera y resolución documentada.', 'Descarga el archivo Excel (.xlsx); la exportación queda auditada.'],
     ],
     'externals' => [
         'title' => 'Proveedores externos',
-        'steps' => ['Crea la cuenta externa con empresa, contacto y correo.', 'Asigna únicamente los tickets especiales que deba consultar.', 'Revoca el acceso cuando termine la participación del proveedor.'],
+        'steps' => ['Crea la cuenta externa con empresa, contacto y correo.', 'Comparte únicamente los casos en los que el proveedor deba participar.', 'Revoca el acceso cuando termine su participación.'],
     ],
     'users' => [
         'title' => 'Usuarios y estructura',
