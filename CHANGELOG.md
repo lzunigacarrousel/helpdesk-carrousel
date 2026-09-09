@@ -1,6 +1,7 @@
 # CHANGELOG
 
 ## v2.1.0-dev · P0/P1 · 2026-09-09
+- Acceso, OTP y primer ingreso alineados visualmente con la pantalla de autenticación de Caja Chica Carrousel: fondo corporativo oscuro, contenedor centrado, panel de marca y tarjeta de acceso con las mismas proporciones base.
 - Buscador global `/buscar` con acceso por perfil y atajo `Ctrl/Cmd + K`.
 - El workspace del ticket prioriza el problema reportado sobre los datos administrativos.
 - Nuevo flujo de espera con motivo obligatorio y detalle opcional para explicar pausas operativas.
