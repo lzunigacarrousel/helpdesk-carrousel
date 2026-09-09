@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v2.3.2-dev · Notificaciones reales + correo + vista externa · 2026-09-09
+- La campana deja de ser un contador de carga de trabajo y se convierte en centro persistente de notificaciones con novedades no leídas, historial reciente y acción para marcar como leído.
+- `notification_events` y `notification_deliveries` se aprovechan como infraestructura real; se añade canal `IN_APP`, contenido legible, URL de acción y fecha de lectura mediante migración incremental.
+- Movimientos importantes del ticket generan notificaciones: creación, toma, asignación/reasignación, devolución a cola, cambio de estado, motivo de espera, respuesta pública, nota interna, resolución y colaboración externa.
+- Las respuestas públicas notifican a las partes involucradas; las notas internas permanecen únicamente dentro del equipo de Soporte y no se envían al solicitante.
+- Los correos del Helpdesk usan una plantilla Carrousel consistente con logo, franja multicolor, jerarquía clara y botón de acción; se eliminan las URLs visibles en crudo del HTML.
+- La entrega por correo queda registrada como PENDING/SENT/FAILED con cantidad de intentos y último error para poder diagnosticar notificaciones que no salieron.
+- El dashboard de proveedor/solicitante reutiliza los mismos componentes operativos del resto del sistema: resumen con padding correcto, métricas legibles y casos recientes presentados como fichas accionables.
+- Se incorpora `components.css` como capa pequeña de componentes nuevos para notificaciones y experiencia externa, evitando seguir acumulando arreglos dentro de hojas sin relación semántica.
+- Verificación de estabilidad añade controles de notificaciones internas y contadores de entregas/fallos; checks estáticos validan rutas, servicio, controlador, JS, CSS y plantilla de correo.
+
 ## v2.3.1-dev · Consistencia visual + ayuda integrada · 2026-09-09
 - Alineación transversal del contenido interno sobre un mismo eje visual y ancho máximo consistente; Dashboard, Cola, Tickets, ITSM, Gestión y Administración dejan de sentirse como módulos separados.
 - Dashboard corrige tarjetas sin padding interno y mantiene jerarquía operativa sin contenido pegado a bordes.
