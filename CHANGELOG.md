@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v2.3.1-dev · Consistencia visual + ayuda integrada · 2026-09-09
+- Alineación transversal del contenido interno sobre un mismo eje visual y ancho máximo consistente; Dashboard, Cola, Tickets, ITSM, Gestión y Administración dejan de sentirse como módulos separados.
+- Dashboard corrige tarjetas sin padding interno y mantiene jerarquía operativa sin contenido pegado a bordes.
+- Informes reorganizados para lectura real: KPIs en 4 columnas, detalle por ticket en bloques 2×2, textos más legibles y secciones renombradas a Qué ocurrió / Cuánto tomó / Cómo avanzó / Qué aprendimos.
+- Tutorial flotante contextual por pantalla con pasos guiados, resaltado del elemento activo, navegación Anterior/Siguiente y recordatorio flotante de primera visita.
+- Panel de ayuda contextual incorpora acceso directo a Tutorial guiado y Manual completo.
+- Nuevo Manual del Helpdesk integrado y adaptado por perfil: solicitudes, soporte, Problem Management, Knowledge Management, gestión y administración según permisos.
+- Sidebar incorpora Ayuda de esta pantalla, Tutorial guiado y Manual del Helpdesk como funciones diferenciadas.
+- Asset version incrementada para evitar reutilizar CSS/JS anterior después de actualizar la rama.
+- Checks estáticos ampliados para validar ruta, controlador, vista de manual y motor de tutorial contextual.
+
 ## v2.3.0-dev · ITSM Problemas + Conocimiento · 2026-09-09
 - Problem Management operativo sobre las tablas existentes: listado con filtros, creación, edición, estados, propietario, causa raíz, workaround y solución permanente.
 - Tickets recurrentes se relacionan mediante `problem_occurrences`; el sistema recalcula automáticamente cantidad de ocurrencias, primera aparición y última aparición.
