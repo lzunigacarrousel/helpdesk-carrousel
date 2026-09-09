@@ -1,0 +1,44 @@
+/* Helpdesk Carrousel · componentes transversales V2
+ * Capa pequeña y reutilizable para componentes nuevos. No reemplaza los tokens ni el shell existentes.
+ */
+
+/* Centro de notificaciones */
+.shell-notification-menu{width:min(430px,calc(100vw - 24px));max-height:min(720px,calc(100vh - 92px));overflow:auto}
+.shell-notification-head{position:sticky;top:0;z-index:3;background:var(--card);padding:14px 16px}
+.shell-notification-head>div{min-width:0}.shell-notification-head>div strong,.shell-notification-head>div span{display:block}.shell-notification-head>div span{margin-top:2px}
+.shell-notification-read-all{border:0;background:transparent;color:var(--brand);font:inherit;font-size:11px;font-weight:850;cursor:pointer;padding:6px 4px;white-space:nowrap}.shell-notification-read-all:hover{text-decoration:underline}.shell-notification-read-all:disabled{opacity:.5;cursor:default}
+.shell-notification-events{max-height:390px;overflow:auto}
+.shell-notification-item{position:relative;grid-template-columns:auto minmax(0,1fr) auto;padding:13px 15px;color:inherit}
+.shell-notification-events .shell-notification-item{grid-template-columns:auto minmax(0,1fr)}
+.shell-notification-item.unread{background:color-mix(in srgb,var(--brand) 7%,var(--card) 93%)}
+.shell-notification-item.unread:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:999px;background:var(--brand)}
+.shell-notification-item.unread .shell-notification-dot{background:#1677ff;box-shadow:0 0 0 4px color-mix(in srgb,#1677ff 12%,transparent)}
+.shell-notification-item time{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+.shell-notification-item.attention{background:color-mix(in srgb,var(--card) 97%,var(--bg) 3%)}
+.shell-attention-section{border-top:1px solid var(--border);background:color-mix(in srgb,var(--card) 95%,var(--bg) 5%)}
+.shell-attention-title{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 15px 7px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.065em;font-weight:850}
+.shell-attention-title span{display:grid;place-items:center;min-width:23px;height:23px;padding:0 6px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--brand)}
+
+/* Dashboard solicitante / proveedor: misma estructura y densidad que soporte */
+.dashboard-external .dashboard-requester-grid{grid-template-columns:1fr}
+.dashboard-external .dashboard-work-card{border-left:4px solid var(--brand)}
+.dashboard-external .dashboard-work-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dashboard-external .dashboard-activity-card,.dashboard-requester .dashboard-activity-card{padding:18px 20px}
+.dashboard-external .ticket-list,.dashboard-requester .ticket-list{gap:10px}
+.dashboard-external .ticket-list-card,.dashboard-requester .ticket-list-card{box-shadow:none;background:color-mix(in srgb,var(--card) 97%,var(--bg) 3%)}
+.dashboard-external .ticket-list-card:hover,.dashboard-requester .ticket-list-card:hover{border-color:color-mix(in srgb,var(--brand) 35%,var(--border) 65%);box-shadow:var(--shadow)}
+.dashboard-external .ticket-list-problem,.dashboard-requester .ticket-list-problem{margin:10px 0 12px}
+
+/* Mejora visual transversal: estados vacíos y tarjetas internas nunca quedan pegados al borde */
+.dashboard-page>.card,.dashboard-page .dashboard-work-grid>.card{min-width:0}
+.manual-page,.global-search-page,.queue-operational-page,.ticket-workspace,.mgmt-page,.external-admin-page{min-width:0}
+
+@media(max-width:900px){
+  .dashboard-external .dashboard-work-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .shell-notification-menu{position:fixed;top:68px;left:10px;right:10px;width:auto;max-height:calc(100vh - 82px)}
+  .shell-notification-events{max-height:46vh}
+  .dashboard-external .dashboard-work-stats,.dashboard-requester .dashboard-work-stats{grid-template-columns:1fr}
+  .dashboard-external .dashboard-activity-card,.dashboard-requester .dashboard-activity-card{padding:15px}
+}
