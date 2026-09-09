@@ -20,10 +20,16 @@ final class SolutionSuggestionService
             $items[]=['type'=>'ARTICLE','id'=>(int)$r['id'],'number'=>$r['article_number'],'title'=>$r['title'],'summary'=>$r['summary']?:mb_strimwidth(strip_tags((string)$r['content']),0,180,'…'),'score'=>$score,'url'=>APP_BASE_URL.'/knowledge/view?id='.(int)$r['id']];
         }
 
-        $q=$pdo->query("SELECT kp.id,kp.problem_number,kp.title,kp.description,kp.root_cause,kp.workaround,kp.permanent_solution,kp.category_id,kp.park_id,kp.occurrence_count,kp.updated_at
-            FROM known_problems kp WHERE kp.status<>'CLOSED' ORDER BY kp.occurrence_count DESC,kp.updated_at DESC LIMIT 80");
+        $q=$pdo->query("SELECT kp.id,kp.problem_number,kp.title,kp.description,kp.root_cause,kp.workaround,kp.permanent_solution,kp.category_id,kp.park_id,kp.occurrence_count,kp.updated_at,
+                GROUP_CONCAT(pt.name SEPARATOR ' ') tag_text
+            FROM known_problems kp
+            LEFT JOIN known_problem_tags kpt ON kpt.problem_id=kp.id
+            LEFT JOIN problem_tags pt ON pt.id=kpt.tag_id
+            WHERE kp.status<>'CLOSED'
+            GROUP BY kp.id
+            ORDER BY kp.occurrence_count DESC,kp.updated_at DESC LIMIT 80");
         foreach($q->fetchAll() as $r){
-            $text=$r['title'].' '.$r['description'].' '.($r['root_cause']??'').' '.($r['workaround']??'').' '.($r['permanent_solution']??'');
+            $text=$r['title'].' '.$r['description'].' '.($r['root_cause']??'').' '.($r['workaround']??'').' '.($r['permanent_solution']??'').' '.($r['tag_text']??'');
             $score=$this->score($text,$terms,$category,(int)($r['category_id']??0),$park,(int)($r['park_id']??0))+min(12,(int)$r['occurrence_count']*2);
             if($score<18)continue;
             $summary=$r['workaround']?:($r['permanent_solution']?:$r['description']);
