@@ -164,7 +164,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </div>
 </div>
 
-<script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 document.querySelectorAll('[data-external-template]').forEach(function(button){
   button.addEventListener('click',function(){
     const field=document.querySelector('[data-external-message]');
