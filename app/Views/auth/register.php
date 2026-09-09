@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-003'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-041'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -18,13 +18,14 @@
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
       <span class="auth-product-pill">Helpdesk Carrousel</span>
       <h1>Completa tu perfil una sola vez.</h1>
-      <p>Estos datos permiten dirigir mejor tus solicitudes y saber a qué parque, área o función perteneces. Después ingresarás únicamente con OTP.</p>
+      <p>Con tu ubicación y función podemos dirigir las solicitudes al equipo correcto. Después ingresarás solamente con correo y OTP.</p>
       <div class="auth-points-v2"><span>Registro único</span><span>Asignación organizacional</span><span>OTP seguro</span></div>
     </div>
   </section>
 
   <section class="auth-panel-v2">
     <div class="auth-card-v2 auth-register-shell">
+      <div class="auth-mobile-brand-v2"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><strong>Helpdesk Carrousel</strong></div>
       <span class="auth-eyebrow">Primer ingreso</span>
       <h2>Completa tus datos</h2>
       <p class="auth-lead">Correo identificado: <strong><?= htmlspecialchars((string)$email) ?></strong></p>
@@ -34,7 +35,7 @@
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="email" value="<?= htmlspecialchars((string)$email) ?>">
 
         <section class="auth-register-section">
-          <h3>1. Tus datos</h3><p>Información básica para identificarte.</p>
+          <h3>Tus datos</h3><p>Información básica para identificarte.</p>
           <div class="auth-register-grid">
             <label>Nombre completo<input class="form-control" id="name" name="name" autocomplete="name" maxlength="160" required autofocus placeholder="Escribe tu nombre completo"></label>
             <label>Teléfono<input class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" maxlength="30" required placeholder="Número de contacto"></label>
@@ -42,7 +43,7 @@
         </section>
 
         <section class="auth-register-section">
-          <h3>2. ¿Dónde trabajas?</h3><p>Selecciona la opción que mejor describe tu ubicación habitual.</p>
+          <h3>Ubicación y función</h3><p>Selecciona dónde trabajas habitualmente.</p>
           <div class="auth-work-options">
             <div class="auth-work-option"><input type="radio" id="workPark" name="assignment_type" value="PARK" required><label for="workPark">Parque / ubicación</label></div>
             <div class="auth-work-option"><input type="radio" id="workCorporate" name="assignment_type" value="CORPORATE" required><label for="workCorporate">Área corporativa</label></div>
@@ -53,13 +54,12 @@
             <label id="areaField" class="auth-field-hidden">Área<select class="form-control" id="area_id" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option><?php endforeach; ?></select></label>
             <label>Puesto o función<select class="form-control" id="position_id" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option><?php endforeach; ?></select></label>
           </div>
-          <div class="auth-register-note">El responsable o supervisor se relacionará con tu estructura cuando exista una asignación configurada para tu parque o área.</div>
         </section>
 
-        <button class="btn btn-primary auth-primary" style="width:100%;min-height:46px;margin-top:14px" type="submit">Guardar y enviar código</button>
+        <button class="btn btn-primary auth-primary" style="width:100%;min-height:48px;margin-top:14px" type="submit">Guardar y continuar</button>
       </form>
 
-      <p class="auth-security-v2">Tus datos se utilizan para identificar y dirigir correctamente tus solicitudes dentro del Helpdesk.</p>
+      <p class="auth-security-v2">Estos datos se utilizan únicamente para identificarte y dirigir correctamente las solicitudes dentro del Helpdesk.</p>
       <div class="auth-actions-v2"><div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/login">← Cambiar correo</a></div><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button></div>
     </div>
   </section>
@@ -68,6 +68,6 @@
 <div id="app-toast-container" class="app-toast-container" aria-live="polite" aria-atomic="false"></div>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= $assetVersion ?>"></script>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-(()=>{const park=document.getElementById('parkField'),area=document.getElementById('areaField'),parkSelect=document.getElementById('park_id'),areaSelect=document.getElementById('area_id');function refresh(){const v=document.querySelector('input[name="assignment_type"]:checked')?.value||'';park?.classList.toggle('auth-field-hidden',v!=='PARK');area?.classList.toggle('auth-field-hidden',v==='OTHER');if(parkSelect){parkSelect.required=v==='PARK';if(v!=='PARK')parkSelect.value='';}if(areaSelect){areaSelect.required=v==='CORPORATE';if(v==='OTHER')areaSelect.value='';}}document.querySelectorAll('input[name="assignment_type"]').forEach(x=>x.addEventListener('change',refresh));refresh();})();
+(()=>{const park=document.getElementById('parkField'),area=document.getElementById('areaField'),parkSelect=document.getElementById('park_id'),areaSelect=document.getElementById('area_id');function refresh(){const v=document.querySelector('input[name="assignment_type"]:checked')?.value||'';park?.classList.toggle('auth-field-hidden',v!=='PARK');area?.classList.toggle('auth-field-hidden',v!=='CORPORATE');if(parkSelect){parkSelect.required=v==='PARK';if(v!=='PARK')parkSelect.value='';}if(areaSelect){areaSelect.required=v==='CORPORATE';if(v!=='CORPORATE')areaSelect.value='';}}document.querySelectorAll('input[name="assignment_type"]').forEach(x=>x.addEventListener('change',refresh));refresh();})();
 </script>
 </body></html>
