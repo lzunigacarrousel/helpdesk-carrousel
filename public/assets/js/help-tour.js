@@ -77,6 +77,11 @@
       ['.external-ops-layout','Operación','Crea proveedores y comparte casos desde acciones separadas.','Compartir un caso no convierte al proveedor en usuario interno.'],
       ['.external-access-list','Accesos compartidos','Revoca el acceso cuando la participación del proveedor termine.','La revocación conserva trazabilidad sin dejar el caso expuesto.']
     ],
+    mail:[
+      ['.mail-admin-page .audit-stats','Estado del canal','Aquí distingues un envío SMTP real del modo de prueba y ves fallos o pendientes.','En modo de prueba los mensajes se registran, pero no salen a Internet.'],
+      ['.mail-admin-page .card form','Correo de prueba','Envía una prueba a una cuenta que puedas revisar antes de depender del correo en operación.','Una prueba exitosa confirma conexión y autenticación del servidor SMTP.'],
+      ['.mail-admin-page .audit-log-card','Entregas recientes','Cada movimiento queda registrado como Enviado, Falló, Pendiente o Modo prueba.','Si un correo falla, revisa el motivo y reintenta solo después de corregir la causa.']
+    ],
     audit:[
       ['.page-heading, .mgmt-head','Auditoría','Consulta trazabilidad cuando necesites investigar un cambio.','No es una bandeja de trabajo diario; úsala para reconstruir acciones.'],
       ['.audit-filters, .mgmt-filterbar','Filtros','Acota por persona, acción, fecha u origen antes de revisar detalle.','Filtrar reduce ruido y facilita encontrar el evento relevante.']
