@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-020'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-021'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -12,7 +12,7 @@
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head><body><div class="brand-strip"></div>
 <main class="auth-page public-form-page"><div class="auth-shell public-form-shell"><section class="auth-card public-form-card">
-<div class="public-form-head public-form-head-compact"><img class="auth-logo public-form-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Carrousel"><div><div class="auth-eyebrow">Soporte</div><h1 class="auth-title">Reportar un problema</h1><p class="auth-subtitle">Cuéntanos qué sucede y te enviaremos el seguimiento por correo.</p></div></div>
+<div class="public-form-head public-form-head-compact"><img class="auth-logo public-form-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Carrousel"><div><h1 class="auth-title">Reportar un problema</h1><p class="auth-subtitle">Describe lo que sucede y te enviaremos el seguimiento por correo.</p></div></div>
 <form method="post" action="<?= APP_BASE_URL ?>/crear-ticket" class="public-ticket-form" id="publicTicketForm" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="subject" id="subject" value="">
 <div class="public-form-upper">
 <section class="form-step form-step-requester" data-public-step="requester">
@@ -30,15 +30,15 @@
 <div><label class="form-label" for="park_id">Parque o ubicación</label><select class="form-control" id="park_id" name="park_id"><option value="">No aplica / No lo sé</option><?php foreach($parks as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option><?php endforeach; ?></select></div>
 <div><label class="form-label" for="area_id">Área relacionada</label><select class="form-control" id="area_id" name="area_id"><option value="">No aplica / No lo sé</option><?php foreach($areas as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option><?php endforeach; ?></select></div></div></section>
 </div>
-<section class="form-step form-step-problem" data-public-step="problem"><div class="form-step-title"><span>3</span><div><strong>¿Qué está pasando?</strong><small>Elige el tipo de solicitud y cuéntanos lo importante en un solo lugar.</small></div></div>
+<section class="form-step form-step-problem" data-public-step="problem"><div class="form-step-title"><span>3</span><div><strong>Cuéntanos qué sucede</strong><small>Selecciona el tipo y agrega los detalles que ayuden a entender el caso.</small></div></div>
 <div class="public-problem-layout">
 <div class="public-problem-main">
 <div class="public-classification-row" data-public-step="classification"><label class="form-label" for="category_id">Tipo de solicitud</label><select class="form-control" id="category_id" name="category_id" required><option value="">Selecciona una opción</option><?php foreach($categories as $c): ?><option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option><?php endforeach; ?></select></div>
-<label class="form-label public-description-label" for="description">Cuéntanos qué sucede</label><textarea class="form-control public-description" id="description" name="description" rows="6" required aria-describedby="description-help" placeholder="Cuéntanos qué sucede, desde cuándo, qué equipo o persona afecta y cualquier detalle que pueda ayudarnos."></textarea>
-<div class="field-help public-description-help">No necesitas conocer la causa técnica. Describe lo que ves y nosotros continuamos la investigación.</div>
+<label class="form-label public-description-label" for="description">Detalles</label><textarea class="form-control public-description" id="description" name="description" rows="6" required aria-describedby="description-help" placeholder="Qué sucede, desde cuándo, qué equipo o persona afecta y cualquier detalle que pueda ayudarnos."></textarea>
+<div class="field-help public-description-help">No necesitas conocer la causa técnica. Describe lo que ves y el equipo continuará la investigación.</div>
 </div>
 <aside class="public-reporting-help" id="description-help" data-public-step="guidance" aria-label="Ayuda para describir el problema">
-<span class="public-help-kicker">Ayuda rápida</span><h3>Lo importante para ayudarte</h3>
+<span class="public-help-kicker">Guía rápida</span><h3>Qué información ayuda</h3>
 <ul><li><strong>Qué pasa</strong><span>El síntoma, mensaje o comportamiento que observas.</span></li><li><strong>Desde cuándo</strong><span>Si empezó hoy, después de un cambio o si ocurre seguido.</span></li><li><strong>A quién afecta</strong><span>Persona, caja, equipo, parque o proceso.</span></li><li><strong>Qué intentaste</strong><span>Solo si ya hiciste alguna prueba.</span></li></ul>
 <details><summary>¿Qué pasa después de enviarlo?</summary><ol><li>Recibes un número de caso.</li><li>El equipo revisa y da seguimiento.</li><li>Las novedades aparecen en tu caso y por correo.</li></ol></details>
 </aside>
