@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-001'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-002'; ?>
 <!doctype html>
 <html lang="es">
 <head>
