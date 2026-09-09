@@ -1,9 +1,11 @@
 <?php
 use App\Core\{Csrf,Database,Auth};
+use App\Controllers\WorkflowController;
 $statusLabels=$statusLabels??[];$priorityLabels=$priorityLabels??[];$status=(string)$ticket['status'];
+$pendingReasons=WorkflowController::PENDING_REASONS;
 $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $isRequester=!$isSupport&&!$isExternal;
-$eventLabels=['CREATED'=>'Solicitud creada','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','RELEASED'=>'Devuelto a disponibles','STATUS_CHANGED'=>'Estado actualizado','COMMENTED'=>'Nueva respuesta','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto'];
+$eventLabels=['CREATED'=>'Solicitud creada','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','RELEASED'=>'Devuelto a disponibles','STATUS_CHANGED'=>'Estado actualizado','PENDING_REASON_CHANGED'=>'Motivo de espera actualizado','COMMENTED'=>'Nueva respuesta','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto'];
 $resolution=null;$similar=[];$comments=[];$attachmentsByComment=[];$looseAttachments=[];$externalCanComment=true;$externalCanUpload=true;
 try{
     $pdo=Database::pdo();
@@ -66,6 +68,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           <div><dt>Prioridad</dt><dd><?= htmlspecialchars($priorityLabels[$ticket['priority']]??$ticket['priority']) ?></dd></div>
           <div><dt>Responsable</dt><dd><?= htmlspecialchars($ticket['assigned_name']??'Aún sin asignar') ?></dd></div>
           <div><dt>Creado</dt><dd><?= htmlspecialchars(date('d/m/Y H:i',strtotime($ticket['created_at']))) ?></dd></div>
+          <?php if($status==='PENDING'&&!empty($ticket['pending_reason_code'])): ?><div class="case-pending-status"><dt>Motivo de espera</dt><dd><?= htmlspecialchars($pendingReasons[$ticket['pending_reason_code']]??$ticket['pending_reason_code']) ?><?php if(!empty($ticket['pending_note'])): ?><small><?= htmlspecialchars($ticket['pending_note']) ?></small><?php endif; ?></dd></div><?php endif; ?>
           <?php if($isSupport&&!empty($ticket['resolution_due_at'])): ?><div><dt>Límite de resolución</dt><dd><?= htmlspecialchars(date('d/m/Y H:i',strtotime($ticket['resolution_due_at']))) ?></dd></div><?php endif; ?>
         </dl>
       </div>
@@ -80,11 +83,22 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <?php if($canClaim): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><button class="btn btn-primary ticket-primary-action" type="submit">Tomar y atender</button></form><?php endif; ?>
         <?php if($canChangeStatus): ?>
           <?php if(in_array($status,['PENDING','REOPENED'],true)): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/status" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><input type="hidden" name="status" value="IN_PROGRESS"><button class="btn btn-primary" type="submit">Continuar atención</button></form><?php endif; ?>
-          <?php if(in_array($status,['IN_PROGRESS','REOPENED'],true)): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/status" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><input type="hidden" name="status" value="PENDING"><button class="btn btn-outline-secondary" type="submit">Poner en espera</button></form><?php endif; ?>
           <?php if($status==='RESOLVED'): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/status" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><input type="hidden" name="status" value="CLOSED"><button class="btn btn-primary" type="submit">Cerrar caso</button></form><form method="post" action="<?= APP_BASE_URL ?>/tickets/status" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><input type="hidden" name="status" value="REOPENED"><button class="btn btn-outline-secondary" type="submit">Reabrir</button></form><?php endif; ?>
         <?php endif; ?>
         <?php if($canRelease): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/release" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><button class="btn btn-outline-secondary" type="submit">Devolver a la cola</button></form><?php endif; ?>
       </div>
+
+      <?php if($canChangeStatus&&in_array($status,['IN_PROGRESS','REOPENED'],true)): ?>
+      <div class="case-pending-control">
+        <div><strong>¿El caso debe esperar?</strong><span>Indica la causa para que los tiempos e informes expliquen correctamente la pausa.</span></div>
+        <form method="post" action="<?= APP_BASE_URL ?>/tickets/status" data-single-submit>
+          <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><input type="hidden" name="status" value="PENDING">
+          <select class="form-control" name="pending_reason_code" required><option value="">Motivo de espera</option><?php foreach($pendingReasons as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select>
+          <input class="form-control" type="text" name="pending_note" maxlength="500" placeholder="Detalle opcional: proveedor, compra, fecha acordada…">
+          <button class="btn btn-outline-secondary" type="submit">Poner en espera</button>
+        </form>
+      </div>
+      <?php endif; ?>
 
       <?php if($canReassign&&!empty($supportUsers)): ?><details class="ticket-more-actions case-assign-details"><summary>Asignar a otra persona</summary><form class="ticket-assign-form" method="post" action="<?= APP_BASE_URL ?>/tickets/assign" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><select class="form-control" name="assigned_to" required><option value="">Selecciona responsable</option><?php foreach($supportUsers as $su): ?><option value="<?= (int)$su['id'] ?>" <?= (int)($ticket['assigned_to']??0)===(int)$su['id']?'selected':'' ?>><?= htmlspecialchars($su['full_name']) ?> · <?= htmlspecialchars($su['role_name']) ?></option><?php endforeach; ?></select><button class="btn btn-primary" type="submit">Asignar</button></form></details><?php endif; ?>
 
