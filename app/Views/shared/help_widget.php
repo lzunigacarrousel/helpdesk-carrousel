@@ -59,7 +59,7 @@ $help = [
     ],
     'users' => [
         'title' => 'Administrar usuarios',
-        'steps' => ['Usa “Nuevo usuario” para crear un acceso interno.', 'Abre “Editar usuario” para cambiar datos, perfil, estado o asignación.', 'Antes de eliminar un usuario con casos activos, reasigna esos casos.', 'Eliminar retira el acceso pero conserva tickets, historial y auditoría.'],
+        'steps' => ['Usa “Dar acceso” para crear un acceso interno.', 'Abre “Editar” para cambiar datos, perfil, estado o asignación.', 'Antes de retirar el acceso a un usuario con casos activos, reasigna esos casos.', 'Retirar acceso conserva tickets, historial y auditoría.'],
     ],
     'audit' => [
         'title' => 'Auditoría y trazabilidad',
