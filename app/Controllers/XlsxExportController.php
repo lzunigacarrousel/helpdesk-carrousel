@@ -18,7 +18,7 @@ final class XlsxExportController
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
         $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,t.requester_name,t.requester_email,t.requester_phone,
             COALESCE(p.name,'') park_name,COALESCE(a.name,'') area_name,COALESCE(c.name,'') category_name,
-            t.subject,t.description,t.priority,t.status,COALESCE(u.full_name,'') assigned_name,t.assigned_at,
+            t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,COALESCE(u.full_name,'') assigned_name,t.assigned_at,
             t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
             COALESCE(tr.resolution_type,'') resolution_type,COALESCE(tr.root_cause,'') root_cause,
             COALESCE(tr.solution_applied,'') solution_applied,COALESCE(tr.preventive_action,'') preventive_action,
@@ -30,20 +30,21 @@ final class XlsxExportController
         $q->execute($params);$records=$q->fetchAll();
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$records));
 
-        $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
-        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;
+        $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Motivo de espera','Detalle de espera','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
+        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;$pendingReasonCounts=[];
 
         foreach($records as $r){
             $life=$this->lifecycle($r,$events[(int)$r['id']]??[]);$history=[];
-            foreach($life['transitions'] as $t){$history[]=date('d/m/Y H:i',strtotime($t['at'])).' · '.($t['from_label']??'—').' → '.($t['to_label']??'—').(!empty($t['actor'])?' · '.$t['actor']:'');}
+            foreach($life['transitions'] as $t){$history[]=date('d/m/Y H:i',strtotime($t['at'])).' · '.($t['from_label']??'—').' → '.($t['to_label']??'—').(!empty($t['pending_reason'])?' · '.(WorkflowController::PENDING_REASONS[$t['pending_reason']]??$t['pending_reason']):'').(!empty($t['actor'])?' · '.$t['actor']:'');}
             if(trim((string)$r['solution_applied'])!=='')$documented++;
             if(in_array((string)$r['status'],['RESOLVED','CLOSED'],true))$resolved++;
             if($life['first_response_minutes']!==null){$totalFirst+=(int)$life['first_response_minutes'];$countFirst++;}
             if($life['resolution_minutes']!==null){$totalResolution+=(int)$life['resolution_minutes'];$countResolution++;}
             $statusChanges+=count($life['transitions']);
+            if(!empty($r['pending_reason_code']))$pendingReasonCounts[$r['pending_reason_code']]=($pendingReasonCounts[$r['pending_reason_code']]??0)+1;
             $rows[]=[
                 $r['ticket_number'],$this->date($r['created_at']),$r['requester_name'],$r['requester_email'],$r['requester_phone'],$r['park_name'],$r['area_name'],$r['category_name'],$r['subject'],$r['description'],
-                self::PRIORITY_LABELS[$r['priority']]??$r['priority'],self::STATUS_LABELS[$r['status']]??$r['status'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),$this->date($r['first_response_due_at']),$this->date($r['resolution_due_at']),
+                self::PRIORITY_LABELS[$r['priority']]??$r['priority'],self::STATUS_LABELS[$r['status']]??$r['status'],WorkflowController::PENDING_REASONS[$r['pending_reason_code']]??($r['pending_reason_code']?:''),$r['pending_note'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),$this->date($r['first_response_due_at']),$this->date($r['resolution_due_at']),
                 $life['assignment_minutes']??'', $life['first_response_minutes']??'',(int)$life['queue_minutes'],(int)$life['work_minutes'],(int)$life['pending_minutes'],(int)$life['resolved_wait_minutes'],$life['resolution_minutes']??'', $life['total_minutes']??'',count($life['transitions']),implode("\n",$history),
                 self::RESOLUTION_LABELS[$r['resolution_type']]??$r['resolution_type'],$r['root_cause'],$r['solution_applied'],$r['preventive_action'],$r['resolution_author']
             ];
@@ -52,13 +53,16 @@ final class XlsxExportController
         $filterText=$this->filterDescription($pdo,$filters);
         $summaryRows=[
             ['Tickets exportados',count($records)],['Resueltos / cerrados',$resolved],['Con solución documentada',$documented],['Sin solución documentada',max(0,count($records)-$documented)],
-            ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
+            ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
         ];
+        $pendingRows=[];
+        foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0)];
 
         Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'rows'=>count($records)]);
         XlsxExportService::download('helpdesk_informe_'.date('Ymd_His').'.xlsx',[
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Resumen del informe','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$summaryRows],
             ['name'=>'Tickets','title'=>'Helpdesk Carrousel · Detalle de tickets','subtitle'=>$filterText,'headers'=>$headers,'rows'=>$rows],
+            ['name'=>'Esperas','title'=>'Helpdesk Carrousel · Motivos de espera actuales','subtitle'=>$filterText,'headers'=>['Motivo','Casos'],'rows'=>$pendingRows],
         ]);
     }
 
@@ -100,7 +104,9 @@ final class XlsxExportController
         $created=strtotime((string)$ticket['created_at'])?:time();$initial=null;
         foreach($events as $event){$new=$this->statusFromJson($event['new_value']??null);$old=$this->statusFromJson($event['old_value']??null);if(($event['event_type']??'')==='CREATED'&&$new){$initial=$new;break;}if($old){$initial=$old;break;}}
         if(!$initial)$initial=(string)($ticket['status']??'NEW');$current=$initial;$statusStarted=$created;$dur=[];$trans=[];
-        foreach($events as $event){$new=$this->statusFromJson($event['new_value']??null);if(!$new||$new===$current)continue;$at=strtotime((string)$event['created_at']);if(!$at||$at<$statusStarted)continue;$mins=max(0,(int)round(($at-$statusStarted)/60));$dur[$current]=($dur[$current]??0)+$mins;$actor=trim((string)($event['actor_name']??''));if($actor==='')$actor=($event['actor_type']??'SYSTEM')==='PUBLIC'?'Solicitante':'Sistema';$trans[]=['from_label'=>self::STATUS_LABELS[$current]??$current,'to_label'=>self::STATUS_LABELS[$new]??$new,'at'=>(string)$event['created_at'],'actor'=>$actor];$current=$new;$statusStarted=$at;}
+        foreach($events as $event){
+            $new=$this->statusFromJson($event['new_value']??null);if(!$new||$new===$current)continue;$at=strtotime((string)$event['created_at']);if(!$at||$at<$statusStarted)continue;$mins=max(0,(int)round(($at-$statusStarted)/60));$dur[$current]=($dur[$current]??0)+$mins;$actor=trim((string)($event['actor_name']??''));if($actor==='')$actor=($event['actor_type']??'SYSTEM')==='PUBLIC'?'Solicitante':'Sistema';$decoded=$this->json((string)($event['new_value']??''));$trans[]=['from_label'=>self::STATUS_LABELS[$current]??$current,'to_label'=>self::STATUS_LABELS[$new]??$new,'at'=>(string)$event['created_at'],'actor'=>$actor,'pending_reason'=>(string)($decoded['pending_reason_code']??'')];$current=$new;$statusStarted=$at;
+        }
         $closedTs=!empty($ticket['closed_at'])?(strtotime((string)$ticket['closed_at'])?:null):null;$end=$closedTs?:time();if($end<$statusStarted)$end=$statusStarted;$dur[$current]=($dur[$current]??0)+max(0,(int)round(($end-$statusStarted)/60));
         $between=static function($a,$b):?int{if(empty($a)||empty($b))return null;$x=strtotime((string)$a);$y=strtotime((string)$b);return($x&&$y&&$y>=$x)?(int)round(($y-$x)/60):null;};
         return['transitions'=>$trans,'queue_minutes'=>(int)(($dur['NEW']??0)+($dur['AVAILABLE']??0)),'work_minutes'=>(int)(($dur['IN_PROGRESS']??0)+($dur['REOPENED']??0)),'pending_minutes'=>(int)($dur['PENDING']??0),'resolved_wait_minutes'=>(int)($dur['RESOLVED']??0),'assignment_minutes'=>$between($ticket['created_at']??null,$ticket['assigned_at']??null),'first_response_minutes'=>$between($ticket['created_at']??null,$ticket['first_response_at']??null),'resolution_minutes'=>$between($ticket['created_at']??null,$ticket['resolved_at']??null),'total_minutes'=>$between($ticket['created_at']??null,$ticket['closed_at']??date('Y-m-d H:i:s'))];
@@ -108,8 +114,9 @@ final class XlsxExportController
 
     private function statusFromJson($json):?string
     {
-        if(!is_string($json)||trim($json)==='')return null;$x=json_decode($json,true);if(!is_array($x))return null;$s=strtoupper(trim((string)($x['status']??'')));return array_key_exists($s,self::STATUS_LABELS)?$s:null;
+        $x=$this->json((string)$json);$s=strtoupper(trim((string)($x['status']??'')));return array_key_exists($s,self::STATUS_LABELS)?$s:null;
     }
+    private function json(string $json):array{if(trim($json)==='')return[];$x=json_decode($json,true);return is_array($x)?$x:[];}
     private function date($value):string{$ts=empty($value)?false:strtotime((string)$value);return$ts?date('d/m/Y H:i',$ts):'';}
     private function filterDescription(PDO $pdo,array $f):string
     {
