@@ -1,6 +1,7 @@
 <?php
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
+$searchTerm=(string)($q??'');
 $pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $total=count($tickets)+count($problems)+count($articles);
@@ -15,14 +16,14 @@ $total=count($tickets)+count($problems)+count($articles);
   </div>
 
   <form class="search-page-form" method="get" action="<?= APP_BASE_URL ?>/buscar" data-no-loading="1">
-    <input class="form-control" type="search" name="q" value="<?= htmlspecialchars($q) ?>" placeholder="Ej. HD-2026-000004, internet, Semnox, Tikal Futura…" autocomplete="off" autofocus>
+    <input class="form-control" type="search" name="q" value="<?= htmlspecialchars($searchTerm) ?>" placeholder="Ej. HD-2026-000004, internet, Semnox, Tikal Futura…" autocomplete="off" autofocus>
     <button class="btn btn-primary" type="submit">Buscar</button>
   </form>
 
-  <?php if($q===''): ?>
+  <?php if($searchTerm===''): ?>
     <section class="card search-empty-card"><div class="card-body"><strong>Escribe qué necesitas encontrar.</strong><p>El buscador respeta tu acceso: un solicitante solo ve sus casos y un proveedor solo los casos compartidos con su cuenta.</p></div></section>
   <?php elseif($total===0): ?>
-    <section class="card search-empty-card"><div class="card-body"><strong>No encontramos coincidencias para “<?= htmlspecialchars($q) ?>”.</strong><p>Prueba con menos palabras, el número del ticket, el parque o el tipo de problema.</p></div></section>
+    <section class="card search-empty-card"><div class="card-body"><strong>No encontramos coincidencias para “<?= htmlspecialchars($searchTerm) ?>”.</strong><p>Prueba con menos palabras, el número del ticket, el parque o el tipo de problema.</p></div></section>
   <?php else: ?>
     <div class="search-result-summary"><strong><?= $total ?></strong><span>resultado<?= $total===1?'':'s' ?> encontrado<?= $total===1?'':'s' ?></span></div>
 
