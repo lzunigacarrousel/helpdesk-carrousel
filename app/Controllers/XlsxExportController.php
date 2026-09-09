@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Database};
-use App\Services\XlsxExportService;
+use App\Services\{ScopeService,XlsxExportService};
 use PDO;
 
 final class XlsxExportController
@@ -50,7 +50,7 @@ final class XlsxExportController
             ];
         }
 
-        $filterText=$this->filterDescription($pdo,$filters);
+        $filterText=$this->filterDescription($pdo,$filters).' · '.(new ScopeService())->scopeLabel();
         $summaryRows=[
             ['Tickets exportados',count($records)],['Resueltos / cerrados',$resolved],['Con solución documentada',$documented],['Sin solución documentada',max(0,count($records)-$documented)],
             ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
@@ -58,7 +58,7 @@ final class XlsxExportController
         $pendingRows=[];
         foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0)];
 
-        Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'rows'=>count($records)]);
+        Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'scope'=>(new ScopeService())->scopeLabel(),'rows'=>count($records)]);
         XlsxExportService::download('helpdesk_informe_'.date('Ymd_His').'.xlsx',[
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Resumen del informe','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$summaryRows],
             ['name'=>'Tickets','title'=>'Helpdesk Carrousel · Detalle de tickets','subtitle'=>$filterText,'headers'=>$headers,'rows'=>$rows],
@@ -83,6 +83,8 @@ final class XlsxExportController
     private function where(array $f):array
     {
         $clauses=['t.deleted_at IS NULL','t.created_at>=?','t.created_at<DATE_ADD(?,INTERVAL 1 DAY)'];$params=[$f['from'],$f['to']];
+        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+        if($scopeSql!=='1=1'){$clauses[]=$scopeSql;array_push($params,...$scopeParams);}
         if($f['park_id']>0){$clauses[]='t.park_id=?';$params[]=$f['park_id'];}
         if($f['category_id']>0){$clauses[]='t.category_id=?';$params[]=$f['category_id'];}
         if($f['assigned_to']>0){$clauses[]='t.assigned_to=?';$params[]=$f['assigned_to'];}
