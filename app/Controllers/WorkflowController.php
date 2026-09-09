@@ -82,7 +82,6 @@ final class WorkflowController
         $message='El estado de tu solicitud cambió a: '.$label.'.';
         if($status==='PENDING'){
             $message.=' Motivo: '.self::PENDING_REASONS[$pendingReason].'.';
-            if($pendingNote!=='')$message.=' '.$pendingNote;
         }
         $this->notifyRequester($ticket,$id,'Actualización de tu solicitud',$message);
         $this->notifyExternalParticipants($id,'Actualización del caso',$message);
