@@ -9,6 +9,7 @@ $canManagement=!$isExternal&&($isAdmin||$isSemi||Auth::can('management.view'));
 $canExternalManage=!$isExternal&&($isAdmin||$isSemi||Auth::can('external.manage'));
 $canProblems=!$isExternal&&Auth::can('problems.view');
 $canKnowledge=!$isExternal&&Auth::can('knowledge.view');
+$canMailAdmin=!$isExternal&&Auth::can('audit.view');
 $activeNav=$activeNav??'home';
 $pageSection=$pageSection??'Inicio';
 $helpContext=$helpContext??'general';
@@ -39,7 +40,7 @@ try{
     $notificationUnread=$notificationService->unreadCount((int)Auth::id());
 }catch(Throwable){$recentNotifications=[];$notificationUnread=0;}
 
-$assetVersion='20260909-011';
+$assetVersion='20260909-012';
 ?>
 <!doctype html>
 <html lang="es">
@@ -66,7 +67,7 @@ $assetVersion='20260909-011';
 <?php if($canProblems): ?><a class="side-link <?= $activeNav==='problems'?'active':'' ?>" href="<?= APP_BASE_URL ?>/problems"><span class="side-icon">◇</span><span class="side-label">Problemas conocidos</span></a><?php endif; ?>
 <?php if($canKnowledge): ?><a class="side-link <?= $activeNav==='knowledge'?'active':'' ?>" href="<?= APP_BASE_URL ?>/knowledge"><span class="side-icon">▧</span><span class="side-label">Base de conocimiento</span></a><?php endif; ?>
 <?php if($canManagement): ?><div class="nav-section">Gestión</div><a class="side-link <?= $activeNav==='management'?'active':'' ?>" href="<?= APP_BASE_URL ?>/gestion"><span class="side-icon">◫</span><span class="side-label">Dashboard interno</span></a><a class="side-link <?= $activeNav==='reports'?'active':'' ?>" href="<?= APP_BASE_URL ?>/gestion/informes"><span class="side-icon">▥</span><span class="side-label">Informes</span></a><?php endif; ?>
-<?php if($isAdmin||Auth::can('users.manage')||Auth::can('audit.view')||$canExternalManage): ?><div class="nav-section">Administración</div><?php endif; ?><?php if($isAdmin||Auth::can('users.manage')): ?><a class="side-link <?= $activeNav==='users'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/users"><span class="side-icon">♟</span><span class="side-label">Usuarios</span></a><?php endif; ?><?php if($canExternalManage): ?><a class="side-link <?= $activeNav==='externals'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/externos"><span class="side-icon">◇</span><span class="side-label">Proveedores externos</span></a><?php endif; ?><?php if(Auth::can('audit.view')): ?><a class="side-link <?= $activeNav==='audit'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/audit"><span class="side-icon">◉</span><span class="side-label">Auditoría</span></a><?php endif; ?>
+<?php if($isAdmin||Auth::can('users.manage')||Auth::can('audit.view')||$canExternalManage): ?><div class="nav-section">Administración</div><?php endif; ?><?php if($isAdmin||Auth::can('users.manage')): ?><a class="side-link <?= $activeNav==='users'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/users"><span class="side-icon">♟</span><span class="side-label">Usuarios</span></a><?php endif; ?><?php if($canExternalManage): ?><a class="side-link <?= $activeNav==='externals'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/externos"><span class="side-icon">◇</span><span class="side-label">Proveedores externos</span></a><?php endif; ?><?php if(Auth::can('audit.view')): ?><a class="side-link <?= $activeNav==='audit'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/audit"><span class="side-icon">◉</span><span class="side-label">Auditoría</span></a><?php endif; ?><?php if($canMailAdmin): ?><a class="side-link <?= $activeNav==='mail'?'active':'' ?>" href="<?= APP_BASE_URL ?>/admin/correo"><span class="side-icon">✉</span><span class="side-label">Correo y notificaciones</span></a><?php endif; ?>
 <div class="nav-section sidebar-help">Ayuda</div><button class="side-link side-link-button" type="button" data-help-open><span class="side-icon">?</span><span class="side-label">Ayuda de esta pantalla</span></button><button class="side-link side-link-button" type="button" data-tour-start><span class="side-icon">▷</span><span class="side-label">Tutorial guiado</span></button><a class="side-link <?= $activeNav==='manual'?'active':'' ?>" href="<?= APP_BASE_URL ?>/manual"><span class="side-icon">▣</span><span class="side-label">Manual</span></a></nav></aside><div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
 <div class="main-wrap"><header class="topbar"><div class="topbar-left"><button class="btn btn-outline-secondary sidebar-toggle" data-sidebar-toggle type="button" aria-controls="app-sidebar" aria-expanded="true" aria-label="Ocultar menú" title="Ocultar menú lateral">☰</button><a href="<?= APP_BASE_URL ?>/dashboard" class="topbar-title"><span class="topbar-section">Helpdesk</span><strong class="topbar-page"><?= htmlspecialchars($pageSection) ?></strong></a></div>
 <form class="topbar-search" method="get" action="<?= APP_BASE_URL ?>/buscar" role="search"><span aria-hidden="true">⌕</span><input type="search" name="q" value="<?= htmlspecialchars($searchValue) ?>" placeholder="Buscar ticket, problema, artículo…" autocomplete="off" aria-label="Buscar en Helpdesk"><kbd>Ctrl K</kbd></form>
