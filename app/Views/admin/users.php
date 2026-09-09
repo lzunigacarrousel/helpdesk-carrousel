@@ -52,31 +52,13 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
   </div>
 
   <div class="admin-user-toolbar">
-    <label class="admin-user-search-field">
-      <span class="form-label">Buscar</span>
-      <input class="form-control" type="search" placeholder="Nombre, correo, parque, área o puesto…" autocomplete="off" data-users-search>
-    </label>
-    <label>
-      <span class="form-label">Perfil</span>
-      <select class="form-control" data-users-role-filter>
-        <option value="">Todos</option>
-        <?php foreach($roles as $r): ?><option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?>
-      </select>
-    </label>
-    <label>
-      <span class="form-label">Estado</span>
-      <select class="form-control" data-users-status-filter>
-        <option value="">Todos</option>
-        <?php foreach($statusLabels as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?>
-      </select>
-    </label>
+    <label class="admin-user-search-field"><span class="form-label">Buscar</span><input class="form-control" type="search" placeholder="Nombre, correo, parque, área o puesto…" autocomplete="off" data-users-search></label>
+    <label><span class="form-label">Perfil</span><select class="form-control" data-users-role-filter><option value="">Todos</option><?php foreach($roles as $r): ?><option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></label>
+    <label><span class="form-label">Estado</span><select class="form-control" data-users-status-filter><option value="">Todos</option><?php foreach($statusLabels as $code=>$label): ?><option value="<?= htmlspecialchars($code) ?>"><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label>
     <button class="btn btn-outline-secondary admin-users-clear" type="button" data-users-clear>Limpiar</button>
   </div>
 
-  <div class="admin-users-summary">
-    <span data-users-summary>Mostrando <?= count($users) ?> de <?= count($users) ?> usuarios</span>
-    <strong data-users-count><?= count($users) ?> visibles</strong>
-  </div>
+  <div class="admin-users-summary"><span data-users-summary>Mostrando <?= count($users) ?> de <?= count($users) ?> usuarios</span><strong data-users-count><?= count($users) ?> visibles</strong></div>
 
   <section class="admin-user-list" data-users-list>
   <?php foreach($users as $u):
@@ -88,27 +70,14 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
       'TECHNICIAN'=>'Equipo de soporte',
       default=>'Información propia',
     };
-    $searchText=implode(' ',array_filter([
-      $u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'',
-      $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'',
-      $u['area_name']??'', $u['position_name']??'', $u['manager_name']??''
-    ]));
+    $searchText=implode(' ',array_filter([$u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'', $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'', $u['area_name']??'', $u['position_name']??'', $u['manager_name']??'']));
     $canEditThis=!($u['role_code']==='ADMIN'&&!$isFullAdmin);
   ?>
-  <article class="admin-user-card"
-           data-user-row
-           data-user-search="<?= htmlspecialchars($searchText) ?>"
-           data-user-role="<?= htmlspecialchars($u['role_name']) ?>"
-           data-user-status="<?= htmlspecialchars($u['status']) ?>">
+  <article class="admin-user-card" data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
     <div class="admin-user-summary">
       <div class="admin-user-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['full_name'],0,1))) ?></div>
-      <div class="admin-user-main">
-        <h2><?= htmlspecialchars($u['full_name']) ?></h2>
-        <p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p>
-        <div class="admin-user-meta"><span><?= htmlspecialchars($preset['label']) ?></span><span>·</span><span><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span><span>·</span><span><?= htmlspecialchars($scopeText) ?></span></div>
-      </div>
+      <div class="admin-user-main"><h2><?= htmlspecialchars($u['full_name']) ?></h2><p><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></p><div class="admin-user-meta"><span><?= htmlspecialchars($preset['label']) ?></span><span>·</span><span><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span><span>·</span><span><?= htmlspecialchars($scopeText) ?></span></div></div>
       <div class="admin-user-org"><strong><?= htmlspecialchars($assignmentText) ?></strong><span><?= htmlspecialchars($u['position_name']??'Puesto pendiente') ?></span><?php if(!empty($u['manager_name'])): ?><small>Responsable: <?= htmlspecialchars($u['manager_name']) ?></small><?php endif; ?></div>
-      <?php if($canEditThis): ?><div class="admin-user-card-action"><a href="#user-<?= (int)$u['id'] ?>" class="btn btn-outline-secondary btn-sm" data-no-loading="1" onclick="this.closest('article').querySelector('details').open=true">Editar</a></div><?php endif; ?>
     </div>
 
     <?php if($canEditThis): ?>
@@ -132,14 +101,8 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
       <?php if((int)$u['id']!==(int)Auth::id()): ?>
       <div class="admin-user-danger-zone">
         <div><strong>Eliminar usuario</strong><span>Retira el acceso, pero conserva tickets, historial y auditoría.</span></div>
-        <?php if((int)($u['active_ticket_count']??0)>0): ?>
-          <div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes de eliminarlo.</div>
-        <?php else: ?>
-          <form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form">
-            <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-            <label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo que quiero eliminar este usuario.</label>
-            <button class="btn btn-danger" type="submit">Eliminar usuario</button>
-          </form>
+        <?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes de eliminarlo.</div><?php else: ?>
+          <form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo que quiero eliminar este usuario.</label><button class="btn btn-danger" type="submit">Eliminar usuario</button></form>
         <?php endif; ?>
       </div>
       <?php endif; ?>
