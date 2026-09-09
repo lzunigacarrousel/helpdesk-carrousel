@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-024'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-025'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -9,6 +9,11 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
+<style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.public-form-head-compact .public-form-logo{width:112px;height:auto}
+@media(max-width:900px){.public-form-head-compact .public-form-logo{width:94px}}
+@media(max-width:760px){.public-form-head-compact .public-form-logo{width:82px}}
+</style>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head><body><div class="brand-strip"></div>
 <main class="auth-page public-form-page"><div class="auth-shell public-form-shell"><section class="auth-card public-form-card">
