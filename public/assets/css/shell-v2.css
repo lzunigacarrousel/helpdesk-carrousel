@@ -78,3 +78,15 @@ body.sidebar-collapsed .side-icon{width:28px}
   .app-toast-container{left:12px;right:12px;top:72px;width:auto}.app-corporate-footer{padding-bottom:72px}
 }
 @media(max-width:430px){.topbar-page{max-width:105px}.shell-help-btn{display:none}.global-action-card{padding:22px 18px}}
+
+/* Tablet: iPad horizontal usa sidebar compacta; vertical pasa a drawer */
+@media(min-width:901px) and (max-width:1180px){
+  .sidebar{width:var(--shell-sidebar-collapsed)}.main-wrap{margin-left:var(--shell-sidebar-collapsed);width:calc(100% - var(--shell-sidebar-collapsed))}
+  .sidebar-brand{padding:16px 12px;justify-content:center}.sidebar-brand img{width:42px;height:42px}.sidebar-brand>div{display:none}
+  .nav-section{font-size:0;padding:12px 0 3px;text-align:center}.nav-section:after{content:'•';font-size:15px;color:#8fa1d6}
+  .side-link{justify-content:center;padding:10px;margin-inline:8px;gap:0}.side-link .side-label{display:none}.side-icon{width:28px}
+  .sidebar-help{display:none}.topbar{padding-inline:12px}.topbar-search{max-width:300px;min-width:180px}.user-summary{display:none}.portal-btn{padding-inline:10px}
+}
+@media(min-width:761px) and (max-width:900px){
+  .sidebar{width:255px;transform:translateX(-105%);z-index:1400}.sidebar.open{transform:none}.sidebar-brand{padding:18px 16px;justify-content:flex-start}.sidebar-brand>div{display:block}.sidebar-brand img{width:48px;height:48px}.nav-section{font-size:11px;padding:15px 12px 4px;text-align:left}.nav-section:after{display:none}.side-link{justify-content:flex-start;padding:10px 14px;gap:10px;margin-inline:0}.side-link .side-label{display:inline}.sidebar-help{display:block}.main-wrap{margin-left:0;width:100%}.sidebar-backdrop{display:block;position:fixed;inset:4px 0 0;background:rgba(15,23,42,.42);z-index:1300}.sidebar-backdrop[hidden]{display:none}.topbar-search{display:none}.user-summary{display:none}
+}
