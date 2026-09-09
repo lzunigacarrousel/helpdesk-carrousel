@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-003'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-004'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -16,10 +16,10 @@
   <section class="auth-brand-v2" aria-label="Helpdesk Carrousel">
     <div class="auth-brand-content">
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
-      <span class="auth-product-pill">Helpdesk Carrousel</span>
+      <span class="auth-product-pill">Helpdesk</span>
       <h1>Soporte claro, seguimiento real y soluciones documentadas.</h1>
-      <p>Consulta tus solicitudes, atiende casos asignados o colabora como proveedor mediante acceso seguro con código de un solo uso.</p>
-      <div class="auth-points-v2"><span>OTP seguro</span><span>Seguimiento de casos</span><span>Diseño responsive</span></div>
+      <p>Consulta tus solicitudes, atiende casos asignados o colabora mediante acceso seguro con código de un solo uso.</p>
+      <div class="auth-points-v2"><span>OTP seguro</span><span>Seguimiento de casos</span><span>Acceso responsive</span></div>
     </div>
   </section>
 
@@ -39,11 +39,11 @@
         <button class="btn btn-primary auth-primary" type="submit">Enviar código</button>
       </form>
 
-      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong> Si tu correo aún no existe, el sistema te pedirá completar tus datos antes de enviarte el código.</div></div>
-      <p class="auth-security-v2">Nunca compartas tu código OTP. El personal de Carrousel no necesita solicitártelo.</p>
+      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong> Si tu correo aún no existe, completarás tus datos antes de recibir el código.</div></div>
+      <p class="auth-security-v2">Nunca compartas tu código OTP. El equipo de soporte no necesita solicitártelo.</p>
 
       <div class="auth-actions-v2">
-        <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver al Helpdesk</a><a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars(PORTAL_URL) ?>">Portal</a></div>
+        <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver</a></div>
         <button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button>
       </div>
     </div>
