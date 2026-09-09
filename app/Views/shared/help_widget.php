@@ -3,19 +3,19 @@ $helpContext = $helpContext ?? 'general';
 $help = [
     'public_home' => [
         'title' => '¿Necesitas ayuda?',
-        'steps' => ['Reporta un problema sin iniciar sesión.', 'Guarda el número de caso que recibirás.', 'Usa “Ver mis solicitudes” para consultar el seguimiento.'],
+        'steps' => ['Puedes reportar un problema sin iniciar sesión.', 'Guarda el número de caso que recibirás por correo.', 'Usa “Mis solicitudes” para consultar respuestas, archivos y solución.'],
     ],
     'public_create' => [
         'title' => 'Cómo registrar una solicitud',
-        'steps' => ['Indica dónde ocurre el problema.', 'Selecciona el tipo de solicitud más parecido.', 'Describe qué pasa, desde cuándo y qué está afectando.'],
+        'steps' => ['Completa únicamente los datos que conozcas; si no sabes la ubicación exacta, puedes dejarla sin definir.', 'Elige el tipo más parecido y usa un resumen corto que permita reconocer el problema.', 'Describe qué sucede, desde cuándo, a quién o qué equipo afecta y qué intentaste si ya hiciste alguna prueba.', 'Después de enviar recibirás un número de caso y podrás seguir las novedades desde Mis solicitudes.'],
     ],
     'requester_home' => [
         'title' => 'Tu espacio de soporte',
-        'steps' => ['Consulta tus solicitudes abiertas.', 'Abre cualquier caso para ver su avance.', 'Usa “Nueva solicitud” solo cuando necesites reportar algo nuevo.'],
+        'steps' => ['Consulta primero tus solicitudes abiertas.', 'Abre cualquier caso para ver el problema, las respuestas y su avance.', 'Usa “Nueva solicitud” solamente cuando necesites reportar algo diferente.'],
     ],
     'external_home' => [
-        'title' => 'Colaboración con Carrousel',
-        'steps' => ['Aquí aparecen únicamente los casos que Carrousel comparte contigo.', 'Abre el caso y revisa primero qué apoyo necesitamos.', 'Responde y adjunta evidencias desde el seguimiento del mismo caso.'],
+        'title' => 'Tus casos compartidos',
+        'steps' => ['Aquí aparecen únicamente los casos asignados a tu cuenta.', 'Abre el caso y revisa primero qué apoyo se necesita.', 'Responde y adjunta evidencias desde el seguimiento del mismo caso.'],
     ],
     'my_tickets' => [
         'title' => 'Mis solicitudes',
@@ -31,7 +31,7 @@ $help = [
     ],
     'ticket' => [
         'title' => 'Atención del caso',
-        'steps' => ['Empieza por el problema reportado: es la información principal.', 'Revisa problema conocido y posibles soluciones antes de empezar desde cero.', 'Usa el seguimiento para respuestas públicas o notas internas y documenta la solución antes de resolver.'],
+        'steps' => ['Empieza por el problema reportado: es la información principal.', 'Revisa problema conocido y posibles soluciones antes de empezar desde cero.', 'Usa el seguimiento para respuestas públicas o notas internas.', 'Documenta causa y solución antes de resolver para que el caso pueda reutilizarse como aprendizaje.'],
     ],
     'search' => [
         'title' => 'Búsqueda global',
@@ -59,7 +59,7 @@ $help = [
     ],
     'users' => [
         'title' => 'Usuarios y estructura',
-        'steps' => ['El rol define los permisos dentro del Helpdesk.', 'La asignación define parque o área, puesto y responsable.', 'Un supervisor o gerente operativo no necesita ser técnico del Helpdesk.'],
+        'steps' => ['El perfil define qué puede hacer la persona.', 'El alcance define qué información puede consultar.', 'Atender soporte es independiente: Gerencia o Supervisión pueden consultar sin convertirse en técnicos.'],
     ],
     'audit' => [
         'title' => 'Auditoría y trazabilidad',
@@ -67,11 +67,11 @@ $help = [
     ],
     'manual' => [
         'title' => 'Manual del Helpdesk',
-        'steps' => ['Usa el índice para ir directamente al tema que necesitas.', 'El contenido se adapta a las funciones disponibles para tu perfil.', 'Puedes volver al tutorial flotante desde el botón de ayuda en cualquier pantalla.'],
+        'steps' => ['Empieza por las tarjetas de tareas frecuentes o usa el índice.', 'Abre solo las preguntas frecuentes que necesites; no es necesario leer todo el manual.', 'El contenido se adapta a las funciones disponibles para tu perfil.', 'Puedes volver al tutorial flotante desde el botón de ayuda en cualquier pantalla.'],
     ],
     'general' => [
-        'title' => 'Ayuda de Helpdesk Carrousel',
-        'steps' => ['Reporta o consulta solicitudes desde esta aplicación.', 'Los botones principales cambian según tu perfil.', 'Si tienes dudas, contacta al equipo de Sistemas.'],
+        'title' => 'Ayuda del Helpdesk',
+        'steps' => ['Reporta o consulta solicitudes desde esta aplicación.', 'Las opciones visibles cambian según tu perfil y alcance.', 'Si tienes dudas, contacta al equipo de Sistemas.'],
     ],
 ];
 $current = $help[$helpContext] ?? $help['general'];
@@ -82,10 +82,10 @@ $canOpenManual = \App\Core\Auth::check();
 <div class="help-backdrop" data-help-backdrop hidden></div>
 <aside class="help-panel" data-help-panel data-help-context="<?= htmlspecialchars($helpContext) ?>" aria-hidden="true">
     <div class="help-panel-head">
-        <div><span class="help-kicker">Ayuda contextual</span><h2><?= htmlspecialchars($current['title']) ?></h2></div>
+        <div><span class="help-kicker">Ayuda de esta pantalla</span><h2><?= htmlspecialchars($current['title']) ?></h2></div>
         <button class="help-close" type="button" data-help-close aria-label="Cerrar ayuda">×</button>
     </div>
-    <p class="help-intro">Esta guía explica la pantalla que estás usando, sin mezclar funciones que no corresponden a tu perfil.</p>
+    <p class="help-intro">Empieza con esta guía rápida. Si necesitas más detalle, inicia el recorrido guiado: te mostrará cada parte directamente sobre la pantalla.</p>
     <ol class="help-steps">
         <?php foreach ($current['steps'] as $step): ?><li><?= htmlspecialchars($step) ?></li><?php endforeach; ?>
     </ol>
@@ -93,6 +93,6 @@ $canOpenManual = \App\Core\Auth::check();
         <button class="btn btn-primary" type="button" data-tour-start>Iniciar tutorial guiado</button>
         <?php if($canOpenManual): ?><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/manual">Abrir manual completo</a><?php endif; ?>
     </div>
-    <div class="help-shortcuts"><span><kbd>Ctrl K</kbd> Buscar</span><span><kbd>Esc</kbd> Cerrar ayuda</span></div>
+    <div class="help-shortcuts"><span><kbd>Ctrl K</kbd> Buscar</span><span><kbd>Esc</kbd> Cerrar</span></div>
     <div class="help-contact">¿Aún necesitas ayuda? <strong>sistemas@carrousel.com.gt</strong></div>
 </aside>
