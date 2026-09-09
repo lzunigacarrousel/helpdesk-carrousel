@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v2.3.4-dev · Perfiles + alcances + pantalla amplia · 2026-09-09
+- Se separa formalmente `perfil`, `alcance` y `operación de soporte`: Gerencia y Supervisor dejan de considerarse técnicos por el simple hecho de poder consultar información.
+- Nuevo helper `Auth::isSupportOperator()` distingue a Administrador, Semiadmin y Técnico como únicos perfiles que atienden tickets; Gerencia y Supervisor quedan como perfiles de consulta.
+- `Auth::profileLabel()` muestra contexto correcto en la interfaz: Administrador, Semiadministrador, Técnico, Gerencia, Supervisor, Usuario o Colaborador.
+- Gerencia entra directamente al Dashboard de gestión y conserva acceso a informes globales, problemas conocidos y conocimiento sin recibir acciones para tomar, responder, poner en espera o resolver tickets.
+- Supervisor obtiene Dashboard/Informes con alcance derivado de su asignación organizacional; región, parque o área limitan los tickets visibles tanto en pantalla como en exportación XLSX.
+- `ScopeService` reemplaza referencias heredadas a permisos/tablas antiguas y unifica alcance global, organizacional y de equipo de soporte.
+- La exportación Excel aplica el mismo alcance del usuario y registra el alcance utilizado dentro del resumen del archivo y auditoría.
+- Administración de usuarios incorpora perfiles predefinidos con descripción de capacidad, alcance y si atiende soporte; cada usuario muestra además su alcance efectivo de forma legible.
+- Nueva migración incremental `ACTUALIZAR_PERFILES_ALCANCES_V2.sql`: asegura permisos de gestión, limpia permisos operativos de Gerencia/Supervisor y sincroniza membresía del equipo IT para Admin/Semiadmin/Técnico.
+- En pantallas anchas se incrementa el ancho útil de Dashboard, Gestión, Cola, Administración, búsqueda y workspace de tickets para reducir espacio muerto sin afectar 1366×768, tablet o móvil.
+- Checks estáticos ampliados para validar perfiles, alcances, separación de soporte y aplicación del scope en informes/XLSX.
+
 ## v2.3.3-dev · Contexto por perfil + lenguaje visible · 2026-09-09
 - Se elimina del dashboard externo el bloque `Acceso restringido y seguro`; el usuario ya no recibe lenguaje técnico de permisos como contenido principal.
 - Dashboard de solicitante y colaborador describe capacidades concretas en lenguaje de tarea: revisar casos, responder, adjuntar información y consultar soluciones.
