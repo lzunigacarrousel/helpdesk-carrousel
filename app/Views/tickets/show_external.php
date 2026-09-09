@@ -2,7 +2,6 @@
 use App\Core\{Auth,Csrf,Database};
 
 $statusLabels=$statusLabels??[];
-$priorityLabels=$priorityLabels??[];
 $status=(string)$ticket['status'];
 $comments=[];$attachmentsByComment=[];$looseAttachments=[];$canComment=false;$canUpload=false;
 
@@ -27,7 +26,7 @@ try{
 }catch(\Throwable $e){}
 
 $pageTitle=$ticket['ticket_number'];
-$pageSection='Caso compartido';
+$pageSection='Mis casos';
 $activeNav='mine';
 $helpContext='ticket';
 require APP_ROOT.'/app/Views/shared/app_start.php';
@@ -39,8 +38,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <h1 class="page-title"><?= htmlspecialchars($ticket['subject']) ?></h1>
       <div class="external-case-meta">
         <span class="external-state-chip"><?= htmlspecialchars($statusLabels[$status]??str_replace('_',' ',$status)) ?></span>
-        <span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$ticket['priority']]??$ticket['priority'])) ?></span>
         <span><?= htmlspecialchars($ticket['park_name']??'Ubicación no especificada') ?></span>
+        <span><?= htmlspecialchars($ticket['category_name']??'Sin categoría') ?></span>
       </div>
     </div>
     <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/mis-tickets">← Mis casos</a>
@@ -53,8 +52,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-problem-card">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">1 · Entiende el problema</span><h2>Qué está pasando</h2><p>Este es el dato principal del caso. Revísalo antes de responder o realizar cualquier trabajo.</p></div>
-            <span class="external-responsible"><?= !empty($ticket['assigned_name'])?'Responsable: '.htmlspecialchars($ticket['assigned_name']):'Pendiente de responsable interno' ?></span>
+            <div><span class="ticket-kicker">Información del caso</span><h2>Qué está pasando</h2><p>Revisa primero el problema y el contexto antes de enviar una actualización.</p></div>
+            <span class="external-responsible"><?= !empty($ticket['assigned_name'])?'Responsable: '.htmlspecialchars($ticket['assigned_name']):'Responsable pendiente' ?></span>
           </div>
 
           <div class="external-problem-primary">
@@ -72,7 +71,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-reply-card" id="responder">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">2 · Actúa sobre el caso</span><h2>¿Qué necesitas informar a Carrousel?</h2><p>Elige una opción para empezar y agrega el detalle necesario.</p></div>
+            <div><span class="ticket-kicker">Tu actualización</span><h2>¿Qué necesitas informar?</h2><p>Envía un avance, una consulta, evidencia o el resultado de tu trabajo.</p></div>
           </div>
 
           <?php if($canComment||$canUpload): ?>
@@ -90,8 +89,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
             <input type="hidden" name="visibility" value="PUBLIC">
             <?php if($canComment): ?>
-            <label>Mensaje para Carrousel
-              <textarea class="form-control" name="body" rows="5" data-external-message placeholder="Describe qué revisaste, qué encontraste, qué hiciste o qué necesitas de Carrousel."></textarea>
+            <label>Mensaje
+              <textarea class="form-control" name="body" rows="5" data-external-message placeholder="Describe qué revisaste, qué encontraste, qué hiciste o qué información necesitas."></textarea>
             </label>
             <?php endif; ?>
             <?php if($canUpload): ?>
@@ -100,12 +99,12 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             </label>
             <?php endif; ?>
             <div class="external-send-row">
-              <span><?= $canComment&&$canUpload?'Puedes enviar mensaje, archivo o ambos.':($canComment?'Envía tu actualización al equipo de Carrousel.':'Puedes adjuntar evidencia para este caso.') ?></span>
-              <button class="btn btn-primary" type="submit">Enviar a Carrousel</button>
+              <span><?= $canComment&&$canUpload?'Puedes enviar un mensaje, un archivo o ambos.':($canComment?'Tu actualización llegará al responsable del caso.':'Puedes adjuntar evidencia para este caso.') ?></span>
+              <button class="btn btn-primary" type="submit">Enviar actualización</button>
             </div>
           </form>
           <?php else: ?>
-            <div class="external-readonly"><strong>Este acceso es solo de consulta.</strong><span>Si necesitas responder, comunícate con tu contacto de Carrousel para habilitar participación.</span></div>
+            <div class="external-readonly"><strong>Este caso está en modo consulta.</strong><span>Puedes revisar el seguimiento y los archivos disponibles.</span></div>
           <?php endif; ?>
         </div>
       </section>
@@ -113,14 +112,14 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-conversation-card" id="conversacion">
         <div class="card-body">
           <div class="external-section-head">
-            <div><span class="ticket-kicker">3 · Revisa el seguimiento</span><h2>Conversación</h2><p>Aquí queda el registro de lo que Carrousel y tu equipo han informado sobre este caso.</p></div>
+            <div><span class="ticket-kicker">Seguimiento</span><h2>Conversación</h2><p>Aquí queda el registro de las actualizaciones del equipo de soporte y de tu equipo.</p></div>
             <span class="external-message-count"><?= count($comments)+(count($looseAttachments)) ?> actualización(es)</span>
           </div>
           <div class="conversation-list external-conversation-list">
             <?php foreach($comments as $c):
               $mine=(int)($c['author_user_id']??0)===(int)Auth::id();
-              $author=$mine?'Tu equipo':'Carrousel';
-              if(($c['author_access_type']??'')==='EXTERNAL'&&!$mine)$author='Proveedor externo';
+              $author=$mine?'Tu equipo':'Equipo de soporte';
+              if(($c['author_access_type']??'')==='EXTERNAL'&&!$mine)$author='Colaborador';
             ?>
               <article class="conversation-message <?= $mine?'is-mine':'' ?>">
                 <div class="conversation-meta"><strong><?= htmlspecialchars($author) ?></strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($c['created_at']))) ?></span></div>
@@ -131,7 +130,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             <?php foreach($looseAttachments as $f): ?>
               <article class="conversation-message"><div class="conversation-meta"><strong>Archivo compartido</strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($f['created_at']))) ?></span></div><a class="conversation-file" href="<?= APP_BASE_URL ?>/tickets/attachment?id=<?= (int)$f['id'] ?>">📎 <?= htmlspecialchars($f['original_name']) ?></a></article>
             <?php endforeach; ?>
-            <?php if(!$comments&&!$looseAttachments): ?><div class="external-empty-conversation"><strong>Aún no hay actualizaciones.</strong><span>Cuando envíes el primer avance aparecerá aquí.</span></div><?php endif; ?>
+            <?php if(!$comments&&!$looseAttachments): ?><div class="external-empty-conversation"><strong>Aún no hay actualizaciones.</strong><span>Cuando exista un avance aparecerá aquí.</span></div><?php endif; ?>
           </div>
         </div>
       </section>
@@ -141,10 +140,10 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <section class="card external-side-card">
         <div class="card-body">
           <span class="ticket-kicker">Tu participación</span>
-          <h2>Qué puedes hacer</h2>
+          <h2>Disponible en este caso</h2>
           <div class="external-capability-list">
-            <div class="<?= $canComment?'is-enabled':'is-disabled' ?>"><span><?= $canComment?'✓':'—' ?></span><div><strong>Responder</strong><small><?= $canComment?'Puedes enviar avances y consultas.':'No habilitado en este caso.' ?></small></div></div>
-            <div class="<?= $canUpload?'is-enabled':'is-disabled' ?>"><span><?= $canUpload?'✓':'—' ?></span><div><strong>Adjuntar evidencia</strong><small><?= $canUpload?'Puedes enviar archivos de respaldo.':'No habilitado en este caso.' ?></small></div></div>
+            <div class="<?= $canComment?'is-enabled':'is-disabled' ?>"><span><?= $canComment?'✓':'—' ?></span><div><strong>Responder</strong><small><?= $canComment?'Puedes enviar avances y consultas.':'Modo consulta.' ?></small></div></div>
+            <div class="<?= $canUpload?'is-enabled':'is-disabled' ?>"><span><?= $canUpload?'✓':'—' ?></span><div><strong>Adjuntar evidencia</strong><small><?= $canUpload?'Puedes enviar archivos de respaldo.':'Modo consulta.' ?></small></div></div>
           </div>
         </div>
       </section>
@@ -154,9 +153,9 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           <span class="ticket-kicker">Flujo</span>
           <h2>Qué pasa después</h2>
           <ol class="external-next-steps">
-            <li><span>1</span><div><strong>Envías tu actualización</strong><small>Carrousel recibe la información y el correo de aviso.</small></div></li>
-            <li><span>2</span><div><strong>Sistemas revisa</strong><small>El responsable interno continúa la gestión del ticket.</small></div></li>
-            <li><span>3</span><div><strong>Carrousel cierra el caso</strong><small>El estado final y la resolución quedan documentados internamente.</small></div></li>
+            <li><span>1</span><div><strong>Envías una actualización</strong><small>La información queda registrada en el caso.</small></div></li>
+            <li><span>2</span><div><strong>Soporte revisa</strong><small>El responsable continúa la gestión y puede responderte.</small></div></li>
+            <li><span>3</span><div><strong>El caso se finaliza</strong><small>El estado y la solución quedan disponibles en el seguimiento.</small></div></li>
           </ol>
         </div>
       </section>
