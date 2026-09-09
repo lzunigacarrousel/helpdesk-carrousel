@@ -1,0 +1,51 @@
+/* Helpdesk Carrousel · prioridad visual del contenido del caso
+   Regla: qué pasó -> qué debo hacer -> qué ha pasado -> datos administrativos. */
+
+/* Problema externo: el texto reportado domina sobre ubicación/tipo */
+.external-problem-card{border-left-width:5px!important}
+.external-problem-primary{margin:4px 0 16px;padding:18px 20px;border-radius:12px;border:1px solid color-mix(in srgb,var(--brand) 28%,var(--border) 72%);background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 7%,var(--card) 93%),var(--card))}
+.external-problem-primary>span{display:block;margin-bottom:7px;font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.08em;font-weight:900;color:var(--brand)}
+.external-problem-primary>p{margin:0;font-size:clamp(17px,1.3vw,21px);line-height:1.55;font-weight:700;color:var(--ink);white-space:normal}
+.external-problem-facts-secondary{margin:0!important;padding-top:14px;border-top:1px solid var(--border)}
+.external-problem-facts-secondary>div{background:color-mix(in srgb,var(--card) 98%,var(--bg) 2%)!important}
+
+/* Vista interna/solicitante: bloque principal generado desde el detalle reportado */
+.ticket-problem-focus{margin:0 0 16px;border-left:5px solid var(--brand);overflow:hidden}
+.ticket-problem-focus .card-body{padding:20px 22px}
+.ticket-problem-focus-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+.ticket-problem-focus-head h2{margin:2px 0 3px;font-size:21px}
+.ticket-problem-focus-head p{margin:0;font-size:12px;color:var(--muted)}
+.ticket-problem-focus-text{padding:17px 18px;border:1px solid color-mix(in srgb,var(--brand) 26%,var(--border) 74%);border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 7%,var(--card) 93%),var(--card));font-size:clamp(16px,1.2vw,20px);line-height:1.58;font-weight:700;color:var(--ink);white-space:pre-wrap}
+.ticket-problem-focus-meta{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:12px}
+.ticket-problem-focus-meta span{display:inline-flex;align-items:center;gap:5px}
+.ticket-problem-focus-meta b{color:var(--ink)}
+.ticket-info-secondary> .card-body>h2{font-size:17px;color:var(--muted)}
+.ticket-info-secondary .ticket-info-list{margin-top:10px}
+
+/* Centro de soporte: el problema debe leerse sin abrir el ticket */
+.support-ticket-row{align-items:stretch}
+.support-ticket-content{min-width:0}
+.support-ticket-content h3{font-size:17px;line-height:1.3;margin:5px 0 4px}
+.support-ticket-problem{margin:0 0 11px;padding:9px 11px;border-radius:9px;background:color-mix(in srgb,var(--brand) 5%,var(--card) 95%);border-left:3px solid color-mix(in srgb,var(--brand) 55%,var(--border) 45%);font-size:13px;line-height:1.45;color:var(--ink);font-weight:650}
+.support-ticket-meta{margin-top:auto}
+.ticket-number-small{opacity:.78}
+
+/* Mis solicitudes / Mis casos: descripción antes de metadatos */
+.ticket-list-problem{position:relative;z-index:2;pointer-events:none;margin:10px 0 12px;padding:11px 12px;border-radius:10px;background:color-mix(in srgb,var(--brand) 5%,var(--card) 95%);border-left:3px solid color-mix(in srgb,var(--brand) 48%,var(--border) 52%);font-size:13px;line-height:1.48;font-weight:650;color:var(--ink)}
+.ticket-list-card h2{font-size:18px;line-height:1.3}
+.ticket-list-meta{margin-top:10px!important}
+
+/* Los badges y datos de control no deben competir con el problema */
+.ticket-summary-grid{gap:10px!important;margin-bottom:16px!important}
+.ticket-summary-item{min-height:auto!important;padding:12px 14px!important}
+.ticket-summary-item strong{font-size:15px!important}
+.ticket-summary-item span{font-size:9px!important}
+
+@media(max-width:760px){
+  .external-problem-primary{padding:16px}
+  .external-problem-primary>p{font-size:17px}
+  .ticket-problem-focus .card-body{padding:16px}
+  .ticket-problem-focus-head{flex-direction:column}
+  .ticket-problem-focus-text{font-size:16px;padding:14px}
+  .support-ticket-problem,.ticket-list-problem{font-size:13px}
+}
