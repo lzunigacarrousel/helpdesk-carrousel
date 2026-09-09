@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -23,6 +23,8 @@ $routes=[
     ['GET','/dashboard',[DashboardController::class,'index']],
     ['GET','/buscar',[SearchController::class,'index']],
     ['GET','/manual',[HelpController::class,'manual']],
+    ['POST','/notifications/read',[NotificationController::class,'read']],
+    ['POST','/notifications/read-all',[NotificationController::class,'readAll']],
     ['GET','/tickets',[TicketController::class,'index']],
     ['GET','/tickets/queue',[TicketController::class,'queue']],
     ['GET','/tickets/view',[TicketViewController::class,'show']],
