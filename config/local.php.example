@@ -5,10 +5,15 @@ return [
     'db_name' => 'helpdesk_carrousel_test',
     'db_user' => 'root',
     'db_pass' => '',
+
+    // URL estable usada dentro de correos. En PC TEST puede dejarse vacía.
+    // En servidor debe apuntar al Helpdesk publicado para evitar enlaces localhost/LAN.
+    'app_url' => '',
+
     'mail_mode' => 'log', // log | smtp
     'smtp_host' => 'smtp.gmail.com',
     'smtp_port' => 587,
-    'smtp_secure' => 'tls',
+    'smtp_secure' => 'tls', // tls | ssl | none
     'smtp_username' => '',
     'smtp_password' => '',
     'mail_from' => 'no-reply@carrousel.local',
