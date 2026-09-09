@@ -43,11 +43,11 @@ final class DashboardController
             $stats->execute([$uid]);
             $ticketStats = $stats->fetch() ?: ['total'=>0,'open_count'=>0,'resolved_count'=>0,'closed_count'=>0];
             $recent = $pdo->prepare(
-                "SELECT t.id,t.ticket_number,t.subject,t.status,t.created_at
+                "SELECT t.id,t.ticket_number,t.subject,t.description,t.status,t.created_at
                  FROM external_ticket_access eta JOIN tickets t ON t.id=eta.ticket_id
                  WHERE eta.user_id=? AND eta.revoked_at IS NULL AND t.deleted_at IS NULL
                    AND t.case_type='SPECIAL' AND t.visibility_mode='EXTERNAL_ALLOWED'
-                 ORDER BY t.created_at DESC LIMIT 4"
+                 ORDER BY t.updated_at DESC,t.created_at DESC LIMIT 5"
             );
             $recent->execute([$uid]);
         } else {
@@ -56,25 +56,55 @@ final class DashboardController
                         SUM(status IN ('NEW','AVAILABLE','IN_PROGRESS','PENDING','REOPENED')) open_count,
                         SUM(status='RESOLVED') resolved_count,
                         SUM(status='CLOSED') closed_count
-                 FROM tickets WHERE deleted_at IS NULL AND LOWER(requester_email)=LOWER(?)"
+                 FROM tickets WHERE deleted_at IS NULL AND (requester_user_id=? OR LOWER(requester_email)=LOWER(?))"
             );
-            $stats->execute([(string)$user['email']]);
+            $stats->execute([$uid,(string)$user['email']]);
             $ticketStats = $stats->fetch() ?: ['total'=>0,'open_count'=>0,'resolved_count'=>0,'closed_count'=>0];
             $recent = $pdo->prepare(
-                "SELECT id,ticket_number,subject,status,created_at
-                 FROM tickets WHERE deleted_at IS NULL AND LOWER(requester_email)=LOWER(?)
-                 ORDER BY created_at DESC LIMIT 4"
+                "SELECT id,ticket_number,subject,description,status,created_at
+                 FROM tickets WHERE deleted_at IS NULL AND (requester_user_id=? OR LOWER(requester_email)=LOWER(?))
+                 ORDER BY updated_at DESC,created_at DESC LIMIT 5"
             );
-            $recent->execute([(string)$user['email']]);
+            $recent->execute([$uid,(string)$user['email']]);
         }
         $recentTickets = $recent->fetchAll();
 
-        $supportStats = ['mine'=>0,'available'=>0];
+        $supportStats = [
+            'mine'=>0,'available'=>0,'near_due'=>0,'overdue'=>0,
+            'critical'=>0,'pending'=>0,'reopened'=>0,'in_progress'=>0,
+        ];
+        $supportActivity = [];
         if ($isSupport) {
-            $mine = $pdo->prepare("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND assigned_to=? AND status IN('IN_PROGRESS','PENDING','REOPENED')");
-            $mine->execute([$uid]);
-            $supportStats['mine'] = (int)$mine->fetchColumn();
-            $supportStats['available'] = (int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED')")->fetchColumn();
+            $support = $pdo->prepare(
+                "SELECT
+                    SUM(assigned_to=? AND status IN('IN_PROGRESS','PENDING','REOPENED')) mine,
+                    SUM(assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED')) available,
+                    SUM(status='IN_PROGRESS') in_progress,
+                    SUM(status='PENDING') pending,
+                    SUM(status='REOPENED') reopened,
+                    SUM(priority='CRITICAL' AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) critical,
+                    SUM(resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) overdue,
+                    SUM(resolution_due_at IS NOT NULL AND resolution_due_at>=NOW() AND resolution_due_at<=DATE_ADD(NOW(),INTERVAL 2 HOUR) AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) near_due
+                 FROM tickets
+                 WHERE deleted_at IS NULL"
+            );
+            $support->execute([$uid]);
+            $row = $support->fetch() ?: [];
+            foreach ($supportStats as $key=>$value) {
+                $supportStats[$key] = (int)($row[$key] ?? 0);
+            }
+
+            $activity = $pdo->query(
+                "SELECT te.event_type,te.created_at,t.id ticket_id,t.ticket_number,t.subject,u.full_name actor_name
+                 FROM ticket_events te
+                 JOIN tickets t ON t.id=te.ticket_id
+                 LEFT JOIN users u ON u.id=te.actor_user_id
+                 WHERE t.deleted_at IS NULL
+                   AND te.event_type IN('CREATED','CLAIMED','REASSIGNED','COMMENTED','RESOLUTION_RECORDED','RESOLVED','CLOSED','REOPENED','STATUS_CHANGED')
+                 ORDER BY te.created_at DESC,te.id DESC
+                 LIMIT 8"
+            );
+            $supportActivity = $activity->fetchAll();
         }
 
         View::render('dashboard/index', [
@@ -83,6 +113,7 @@ final class DashboardController
             'ticketStats' => $ticketStats,
             'recentTickets' => $recentTickets,
             'supportStats' => $supportStats,
+            'supportActivity' => $supportActivity,
             'flash' => Flash::pull(),
         ]);
     }
