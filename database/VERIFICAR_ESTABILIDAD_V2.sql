@@ -89,6 +89,14 @@ SELECT 'ARTICULOS_PUBLICADOS_SIN_FECHA' prueba, COUNT(*) hallazgos
 FROM knowledge_articles
 WHERE status='PUBLISHED' AND published_at IS NULL;
 
+SELECT 'NOTIFICACIONES_INAPP_SIN_USUARIO' prueba, COUNT(*) hallazgos
+FROM notification_deliveries
+WHERE channel='IN_APP' AND recipient_user_id IS NULL;
+
+SELECT 'NOTIFICACIONES_INAPP_SIN_CONTENIDO' prueba, COUNT(*) hallazgos
+FROM notification_deliveries
+WHERE channel='IN_APP' AND (title IS NULL OR title='' OR action_url IS NULL OR action_url='');
+
 SELECT 'MIGRACIONES_REGISTRADAS' prueba, COUNT(*) hallazgos FROM schema_migrations;
 SELECT 'TOTAL_TICKETS' prueba, COUNT(*) hallazgos FROM tickets WHERE deleted_at IS NULL;
 SELECT 'TOTAL_USUARIOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL;
@@ -96,3 +104,6 @@ SELECT 'TOTAL_EXTERNOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at I
 SELECT 'ACCESOS_EXTERNOS_ACTIVOS' prueba, COUNT(*) hallazgos FROM external_ticket_access WHERE revoked_at IS NULL;
 SELECT 'TOTAL_PROBLEMAS_CONOCIDOS' prueba, COUNT(*) hallazgos FROM known_problems;
 SELECT 'TOTAL_ARTICULOS_CONOCIMIENTO' prueba, COUNT(*) hallazgos FROM knowledge_articles;
+SELECT 'TOTAL_NOTIFICACIONES_INAPP' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP';
+SELECT 'NOTIFICACIONES_NO_LEIDAS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='IN_APP' AND read_at IS NULL;
+SELECT 'CORREOS_NOTIFICACION_FALLIDOS' prueba, COUNT(*) hallazgos FROM notification_deliveries WHERE channel='EMAIL' AND status='FAILED';
