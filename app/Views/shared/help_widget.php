@@ -7,7 +7,7 @@ $help = [
     ],
     'public_create' => [
         'title' => 'Cómo registrar una solicitud',
-        'steps' => ['Completa únicamente los datos que conozcas; si no sabes la ubicación exacta, puedes dejarla sin definir.', 'Elige el tipo más parecido y usa un resumen corto que permita reconocer el problema.', 'Describe qué sucede, desde cuándo, a quién o qué equipo afecta y qué intentaste si ya hiciste alguna prueba.', 'Después de enviar recibirás un número de caso y podrás seguir las novedades desde Mis solicitudes.'],
+        'steps' => ['Completa únicamente los datos que conozcas; si no sabes la ubicación exacta, puedes dejarla sin definir.', 'Elige el tipo más parecido a tu caso.', 'En Detalles explica qué sucede, desde cuándo, a quién o qué equipo afecta y qué intentaste si ya hiciste alguna prueba.', 'Después de enviar recibirás un número de caso y podrás seguir las novedades desde Mis solicitudes.'],
     ],
     'requester_home' => [
         'title' => 'Tu espacio de soporte',
@@ -47,7 +47,7 @@ $help = [
     ],
     'problems' => [
         'title' => 'Problemas conocidos',
-        'steps' => ['Agrupa tickets que repiten la misma falla.', 'Documenta workaround mientras investigas la causa raíz.', 'Relaciona conocimiento cuando exista una solución reutilizable.'],
+        'steps' => ['Agrupa tickets que repiten la misma falla.', 'Documenta una solución temporal mientras investigas la causa.', 'Relaciona conocimiento cuando exista una solución reutilizable.'],
     ],
     'knowledge' => [
         'title' => 'Base de conocimiento',
@@ -55,11 +55,11 @@ $help = [
     ],
     'externals' => [
         'title' => 'Proveedores externos',
-        'steps' => ['Crea la cuenta externa con empresa, contacto y correo.', 'Comparte únicamente los casos en los que el proveedor deba participar.', 'Revoca el acceso cuando termine su participación.'],
+        'steps' => ['Crea la cuenta del colaborador con empresa, contacto y correo.', 'Comparte únicamente los casos en los que deba participar.', 'Revoca el acceso cuando termine su participación.'],
     ],
     'users' => [
-        'title' => 'Usuarios y estructura',
-        'steps' => ['El perfil define qué puede hacer la persona.', 'El alcance define qué información puede consultar.', 'Atender soporte es independiente: Gerencia o Supervisión pueden consultar sin convertirse en técnicos.'],
+        'title' => 'Administrar usuarios',
+        'steps' => ['Usa “Nuevo usuario” para crear un acceso interno.', 'Abre “Editar usuario” para cambiar datos, perfil, estado o asignación.', 'Antes de eliminar un usuario con casos activos, reasigna esos casos.', 'Eliminar retira el acceso pero conserva tickets, historial y auditoría.'],
     ],
     'audit' => [
         'title' => 'Auditoría y trazabilidad',
@@ -82,20 +82,19 @@ $current = $help[$helpContext] ?? $help['general'];
 $canOpenManual = \App\Core\Auth::check();
 ?>
 <button class="help-fab" type="button" data-help-open aria-label="Abrir ayuda" title="Ayuda">?</button>
-<button class="help-tour-hint" type="button" data-tour-start data-tour-hint hidden>Ver guía de esta pantalla</button>
 <div class="help-backdrop" data-help-backdrop hidden></div>
 <aside class="help-panel" data-help-panel data-help-context="<?= htmlspecialchars($helpContext) ?>" aria-hidden="true">
     <div class="help-panel-head">
         <div><span class="help-kicker">Ayuda de esta pantalla</span><h2><?= htmlspecialchars($current['title']) ?></h2></div>
         <button class="help-close" type="button" data-help-close aria-label="Cerrar ayuda">×</button>
     </div>
-    <p class="help-intro">Empieza con esta guía rápida. Si necesitas más detalle, inicia el recorrido guiado: te mostrará cada parte directamente sobre la pantalla.</p>
+    <p class="help-intro">Consulta la guía rápida o inicia el recorrido guiado para ver cada parte directamente sobre la pantalla.</p>
     <ol class="help-steps">
         <?php foreach ($current['steps'] as $step): ?><li><?= htmlspecialchars($step) ?></li><?php endforeach; ?>
     </ol>
     <div class="help-actions">
-        <button class="btn btn-primary" type="button" data-tour-start>Iniciar tutorial guiado</button>
-        <?php if($canOpenManual): ?><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/manual">Abrir manual completo</a><?php endif; ?>
+        <button class="btn btn-primary" type="button" data-tour-start>Iniciar tutorial</button>
+        <?php if($canOpenManual): ?><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/manual">Abrir manual</a><?php endif; ?>
     </div>
     <div class="help-shortcuts"><span><kbd>Ctrl K</kbd> Buscar</span><span><kbd>Esc</kbd> Cerrar</span></div>
     <div class="help-contact">¿Aún necesitas ayuda? <strong>sistemas@carrousel.com.gt</strong></div>
