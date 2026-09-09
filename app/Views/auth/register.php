@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-001'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-002'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -56,7 +56,7 @@
           <div class="auth-register-note">El responsable o supervisor se relacionará con tu estructura cuando exista una asignación configurada para tu parque o área.</div>
         </section>
 
-        <button class="btn btn-primary auth-primary" style="width:100%;min-height:52px;margin-top:16px" type="submit">Guardar y enviar código</button>
+        <button class="btn btn-primary auth-primary" style="width:100%;min-height:46px;margin-top:14px" type="submit">Guardar y enviar código</button>
       </form>
 
       <p class="auth-security-v2">Tus datos se utilizan para identificar y dirigir correctamente tus solicitudes dentro del Helpdesk.</p>
