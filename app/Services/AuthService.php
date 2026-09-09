@@ -169,12 +169,13 @@ final class AuthService
              VALUES(?,?,'LOGIN',?,?,5,?,NOW())"
         );
         $stmt->execute([(int)$user['id'], $email, password_hash($code, PASSWORD_DEFAULT), $expiresAt, Http::ip()]);
+        $otpId=(int)$pdo->lastInsertId();
 
         Audit::log('OTP_REQUESTED', 'user', (int)$user['id'], null, null, ['email' => $email]);
         try {
-            (new MailService())->sendOtp($email, $code, $expiresMinutes);
+            (new NotificationService())->sendOtpDelivery((int)$user['id'],$email,$code,$expiresMinutes);
         } catch (\Throwable $e) {
-            $pdo->prepare('UPDATE otp_codes SET consumed_at=NOW() WHERE id=?')->execute([(int)$pdo->lastInsertId()]);
+            $pdo->prepare('UPDATE otp_codes SET consumed_at=NOW() WHERE id=?')->execute([$otpId]);
             throw $e;
         }
         $_SESSION['otp_email'] = $email;
