@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-004'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-041'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -16,18 +16,19 @@
   <section class="auth-brand-v2" aria-label="Helpdesk Carrousel">
     <div class="auth-brand-content">
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
-      <span class="auth-product-pill">Helpdesk</span>
+      <span class="auth-product-pill">Helpdesk Carrousel</span>
       <h1>Soporte claro, seguimiento real y soluciones documentadas.</h1>
-      <p>Consulta tus solicitudes, atiende casos asignados o colabora mediante acceso seguro con código de un solo uso.</p>
-      <div class="auth-points-v2"><span>OTP seguro</span><span>Seguimiento de casos</span><span>Acceso responsive</span></div>
+      <p>Registra solicitudes, consulta avances y conserva el historial de cada solución desde un solo lugar.</p>
+      <div class="auth-points-v2"><span>Seguimiento</span><span>Conocimiento</span><span>Auditoría</span></div>
     </div>
   </section>
 
   <section class="auth-panel-v2">
     <div class="auth-card-v2">
+      <div class="auth-mobile-brand-v2"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><strong>Helpdesk Carrousel</strong></div>
       <span class="auth-eyebrow">Acceso seguro</span>
-      <h2>Ingresa con tu correo</h2>
-      <p class="auth-lead">Te enviaremos un código temporal de seis dígitos.</p>
+      <h2>Ingresa al Helpdesk</h2>
+      <p class="auth-lead">Escribe tu correo. Te enviaremos un código temporal de seis dígitos.</p>
 
       <?php if(!empty($flash)): ?><div class="alert <?= htmlspecialchars(($flash['type']??'')==='success'?'alert-success':'alert-info') ?>"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
@@ -36,11 +37,11 @@
         <label for="email">Correo electrónico
           <input class="form-control" id="email" name="email" type="email" value="<?= htmlspecialchars((string)($email??'')) ?>" required autocomplete="email" autofocus placeholder="nombre@correo.com">
         </label>
-        <button class="btn btn-primary auth-primary" type="submit">Enviar código</button>
+        <button class="btn btn-primary auth-primary" type="submit">Continuar</button>
       </form>
 
-      <div class="auth-helper-v2"><span>ℹ</span><div><strong>¿Primera vez?</strong> Si tu correo aún no existe, completarás tus datos antes de recibir el código.</div></div>
-      <p class="auth-security-v2">Nunca compartas tu código OTP. El equipo de soporte no necesita solicitártelo.</p>
+      <div class="auth-helper-v2"><span>i</span><div><strong>¿Es tu primer ingreso?</strong> Si el correo todavía no existe, podrás completar tu perfil antes de recibir el código.</div></div>
+      <p class="auth-security-v2">El Helpdesk utiliza OTP. No necesitas una contraseña permanente y nunca debes compartir el código recibido.</p>
 
       <div class="auth-actions-v2">
         <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver</a></div>
