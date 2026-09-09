@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v2.3.5-dev · UX compacta + ayuda progresiva · 2026-09-09
+- El formulario público aprovecha mejor pantallas amplias sin reducir objetivos táctiles ni convertir el flujo en una pantalla densa; se amplía el contenedor, se compactan márgenes y se mantiene lectura cómoda en tablet y móvil.
+- Encabezado de `Reportar un problema` reducido y alineado para evitar espacio muerto, manteniendo logo, título y contexto en una sola zona visual.
+- Paso `¿Qué está pasando?` incorpora ayuda lateral no técnica con qué describir, desde cuándo, a quién afecta y qué se intentó; en tablet/móvil se integra debajo del formulario sin obstaculizar la captura.
+- Se agrega explicación desplegable `¿Qué pasa después de enviarlo?` sin añadir campos ni pasos obligatorios.
+- El formulario público carga ahora el motor de tutoriales guiados; el recorrido explica datos, ubicación, clasificación, descripción y envío directamente sobre la pantalla.
+- Tutoriales enriquecidos con una segunda capa `Consejo`, manteniendo textos principales breves y detalle adicional solo dentro del recorrido.
+- Ayuda contextual amplía instrucciones por perfil y aclara que perfil, alcance y atención de soporte son conceptos separados.
+- Manual convertido en una guía más interactiva: accesos por tarea frecuente, índice, flujos visuales y preguntas frecuentes mediante `details`, sin depender de JavaScript para consultar la información.
+- El manual sigue adaptándose a solicitante, colaborador, técnico, gestión y administración para no exponer instrucciones que no corresponden al perfil.
+- Se mantienen controles accesibles de al menos 44–48 px en tablet/móvil y el formulario conserva una sola columna en pantallas pequeñas.
+- Checks estáticos ampliados para validar tutorial público, ayuda lateral, manual interactivo y componentes de UX progresiva.
+
 ## v2.3.4-dev · Perfiles + alcances + pantalla amplia · 2026-09-09
 - Se separa formalmente `perfil`, `alcance` y `operación de soporte`: Gerencia y Supervisor dejan de considerarse técnicos por el simple hecho de poder consultar información.
 - Nuevo helper `Auth::isSupportOperator()` distingue a Administrador, Semiadmin y Técnico como únicos perfiles que atienden tickets; Gerencia y Supervisor quedan como perfiles de consulta.
