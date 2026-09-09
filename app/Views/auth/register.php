@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260908-2018'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260909-001'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/app.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/auth-v2.css?v=<?= $assetVersion ?>">
-<script>try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
 <body class="auth-body-v2">
 <div class="brand-strip"></div>
@@ -67,7 +67,7 @@
 <div id="global-action-status" class="global-action-status" role="status" aria-live="polite" aria-hidden="true"><div class="global-action-card"><span class="global-action-spinner" aria-hidden="true"></span><strong>Procesando información</strong><span data-action-message>Espera un momento…</span></div></div>
 <div id="app-toast-container" class="app-toast-container" aria-live="polite" aria-atomic="false"></div>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= $assetVersion ?>"></script>
-<script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (()=>{const park=document.getElementById('parkField'),area=document.getElementById('areaField'),parkSelect=document.getElementById('park_id'),areaSelect=document.getElementById('area_id');function refresh(){const v=document.querySelector('input[name="assignment_type"]:checked')?.value||'';park?.classList.toggle('auth-field-hidden',v!=='PARK');area?.classList.toggle('auth-field-hidden',v==='OTHER');if(parkSelect){parkSelect.required=v==='PARK';if(v!=='PARK')parkSelect.value='';}if(areaSelect){areaSelect.required=v==='CORPORATE';if(v==='OTHER')areaSelect.value='';}}document.querySelectorAll('input[name="assignment_type"]').forEach(x=>x.addEventListener('change',refresh));refresh();})();
 </script>
 </body></html>
