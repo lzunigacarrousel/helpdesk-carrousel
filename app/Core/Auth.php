@@ -8,6 +8,7 @@ final class Auth
 {
     private static ?array $user = null;
     private static array $permissions = [];
+    private static ?bool $supportOperator = null;
 
     public static function bootstrap(): void
     {
@@ -55,10 +56,56 @@ final class Auth
         return self::check() && (self::role() === 'ADMIN' || (self::$permissions[$permission] ?? false));
     }
 
+    public static function isSupportOperator(): bool
+    {
+        if (!self::check() || (self::$user['access_type'] ?? 'INTERNAL') === 'EXTERNAL') return false;
+        if (self::role() === 'ADMIN') return true;
+        if (!in_array(self::role(), ['SEMIADMIN', 'TECHNICIAN'], true)) return false;
+        if (self::$supportOperator !== null) return self::$supportOperator;
+
+        try {
+            $q = Database::pdo()->prepare(
+                "SELECT COUNT(*)
+                 FROM support_team_members stm
+                 JOIN support_teams st ON st.id=stm.team_id AND st.is_active=1
+                 WHERE stm.user_id=? AND stm.is_active=1 AND stm.ended_at IS NULL"
+            );
+            $q->execute([(int)self::id()]);
+            self::$supportOperator = (int)$q->fetchColumn() > 0;
+        } catch (\Throwable) {
+            // Compatibilidad con instalaciones anteriores a la membresía explícita.
+            self::$supportOperator = in_array(self::role(), ['SEMIADMIN', 'TECHNICIAN'], true);
+        }
+        return self::$supportOperator;
+    }
+
+    public static function isManagementViewer(): bool
+    {
+        return self::check()
+            && (self::$user['access_type'] ?? 'INTERNAL') !== 'EXTERNAL'
+            && in_array(self::role(), ['MANAGEMENT', 'SUPERVISOR'], true)
+            && self::can('management.view');
+    }
+
+    public static function profileLabel(): string
+    {
+        if (!self::check()) return 'Usuario';
+        if ((self::$user['access_type'] ?? 'INTERNAL') === 'EXTERNAL') return 'Colaborador';
+        return match (self::role()) {
+            'ADMIN' => 'Administrador',
+            'SEMIADMIN' => 'Semiadministrador',
+            'TECHNICIAN' => 'Técnico',
+            'MANAGEMENT' => 'Gerencia',
+            'SUPERVISOR' => 'Supervisor',
+            default => 'Usuario',
+        };
+    }
+
     public static function login(array $user, int $sessionId): void
     {
         session_regenerate_id(true);
         self::$user = $user;
+        self::$supportOperator = null;
         $_SESSION['auth_user_id'] = (int)$user['id'];
         $_SESSION['auth_session_id'] = $sessionId;
         Csrf::rotate();
@@ -69,6 +116,7 @@ final class Auth
     {
         self::$user = null;
         self::$permissions = [];
+        self::$supportOperator = null;
         self::clear();
         session_regenerate_id(true);
         Csrf::rotate();
@@ -88,9 +136,6 @@ final class Auth
         self::requireLogin();
         if (self::can($permission)) return;
 
-        // Nunca dejar al usuario en una pantalla 403 sin salida.
-        // Los enlaces de navegación ya se ocultan por rol, pero una URL directa,
-        // favorito antiguo o enlace compartido debe regresar al flujo permitido.
         Flash::set('Esa sección es solo para el equipo autorizado. Te llevamos a tu inicio.', 'info');
         header('Location: '.APP_BASE_URL.'/dashboard');
         exit;
@@ -110,6 +155,7 @@ final class Auth
     private static function loadPermissions(): void
     {
         self::$permissions = [];
+        self::$supportOperator = null;
         if (!self::$user) return;
         $stmt = Database::pdo()->prepare(
             "SELECT p.code,
@@ -126,6 +172,7 @@ final class Auth
 
     private static function clear(): void
     {
+        self::$supportOperator = null;
         unset($_SESSION['auth_user_id'], $_SESSION['auth_session_id']);
     }
 }
