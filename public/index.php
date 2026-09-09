@@ -32,6 +32,7 @@ $routes=[
     ['POST','/tickets/assign',[TicketController::class,'assign']],
     ['POST','/tickets/release',[TicketController::class,'release']],
     ['POST','/tickets/status',[WorkflowController::class,'changeStatus']],
+    ['GET','/tickets/resolve',[ResolutionController::class,'index']],
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
     ['GET','/tickets/attachment',[ConversationController::class,'download']],
