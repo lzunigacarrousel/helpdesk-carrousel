@@ -51,13 +51,17 @@ if(is_file($lifeFile)){
 }
 
 phase3Check(str_contains($controller,'ScopeService'),'Cola utiliza ScopeService');
-phase3Check(str_contains($controller,"ticketConstraint('t')")||str_contains($controller,'ticketConstraint("t")'),'Cola aplica restricción de alcance real');
+phase3Check(substr_count($controller,"ticketConstraint('t')")>=3,'Cola, lectura y toma de casos aplican restricción de alcance real');
+phase3Check(str_contains($controller,'Ese caso no está disponible dentro de tu alcance.'),'Tomar caso valida alcance también en backend');
 phase3Check(str_contains($controller,'assigned_name'),'Cola recupera nombre del responsable');
 phase3Check(str_contains($queue,'sla_summary'),'Cola consume resumen SLA centralizado');
+phase3Check(str_contains($queue,'Sin asignar'),'Cola presenta filtro explícito de casos sin asignar');
 phase3Check(str_contains($show,'sla_summary'),'Workspace consume resumen SLA centralizado');
 phase3Check(!str_contains($show,'name="status" value="CLOSED"'),'Workspace no ofrece cierre IT cuando la solución espera confirmación del solicitante');
 phase3Check(str_contains($management,'TicketLifecycleService'),'Informes de gestión reutilizan ciclo de vida centralizado');
+phase3Check(str_contains($management,'pending_reason_minutes'),'Gestión conserva tiempo histórico por motivo de espera');
 phase3Check(str_contains($xlsx,'TicketLifecycleService'),'XLSX reutiliza ciclo de vida centralizado');
+phase3Check(str_contains($xlsx,'Minutos históricos'),'XLSX exporta tiempo histórico por motivo de espera');
 phase3Check(!str_contains($controller,"DROP TABLE")&&!str_contains($controller,"ALTER TABLE"),'Fase 3 no introduce DDL desde controlador');
 
 exit($ok?0:1);
