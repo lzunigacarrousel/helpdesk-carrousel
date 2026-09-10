@@ -40,7 +40,7 @@ try{
     $notificationUnread=$notificationService->unreadCount((int)Auth::id());
 }catch(Throwable){$recentNotifications=[];$notificationUnread=0;}
 
-$assetVersion='20260909-022';
+$assetVersion='20260909-023';
 ?>
 <!doctype html>
 <html lang="es">
@@ -58,6 +58,7 @@ $assetVersion='20260909-022';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/management.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/visual-system.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/dark-refinement.css?v=<?= $assetVersion ?>">
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
 <body><div class="brand-strip"></div><div class="app-shell">
