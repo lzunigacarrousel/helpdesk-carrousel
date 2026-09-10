@@ -32,7 +32,7 @@ if (!is_array($local)) {
 }
 
 $dbHost = (string)($local['db_host'] ?? '127.0.0.1');
-$dbName = (string)($local['db_name'] ?? 'helpdesk_carrousel');
+$dbName = (string)($local['db_name'] ?? 'carrousel_helpdesk');
 $dbUser = (string)($local['db_user'] ?? 'root');
 $dbPass = (string)($local['db_pass'] ?? '');
 
