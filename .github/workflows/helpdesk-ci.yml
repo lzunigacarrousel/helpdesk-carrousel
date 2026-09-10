@@ -89,11 +89,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mariadb-client
 
-      - name: Install clean V2 schema
+      - name: Install current clean schema
         env:
           MYSQL_PWD: root
+        shell: bash
         run: |
-          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/INSTALAR.sql
+          set -euo pipefail
+          sed 's/helpdesk_carrousel_test/helpdesk_carrousel/g' database/INSTALAR.sql > /tmp/INSTALAR.sql
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < /tmp/INSTALAR.sql
           mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/FINALIZAR_ESQUEMA_V2.sql
           mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/CATALOGOS_CARROUSEL.sql
 
@@ -102,6 +105,6 @@ jobs:
           MYSQL_PWD: root
         run: |
           mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='helpdesk_carrousel_test' AND TABLE_TYPE='BASE TABLE';")" = "36"
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel_test.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel_test.users;")" = "1"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='helpdesk_carrousel' AND TABLE_TYPE='BASE TABLE';")" = "36"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel.users;")" = "1"
