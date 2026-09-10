@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\NotificationService;
+use App\Services\{NotificationService,ScopeService,SlaPresentationService};
 use PDO;
 
 final class TicketController
@@ -96,10 +96,21 @@ final class TicketController
 
     public function queue():void{
         Auth::requirePermission('tickets.view_queue');$pdo=Database::pdo();
-        $pending=$pdo->query("SELECT t.*,c.name category_name,p.name park_name,a.name area_name FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id WHERE t.deleted_at IS NULL AND t.assigned_to IS NULL AND t.status IN('NEW','AVAILABLE','REOPENED') ORDER BY FIELD(t.priority,'CRITICAL','HIGH','MEDIUM','LOW'),t.created_at ASC")->fetchAll();
-        $mine=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id WHERE t.deleted_at IS NULL AND t.assigned_to=? AND t.status IN('IN_PROGRESS','PENDING','REOPENED') ORDER BY FIELD(t.priority,'CRITICAL','HIGH','MEDIUM','LOW'),t.updated_at DESC");
-        $mine->execute([(int)Auth::id()]);
-        View::render('tickets/queue',['user'=>Auth::user(),'tickets'=>$pending,'myTickets'=>$mine->fetchAll(),'flash'=>Flash::pull(),'priorityLabels'=>self::PRIORITY_LABELS,'statusLabels'=>self::STATUS_LABELS]);
+        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+        $q=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name
+            FROM tickets t
+            LEFT JOIN ticket_categories c ON c.id=t.category_id
+            LEFT JOIN parks p ON p.id=t.park_id
+            LEFT JOIN areas a ON a.id=t.area_id
+            LEFT JOIN users u ON u.id=t.assigned_to
+            WHERE t.deleted_at IS NULL
+              AND t.status IN('NEW','AVAILABLE','IN_PROGRESS','PENDING','REOPENED')
+              AND ({$scopeSql})
+            ORDER BY FIELD(t.priority,'CRITICAL','HIGH','MEDIUM','LOW'),COALESCE(t.resolution_due_at,'9999-12-31 23:59:59'),t.updated_at DESC");
+        $q->execute($scopeParams);$rows=$q->fetchAll();
+        foreach($rows as &$row)$row['sla_summary']=SlaPresentationService::summary($row);
+        unset($row);
+        View::render('tickets/queue',['user'=>Auth::user(),'tickets'=>$rows,'myTickets'=>[],'flash'=>Flash::pull(),'priorityLabels'=>self::PRIORITY_LABELS,'statusLabels'=>self::STATUS_LABELS]);
     }
 
     public function claim():void{
@@ -152,6 +163,7 @@ final class TicketController
         Auth::requireLogin();$id=(int)($_GET['id']??0);if($id<=0)throw new \RuntimeException('Ticket no válido.');$pdo=Database::pdo();
         $s=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,u.email assigned_email FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN users u ON u.id=t.assigned_to WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");$s->execute([$id]);$ticket=$s->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');$this->visible($ticket);
         $e=$pdo->prepare("SELECT te.*,u.full_name actor_name FROM ticket_events te LEFT JOIN users u ON u.id=te.actor_user_id WHERE te.ticket_id=? ORDER BY te.created_at,te.id");$e->execute([$id]);
+        $ticket['sla_summary']=SlaPresentationService::summary($ticket);
         $isSupport=Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.reassign')||Auth::can('tickets.view_all');$supportUsers=[];if(Auth::can('tickets.reassign'))$supportUsers=$pdo->query("SELECT u.id,u.full_name,u.email,r.name role_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll();
         View::render('tickets/show',['user'=>Auth::user(),'ticket'=>$ticket,'events'=>$e->fetchAll(),'flash'=>Flash::pull(),'isSupport'=>$isSupport,'supportUsers'=>$supportUsers,'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),'canReassign'=>Auth::can('tickets.reassign'),'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),'statusLabels'=>self::STATUS_LABELS,'priorityLabels'=>self::PRIORITY_LABELS]);
     }
@@ -164,6 +176,12 @@ final class TicketController
             $s->execute([(int)$t['id'],$uid]);
             if((int)$s->fetchColumn()>0&&$t['case_type']==='SPECIAL'&&$t['visibility_mode']==='EXTERNAL_ALLOWED')return;
             Flash::set('Ese caso no está habilitado para tu cuenta.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
+        }
+        if(Auth::can('tickets.view_queue')||Auth::can('management.view')||Auth::can('reports.view')){
+            [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+            $q=Database::pdo()->prepare("SELECT COUNT(*) FROM tickets t WHERE t.id=? AND t.deleted_at IS NULL AND ({$scopeSql})");
+            $q->execute(array_merge([(int)$t['id']],$scopeParams));
+            if((int)$q->fetchColumn()>0)return;
         }
         if((int)($t['requester_user_id']??0)===$uid||strtolower((string)$t['requester_email'])===$email||(int)($t['assigned_to']??0)===$uid)return;
         Flash::set('No tienes acceso a ese caso.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
