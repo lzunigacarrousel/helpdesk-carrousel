@@ -1,0 +1,21 @@
+/* Helpdesk Carrousel · footer global al fondo
+ * Mantiene el pie corporativo en el borde inferior del viewport cuando
+ * la pantalla tiene poco contenido y, en pantallas largas, después del contenido.
+ */
+.main-wrap{
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:calc(100vh - 4px)!important;
+}
+
+.content{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1 0 auto!important;
+  min-height:0!important;
+}
+
+.content>.app-corporate-footer{
+  margin-top:auto!important;
+  flex:0 0 auto!important;
+}
