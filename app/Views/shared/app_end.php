@@ -15,6 +15,7 @@
 </div>
 <div id="app-toast-container" class="app-toast-container" aria-live="polite" aria-atomic="false"></div>
 
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-density-v25.css?v=1">
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/ticket-workspace.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/notifications.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
