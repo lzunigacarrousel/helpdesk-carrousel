@@ -14,7 +14,7 @@ foreach($tickets as $t){
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="tickets-page <?= $isExternal?'external-cases-page':'' ?>">
-<div class="page-heading tickets-heading"><div><h1 class="page-title"><?= htmlspecialchars($isExternal?'Mis casos':'Mis solicitudes') ?></h1><p class="page-subtitle"><?= $isExternal?'Revisa el estado y abre un caso cuando necesites continuar la conversación.':'Revisa el estado de tus casos y abre solo el que necesites continuar.' ?></p></div><?php if(!$isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
+<div class="page-heading tickets-heading"><div><h1 class="page-title"><?= htmlspecialchars($isExternal?'Mis casos':'Mis solicitudes') ?></h1><p class="page-subtitle"><?= $isExternal?'Abre solo el caso que necesites revisar o actualizar.':'Revisa el estado de tus casos y abre solo el que necesites continuar.' ?></p></div><?php if(!$isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
 <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
 <?php if(!$isExternal&&$reviewCount>0): ?>
@@ -22,8 +22,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 <?php endif; ?>
 
 <?php if($isExternal): ?>
-<section class="external-case-overview">
-  <div class="external-case-guide"><strong>Casos asignados a tu cuenta</strong><span>Abre uno para responder o adjuntar evidencia.</span></div>
+<section class="external-case-overview external-case-overview-compact">
   <div class="external-case-stats"><div><span>Activos</span><strong><?= $openCount ?></strong></div><div><span>En espera</span><strong><?= $waitingCount ?></strong></div><div><span>Finalizados</span><strong><?= $doneCount ?></strong></div></div>
 </section>
 <?php endif; ?>
