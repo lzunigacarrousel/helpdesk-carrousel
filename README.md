@@ -1,54 +1,94 @@
 # Helpdesk Carrousel 360
 
-Aplicación de Service Desk de Corporación Carrousel. La rama `v2-rebuild` es la reconstrucción actual para PC TEST y utiliza MariaDB, PHP 8+ y acceso por OTP.
+Aplicación de Service Desk de Corporación Carrousel. La rama `v2-rebuild` es la reconstrucción actual y utiliza PHP 8+, MariaDB y acceso por OTP.
 
-## Estado actual
+## Fuente de verdad
 
-- Carpeta recomendada: `C:\xampp\htdocs\HelpdeskCarrousel`
-- Base canónica única: `helpdesk_carrousel`
-- Entrada web: `http://localhost/HelpdeskCarrousel/public/`
-- Configuración local: `config\local.php` (no se versiona)
-- Correo en PC TEST: `mail_mode => 'log'`
-- Administrador inicial: `luis@carrousel.com.gt`
+La aplicación trabaja con **una sola base de datos**:
 
-TEST y Producción utilizan el mismo nombre de base de datos. La separación de ambientes depende de la máquina/servidor, no de nombres diferentes de BD.
+`helpdesk_carrousel`
 
-## Instalación limpia
+TEST y Producción usan el mismo nombre. La separación de ambientes depende de la máquina/servidor y de `config/local.php`, no de nombres distintos de BD.
 
-La instalación nueva debe partir del esquema actual y nunca de una cadena de migraciones históricas. El objetivo canónico es que `database\INSTALAR.sql` pueda recrear por sí mismo el esquema final sobre `helpdesk_carrousel`.
+La instalación limpia se construye desde **un único SQL maestro**:
 
-Durante la consolidación actual existe temporalmente `database\FINALIZAR_ESQUEMA_V2.sql`; se utiliza una sola vez para materializar el último estado y será retirado cuando ese estado quede absorbido en `INSTALAR.sql`.
+`database\INSTALAR.sql`
 
-Los catálogos organizacionales se cargan desde `database\CATALOGOS_CARROUSEL.sql` mientras se completa esa consolidación. `database\VERIFICAR_INSTALACION.sql` valida estrictamente el resultado y `database\VERIFICAR_ESTABILIDAD_V2.sql` realiza diagnósticos de integridad sin modificar datos.
+Ese archivo contiene todo el esquema actual, relaciones, trigger de resolución, perfiles, permisos, SLA, regiones, parques, categorías, puestos, soporte, administrador inicial, NPS, notificaciones, problemas conocidos y conocimiento.
 
-## Qué contiene el esquema vigente
+No se usan scripts `ACTUALIZAR_*`, fases antiguas, importadores ni parches para una instalación nueva.
 
-La estructura actual incluye seguridad, OTP, sesiones, usuarios, perfiles, permisos, organización, equipos y alcances, tickets, conversaciones, adjuntos, resoluciones, NPS, problemas conocidos, conocimiento, colaboradores externos, notificaciones, auditoría, SLA y control de versión del esquema.
+## SQL vigentes
 
-Una instalación limpia no importa tickets ni usuarios históricos de aplicaciones anteriores.
+La carpeta `database\` contiene únicamente:
 
-## Base de datos
+- `INSTALAR.sql` — crea `helpdesk_carrousel` y el esquema canónico completo.
+- `VERIFICAR_INSTALACION.sql` — valida tablas, columnas, catálogos, permisos, administrador y trigger.
+- `VERIFICAR_ESTABILIDAD_V2.sql` — diagnóstico de integridad en modo solo lectura.
 
-La verificación canónica exige exactamente las tablas que utiliza la aplicación vigente y falla si falta una tabla requerida o aparece una tabla extra/legacy.
+Los quality gates fallan si vuelve a aparecer otro `.sql` dentro de `database\`.
 
-Los perfiles vigentes son `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL`. Gerencia y Supervisor son perfiles de consulta y no deben convertirse automáticamente en Solicitante.
+## Instalación limpia en PC TEST
 
-Los parques activos deben tener una región válida porque el flujo actual de asignaciones y alcance depende de esa relación.
+Requisitos: XAMPP con MariaDB/MySQL activo, PHP de XAMPP y Composer.
 
-## Acceso y OTP
+Flujo recomendado:
 
-No se utilizan contraseñas permanentes. El usuario escribe su correo y recibe un código OTP temporal. En PC TEST, con `mail_mode => 'log'`, el código se registra localmente en:
+1. Clonar `v2-rebuild` en `C:\xampp\htdocs\HelpdeskCarrousel`.
+2. Confirmar `git status` limpio.
+3. Ejecutar `INSTALAR_PC_TEST.bat` y escribir `REINSTALAR` cuando se solicite.
+4. El instalador respalda `helpdesk_carrousel` si existe, la elimina y ejecuta únicamente `database\INSTALAR.sql`.
+5. Después instala dependencias y ejecuta los quality gates y `database\VERIFICAR_INSTALACION.sql`.
+
+También puede hacerse manualmente desde CMD:
+
+```bat
+C:\xampp\mysql\bin\mysql.exe -u root -e "DROP DATABASE IF EXISTS helpdesk_carrousel;"
+C:\xampp\mysql\bin\mysql.exe -u root --default-character-set=utf8mb4 < database\INSTALAR.sql
+C:\xampp\mysql\bin\mysql.exe -u root --default-character-set=utf8mb4 < database\VERIFICAR_INSTALACION.sql
+```
+
+Una instalación válida debe dejar una sola base `helpdesk_carrousel`, exactamente 36 tablas canónicas, 29 parques activos con región, 4 regiones y 1 administrador inicial.
+
+## Configuración local
+
+Copiar:
+
+`config\local.php.example` → `config\local.php`
+
+`config/local.php` no se versiona. Valores base:
+
+- `db_host`: `127.0.0.1`
+- `db_name`: `helpdesk_carrousel`
+- `db_user`: `root`
+- `mail_mode`: `log` en PC TEST
+
+Administrador inicial:
+
+`luis@carrousel.com.gt`
+
+El acceso no usa contraseña permanente; se realiza con OTP. En PC TEST, con `mail_mode => 'log'`, el código queda en:
 
 `storage\logs\mail.log`
 
-Para SMTP real se configura únicamente `config\local.php`; nunca deben subirse credenciales al repositorio.
+## Esquema actual
 
-## Seguridad y archivos locales
+La base canónica cubre seguridad/OTP/sesiones, usuarios y perfiles, asignaciones organizacionales, equipos y alcances, tickets, conversaciones, adjuntos, resoluciones, confirmación del solicitante y NPS, SLA, problemas conocidos, conocimiento, colaboradores externos, notificaciones, auditoría y control de versión del esquema.
 
-`.gitignore` excluye `config/local.php`, logs, adjuntos, exportaciones, caché, sesiones, temporales, backups, `vendor/` y otros archivos regenerables o sensibles.
+Los perfiles vigentes son `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL`.
 
-Antes de subir cambios usa `HELPDESK_ADMIN.bat` para revisar estado, diferencias y archivos sensibles.
+Gerencia y Supervisor son perfiles de consulta y seguimiento; no son operadores de soporte.
 
-## Regla de mantenimiento de BD
+## Calidad y seguridad
 
-No se agregan nuevamente scripts SQL históricos al directorio `database`. Cualquier cambio nuevo debe terminar consolidado en el esquema canónico y acompañado de una verificación reproducible para instalaciones nuevas.
+Antes de considerar válida una versión deben pasar:
+
+```bat
+C:\xampp\php\php.exe tests\static_checks.php
+C:\xampp\php\php.exe tests\project_quality.php
+C:\xampp\php\php.exe tests\xlsx_smoke.php
+```
+
+GitHub Actions también crea una MariaDB vacía y ejecuta `database\INSTALAR.sql` desde cero para comprobar que el repositorio siga siendo instalable sin depender de una base anterior.
+
+`.gitignore` excluye configuración local, logs, adjuntos, exportaciones, caché, sesiones, temporales, backups y `vendor/`.
