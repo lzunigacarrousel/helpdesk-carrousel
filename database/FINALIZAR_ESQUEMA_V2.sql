@@ -1,10 +1,9 @@
 -- Helpdesk Carrousel V2
 -- FINALIZAR ESQUEMA ACTUAL PARA INSTALACION LIMPIA
--- Requisito: ejecutar inmediatamente despues de database/INSTALAR.sql
+-- Archivo transitorio: se usa solo para consolidar el ultimo esquema en INSTALAR.sql.
 -- MariaDB 10.4+
--- No importa datos historicos ni usuarios de aplicaciones anteriores.
 
-USE helpdesk_carrousel_test;
+USE helpdesk_carrousel;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -158,11 +157,9 @@ INSERT INTO permissions(code,name,module,description) VALUES
 ('external.manage','Gestionar usuarios externos','EXTERNAL','Permite crear colaboradores externos y compartir casos especiales.')
 ON DUPLICATE KEY UPDATE name=VALUES(name),module=VALUES(module),description=VALUES(description);
 
--- Administrador: todos los permisos existentes y nuevos.
 INSERT IGNORE INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r CROSS JOIN permissions p WHERE r.code='ADMIN';
 
--- Semiadministrador: operacion amplia y gestion.
 INSERT IGNORE INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p
 WHERE r.code='SEMIADMIN' AND p.code IN(
@@ -172,7 +169,6 @@ WHERE r.code='SEMIADMIN' AND p.code IN(
     'management.view','external.manage','problems.view','problems.manage','knowledge.view','knowledge.manage','sla.manage'
 );
 
--- Tecnico: atencion de tickets y consulta operativa.
 INSERT IGNORE INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p
 WHERE r.code='TECHNICIAN' AND p.code IN(
@@ -180,7 +176,6 @@ WHERE r.code='TECHNICIAN' AND p.code IN(
     'tickets.comment_public','tickets.comment_internal','reports.view','problems.view','knowledge.view'
 );
 
--- Gerencia y Supervisor son perfiles vigentes de consulta; no se convierten en solicitante.
 UPDATE roles SET is_active=1,name='Gerencia',description='Consulta ejecutiva global, indicadores, informes y conocimiento; no atiende solicitudes.' WHERE code='MANAGEMENT';
 UPDATE roles SET is_active=1,name='Supervisor',description='Consulta y seguimiento dentro de su region, parque o area; no atiende solicitudes.' WHERE code='SUPERVISOR';
 
@@ -203,7 +198,6 @@ WHERE r.code IN('MANAGEMENT','SUPERVISOR')
     'knowledge.manage','problems.manage','audit.view'
   );
 
--- Equipo IT: membresia operativa explicita y alcance global inicial.
 SET @it_team_id := (SELECT id FROM support_teams WHERE code='IT' LIMIT 1);
 INSERT IGNORE INTO support_scopes(team_id,park_id,area_id,scope_type,is_active)
 SELECT @it_team_id,NULL,NULL,'GLOBAL',1 WHERE @it_team_id IS NOT NULL;
@@ -217,7 +211,6 @@ WHERE @it_team_id IS NOT NULL
   AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN')
 ON DUPLICATE KEY UPDATE is_active=1,ended_at=NULL;
 
--- Normalizacion del codigo Semnox.
 UPDATE ticket_categories SET code='SEMNOX',updated_at=NOW() WHERE LOWER(code)='semnox';
 
 INSERT INTO schema_migrations(version,name) VALUES
