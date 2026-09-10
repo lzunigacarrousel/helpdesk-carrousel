@@ -1,4 +1,4 @@
-/* Helpdesk Carrousel · densidad y aprovechamiento de espacio V2.5
+/* Helpdesk Carrousel · densidad y aprovechamiento de espacio V2.6
  * Capa final de geometría: elimina huecos artificiales sin cambiar lógica.
  * Se carga después de las hojas históricas para estabilizar el layout completo.
  */
@@ -75,8 +75,10 @@
 .mgmt-grid,
 .dashboard-work-grid,
 .dashboard-action-grid,
+.dashboard-requester-grid,
 .external-layout,
 .external-ops-layout,
+.external-case-overview,
 .case-secondary-grid,
 .problem-summary-grid,
 .knowledge-layout,
@@ -89,8 +91,10 @@
 .mgmt-grid>:only-child,
 .dashboard-work-grid>:only-child,
 .dashboard-action-grid>:only-child,
+.dashboard-requester-grid>:only-child,
 .external-layout>:only-child,
 .external-ops-layout>:only-child,
+.external-case-overview>:only-child,
 .case-secondary-grid>:only-child,
 .problem-summary-grid>:only-child,
 .knowledge-layout>:only-child,
@@ -98,13 +102,59 @@
 .manual-cards>:only-child,
 .manual-flow>:only-child{
   grid-column:1/-1!important;
+  width:100%!important;
 }
 
-/* Directorios/listados: un único registro aprovecha el ancho disponible. */
+/* Listados de tarjetas: auto-fit colapsa columnas vacías.
+ * Un solo registro ocupa todo el ancho; varios se distribuyen sin huecos fantasmas.
+ */
+.ticket-list,
+.external-ticket-list{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))!important;
+  gap:12px!important;
+  width:100%!important;
+}
+.ticket-list>.ticket-list-card:only-child,
+.external-ticket-list>.ticket-list-card:only-child{
+  grid-column:1/-1!important;
+  width:100%!important;
+}
+
+/* Dashboard de solicitante/proveedor: no reservar una columna que no existe. */
+.dashboard-external .dashboard-requester-grid,
+.dashboard-requester-grid:has(>:only-child),
+.external-case-overview-compact,
+.external-case-overview:has(>:only-child){
+  grid-template-columns:1fr!important;
+}
+.external-case-overview-compact>.external-case-stats,
+.external-case-overview>:only-child{
+  width:100%!important;
+  grid-column:1/-1!important;
+}
+
+/* Colecciones visuales con cantidad variable. */
+.external-users,
+.knowledge-grid,
+.itsm-learning-grid,
+.manual-cards,
+.manual-flow,
+.dashboard-action-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))!important;
+}
 .external-users{
   grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))!important;
   align-items:start!important;
 }
+
+/* Grids administrativos de dos columnas: si queda un último bloque impar, usa la fila completa. */
+.mgmt-grid>:last-child:nth-child(odd),
+.case-secondary-grid>:last-child:nth-child(odd){
+  grid-column:1/-1!important;
+}
+
+/* Directorios/listados: un único registro aprovecha el ancho disponible. */
 .external-operation-card{
   height:auto!important;
   min-height:0!important;
@@ -189,9 +239,14 @@
 .conversation-list{
   margin:9px 0!important;
   gap:8px!important;
+  min-height:0!important;
+}
+.conversation-list:has(.conversation-empty){
+  min-height:0!important;
 }
 .conversation-empty{
   padding:14px 12px!important;
+  min-height:0!important;
 }
 .conversation-form{
   padding-top:12px!important;
@@ -229,9 +284,6 @@
 }
 
 /* Dashboard: si hay pocos bloques, no deja columnas fantasmas. */
-.dashboard-action-grid{
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr))!important;
-}
 .dashboard-work-grid{
   align-items:start!important;
 }
@@ -239,6 +291,9 @@
 .dashboard-queue-card{
   height:auto!important;
   min-height:0!important;
+}
+.dashboard-activity-card .ticket-list{
+  width:100%!important;
 }
 
 @media(max-width:1000px){
@@ -252,6 +307,10 @@
   .case-secondary-grid{
     grid-template-columns:1fr!important;
   }
+  .ticket-list,
+  .external-ticket-list{
+    grid-template-columns:1fr!important;
+  }
 }
 
 @media(max-width:760px){
@@ -263,7 +322,12 @@
   .case-action-card .card-body{
     padding:14px!important;
   }
-  .external-users{
+  .external-users,
+  .knowledge-grid,
+  .itsm-learning-grid,
+  .manual-cards,
+  .manual-flow,
+  .dashboard-action-grid{
     grid-template-columns:1fr!important;
   }
 }
