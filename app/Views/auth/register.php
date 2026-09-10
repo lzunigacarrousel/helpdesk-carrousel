@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-042'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260910-UI3'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -18,7 +18,6 @@
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
       <span class="auth-product-pill">Helpdesk Carrousel</span>
       <h1>Completa tu perfil una sola vez.</h1>
-      <p>Con tu ubicación y función podemos dirigir las solicitudes al equipo correcto. Después ingresarás solamente con correo y OTP.</p>
       <div class="auth-points-v2"><span>Registro único</span><span>Asignación organizacional</span><span>OTP seguro</span></div>
     </div>
   </section>
@@ -28,14 +27,14 @@
       <div class="auth-mobile-brand-v2"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><strong>Helpdesk Carrousel</strong></div>
       <span class="auth-eyebrow">Primer ingreso</span>
       <h2>Completa tus datos</h2>
-      <p class="auth-lead">Correo identificado: <strong><?= htmlspecialchars((string)$email) ?></strong></p>
+      <p class="auth-lead"><strong><?= htmlspecialchars((string)$email) ?></strong></p>
       <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
       <form method="post" action="<?= APP_BASE_URL ?>/auth/register" id="registerForm" data-single-submit data-action-message="Guardando tus datos y enviando código…">
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="email" value="<?= htmlspecialchars((string)$email) ?>">
 
         <section class="auth-register-section">
-          <h3>Tus datos</h3><p>Información básica para identificarte.</p>
+          <h3>Tus datos</h3>
           <div class="auth-register-grid">
             <label>Nombre completo<input class="form-control" id="name" name="name" autocomplete="name" maxlength="160" required autofocus placeholder="Escribe tu nombre completo"></label>
             <label>Teléfono<input class="form-control" id="phone" name="phone" autocomplete="tel" inputmode="tel" maxlength="30" required placeholder="Número de contacto"></label>
@@ -43,7 +42,7 @@
         </section>
 
         <section class="auth-register-section">
-          <h3>Ubicación y función</h3><p>Selecciona dónde trabajas habitualmente.</p>
+          <h3>Ubicación y función</h3>
           <div class="auth-work-options">
             <div class="auth-work-option"><input type="radio" id="workPark" name="assignment_type" value="PARK" required><label for="workPark">Parque / ubicación</label></div>
             <div class="auth-work-option"><input type="radio" id="workCorporate" name="assignment_type" value="CORPORATE" required><label for="workCorporate">Área corporativa</label></div>
@@ -59,7 +58,6 @@
         <button class="btn btn-primary auth-primary" style="width:100%;min-height:48px;margin-top:14px" type="submit">Guardar y continuar</button>
       </form>
 
-      <p class="auth-security-v2">Estos datos se utilizan únicamente para identificarte y dirigir correctamente las solicitudes dentro del Helpdesk.</p>
       <div class="auth-actions-v2"><div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/login">← Cambiar correo</a></div><button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button></div>
     </div>
   </section>
