@@ -23,8 +23,8 @@ requesterCheck(str_contains($controller,'singleActiveAssignment'),'El formulario
 requesterCheck(str_contains($controller,"ua.status='ACTIVE'"),'La ubicación automática usa asignaciones activas');
 requesterCheck(str_contains($controller,'requester_user_id'),'Se conserva vínculo del ticket con usuario autenticado');
 requesterCheck(str_contains($controller,'$authUser=Auth::user()')||str_contains($controller,'$authUser = Auth::user()'),'publicStore obtiene identidad autenticada del servidor');
-requesterCheck(str_contains($controller,"$name=(string)$authUser['full_name']")||str_contains($controller,"$name = (string)$authUser['full_name']"),'Nombre autenticado no depende de un hidden manipulable');
-requesterCheck(str_contains($controller,"$email=strtolower((string)$authUser['email'])")||str_contains($controller,"$email = strtolower((string)$authUser['email'])"),'Correo autenticado no depende de un hidden manipulable');
+requesterCheck(str_contains($controller,'$name=(string)$authUser[\'full_name\']')||str_contains($controller,'$name = (string)$authUser[\'full_name\']'),'Nombre autenticado no depende de un hidden manipulable');
+requesterCheck(str_contains($controller,'$email=strtolower((string)$authUser[\'email\'])')||str_contains($controller,'$email = strtolower((string)$authUser[\'email\'])'),'Correo autenticado no depende de un hidden manipulable');
 
 requesterCheck(str_contains($view,'¿En qué necesitas ayuda?'),'Formulario habla en lenguaje de ayuda');
 requesterCheck(str_contains($view,'Cuéntanos qué está pasando'),'Descripción usa lenguaje sencillo');
@@ -33,7 +33,7 @@ requesterCheck(str_contains($view,'data-category-help-text'),'Existe salida acce
 requesterCheck(str_contains($view,'data-location-summary'),'Existe resumen de ubicación automática');
 requesterCheck(str_contains($view,'data-location-fields'),'La ubicación automática se puede cambiar');
 requesterCheck(str_contains($view,'Reportar en otro lugar'),'Cambio de ubicación se presenta como acción secundaria');
-requesterCheck(str_contains($view,"$c['display_name']")||str_contains($view,"$c['requester_label']"),'La vista usa copy humano sin cambiar category_id');
+requesterCheck(str_contains($view,'$c[\'display_name\']')||str_contains($view,'$c[\'requester_label\']'),'La vista usa copy humano sin cambiar category_id');
 requesterCheck(!str_contains($view,'>Tipo de solicitud<'),'No se expone el rótulo técnico Tipo de solicitud');
 requesterCheck(str_contains($view,'name="subject" id="subject"'),'Se conserva subject generado');
 requesterCheck(str_contains($view,'buildSubject'),'Se conserva generación del resumen interno');
