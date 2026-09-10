@@ -7,11 +7,11 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-CREATE DATABASE IF NOT EXISTS helpdesk_carrousel
+CREATE DATABASE IF NOT EXISTS carrousel_helpdesk
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE helpdesk_carrousel;
+USE carrousel_helpdesk;
 
 -- =========================================================
 -- CONTROL DE ESQUEMA
