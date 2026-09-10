@@ -82,4 +82,26 @@ check(isset($routes['POST /tickets/resolve']),'Existe POST /tickets/resolve');
 check(isset($routes['GET /tickets/resolve']),'GET /tickets/resolve redirige de forma segura');
 check(isset($routes['GET /gestion/informes/exportar']),'Existe exportación XLSX de informes');
 
+// Normalización UI: una sola estrategia de geometría/footer y tablas semánticas.
+$appEnd=(string)@file_get_contents($root.'/app/Views/shared/app_end.php');
+$managementCss=(string)@file_get_contents($root.'/public/assets/css/management.css');
+$componentsCss=(string)@file_get_contents($root.'/public/assets/css/components.css');
+check(!str_contains($appEnd,'sticky-footer.css'),'Footer no depende de una segunda capa CSS contradictoria');
+check(preg_match('/\.report-table\s*\{[^}]*min-width\s*:\s*1450px/s',$managementCss)!==1,'Informes no fuerzan ancho de 1450px');
+check(str_contains($componentsCss,'.data-table'),'Existe componente global .data-table');
+check(str_contains($componentsCss,'content:attr(data-label)'),'Tablas móviles usan data-label en lugar de scroll horizontal obligatorio');
+
+$requiredTableViews=[
+    'admin/users.php',
+    'admin/audit.php',
+    'management/support_team.php',
+    'admin/externals.php',
+    'management/external_report.php',
+];
+foreach($requiredTableViews as $relative){
+    $view=(string)@file_get_contents($root.'/app/Views/'.$relative);
+    check($view!==''&&str_contains($view,'<table'),'Vista usa tabla semántica: '.$relative);
+    check($view!==''&&str_contains($view,'data-label='),'Vista prepara lectura responsive con data-label: '.$relative);
+}
+
 exit($ok?0:1);
