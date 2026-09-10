@@ -53,6 +53,7 @@ final class ExternalController
         $pdo=Database::pdo();
         $u=$pdo->prepare("SELECT u.id,u.email,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.access_type='EXTERNAL' AND r.code='EXTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL LIMIT 1");$u->execute([$userId]);$external=$u->fetch();if(!$external)throw new \RuntimeException('Ese usuario no está disponible.');
         $t=$pdo->prepare('SELECT id,ticket_number,subject FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$t->execute([$ticketId]);$ticket=$t->fetch();if(!$ticket)throw new \RuntimeException('No encontramos ese caso.');
+        $active=$pdo->prepare('SELECT 1 FROM external_ticket_access WHERE ticket_id=? AND user_id=? AND revoked_at IS NULL LIMIT 1');$active->execute([$ticketId,$userId]);if($active->fetchColumn())throw new \RuntimeException('Ese proveedor ya tiene acceso vigente a este caso.');
         Database::transaction(function(PDO $pdo)use($ticketId,$userId,$canComment,$canUpload):void{
             $pdo->prepare("UPDATE tickets SET case_type='SPECIAL',visibility_mode='EXTERNAL_ALLOWED',updated_at=NOW() WHERE id=?")->execute([$ticketId]);
             $pdo->prepare("INSERT INTO external_ticket_access(ticket_id,user_id,can_comment,can_upload,granted_by,granted_at,revoked_at) VALUES(?,?,?,?,?,NOW(),NULL) ON DUPLICATE KEY UPDATE can_comment=VALUES(can_comment),can_upload=VALUES(can_upload),granted_by=VALUES(granted_by),granted_at=NOW(),revoked_at=NULL")
