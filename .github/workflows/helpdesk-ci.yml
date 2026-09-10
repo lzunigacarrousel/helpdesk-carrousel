@@ -56,6 +56,9 @@ jobs:
       - name: Static project checks
         run: php tests/static_checks.php
 
+      - name: Installer safety regression
+        run: php tests/installer_safety_smoke.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
