@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -69,6 +69,8 @@ $routes=[
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
     ['POST','/admin/users/delete',[AdminController::class,'delete']],
     ['GET','/admin/externos',[ExternalController::class,'index']],
+    ['GET','/admin/externos/informe',[ExternalReportController::class,'index']],
+    ['GET','/admin/externos/informe/exportar',[ExternalReportController::class,'export']],
     ['POST','/admin/externos/crear',[ExternalController::class,'createUser']],
     ['POST','/admin/externos/asignar',[ExternalController::class,'grant']],
     ['POST','/admin/externos/revocar',[ExternalController::class,'revoke']],
