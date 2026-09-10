@@ -33,11 +33,18 @@ $legacySql=[];
 foreach(glob($root.'/database/*.sql')?:[] as $file){$name=basename($file);if(!in_array($name,['INSTALAR.sql','VERIFICAR_INSTALACION.sql','VERIFICAR_ESTABILIDAD_V2.sql'],true))$legacySql[]=$name;}
 check($legacySql===[],'database/ no contiene SQL historicos o parches'.($legacySql?' → '.implode(', ',$legacySql):''));
 
+$legacyDb='helpdesk_carrousel'.'_test';
+$legacyFinalize='FINALIZAR_ESQUEMA'.'_V2.sql';
+$legacyCatalogs='CATALOGOS_'.'CARROUSEL.sql';
+$legacyUpdate='ACTUALIZAR'.'_';
+$legacyPhase='INSTALAR_'.'FASE1.sql';
+$legacyImport='IMPORTAR_DESDE_'.'CAJA_CHICA.sql';
 $forbidden=[
-'config/config.php'=>['helpdesk_carrousel_test'],
-'config/local.php.example'=>['helpdesk_carrousel_test'],
-'INSTALAR_PC_TEST.bat'=>['FINALIZAR_ESQUEMA_V2.sql','CATALOGOS_CARROUSEL.sql','helpdesk_carrousel_test'],
-'README.md'=>['FINALIZAR_ESQUEMA_V2.sql','CATALOGOS_CARROUSEL.sql','helpdesk_carrousel_test','ACTUALIZAR_','INSTALAR_FASE1.sql','IMPORTAR_DESDE_CAJA_CHICA.sql'],
+'config/config.php'=>[$legacyDb],
+'config/local.php.example'=>[$legacyDb],
+'tools/AUDITAR_TABLAS_HELPDESK.php'=>[$legacyDb],
+'INSTALAR_PC_TEST.bat'=>[$legacyFinalize,$legacyCatalogs,$legacyDb],
+'README.md'=>[$legacyFinalize,$legacyCatalogs,$legacyDb,$legacyUpdate,$legacyPhase,$legacyImport],
 'app/Views/admin/users.php'=>['+ Nuevo usuario']];
 foreach($forbidden as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle)check(!(is_string($content)&&str_contains($content,$needle)),$file.' no contiene '.$needle);}
 exit($ok?0:1);
