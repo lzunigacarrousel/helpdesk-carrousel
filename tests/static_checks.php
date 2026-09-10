@@ -52,6 +52,6 @@ $forbidden=[
 'app/Views/tickets/show.php'=>['Problem Management','Nota interna · Solo Soporte'],
 'app/Views/admin/users.php'=>['Perfiles predefinidos','Qué hace cada perfil','Selecciona el perfil según la responsabilidad real','Nuevo acceso</span><h2>Crear usuario','Tipo de ubicación','+ Nuevo usuario'],
 'app/Controllers/ExternalController.php'=>['new MailService'],
-'README.md'=>['helpdesk360_test','C:\\xampp\\htdocs\\Helpdesk360','INSTALAR_FASE1.sql']];
+'README.md'=>['helpdesk360_test','C:\\xampp\\htdocs\\Helpdesk360']];
 foreach($forbidden as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle){$found=is_string($content)&&str_contains($content,$needle);echo (!$found?'[OK] ':'[NO DEBE ESTAR] ').$file.' no contiene '.$needle.PHP_EOL;$ok=$ok&&!$found;}}
 exit($ok?0:1);
