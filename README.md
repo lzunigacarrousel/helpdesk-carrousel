@@ -4,47 +4,36 @@ Aplicación de Service Desk de Corporación Carrousel. La rama `v2-rebuild` es l
 
 ## Estado actual
 
-La instalación vigente usa:
-
 - Carpeta recomendada: `C:\xampp\htdocs\HelpdeskCarrousel`
-- Base de TEST: `helpdesk_carrousel_test`
+- Base canónica única: `helpdesk_carrousel`
 - Entrada web: `http://localhost/HelpdeskCarrousel/public/`
 - Configuración local: `config\local.php` (no se versiona)
 - Correo en PC TEST: `mail_mode => 'log'`
 - Administrador inicial: `luis@carrousel.com.gt`
 
-La base histórica `helpdesk_carrousel` no forma parte de la instalación limpia y no debe eliminarse ni modificarse desde los instaladores de TEST.
+TEST y Producción utilizan el mismo nombre de base de datos. La separación de ambientes depende de la máquina/servidor, no de nombres diferentes de BD.
 
-## Instalación limpia recomendada
+## Instalación limpia
 
-La instalación limpia no se construye ejecutando todas las migraciones antiguas. El flujo canónico es:
+La instalación nueva debe partir del esquema actual y nunca de una cadena de migraciones históricas. El objetivo canónico es que `database\INSTALAR.sql` pueda recrear por sí mismo el esquema final sobre `helpdesk_carrousel`.
 
-1. Clonar o actualizar la rama `v2-rebuild` en `C:\xampp\htdocs\HelpdeskCarrousel`.
-2. Ejecutar `INSTALAR_PC_TEST.bat`.
-3. Escribir `REINSTALAR` cuando el instalador solicite confirmación.
-4. El instalador respalda `helpdesk_carrousel_test` si existe y luego recrea únicamente esa base.
-5. El instalador ejecuta, en este orden:
-   - `database\INSTALAR.sql` — núcleo V2.
-   - `database\FINALIZAR_ESQUEMA_V2.sql` — estructura que requiere la aplicación actual.
-   - `database\CATALOGOS_CARROUSEL.sql` — regiones y parques base.
-   - `database\VERIFICAR_INSTALACION.sql` — validación estricta del resultado.
-6. También instala dependencias Composer y ejecuta los quality gates del proyecto.
+Durante la consolidación actual existe temporalmente `database\FINALIZAR_ESQUEMA_V2.sql`; se utiliza una sola vez para materializar el último estado y será retirado cuando ese estado quede absorbido en `INSTALAR.sql`.
 
-Si Composer no está disponible y `vendor\autoload.php` tampoco existe, el instalador se detiene sin considerar válida la instalación.
+Los catálogos organizacionales se cargan desde `database\CATALOGOS_CARROUSEL.sql` mientras se completa esa consolidación. `database\VERIFICAR_INSTALACION.sql` valida estrictamente el resultado y `database\VERIFICAR_ESTABILIDAD_V2.sql` realiza diagnósticos de integridad sin modificar datos.
 
-## Qué crea una instalación nueva
+## Qué contiene el esquema vigente
 
-Una instalación nueva conserva solo la estructura que usa la aplicación actual: seguridad/OTP/sesiones, usuarios y perfiles, organización, equipos y alcances, tickets y conversaciones, resoluciones, NPS, problemas conocidos, conocimiento, colaboradores externos, notificaciones, auditoría, SLA y control de versión del esquema.
+La estructura actual incluye seguridad, OTP, sesiones, usuarios, perfiles, permisos, organización, equipos y alcances, tickets, conversaciones, adjuntos, resoluciones, NPS, problemas conocidos, conocimiento, colaboradores externos, notificaciones, auditoría, SLA y control de versión del esquema.
 
-No se importan automáticamente usuarios, tickets ni datos históricos de Caja Chica u otras versiones. `database\IMPORTAR_DESDE_CAJA_CHICA.sql` queda únicamente como herramienta histórica/opcional y no forma parte del proceso limpio.
+Una instalación limpia no importa tickets ni usuarios históricos de aplicaciones anteriores.
 
 ## Base de datos
 
-La instalación canónica espera exactamente las tablas definidas por `database\VERIFICAR_INSTALACION.sql`. La verificación falla si falta una tabla requerida o si aparece una tabla extra/legacy en una instalación que debe estar limpia.
+La verificación canónica exige exactamente las tablas que utiliza la aplicación vigente y falla si falta una tabla requerida o aparece una tabla extra/legacy.
 
-Los perfiles `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL` son perfiles vigentes. Gerencia y Supervisor son perfiles de consulta y no deben convertirse automáticamente en Solicitante.
+Los perfiles vigentes son `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL`. Gerencia y Supervisor son perfiles de consulta y no deben convertirse automáticamente en Solicitante.
 
-Los parques activos se cargan con una región válida porque el flujo actual de asignaciones y alcance depende de esa relación.
+Los parques activos deben tener una región válida porque el flujo actual de asignaciones y alcance depende de esa relación.
 
 ## Acceso y OTP
 
@@ -58,10 +47,8 @@ Para SMTP real se configura únicamente `config\local.php`; nunca deben subirse 
 
 `.gitignore` excluye `config/local.php`, logs, adjuntos, exportaciones, caché, sesiones, temporales, backups, `vendor/` y otros archivos regenerables o sensibles.
 
-Antes de subir cambios usa `HELPDESK_ADMIN.bat` para revisar estado, diferencias y auditoría de archivos sensibles.
+Antes de subir cambios usa `HELPDESK_ADMIN.bat` para revisar estado, diferencias y archivos sensibles.
 
-## Scripts históricos
+## Regla de mantenimiento de BD
 
-Los archivos `ACTUALIZAR_*`, `INSTALAR_FASE1.sql`, `ACTUALIZAR_FASE1_1.sql`, `ACTUALIZAR_FASE2_1.sql`, `ACTUALIZAR_V1_0_3.sql` y otros scripts de transición documentan etapas anteriores. No deben ejecutarse sobre una instalación limpia actual salvo que una tarea de migración específica lo requiera.
-
-La fuente de verdad para una PC nueva es `INSTALAR_PC_TEST.bat` y los cuatro scripts de instalación/verificación indicados arriba.
+No se agregan nuevamente scripts SQL históricos al directorio `database`. Cualquier cambio nuevo debe terminar consolidado en el esquema canónico y acompañado de una verificación reproducible para instalaciones nuevas.
