@@ -2,7 +2,7 @@
 $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
-$pageTitle=$isExternal?'Mis casos':'Mis solicitudes';$pageSection=$pageTitle;$activeNav='mine';$helpContext='my_tickets';
+$pageTitle=$isExternal?'Mis casos':'Mis solicitudes';$pageSection=$isExternal?'Casos':'Solicitudes';$activeNav='mine';$helpContext='my_tickets';
 $openCount=0;$waitingCount=0;$doneCount=0;$reviewCount=0;
 foreach($tickets as $t){
   $st=(string)$t['status'];
