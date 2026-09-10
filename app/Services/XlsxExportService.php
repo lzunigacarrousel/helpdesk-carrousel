@@ -55,7 +55,7 @@ final class XlsxExportService
         $now=gmdate('Y-m-d\TH:i:s\Z');
         $zip->addFromString('docProps/core.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             .'<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:creator>Helpdesk Carrousel</dc:creator><cp:lastModifiedBy>Helpdesk Carrousel</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">'.$now.'</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">'.$now.'</dcterms:modified></cp:coreProperties>');
-        $zip->addFromString('docProps/app.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Helpdesk Carrousel</Application></Properties>');
+        $zip->addFromString('docProps/app.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Helpdesk Carrousel</Application></Properties>');
         $zip->close();
 
         $filename=preg_replace('/[^A-Za-z0-9._-]+/','_',pathinfo($filename,PATHINFO_FILENAME)).'.xlsx';
@@ -94,16 +94,22 @@ final class XlsxExportService
 
         $cols=[];foreach($headers as $i=>$h){$n=$i+1;$cols[]='<col min="'.$n.'" max="'.$n.'" width="'.number_format((float)($widths[$i]??12),1,'.','').'" customWidth="1"/>';}
         $lastCol=self::col($maxCols);$lastRow=max($headerRow,$dataStart+count($rows)-1);
+        $dimension='A1:'.$lastCol.$lastRow;
         $merge=$title!==''?'<mergeCells count="1"><mergeCell ref="A1:'.$lastCol.'1"/></mergeCells>':'';
-        $filter=$headers?'<autoFilter ref="A'.$headerRow.':'.$lastCol.$lastRow.'"/>':'';
-        $pane='<sheetViews><sheetView workbookViewId="0"><pane ySplit="'.$headerRow.'" topLeftCell="A'.($headerRow+1).'" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>';
 
-        // En SpreadsheetML el orden de los nodos es significativo: autoFilter debe ir
-        // antes de mergeCells. Excel intenta reparar el libro si aparecen invertidos.
+        /*
+         * Compatibilidad Excel:
+         * El archivo probado en Microsoft Excel abre sin reparación cuando la hoja usa
+         * el subconjunto estable de SpreadsheetML: dimension + sheetFormatPr + cols +
+         * sheetData + mergeCells + pageMargins. Los filtros siguen existiendo en la
+         * pantalla web y pueden aplicarse antes de exportar; evitamos serializar
+         * autoFilter/sheetViews manualmente porque Excel estaba reparando esos libros.
+         */
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-            .'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'.$pane
-            .'<cols>'.implode('',$cols).'</cols><sheetData>'.implode('',$xmlRows).'</sheetData>'.$filter.$merge
-            .'<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>';
+            .'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            .'<dimension ref="'.$dimension.'"/><sheetFormatPr defaultRowHeight="15"/>'
+            .'<cols>'.implode('',$cols).'</cols><sheetData>'.implode('',$xmlRows).'</sheetData>'.$merge
+            .'<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
     }
 
     private static function styles(): string
@@ -111,10 +117,10 @@ final class XlsxExportService
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             .'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
             .'<fonts count="3"><font><sz val="10"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="10"/><name val="Calibri"/></font><font><b/><color rgb="FF173D75"/><sz val="16"/><name val="Calibri"/></font></fonts>'
-            .'<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF173D75"/><bgColor indexed="64"/></patternFill></fill></fills>'
+            .'<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF173D75"/></patternFill></fill></fills>'
             .'<borders count="2"><border/><border><left style="thin"><color rgb="FFD9E1EC"/></left><right style="thin"><color rgb="FFD9E1EC"/></right><top style="thin"><color rgb="FFD9E1EC"/></top><bottom style="thin"><color rgb="FFD9E1EC"/></bottom></border></borders>'
             .'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-            .'<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1"/><protection locked="1"/></xf></cellXfs>'
+            .'<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1"/></xf></cellXfs>'
             .'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
     }
 
