@@ -99,6 +99,7 @@ jobs:
           MYSQL_PWD: root
         run: |
           mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='helpdesk_carrousel' AND TABLE_TYPE='BASE TABLE';")" = "36"
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel.users;")" = "1"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='carrousel_helpdesk' AND TABLE_TYPE='BASE TABLE';")" = "36"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.users;")" = "1"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='helpdesk_carrousel';")" = "0"
