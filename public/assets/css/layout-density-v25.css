@@ -1,6 +1,6 @@
-/* Helpdesk Carrousel · densidad y aprovechamiento de espacio V2.6
- * Capa final de geometría: elimina huecos artificiales sin cambiar lógica.
- * Se carga después de las hojas históricas para estabilizar el layout completo.
+/* Helpdesk Carrousel · geometría canónica V3
+ * Única capa final para densidad, ancho útil y footer.
+ * No debe existir otra hoja posterior que redefina .main-wrap/.content/footer.
  */
 
 :root{
@@ -8,13 +8,16 @@
   --density-gutter:clamp(14px,1.55vw,24px);
 }
 
-/* Shell: el contenido ocupa lo que necesita; no se estira para llenar el viewport. */
+/* Shell canónico: contenido flexible + footer al fondo sin huecos artificiales. */
 .main-wrap{
+  display:flex!important;
+  flex-direction:column!important;
   min-height:calc(100vh - 4px)!important;
 }
 .content{
-  display:block!important;
-  flex:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  flex:1 0 auto!important;
   min-height:0!important;
   width:100%!important;
   max-width:none!important;
@@ -27,14 +30,18 @@
   margin-left:0!important;
   margin-right:0!important;
   box-sizing:border-box;
+  flex:0 0 auto;
 }
-.app-corporate-footer{
+.content>.app-corporate-footer{
+  width:100%!important;
   min-height:0!important;
-  margin-top:18px!important;
-  padding:14px 2px 8px!important;
+  margin-top:auto!important;
+  padding:18px 2px 8px!important;
+  box-sizing:border-box;
+  flex:0 0 auto!important;
 }
 
-/* Los contenedores principales dejan de conservar anchos históricos pequeños. */
+/* Contenedores principales: un solo ancho útil, sin límites históricos pequeños. */
 .dashboard-page,
 .queue-operational-page,
 .mgmt-page,
@@ -60,7 +67,7 @@
 }
 .card,
 .mgmt-card{
-  min-height:0;
+  min-height:0!important;
 }
 .empty-state,
 .support-inline-empty,
@@ -105,9 +112,7 @@
   width:100%!important;
 }
 
-/* Listados de tarjetas: auto-fit colapsa columnas vacías.
- * Un solo registro ocupa todo el ancho; varios se distribuyen sin huecos fantasmas.
- */
+/* Listados de tarjetas: auto-fit colapsa columnas vacías. */
 .ticket-list,
 .external-ticket-list{
   display:grid!important;
@@ -121,7 +126,7 @@
   width:100%!important;
 }
 
-/* Dashboard de solicitante/proveedor: no reservar una columna que no existe. */
+/* Dashboard de solicitante/proveedor: no reservar una columna inexistente. */
 .dashboard-external .dashboard-requester-grid,
 .dashboard-requester-grid:has(>:only-child),
 .external-case-overview-compact,
@@ -134,7 +139,7 @@
   grid-column:1/-1!important;
 }
 
-/* Colecciones visuales con cantidad variable. */
+/* Colecciones visuales variables. */
 .external-users,
 .knowledge-grid,
 .itsm-learning-grid,
@@ -148,13 +153,12 @@
   align-items:start!important;
 }
 
-/* Grids administrativos de dos columnas: si queda un último bloque impar, usa la fila completa. */
+/* Grids administrativos: el último bloque impar usa toda la fila. */
 .mgmt-grid>:last-child:nth-child(odd),
 .case-secondary-grid>:last-child:nth-child(odd){
   grid-column:1/-1!important;
 }
 
-/* Directorios/listados: un único registro aprovecha el ancho disponible. */
 .external-operation-card{
   height:auto!important;
   min-height:0!important;
@@ -163,7 +167,7 @@
   align-items:start!important;
 }
 
-/* Ticket: arquitectura secuencial. Solo Problema + Contexto comparten una fila. */
+/* Ticket: flujo secuencial. Solo Problema + Contexto comparten fila. */
 .case-focus-workspace{
   display:flex!important;
   flex-direction:column!important;
@@ -194,32 +198,18 @@
   margin:0!important;
 }
 .case-problem-card .card-body,
-.case-status-card .card-body{
-  height:100%;
-}
+.case-status-card .card-body{height:100%}
 .case-status-card{
   position:static!important;
   top:auto!important;
   align-self:stretch!important;
 }
-.case-status-main{
-  padding:8px 0 10px!important;
-}
-.case-status-list{
-  padding-top:7px!important;
-}
-.case-status-list>div{
-  padding:7px 0!important;
-}
-.case-problem-meta{
-  gap:9px!important;
-  padding-top:10px!important;
-}
-.case-problem-meta>div{
-  padding:9px 10px!important;
-}
+.case-status-main{padding:8px 0 10px!important}
+.case-status-list{padding-top:7px!important}
+.case-status-list>div{padding:7px 0!important}
+.case-problem-meta{gap:9px!important;padding-top:10px!important}
+.case-problem-meta>div{padding:9px 10px!important}
 
-/* Después de la cabecera, todo el trabajo usa el ancho completo. */
 .case-focus-workspace>.case-conversation-card,
 .case-focus-workspace>.case-action-card,
 .case-focus-workspace>.ticket-problem-link,
@@ -233,101 +223,58 @@
   align-self:stretch!important;
 }
 .case-conversation-card .card-body,
-.case-action-card .card-body{
-  padding:16px 18px!important;
-}
-.conversation-list{
-  margin:9px 0!important;
-  gap:8px!important;
-  min-height:0!important;
-}
-.conversation-list:has(.conversation-empty){
-  min-height:0!important;
-}
-.conversation-empty{
-  padding:14px 12px!important;
-  min-height:0!important;
-}
-.conversation-form{
-  padding-top:12px!important;
-  gap:9px!important;
-}
-.conversation-form textarea{
-  min-height:92px!important;
-}
+.case-action-card .card-body{padding:16px 18px!important}
+.conversation-list{margin:9px 0!important;gap:8px!important;min-height:0!important}
+.conversation-list:has(.conversation-empty){min-height:0!important}
+.conversation-empty{padding:14px 12px!important;min-height:0!important}
+.conversation-form{padding-top:12px!important;gap:9px!important}
+.conversation-form textarea{min-height:92px!important}
 .case-secondary-grid{
   display:grid!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
   gap:var(--density-gap)!important;
   align-items:start!important;
 }
-.case-secondary-grid>.card{
-  margin:0!important;
-}
+.case-secondary-grid>.card{margin:0!important}
 
-/* Gestión / reportes: evitar alturas heredadas y dobles espacios entre tarjetas. */
-.mgmt-grid{
-  gap:var(--density-gap)!important;
-  margin-bottom:var(--density-gap)!important;
-}
-.mgmt-card{
-  margin-bottom:var(--density-gap)!important;
-}
-.mgmt-grid>.mgmt-card{
-  margin-bottom:0!important;
-}
+/* Gestión/reportes: sin alturas heredadas ni dobles márgenes. */
+.mgmt-grid{gap:var(--density-gap)!important;margin-bottom:var(--density-gap)!important}
+.mgmt-card{margin-bottom:var(--density-gap)!important}
+.mgmt-grid>.mgmt-card{margin-bottom:0!important}
 .report-records,
 .ticket-list,
 .support-case-list,
-.admin-user-list{
-  gap:10px!important;
-}
+.admin-user-list{gap:10px!important}
 
-/* Dashboard: si hay pocos bloques, no deja columnas fantasmas. */
-.dashboard-work-grid{
-  align-items:start!important;
-}
+/* Dashboard: pocos bloques no generan columnas fantasmas. */
+.dashboard-work-grid{align-items:start!important}
 .dashboard-work-card,
-.dashboard-queue-card{
-  height:auto!important;
-  min-height:0!important;
-}
-.dashboard-activity-card .ticket-list{
-  width:100%!important;
-}
+.dashboard-queue-card{height:auto!important;min-height:0!important}
+.dashboard-activity-card .ticket-list{width:100%!important}
+
+/* Evita que tarjetas o paneles simples reserven espacio vertical sin contenido. */
+.card:has(.empty-state),
+.mgmt-card:has(.empty-state),
+.card:has(.conversation-empty){height:auto!important;min-height:0!important}
 
 @media(max-width:1000px){
-  .case-focus-grid{
-    grid-template-columns:1fr!important;
-  }
+  .case-focus-grid{grid-template-columns:1fr!important}
   .case-focus-grid>.case-problem-card,
-  .case-focus-grid>.case-status-card{
-    height:auto!important;
-  }
-  .case-secondary-grid{
-    grid-template-columns:1fr!important;
-  }
+  .case-focus-grid>.case-status-card{height:auto!important}
+  .case-secondary-grid{grid-template-columns:1fr!important}
   .ticket-list,
-  .external-ticket-list{
-    grid-template-columns:1fr!important;
-  }
+  .external-ticket-list{grid-template-columns:1fr!important}
 }
 
 @media(max-width:760px){
   :root{--density-gutter:12px;--density-gap:12px}
-  .content{
-    padding:14px var(--density-gutter) 18px!important;
-  }
+  .content{padding:14px var(--density-gutter) 18px!important}
   .case-conversation-card .card-body,
-  .case-action-card .card-body{
-    padding:14px!important;
-  }
+  .case-action-card .card-body{padding:14px!important}
   .external-users,
   .knowledge-grid,
   .itsm-learning-grid,
   .manual-cards,
   .manual-flow,
-  .dashboard-action-grid{
-    grid-template-columns:1fr!important;
-  }
+  .dashboard-action-grid{grid-template-columns:1fr!important}
 }
