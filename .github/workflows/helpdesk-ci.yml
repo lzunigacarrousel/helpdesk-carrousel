@@ -2,7 +2,7 @@ name: Helpdesk Carrousel CI
 
 on:
   push:
-    branches: [v2-rebuild]
+    branches: [v2-rebuild, ui-normalization-working]
   pull_request:
     branches: [v2-rebuild]
 
@@ -61,6 +61,12 @@ jobs:
 
       - name: Dark theme regression
         run: php tests/dark_theme_smoke.php
+
+      - name: Dark theme standalone coverage
+        run: php tests/dark_theme_coverage_smoke.php
+
+      - name: Dark theme public surfaces
+        run: php tests/dark_theme_public_smoke.php
 
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
