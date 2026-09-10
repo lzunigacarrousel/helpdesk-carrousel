@@ -32,7 +32,7 @@ if (!is_array($local)) {
 }
 
 $dbHost = (string)($local['db_host'] ?? '127.0.0.1');
-$dbName = (string)($local['db_name'] ?? 'helpdesk_carrousel_test');
+$dbName = (string)($local['db_name'] ?? 'helpdesk_carrousel');
 $dbUser = (string)($local['db_user'] ?? 'root');
 $dbPass = (string)($local['db_pass'] ?? '');
 
@@ -196,4 +196,4 @@ foreach ($candidates as $r) {
     printf(" - %s\n", $r['table']);
 }
 printf("\nIMPORTANTE: que una tabla aparezca como candidata NO autoriza borrarla.\n");
-printf("Primero se valida contra migraciones, historial y dependencias funcionales.\n");
+printf("Primero se valida contra el esquema canónico y las dependencias funcionales.\n");
