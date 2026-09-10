@@ -23,6 +23,10 @@ check(str_contains($css,'background:var(--dark-topbar);'),'Topbar consume token 
 check(str_contains($css,'background:var(--dark-surface);'),'Componentes consumen superficie principal');
 check(str_contains($css,'html[data-theme="dark"] .data-table-shell'),'Tablas canónicas tienen tratamiento oscuro explícito');
 check(str_contains($css,'html[data-theme="dark"] .data-table thead th'),'Encabezado de tablas tiene jerarquía oscura explícita');
+check(str_contains($css,'html[data-theme="dark"] .public-request-topbar'),'Formulario público tiene tratamiento oscuro explícito');
+check(str_contains($css,'html[data-theme="dark"] .public-panel'),'Inicio público tiene tratamiento oscuro explícito');
+check(str_contains($css,'html[data-theme="dark"] .friendly-error-card'),'Pantalla de error tiene tratamiento oscuro explícito');
+check(str_contains($css,'html[data-theme="dark"] .public-result-card'),'Confirmación pública tiene tratamiento oscuro explícito');
 check(!str_contains($css,'background:#14245b'),'Se elimina el sidebar azul saturado anterior');
 check(!str_contains($css,'background:#101827'),'Se elimina el canvas azul saturado anterior');
 
