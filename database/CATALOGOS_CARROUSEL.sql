@@ -2,7 +2,7 @@
 -- Catalogos organizacionales base para una instalacion limpia.
 -- No importa usuarios ni tickets historicos.
 
-USE helpdesk_carrousel_test;
+USE helpdesk_carrousel;
 SET NAMES utf8mb4;
 
 -- Regiones canonicas.
