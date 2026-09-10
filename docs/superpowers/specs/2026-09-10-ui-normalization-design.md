@@ -1,7 +1,10 @@
 # Helpdesk Carrousel — Normalización UI global
 
 Fecha: 2026-09-10
-Rama objetivo: `v2-rebuild`
+Estado: **documento histórico de la fase de normalización visual**.
+Rama donde quedó aplicada: `ui-normalization-working`.
+
+> Esta especificación conserva el diseño de la fase visual ya ejecutada. No debe utilizarse como plan de la etapa actual de maduración funcional. La etapa vigente se documenta en `docs/superpowers/specs/2026-09-10-helpdesk-functional-maturation-design.md`.
 
 ## Objetivo
 

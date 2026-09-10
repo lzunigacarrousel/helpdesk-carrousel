@@ -1,8 +1,14 @@
 # Helpdesk Carrousel 360
 
-Aplicación de Service Desk de Corporación Carrousel. La rama `v2-rebuild` es la reconstrucción actual y utiliza PHP 8+, MariaDB y acceso por OTP.
+Aplicación de Service Desk de Corporación Carrousel. La etapa activa de desarrollo trabaja sobre la rama `ui-normalization-working`, que conserva la normalización visual ya completada y entra ahora en maduración funcional de Helpdesk Carrousel V2. La rama `v2-rebuild` queda como baseline anterior de la reconstrucción y no debe usarse como fuente de verdad para esta etapa.
 
 ## Fuente de verdad
+
+La fuente de verdad de la etapa actual es:
+
+`ui-normalization-working`
+
+No reconstruir la aplicación ni repetir una normalización visual general. Los cambios deben mejorar lo existente sin romper lógica, permisos, seguridad, trazabilidad ni experiencia ya aprobada.
 
 El nuevo Helpdesk trabaja con una sola base de datos propia:
 
@@ -89,6 +95,17 @@ La base canónica cubre seguridad/OTP/sesiones, usuarios y perfiles, asignacione
 Los perfiles vigentes son `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL`.
 
 Gerencia y Supervisor son perfiles de consulta y seguimiento; no son operadores de soporte.
+
+## Maduración funcional V2
+
+La etapa actual está documentada en:
+
+- `docs/superpowers/specs/2026-09-10-helpdesk-functional-maturation-design.md`
+- `docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md`
+
+Principio central: completar la mayor parte de la etapa con **cero cambios estructurales de BD**. Si una capacidad requiere nueva estructura, debe justificarse antes de modificar `database/INSTALAR.sql` y sus verificadores. No se permiten `ALTER TABLE` sueltos, migraciones manuales olvidadas ni estructuras preparadas “por si acaso”.
+
+La línea visual vigente está definida en `docs/ESTANDAR_VISUAL_CARROUSEL.md` y se considera congelada salvo defectos reales o necesidades funcionales puntuales.
 
 ## Calidad y seguridad
 

@@ -1,6 +1,8 @@
 # UI Normalization Implementation Plan
 
-> **Estado 2026-09-10:** implementación automatizada completada en `ui-normalization-working`. GitHub Actions valida sintaxis PHP/JS, static checks, quality gate, XLSX y una instalación limpia de MariaDB. La revisión visual real en PC TEST (escritorio/iPad/móvil) queda como gate manual antes de fusionar a `v2-rebuild`.
+> **DOCUMENTO HISTÓRICO.** Esta fase de normalización visual ya fue implementada en `ui-normalization-working`. No utilizar este archivo como plan de la etapa funcional actual. El plan vigente es `docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md`.
+>
+> **Estado 2026-09-10:** implementación automatizada completada en `ui-normalization-working`. GitHub Actions valida sintaxis PHP/JS, static checks, quality gate, XLSX y una instalación limpia de MariaDB. La revisión visual real en PC TEST (escritorio/iPad/móvil) queda como gate manual antes de cualquier integración posterior.
 >
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -14,7 +16,7 @@
 
 ## Global Constraints
 
-- Mantener una sola base `helpdesk_carrousel`; no crear ni modificar SQL.
+- La base activa de Helpdesk Carrousel V2 es exclusivamente `carrousel_helpdesk`. La base `helpdesk_carrousel` pertenece al sistema histórico y está protegida: no debe eliminarse, recrearse, modificarse ni reutilizarse como V2.
 - No cambiar roles, permisos, rutas, OTP, SLA, NPS, notificaciones, auditoría, exportaciones ni lógica de negocio.
 - Mantener identidad visual Carrousel y compatibilidad con modo claro/oscuro.
 - Escritorio y laptop deben aprovechar el ancho sin columnas fantasmas.
@@ -119,4 +121,3 @@ Los gates quedaron versionados en la rama de trabajo.
 - [x] Comparación contra `v2-rebuild`: sin cambios bajo `database/`.
 - [x] Documentar el patrón en `docs/ESTANDAR_VISUAL_CARROUSEL.md`.
 - [ ] Revisión visual manual en PC TEST: escritorio 1920, laptop 1366, iPad/tablet ~1024/768 y móvil <=760.
-- [ ] Fusionar a `v2-rebuild` únicamente después de aprobar la revisión visual manual.
