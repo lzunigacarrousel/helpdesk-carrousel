@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260909-042'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260910-UI3'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -18,7 +18,6 @@
       <img class="auth-brand-logo" src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel">
       <span class="auth-product-pill">Helpdesk Carrousel</span>
       <h1>Soporte claro, seguimiento real y soluciones documentadas.</h1>
-      <p>Registra solicitudes, consulta avances y conserva el historial de cada solución desde un solo lugar.</p>
       <div class="auth-points-v2"><span>Seguimiento</span><span>Conocimiento</span><span>Auditoría</span></div>
     </div>
   </section>
@@ -28,7 +27,7 @@
       <div class="auth-mobile-brand-v2"><img src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/images/logo.png" alt="Corporación Carrousel"><strong>Helpdesk Carrousel</strong></div>
       <span class="auth-eyebrow">Acceso seguro</span>
       <h2>Ingresa al Helpdesk</h2>
-      <p class="auth-lead">Escribe tu correo. Te enviaremos un código temporal de seis dígitos.</p>
+      <p class="auth-lead">Te enviaremos un código temporal a tu correo.</p>
 
       <?php if(!empty($flash)): ?><div class="alert <?= htmlspecialchars(($flash['type']??'')==='success'?'alert-success':'alert-info') ?>"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
@@ -40,8 +39,8 @@
         <button class="btn btn-primary auth-primary" type="submit">Continuar</button>
       </form>
 
-      <div class="auth-helper-v2"><span>i</span><div><strong>¿Es tu primer ingreso?</strong> Si el correo todavía no existe, podrás completar tu perfil antes de recibir el código.</div></div>
-      <p class="auth-security-v2">El Helpdesk utiliza OTP. No necesitas una contraseña permanente y nunca debes compartir el código recibido.</p>
+      <div class="auth-helper-v2"><span>i</span><div><strong>¿Primer ingreso?</strong> Si el correo no existe, completarás tu perfil antes de recibir el código.</div></div>
+      <p class="auth-security-v2">El código OTP es temporal. No lo compartas.</p>
 
       <div class="auth-actions-v2">
         <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver</a></div>
