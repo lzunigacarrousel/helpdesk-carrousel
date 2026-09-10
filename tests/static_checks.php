@@ -19,7 +19,7 @@ $checks=[
 'database/VERIFICAR_INSTALACION.sql'=>['USE carrousel_helpdesk','required_tables','required_columns','tablas no canonicas/legacy','trg_tickets_require_resolution','OK - INSTALACION LIMPIA HELPDESK CARROUSEL V2'],
 'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['USE carrousel_helpdesk','CORREOS_ENVIADOS_SIN_FECHA','CORREOS_FALLIDOS_SIN_MOTIVO','CORREOS_PENDIENTES_MAS_10_MIN'],
 'INSTALAR_PC_TEST.bat'=>['DB_NAME=carrousel_helpdesk','PROTECTED_DB=helpdesk_carrousel','database\\INSTALAR.sql','database\\VERIFICAR_INSTALACION.sql','REINSTALAR','if /I "%DB_NAME%"=="%PROTECTED_DB%"'],
-'README.md'=>['carrousel_helpdesk','helpdesk_carrousel','base historica','database\\INSTALAR.sql'],
+'README.md'=>['carrousel_helpdesk','helpdesk_carrousel','base histórica','database\\INSTALAR.sql'],
 'tools/AUDITAR_TABLAS_HELPDESK.php'=>["'carrousel_helpdesk'"],
 'app/Core/Auth.php'=>['isSupportOperator','isManagementViewer','profileLabel'],
 'app/Services/ScopeService.php'=>['ticketConstraint','SUPERVISOR','scopeLabel'],
