@@ -1,35 +1,67 @@
-# Helpdesk Carrousel 360 — Fase 1
+# Helpdesk Carrousel 360
 
-Base nueva para PC TEST. No modifica el Helpdesk legado ni su base de datos.
+Aplicación de Service Desk de Corporación Carrousel. La rama `v2-rebuild` es la reconstrucción actual para PC TEST y utiliza MariaDB, PHP 8+ y acceso por OTP.
 
-## Incluido
-- Autorregistro por correo.
-- OTP hasheado, vencimiento, intentos y rate limiting.
-- Sesión persistente con validador rotado.
-- Roles y permisos granulares.
-- Usuario nuevo en `PENDING_ASSIGNMENT`.
-- Organización separada de rol: regiones, parques, áreas, puestos y asignaciones.
-- `user_scopes` separado de rol para autorización operativa futura.
-- Equipos de soporte.
-- Auditoría.
-- Configuración local fuera de Git.
-- Modo `mail_mode=log` para PC TEST.
-- Pantalla administrativa mínima para activar/asignar usuarios.
-- Diseño preparado para que historial técnico, resolución y conocimiento sean núcleo del Helpdesk.
+## Estado actual
 
-## Instalación PC TEST
-1. Copiar esta carpeta como `C:\xampp\htdocs\Helpdesk360`.
-2. Copiar `config\local.php.example` como `config\local.php`.
-3. Mantener `mail_mode => 'log'` durante las primeras pruebas.
-4. Ejecutar `database\INSTALAR_FASE1.sql` en MariaDB de TEST.
-5. Abrir `http://localhost/Helpdesk360/public/`.
-6. Usuario inicial DEMO: `admin.helpdesk@carrousel.local`.
-7. Solicitar OTP y leerlo en `storage\logs\mail.log`.
-8. Probar autorregistro de un correo nuevo: debe quedar `PENDING_ASSIGNMENT`.
-9. Entrar como admin DEMO y asignar ese usuario desde **Usuarios**.
+La instalación vigente usa:
 
-## Seguridad
-`config/local.php`, logs, attachments y exports están excluidos de Git. Nunca copiar credenciales reales al repositorio.
+- Carpeta recomendada: `C:\xampp\htdocs\HelpdeskCarrousel`
+- Base de TEST: `helpdesk_carrousel_test`
+- Entrada web: `http://localhost/HelpdeskCarrousel/public/`
+- Configuración local: `config\local.php` (no se versiona)
+- Correo en PC TEST: `mail_mode => 'log'`
+- Administrador inicial: `luis@carrousel.com.gt`
 
-## Importante
-`database/INSTALAR_FASE1.sql` elimina y recrea SOLO las tablas dentro de `helpdesk360_test`. Usar únicamente en PC TEST. No ejecutar contra la BD histórica `helpdesk_carrousel`.
+La base histórica `helpdesk_carrousel` no forma parte de la instalación limpia y no debe eliminarse ni modificarse desde los instaladores de TEST.
+
+## Instalación limpia recomendada
+
+La instalación limpia no se construye ejecutando todas las migraciones antiguas. El flujo canónico es:
+
+1. Clonar o actualizar la rama `v2-rebuild` en `C:\xampp\htdocs\HelpdeskCarrousel`.
+2. Ejecutar `INSTALAR_PC_TEST.bat`.
+3. Escribir `REINSTALAR` cuando el instalador solicite confirmación.
+4. El instalador respalda `helpdesk_carrousel_test` si existe y luego recrea únicamente esa base.
+5. El instalador ejecuta, en este orden:
+   - `database\INSTALAR.sql` — núcleo V2.
+   - `database\FINALIZAR_ESQUEMA_V2.sql` — estructura que requiere la aplicación actual.
+   - `database\CATALOGOS_CARROUSEL.sql` — regiones y parques base.
+   - `database\VERIFICAR_INSTALACION.sql` — validación estricta del resultado.
+6. También instala dependencias Composer y ejecuta los quality gates del proyecto.
+
+Si Composer no está disponible y `vendor\autoload.php` tampoco existe, el instalador se detiene sin considerar válida la instalación.
+
+## Qué crea una instalación nueva
+
+Una instalación nueva conserva solo la estructura que usa la aplicación actual: seguridad/OTP/sesiones, usuarios y perfiles, organización, equipos y alcances, tickets y conversaciones, resoluciones, NPS, problemas conocidos, conocimiento, colaboradores externos, notificaciones, auditoría, SLA y control de versión del esquema.
+
+No se importan automáticamente usuarios, tickets ni datos históricos de Caja Chica u otras versiones. `database\IMPORTAR_DESDE_CAJA_CHICA.sql` queda únicamente como herramienta histórica/opcional y no forma parte del proceso limpio.
+
+## Base de datos
+
+La instalación canónica espera exactamente las tablas definidas por `database\VERIFICAR_INSTALACION.sql`. La verificación falla si falta una tabla requerida o si aparece una tabla extra/legacy en una instalación que debe estar limpia.
+
+Los perfiles `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, `MANAGEMENT`, `SUPERVISOR`, `REQUESTER` y `EXTERNAL` son perfiles vigentes. Gerencia y Supervisor son perfiles de consulta y no deben convertirse automáticamente en Solicitante.
+
+Los parques activos se cargan con una región válida porque el flujo actual de asignaciones y alcance depende de esa relación.
+
+## Acceso y OTP
+
+No se utilizan contraseñas permanentes. El usuario escribe su correo y recibe un código OTP temporal. En PC TEST, con `mail_mode => 'log'`, el código se registra localmente en:
+
+`storage\logs\mail.log`
+
+Para SMTP real se configura únicamente `config\local.php`; nunca deben subirse credenciales al repositorio.
+
+## Seguridad y archivos locales
+
+`.gitignore` excluye `config/local.php`, logs, adjuntos, exportaciones, caché, sesiones, temporales, backups, `vendor/` y otros archivos regenerables o sensibles.
+
+Antes de subir cambios usa `HELPDESK_ADMIN.bat` para revisar estado, diferencias y auditoría de archivos sensibles.
+
+## Scripts históricos
+
+Los archivos `ACTUALIZAR_*`, `INSTALAR_FASE1.sql`, `ACTUALIZAR_FASE1_1.sql`, `ACTUALIZAR_FASE2_1.sql`, `ACTUALIZAR_V1_0_3.sql` y otros scripts de transición documentan etapas anteriores. No deben ejecutarse sobre una instalación limpia actual salvo que una tarea de migración específica lo requiera.
+
+La fuente de verdad para una PC nueva es `INSTALAR_PC_TEST.bat` y los cuatro scripts de instalación/verificación indicados arriba.
