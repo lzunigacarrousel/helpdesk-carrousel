@@ -35,6 +35,24 @@ Esto significa reutilizar su **gramática visual y de interacción**, no copiar 
 - Búsqueda y filtros en una misma línea cuando el ancho lo permita.
 - Edición secundaria expandible para no saturar la vista.
 
+## Patrón de tablas
+
+- Los datos tabulares deben usar tabla HTML semántica y el componente común `.data-table`.
+- Escritorio: aprovechar el ancho disponible, permitir ajuste de texto y evitar anchos mínimos artificiales.
+- Tablet/iPad: priorizar las columnas operativas; la información secundaria puede reducirse sin eliminarse del modo móvil.
+- Móvil: cada fila debe convertirse en un registro vertical mediante `data-label`, sin depender de scroll horizontal.
+- No simular tablas mediante grids de tarjetas cuando las filas representan registros comparables.
+- Las acciones deben mantenerse dentro de la fila correspondiente y conservar su comportamiento, permisos y CSRF.
+- Una nueva tabla no debe crear su propia estrategia de responsive si el componente común resuelve el caso.
+
+## Patrón de contenido y copy
+
+- La pantalla principal muestra lo necesario para decidir o actuar: título, estado, datos, validaciones y consecuencias relevantes.
+- Evitar párrafos que repitan el título, expliquen un botón obvio o describan información ya visible.
+- La ayuda extensa, tutoriales y explicación del proceso deben vivir en Ayuda/Manual o en ayuda contextual desplegable cuando previene errores reales.
+- No retirar advertencias de seguridad, visibilidad, límites de archivo, consecuencias de una acción o información necesaria para completar correctamente un formulario.
+- Los estados vacíos deben ser breves y accionables; no deben reservar altura artificial.
+
 ## Patrón de tickets
 
 - Problema primero.
