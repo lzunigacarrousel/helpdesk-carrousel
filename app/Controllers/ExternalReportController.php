@@ -12,28 +12,35 @@ final class ExternalReportController
     {
         $this->requireAccess();
         $pdo=Database::pdo();
-        $rows=$this->history($pdo);
+        $allRows=$this->history($pdo);
+        $filters=$this->filters();
+        $rows=$this->applyFilters($allRows,$filters);
         View::render('management/external_report',[
             'user'=>Auth::user(),
             'rows'=>$rows,
             'summary'=>$this->summary($rows),
+            'filters'=>$filters,
+            'providers'=>$this->providers($allRows),
         ]);
     }
 
     public function export(): void
     {
         $this->requireAccess();
-        $pdo=Database::pdo();$rows=$this->history($pdo);$summary=$this->summary($rows);$data=[];
+        $pdo=Database::pdo();
+        $filters=$this->filters();
+        $rows=$this->applyFilters($this->history($pdo),$filters);
+        $summary=$this->summary($rows);$data=[];
         foreach($rows as $r){
             $data[]=[
                 $r['organization'],$r['contact'],$r['email'],$r['ticket_number'],$r['subject'],
                 $this->displayDate($r['granted_at']),$r['granted_by'],
                 $r['revoked_at']?$this->displayDate($r['revoked_at']):'Activo',$r['revoked_by']?:'',
                 (int)$r['duration_minutes'],$r['can_comment']?'Sí':'No',$r['can_upload']?'Sí':'No',
-                (int)$r['responses'],(int)$r['attachments'],$r['ticket_status']
+                (int)$r['responses'],(int)$r['attachments'],$this->ticketStatusLabel((string)$r['ticket_status'])
             ];
         }
-        Audit::log('EXTERNAL_REPORT_EXPORTED_XLSX','report',null,null,null,['rows'=>count($data)]);
+        Audit::log('EXTERNAL_REPORT_EXPORTED_XLSX','report',null,null,null,['rows'=>count($data),'filters'=>$filters]);
         XlsxExportService::download('helpdesk_proveedores_'.date('Ymd_His').'.xlsx',[
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Proveedores','subtitle'=>'Historial de participación externa','headers'=>['Indicador','Valor'],'rows'=>[
                 ['Participaciones',count($rows)],
@@ -44,7 +51,7 @@ final class ExternalReportController
                 ['Archivos externos',(int)$summary['attachments']],
                 ['Generado',date('d/m/Y H:i:s')]
             ]],
-            ['name'=>'Participaciones','title'=>'Helpdesk Carrousel · Historial de proveedores','subtitle'=>'Cada asignación y revocación se conserva como un ciclo independiente','headers'=>[
+            ['name'=>'Participaciones','title'=>'Helpdesk Carrousel · Historial de proveedores','subtitle'=>'La exportación respeta los filtros aplicados en pantalla','headers'=>[
                 'Proveedor','Contacto','Correo','Ticket','Asunto','Asignado','Asignado por','Revocado','Revocado por','Duración (min)','Puede responder','Puede adjuntar','Respuestas','Archivos','Estado ticket'
             ],'rows'=>$data]
         ]);
@@ -107,6 +114,43 @@ final class ExternalReportController
         return $rows;
     }
 
+    private function filters(): array
+    {
+        $q=trim((string)($_GET['q']??''));
+        $providerId=max(0,(int)($_GET['provider']??0));
+        $state=(string)($_GET['state']??'');
+        if(!in_array($state,['','active','closed'],true))$state='';
+        $from=$this->validDate((string)($_GET['from']??''));
+        $to=$this->validDate((string)($_GET['to']??''));
+        return ['q'=>$q,'provider'=>$providerId,'state'=>$state,'from'=>$from,'to'=>$to];
+    }
+
+    private function applyFilters(array $rows,array $filters): array
+    {
+        $q=mb_strtolower((string)$filters['q']);
+        return array_values(array_filter($rows,static function(array $r)use($filters,$q):bool{
+            if((int)$filters['provider']>0&&(int)$r['user_id']!==(int)$filters['provider'])return false;
+            if($filters['state']==='active'&&!empty($r['revoked_at']))return false;
+            if($filters['state']==='closed'&&empty($r['revoked_at']))return false;
+            $day=substr((string)$r['granted_at'],0,10);
+            if($filters['from']!==''&&$day<$filters['from'])return false;
+            if($filters['to']!==''&&$day>$filters['to'])return false;
+            if($q!==''){
+                $hay=mb_strtolower(implode(' ',[(string)$r['organization'],(string)$r['contact'],(string)$r['email'],(string)$r['ticket_number'],(string)$r['subject']]));
+                if(!str_contains($hay,$q))return false;
+            }
+            return true;
+        }));
+    }
+
+    private function providers(array $rows): array
+    {
+        $providers=[];
+        foreach($rows as $r){$providers[(int)$r['user_id']]=(string)$r['organization'];}
+        asort($providers,SORT_NATURAL|SORT_FLAG_CASE);
+        return $providers;
+    }
+
     private function countWithinCycle(array &$rows,int $ticketId,int $userId,string $createdAt,string $field): void
     {
         $at=strtotime($createdAt);if(!$at)return;
@@ -123,6 +167,20 @@ final class ExternalReportController
         $providers=[];$s=['active'=>0,'closed'=>0,'providers'=>0,'responses'=>0,'attachments'=>0];
         foreach($rows as $r){$providers[$r['email']]=true;$r['revoked_at']?$s['closed']++:$s['active']++;$s['responses']+=(int)$r['responses'];$s['attachments']+=(int)$r['attachments'];}
         $s['providers']=count($providers);return $s;
+    }
+
+    private function ticketStatusLabel(string $status): string
+    {
+        return match($status){
+            'NEW'=>'Nuevo','AVAILABLE'=>'Disponible','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado',default=>$status,
+        };
+    }
+
+    private function validDate(string $value): string
+    {
+        if($value==='')return '';
+        $d=\DateTimeImmutable::createFromFormat('!Y-m-d',$value);
+        return $d&&$d->format('Y-m-d')===$value?$value:'';
     }
 
     private function json(string $value): array{$x=json_decode($value,true);return is_array($x)?$x:[];}
