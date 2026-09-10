@@ -4,36 +4,29 @@ $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Cr�
 $searchTerm=(string)($q??'');$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $total=count($tickets)+count($problems)+count($articles);
+$normalize=static function(string $value):string{$value=mb_strtolower(trim((string)preg_replace('/\s+/u',' ',$value)),'UTF-8');return trim((string)preg_replace('/[^\p{L}\p{N}]+/u',' ',$value));};
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.search-command{border:1px solid color-mix(in srgb,var(--brand) 34%,var(--border) 66%);border-left:5px solid var(--brand);background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 6%,var(--card) 94%),var(--card));border-radius:16px;padding:20px;margin-bottom:16px}.search-command-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:14px}.search-command-head h1{margin:3px 0 5px}.search-command-head p{margin:0;color:var(--muted);max-width:820px}.search-page-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.search-page-form input{font-size:15px}.search-hints{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.search-hints span{display:inline-flex;padding:6px 9px;border:1px solid var(--border);border-radius:999px;background:var(--card);font-size:11px;color:var(--muted)}.search-scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}.search-scopebar button{border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}.search-scopebar button.active{background:var(--brand);border-color:var(--brand);color:#fff}.search-scopebar b{margin-left:5px}.search-result-section{margin-top:14px}.search-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.search-section-head>span{display:inline-flex;min-width:30px;justify-content:center;padding:5px 8px;border-radius:999px;background:var(--info-bg);color:var(--brand);font-weight:850}.search-ticket-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:12px}.search-ticket-card{display:block;border:1px solid var(--border);border-radius:14px;padding:15px 16px;background:var(--card);text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(16,24,40,.05)}.search-ticket-card:hover{border-color:color-mix(in srgb,var(--brand) 40%,var(--border) 60%)}.search-ticket-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.search-ticket-top>span:first-child{font-size:11px;font-weight:850;color:var(--brand)}.search-ticket-card h3{margin:7px 0 5px;font-size:17px}.search-ticket-card p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5}.search-ticket-meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}.search-result-summary{display:flex;align-items:baseline;gap:7px;margin-top:12px}.search-result-summary strong{font-size:24px;color:var(--brand)}.search-empty-card{margin-top:14px}.search-empty-card p{margin-bottom:0;color:var(--muted)}
+.search-command{border:1px solid color-mix(in srgb,var(--brand) 34%,var(--border) 66%);border-left:5px solid var(--brand);background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 6%,var(--card) 94%),var(--card));border-radius:16px;padding:20px;margin-bottom:16px}.search-command-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:14px}.search-command-head h1{margin:3px 0 5px}.search-page-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.search-page-form input{font-size:15px}.search-hints{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.search-hints span{display:inline-flex;padding:5px 8px;border:1px solid var(--border);border-radius:999px;background:var(--card);font-size:10.5px;color:var(--muted)}.search-scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}.search-scopebar button{border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer}.search-scopebar button.active{background:var(--brand);border-color:var(--brand);color:#fff}.search-scopebar b{margin-left:5px}.search-result-section{margin-top:14px}.search-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.search-section-head>span{display:inline-flex;min-width:30px;justify-content:center;padding:5px 8px;border-radius:999px;background:var(--info-bg);color:var(--brand);font-weight:850}.search-ticket-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:12px}.search-ticket-card{display:block;border:1px solid var(--border);border-radius:14px;padding:15px 16px;background:var(--card);text-decoration:none;color:inherit;box-shadow:0 1px 3px rgba(16,24,40,.05)}.search-ticket-card:hover{border-color:color-mix(in srgb,var(--brand) 40%,var(--border) 60%)}.search-ticket-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.search-ticket-top>span:first-child{font-size:11px;font-weight:850;color:var(--brand)}.search-ticket-card h3{margin:7px 0 5px;font-size:17px}.search-ticket-card p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5}.search-ticket-meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}.search-result-summary{display:flex;align-items:baseline;gap:7px;margin-top:12px}.search-result-summary strong{font-size:24px;color:var(--brand)}.search-empty-card{margin-top:14px}.search-empty-card p{margin:0;color:var(--muted)}
 @media(max-width:700px){.search-page-form{grid-template-columns:1fr}.search-command{padding:16px}.search-command-head{display:block}.search-page-form .btn{width:100%}}
 </style>
 
 <div class="global-search-page" data-global-search>
   <section class="search-command">
-    <div class="search-command-head">
-      <div>
-        <span class="ticket-kicker">Búsqueda global</span>
-        <h1 class="page-title">Encuentra casos, personas y soluciones</h1>
-        <p>La lupa busca en tickets, solicitantes, responsables, parques, categorías y, cuando tu perfil lo permite, también en conversaciones, causas y soluciones documentadas.</p>
-      </div>
-    </div>
+    <div class="search-command-head"><div><span class="ticket-kicker">Búsqueda global</span><h1 class="page-title">Buscar en Helpdesk</h1></div></div>
     <form class="search-page-form" method="get" action="<?= APP_BASE_URL ?>/buscar" data-no-loading="1">
       <input class="form-control" type="search" name="q" value="<?= htmlspecialchars($searchTerm) ?>" placeholder="Número de caso, persona, correo, parque, problema o solución…" autocomplete="off" autofocus>
-      <button class="btn btn-primary" type="submit">Buscar en Helpdesk</button>
+      <button class="btn btn-primary" type="submit">Buscar</button>
     </form>
-    <div class="search-hints" aria-label="Qué puedes buscar">
-      <span>HD-2026-000001</span><span>Nombre o correo</span><span>Parque / área</span><span>Categoría</span><span>Texto de conversación</span><span>Causa / solución</span><span>Problema conocido</span><span>Artículo</span>
-    </div>
+    <div class="search-hints" aria-label="Ejemplos de búsqueda"><span>HD-2026-000001</span><span>Nombre o correo</span><span>Parque / área</span><span>Causa o solución</span></div>
   </section>
 
   <?php if($searchTerm===''): ?>
-    <section class="card search-empty-card"><div class="card-body"><strong>Escribe cualquier referencia que recuerdes.</strong><p>No necesitas conocer el número del ticket. Puedes buscar por persona, correo, ubicación, categoría o palabras que aparecieron durante la atención.</p></div></section>
+    <section class="card search-empty-card"><div class="card-body"><p>Busca por número, persona, ubicación o texto del caso.</p></div></section>
   <?php elseif($total===0): ?>
-    <section class="card search-empty-card"><div class="card-body"><strong>No encontramos coincidencias para “<?= htmlspecialchars($searchTerm) ?>”.</strong><p>Prueba con menos palabras o con otra referencia del caso.</p></div></section>
+    <section class="card search-empty-card"><div class="card-body"><strong>Sin coincidencias para “<?= htmlspecialchars($searchTerm) ?>”.</strong></div></section>
   <?php else: ?>
-    <div class="search-result-summary"><strong><?= $total ?></strong><span>resultado<?= $total===1?'':'s' ?> encontrado<?= $total===1?'':'s' ?></span></div>
+    <div class="search-result-summary"><strong><?= $total ?></strong><span>resultado<?= $total===1?'':'s' ?></span></div>
     <div class="search-scopebar" role="group" aria-label="Filtrar tipo de resultado">
       <button type="button" class="active" data-search-scope="all">Todo <b><?= $total ?></b></button>
       <button type="button" data-search-scope="tickets">Tickets <b><?= count($tickets) ?></b></button>
@@ -45,16 +38,16 @@ $total=count($tickets)+count($problems)+count($articles);
       <section class="search-result-section" data-search-section="tickets">
         <div class="search-section-head"><div><span class="ticket-kicker">Tickets</span><h2>Casos relacionados</h2></div><span><?= count($tickets) ?></span></div>
         <div class="search-ticket-list">
-          <?php foreach($tickets as $t): ?>
+          <?php foreach($tickets as $t): $description=trim((string)$t['description']);$showDescription=$description!==''&&$normalize($description)!==$normalize((string)$t['subject']); ?>
             <a class="search-ticket-card" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">
               <div class="search-ticket-top"><span><?= htmlspecialchars($t['ticket_number']) ?></span><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
               <h3><?= htmlspecialchars($t['subject']) ?></h3>
-              <p><?= htmlspecialchars(mb_strimwidth(trim((string)$t['description']),0,220,'…')) ?></p>
+              <?php if($showDescription): ?><p><?= htmlspecialchars(mb_strimwidth($description,0,220,'…')) ?></p><?php endif; ?>
               <div class="search-ticket-meta">
                 <span><?= htmlspecialchars($t['requester_name']??'Sin solicitante') ?></span>
                 <span><?= htmlspecialchars($t['park_name']??'Ubicación no especificada') ?><?= !empty($t['area_name'])?' · '.htmlspecialchars($t['area_name']):'' ?></span>
                 <span><?= htmlspecialchars($t['category_name']??'Sin categoría') ?></span>
-                <span>Prioridad <?= htmlspecialchars(strtolower($priorityLabels[$t['priority']]??$t['priority'])) ?></span>
+                <span><?= htmlspecialchars($priorityLabels[$t['priority']]??$t['priority']) ?></span>
                 <span><?= htmlspecialchars($t['assigned_name']??'Sin responsable') ?></span>
               </div>
             </a>
