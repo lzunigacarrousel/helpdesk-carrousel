@@ -19,14 +19,14 @@ requesterCheck($topics!=='','Se puede leer RequesterTopicService');
 requesterCheck(str_contains($topics,'REQUESTER_TOPIC_PRESENTATION'),'Existe catálogo de temas separado de las categorías internas');
 
 $labels=[
-    'Caja chica / NIT',
-    'Payout / Kiddies / promocionales',
-    'Tickets destruidos',
-    'Facturación / POS / impresora',
-    'Acceso / contraseña',
-    'Computadora / equipo',
-    'Internet / conexión',
-    'Reportes / dashboards / formularios',
+    'Caja Chica / NIT',
+    'Payout / Kiddies / Promocionales',
+    'Tickets Destruidos',
+    'Facturación / POS / Impresora',
+    'Acceso / Contraseña',
+    'Computadora / Equipo',
+    'Internet / Conexión',
+    'Reportes / Dashboards / Formularios',
     'Semnox / Parafait',
     'Otro',
 ];
