@@ -16,12 +16,12 @@ date_default_timezone_set('America/Guatemala');
 
 $localFile = __DIR__.'/local.php';
 if (!is_file($localFile)) {
-    throw new RuntimeException('Falta config/local.php. Copia local.php.example y ajusta PC TEST.');
+    throw new RuntimeException('Falta config/local.php. Copia local.php.example y ajusta el entorno.');
 }
 $local = require $localFile;
 
 define('DB_HOST', (string)($local['db_host'] ?? '127.0.0.1'));
-define('DB_NAME', (string)($local['db_name'] ?? 'helpdesk_carrousel_test'));
+define('DB_NAME', (string)($local['db_name'] ?? 'helpdesk_carrousel'));
 define('DB_USER', (string)($local['db_user'] ?? 'root'));
 define('DB_PASS', (string)($local['db_pass'] ?? ''));
 define('DB_CHARSET', 'utf8mb4');
