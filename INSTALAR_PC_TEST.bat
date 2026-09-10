@@ -193,6 +193,6 @@ exit /b 1
 :test_error
 echo.
 echo [ERROR] Una prueba del proyecto fallo. La base fue creada, pero la instalacion
-necho NO debe considerarse valida hasta corregir la prueba.
+echo NO debe considerarse valida hasta corregir la prueba.
 pause
 exit /b 1
