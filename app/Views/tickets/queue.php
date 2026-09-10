@@ -8,10 +8,10 @@ $allRows=array_values(array_merge($myTickets,$tickets));
 $allowedViews=['attention','mine','available','in_progress','pending','critical','overdue','near_due','reopened'];
 $view=strtolower(trim((string)($_GET['view']??'attention')));if(!in_array($view,$allowedViews,true))$view='attention';
 $search=trim((string)($_GET['q']??''));$parkFilter=trim((string)($_GET['park']??''));$categoryFilter=trim((string)($_GET['category']??''));$priorityFilter=strtoupper(trim((string)($_GET['priority']??'')));$statusFilter=strtoupper(trim((string)($_GET['status']??'')));$responsibleFilter=trim((string)($_GET['responsible']??''));
-$now=time();$nearLimit=$now+7200;$uid=(int)Auth::id();
+$uid=(int)Auth::id();
 $isOpen=static fn(array $t):bool=>!in_array((string)$t['status'],['RESOLVED','CLOSED','CANCELLED'],true);
-$isOverdue=static fn(array $t):bool=>!empty($t['resolution_due_at'])&&strtotime((string)$t['resolution_due_at'])<$now&&!in_array((string)$t['status'],['RESOLVED','CLOSED','CANCELLED'],true);
-$isNearDue=static fn(array $t):bool=>!empty($t['resolution_due_at'])&&(($ts=strtotime((string)$t['resolution_due_at']))!==false)&&$ts>=$now&&$ts<=$nearLimit&&!in_array((string)$t['status'],['RESOLVED','CLOSED','CANCELLED'],true);
+$isOverdue=static fn(array $t):bool=>(string)($t['sla_summary']['state']??'')==='overdue';
+$isNearDue=static fn(array $t):bool=>(string)($t['sla_summary']['state']??'')==='near_due';
 
 $quickMatch=static function(array $t)use($view,$uid,$isOpen,$isOverdue,$isNearDue):bool{
     return match($view){
@@ -29,7 +29,7 @@ $quickMatch=static function(array $t)use($view,$uid,$isOpen,$isOverdue,$isNearDu
 $filtered=array_values(array_filter($allRows,static function(array $t)use($quickMatch,$search,$parkFilter,$categoryFilter,$priorityFilter,$statusFilter,$responsibleFilter,$uid):bool{
     if(!$quickMatch($t))return false;
     if($search!==''){
-        $haystack=mb_strtolower(implode(' ',[(string)($t['ticket_number']??''),(string)($t['subject']??''),(string)($t['description']??''),(string)($t['requester_name']??''),(string)($t['requester_email']??''),(string)($t['park_name']??''),(string)($t['category_name']??'')]));
+        $haystack=mb_strtolower(implode(' ',[(string)($t['ticket_number']??''),(string)($t['subject']??''),(string)($t['description']??''),(string)($t['requester_name']??''),(string)($t['requester_email']??''),(string)($t['park_name']??''),(string)($t['category_name']??''),(string)($t['assigned_name']??'')]));
         if(!str_contains($haystack,mb_strtolower($search)))return false;
     }
     if($parkFilter!==''&&(string)($t['park_name']??'')!==$parkFilter)return false;
@@ -51,13 +51,7 @@ $counts=['attention'=>0,'mine'=>0,'available'=>0,'in_progress'=>0,'pending'=>0,'
 foreach($allRows as $t){if($isOpen($t))$counts['attention']++;if((int)($t['assigned_to']??0)===$uid&&$isOpen($t))$counts['mine']++;if(empty($t['assigned_to'])&&in_array((string)$t['status'],['NEW','AVAILABLE','REOPENED'],true))$counts['available']++;if(($t['status']??'')==='IN_PROGRESS')$counts['in_progress']++;if(($t['status']??'')==='PENDING')$counts['pending']++;if(($t['priority']??'')==='CRITICAL'&&$isOpen($t))$counts['critical']++;if($isOverdue($t))$counts['overdue']++;if($isNearDue($t))$counts['near_due']++;if(($t['status']??'')==='REOPENED')$counts['reopened']++;}
 $parks=[];$categories=[];foreach($allRows as $t){if(!empty($t['park_name']))$parks[(string)$t['park_name']]=true;if(!empty($t['category_name']))$categories[(string)$t['category_name']]=true;}ksort($parks,SORT_NATURAL|SORT_FLAG_CASE);ksort($categories,SORT_NATURAL|SORT_FLAG_CASE);
 $advancedActive=$search!==''||$parkFilter!==''||$categoryFilter!==''||$priorityFilter!==''||$statusFilter!==''||$responsibleFilter!=='';
-$viewLabels=['attention'=>'Todos','mine'=>'Míos','available'=>'Disponibles','in_progress'=>'En proceso','pending'=>'En espera','critical'=>'Críticos','overdue'=>'Vencidos','near_due'=>'Por vencer','reopened'=>'Reabiertos'];
-$formatSla=static function(array $t)use($now):array{
-    if(in_array((string)$t['status'],['RESOLVED','CLOSED','CANCELLED'],true))return['Finalizado','neutral'];
-    if(empty($t['resolution_due_at']))return['Sin SLA','neutral'];
-    $due=strtotime((string)$t['resolution_due_at']);if($due===false)return['Sin SLA','neutral'];$diff=$due-$now;$abs=abs($diff);$h=intdiv($abs,3600);$m=intdiv($abs%3600,60);$txt=$h>0?$h.'h '.$m.'m':max(1,$m).'m';
-    if($diff<0)return['Vencido hace '.$txt,'danger'];if($diff<=7200)return[$txt.' restantes','warning'];return[$txt.' restantes','ok'];
-};
+$viewLabels=['attention'=>'Todos','mine'=>'Míos','available'=>'Sin asignar','in_progress'=>'En proceso','pending'=>'En espera','critical'=>'Críticos','overdue'=>'Vencidos','near_due'=>'Por vencer','reopened'=>'Reabiertos'];
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="support-page queue-operational-page">
@@ -89,17 +83,17 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div class="queue-table-head"><div><span class="ticket-kicker"><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div></div>
     <?php if($filtered): ?>
     <div class="table-responsive queue-table-wrap data-table-wrap"><table class="queue-table responsive data-table"><thead><tr><th>Ticket / asunto</th><th>Solicitante</th><th>Parque</th><th>Prioridad</th><th>Estado</th><th>SLA</th><th>Responsable</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
-      <?php foreach($filtered as $t): [$slaText,$slaClass]=$formatSla($t);$assigned=(int)($t['assigned_to']??0); ?>
+      <?php foreach($filtered as $t): $sla=$t['sla_summary']??[];$slaText=(string)($sla['remaining_label']??'Sin SLA');$slaClass=(string)($sla['tone']??'neutral');$slaState=(string)($sla['state_label']??'Sin SLA');$slaPercent=$sla['utilization_percent']??null;$assigned=(int)($t['assigned_to']??0); ?>
       <tr class="queue-row priority-row-<?= strtolower((string)$t['priority']) ?>">
         <td data-label="Ticket"><div class="queue-ticket-main"><span><?= htmlspecialchars($t['ticket_number']) ?></span><strong><?= htmlspecialchars($t['subject']) ?></strong><p><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,150,'…')) ?></p></div></td>
         <td data-label="Solicitante"><strong><?= htmlspecialchars($t['requester_name']??'Sin nombre') ?></strong><small><?= htmlspecialchars($t['requester_email']??'') ?></small></td>
         <td data-label="Parque" class="data-table-secondary"><?= htmlspecialchars($t['park_name']??'No especificado') ?></td>
         <td data-label="Prioridad"><span class="priority-chip priority-<?= strtolower((string)$t['priority']) ?>"><?= htmlspecialchars($priorityLabels[$t['priority']]??$t['priority']) ?></span></td>
         <td data-label="Estado"><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></td>
-        <td data-label="SLA"><span class="queue-sla <?= $slaClass ?>"><?= htmlspecialchars($slaText) ?></span></td>
-        <td data-label="Responsable"><?= $assigned===$uid?'Yo':($assigned===0?'Sin asignar':'Asignado') ?></td>
+        <td data-label="SLA"><span class="queue-sla <?= htmlspecialchars($slaClass) ?>"><?= htmlspecialchars($slaText) ?></span><small><?= htmlspecialchars($slaState) ?><?= $slaPercent!==null?' · '.(int)$slaPercent.'% usado':'' ?></small></td>
+        <td data-label="Responsable"><?= $assigned===$uid?'Yo':($assigned===0?'Sin asignar':htmlspecialchars((string)($t['assigned_name']??'Asignado'))) ?></td>
         <td data-label="Actualizado" class="data-table-secondary"><?= htmlspecialchars(date('d/m H:i',strtotime((string)($t['updated_at']??$t['created_at'])))) ?></td>
-        <td data-label="Acción" class="queue-action-cell data-table-actions"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><?php else: ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php endif; ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a></td>
+        <td data-label="Acción" class="queue-action-cell data-table-actions"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><?php elseif($assigned===$uid): ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php endif; ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a></td>
       </tr>
       <?php endforeach; ?>
     </tbody></table></div>
