@@ -12,7 +12,10 @@
 .data-table strong,.data-table small,.data-table span{max-width:100%}
 .data-table small,.data-table-muted{display:block;margin-top:2px;color:var(--muted);font-size:10.5px;line-height:1.35}
 .data-table a{color:var(--brand);font-weight:800;text-decoration:none}.data-table a:hover{text-decoration:underline}
-.data-table-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;white-space:normal}
+.data-table-actions:not(td){display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;white-space:normal}
+.data-table td.data-table-actions{display:table-cell;text-align:right;white-space:normal!important}
+.data-table td.data-table-actions>form{display:inline-block;margin:0 0 4px 4px}
+.data-table td.data-table-actions>a,.data-table td.data-table-actions>button{margin:0 0 4px 4px}
 .data-table-actions form{margin:0}
 .data-table-empty{padding:20px!important;text-align:center;color:var(--muted)}
 .data-table-number{text-align:right;font-variant-numeric:tabular-nums}
@@ -43,12 +46,13 @@
   .data-table thead{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
   .data-table tbody{display:grid;gap:10px}
   .data-table tbody tr{border:1px solid var(--border);border-radius:12px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
-  .data-table tbody td{display:grid;grid-template-columns:minmax(105px,.8fr) minmax(0,1.2fr);gap:10px;align-items:start;padding:9px 11px;border-bottom:1px solid var(--border);text-align:left!important;white-space:normal!important}
+  .data-table tbody td,.data-table tbody td.data-table-actions{display:grid;grid-template-columns:minmax(105px,.8fr) minmax(0,1.2fr);gap:10px;align-items:start;padding:9px 11px;border-bottom:1px solid var(--border);text-align:left!important;white-space:normal!important}
   .data-table tbody td:last-child{border-bottom:0}
   .data-table tbody td::before{content:attr(data-label);color:var(--muted);font-size:9.5px;line-height:1.35;text-transform:uppercase;letter-spacing:.05em;font-weight:850}
   .data-table tbody td[data-label=""]::before{display:none}
   .data-table tbody td[data-label=""]{grid-template-columns:1fr}
-  .data-table-actions{justify-content:flex-start}
+  .data-table-actions:not(td){justify-content:flex-start}
+  .data-table td.data-table-actions>form,.data-table td.data-table-actions>a,.data-table td.data-table-actions>button{margin:0 6px 4px 0}
   .data-table-secondary{display:grid}
   .data-table-empty{display:block!important;text-align:center!important}
   .data-table-empty::before{display:none!important}
@@ -58,5 +62,5 @@
 }
 
 @media(max-width:430px){
-  .data-table tbody td{grid-template-columns:1fr;gap:3px}
+  .data-table tbody td,.data-table tbody td.data-table-actions{grid-template-columns:1fr;gap:3px}
 }
