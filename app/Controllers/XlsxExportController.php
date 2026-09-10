@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Database};
-use App\Services\{ScopeService,XlsxExportService};
+use App\Services\{ScopeService,TicketLifecycleService,XlsxExportService};
 use PDO;
 
 final class XlsxExportController
@@ -33,18 +33,20 @@ final class XlsxExportController
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$records));
 
         $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Motivo de espera','Detalle de espera','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Calificación (0-10)','Comentario de servicio','Fecha de calificación','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
-        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;$pendingReasonCounts=[];
+        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;$pendingReasonCounts=[];$pendingReasonMinutes=[];
         $npsResponses=0;$npsPromoters=0;$npsDetractors=0;$npsSum=0;
 
         foreach($records as $r){
-            $life=$this->lifecycle($r,$events[(int)$r['id']]??[]);$history=[];
+            $life=TicketLifecycleService::analyze($r,$events[(int)$r['id']]??[]);$history=[];
             foreach($life['transitions'] as $t){$history[]=date('d/m/Y H:i',strtotime($t['at'])).' · '.($t['from_label']??'—').' → '.($t['to_label']??'—').(!empty($t['pending_reason'])?' · '.(WorkflowController::PENDING_REASONS[$t['pending_reason']]??$t['pending_reason']):'').(!empty($t['actor'])?' · '.$t['actor']:'');}
+            foreach(($life['pending_reason_changes']??[]) as $change){$history[]=date('d/m/Y H:i',strtotime((string)$change['at'])).' · Motivo de espera: '.(WorkflowController::PENDING_REASONS[$change['from']??'']??($change['from']??'—')).' → '.(WorkflowController::PENDING_REASONS[$change['to']??'']??($change['to']??'—')).(!empty($change['actor'])?' · '.$change['actor']:'');}
             if(trim((string)$r['solution_applied'])!=='')$documented++;
             if(in_array((string)$r['status'],['RESOLVED','CLOSED'],true))$resolved++;
             if($life['first_response_minutes']!==null){$totalFirst+=(int)$life['first_response_minutes'];$countFirst++;}
             if($life['resolution_minutes']!==null){$totalResolution+=(int)$life['resolution_minutes'];$countResolution++;}
             $statusChanges+=count($life['transitions']);
             if(!empty($r['pending_reason_code']))$pendingReasonCounts[$r['pending_reason_code']]=($pendingReasonCounts[$r['pending_reason_code']]??0)+1;
+            foreach(($life['pending_reason_minutes']??[]) as $code=>$minutes)$pendingReasonMinutes[$code]=($pendingReasonMinutes[$code]??0)+(int)$minutes;
             if($r['nps_score']!==null&&$r['nps_score']!==''){
                 $score=(int)$r['nps_score'];$npsResponses++;$npsSum+=$score;
                 if($score>=9)$npsPromoters++;elseif($score<=6)$npsDetractors++;
@@ -67,7 +69,8 @@ final class XlsxExportController
             ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
         ];
         $pendingRows=[];
-        foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0)];
+        foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0),(int)($pendingReasonMinutes[$code]??0)];
+        if(isset($pendingReasonMinutes['UNSPECIFIED']))$pendingRows[]=['Sin motivo registrado',0,(int)$pendingReasonMinutes['UNSPECIFIED']];
         $satisfactionRows=[['Respuestas',$npsResponses],['Promotores (9-10)',$npsPromoters],['Pasivos (7-8)',max(0,$npsResponses-$npsPromoters-$npsDetractors)],['Detractores (0-6)',$npsDetractors],['NPS',$nps],['Promedio',$avgScore!==''?$avgScore.'/10':'']];
 
         Audit::log('REPORT_EXPORTED_XLSX','report',null,null,null,['filters'=>$filters,'scope'=>(new ScopeService())->scopeLabel(),'rows'=>count($records),'nps_responses'=>$npsResponses]);
@@ -75,7 +78,7 @@ final class XlsxExportController
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Resumen del informe','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$summaryRows],
             ['name'=>'Tickets','title'=>'Helpdesk Carrousel · Detalle de tickets','subtitle'=>$filterText,'headers'=>$headers,'rows'=>$rows],
             ['name'=>'Satisfacción','title'=>'Helpdesk Carrousel · Satisfacción del servicio','subtitle'=>$filterText,'headers'=>['Indicador','Valor'],'rows'=>$satisfactionRows],
-            ['name'=>'Esperas','title'=>'Helpdesk Carrousel · Motivos de espera actuales','subtitle'=>$filterText,'headers'=>['Motivo','Casos'],'rows'=>$pendingRows],
+            ['name'=>'Esperas','title'=>'Helpdesk Carrousel · Tiempos de espera por motivo','subtitle'=>$filterText,'headers'=>['Motivo','Casos activos','Minutos históricos'],'rows'=>$pendingRows],
         ]);
     }
 
@@ -114,24 +117,6 @@ final class XlsxExportController
         $q->execute($ticketIds);$g=[];foreach($q->fetchAll() as $e)$g[(int)$e['ticket_id']][]=$e;return$g;
     }
 
-    private function lifecycle(array $ticket,array $events):array
-    {
-        $created=strtotime((string)$ticket['created_at'])?:time();$initial=null;
-        foreach($events as $event){$new=$this->statusFromJson($event['new_value']??null);$old=$this->statusFromJson($event['old_value']??null);if(($event['event_type']??'')==='CREATED'&&$new){$initial=$new;break;}if($old){$initial=$old;break;}}
-        if(!$initial)$initial=(string)($ticket['status']??'NEW');$current=$initial;$statusStarted=$created;$dur=[];$trans=[];
-        foreach($events as $event){
-            $new=$this->statusFromJson($event['new_value']??null);if(!$new||$new===$current)continue;$at=strtotime((string)$event['created_at']);if(!$at||$at<$statusStarted)continue;$mins=max(0,(int)round(($at-$statusStarted)/60));$dur[$current]=($dur[$current]??0)+$mins;$actor=trim((string)($event['actor_name']??''));if($actor==='')$actor=($event['actor_type']??'SYSTEM')==='PUBLIC'?'Solicitante':'Sistema';$decoded=$this->json((string)($event['new_value']??''));$trans[]=['from_label'=>self::STATUS_LABELS[$current]??$current,'to_label'=>self::STATUS_LABELS[$new]??$new,'at'=>(string)$event['created_at'],'actor'=>$actor,'pending_reason'=>(string)($decoded['pending_reason_code']??'')];$current=$new;$statusStarted=$at;
-        }
-        $closedTs=!empty($ticket['closed_at'])?(strtotime((string)$ticket['closed_at'])?:null):null;$end=$closedTs?:time();if($end<$statusStarted)$end=$statusStarted;$dur[$current]=($dur[$current]??0)+max(0,(int)round(($end-$statusStarted)/60));
-        $between=static function($a,$b):?int{if(empty($a)||empty($b))return null;$x=strtotime((string)$a);$y=strtotime((string)$b);return($x&&$y&&$y>=$x)?(int)round(($y-$x)/60):null;};
-        return['transitions'=>$trans,'queue_minutes'=>(int)(($dur['NEW']??0)+($dur['AVAILABLE']??0)),'work_minutes'=>(int)(($dur['IN_PROGRESS']??0)+($dur['REOPENED']??0)),'pending_minutes'=>(int)($dur['PENDING']??0),'resolved_wait_minutes'=>(int)($dur['RESOLVED']??0),'assignment_minutes'=>$between($ticket['created_at']??null,$ticket['assigned_at']??null),'first_response_minutes'=>$between($ticket['created_at']??null,$ticket['first_response_at']??null),'resolution_minutes'=>$between($ticket['created_at']??null,$ticket['resolved_at']??null),'total_minutes'=>$between($ticket['created_at']??null,$ticket['closed_at']??date('Y-m-d H:i:s'))];
-    }
-
-    private function statusFromJson($json):?string
-    {
-        $x=$this->json((string)$json);$s=strtoupper(trim((string)($x['status']??'')));return array_key_exists($s,self::STATUS_LABELS)?$s:null;
-    }
-    private function json(string $json):array{if(trim($json)==='')return[];$x=json_decode($json,true);return is_array($x)?$x:[];}
     private function date($value):string{$ts=empty($value)?false:strtotime((string)$value);return$ts?date('d/m/Y H:i',$ts):'';}
     private function filterDescription(PDO $pdo,array $f):string
     {
