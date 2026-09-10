@@ -2,7 +2,7 @@
 -- Verificacion estricta de una instalacion limpia actual.
 -- Devuelve error SQL si falta una tabla/columna esencial o aparece una tabla no canonica.
 
-USE helpdesk_carrousel;
+USE carrousel_helpdesk;
 SET NAMES utf8mb4;
 
 DROP TEMPORARY TABLE IF EXISTS required_tables;
