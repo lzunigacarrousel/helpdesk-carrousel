@@ -1,6 +1,6 @@
 -- Helpdesk Carrousel V2
 -- Diagnostico de integridad y seguridad. SOLO LECTURA.
-USE helpdesk_carrousel_test;
+USE helpdesk_carrousel;
 
 SELECT 'USUARIOS_EXTERNOS_SIN_PERFIL' prueba, COUNT(*) hallazgos
 FROM users u
