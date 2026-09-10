@@ -3,7 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "APP_DIR=%CD%"
-set "DB_NAME=helpdesk_carrousel_test"
+set "DB_NAME=helpdesk_carrousel"
 set "MYSQL=C:\xampp\mysql\bin\mysql.exe"
 set "MYSQLDUMP=C:\xampp\mysql\bin\mysqldump.exe"
 set "PHP=C:\xampp\php\php.exe"
@@ -17,13 +17,12 @@ echo ============================================================
 echo.
 echo Esta opcion prepara una instalacion NUEVA de la aplicacion.
 echo.
-echo Base que se recreara: %DB_NAME%
-echo Base historica helpdesk_carrousel: NO SE TOCA
+echo Base canonica que se recreara: %DB_NAME%
 echo Carpeta actual: %APP_DIR%
 echo.
 echo Se hara lo siguiente:
 echo  1. Respaldar %DB_NAME% si ya existe.
-echo  2. Eliminar y recrear SOLO %DB_NAME%.
+echo  2. Eliminar y recrear %DB_NAME%.
 echo  3. Crear el esquema V2 actual.
 echo  4. Cargar regiones y parques Carrousel.
 echo  5. Instalar dependencias PHP.
@@ -104,11 +103,12 @@ if /I "%DB_EXISTS%"=="%DB_NAME%" (
 echo.
 echo [2/6] Recreando base de datos...
 "%MYSQL%" %MYSQL_AUTH% -e "DROP DATABASE IF EXISTS `%DB_NAME%`;" || goto :sql_error
-"%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "database\INSTALAR.sql" || goto :sql_error
+powershell -NoProfile -Command "$c=[IO.File]::ReadAllText('database\INSTALAR.sql'); $c=$c.Replace('helpdesk_carrousel_test','helpdesk_carrousel'); [IO.File]::WriteAllText('%TEMP%\helpdesk_instalar.sql',$c,(New-Object Text.UTF8Encoding($false)))" || goto :sql_error
+"%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "%TEMP%\helpdesk_instalar.sql" || goto :sql_error
 echo [OK] Esquema base creado.
 
 echo.
-echo [3/6] Aplicando estructura final V2...
+echo [3/6] Consolidando estructura final actual...
 "%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "database\FINALIZAR_ESQUEMA_V2.sql" || goto :sql_error
 echo [OK] Estructura final aplicada.
 
@@ -159,7 +159,7 @@ echo ============================================================
 echo                 INSTALACION COMPLETADA
 echo ============================================================
 echo.
-echo Base: %DB_NAME%
+echo Base unica: %DB_NAME%
 echo Usuario administrador inicial: luis@carrousel.com.gt
 echo Acceso: codigo OTP ^(sin contrasena permanente^)
 echo Modo correo PC TEST: log
@@ -168,8 +168,6 @@ echo URL: http://localhost/!APP_FOLDER!/public/
 echo.
 echo Si solicita un OTP en modo log, revise:
 echo storage\logs\mail.log
-echo.
-echo La base historica helpdesk_carrousel NO fue modificada.
 echo ============================================================
 pause
 exit /b 0
