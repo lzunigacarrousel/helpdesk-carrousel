@@ -98,9 +98,11 @@ final class XlsxExportService
         $filter=$headers?'<autoFilter ref="A'.$headerRow.':'.$lastCol.$lastRow.'"/>':'';
         $pane='<sheetViews><sheetView workbookViewId="0"><pane ySplit="'.$headerRow.'" topLeftCell="A'.($headerRow+1).'" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>';
 
+        // En SpreadsheetML el orden de los nodos es significativo: autoFilter debe ir
+        // antes de mergeCells. Excel intenta reparar el libro si aparecen invertidos.
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             .'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'.$pane
-            .'<cols>'.implode('',$cols).'</cols><sheetData>'.implode('',$xmlRows).'</sheetData>'.$merge.$filter
+            .'<cols>'.implode('',$cols).'</cols><sheetData>'.implode('',$xmlRows).'</sheetData>'.$filter.$merge
             .'<pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>';
     }
 
