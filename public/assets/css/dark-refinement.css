@@ -207,3 +207,51 @@ html[data-theme="dark"] .app-corporate-footer strong{color:#dbe4f0}
   html[data-theme="dark"] .topbar{background:#121d2f}
   html[data-theme="dark"] .sidebar{box-shadow:12px 0 30px rgba(0,0,0,.35)}
 }
+
+/* Densidad transversal V2.5
+ * Evita que el shell y los grids inventen altura cuando el contenido real es corto.
+ * El objetivo es que cada pantalla termine donde termina su información, no al fondo del viewport.
+ */
+.main-wrap{min-height:calc(100vh - 4px)}
+.content{
+  flex:0 0 auto;
+  min-height:0;
+  padding-bottom:18px;
+}
+.app-corporate-footer{
+  margin-top:18px!important;
+}
+
+/* Los grids funcionales no deben estirar tarjetas cortas hasta la altura de la más larga. */
+.grid,
+.mgmt-grid,
+.external-layout,
+.external-ops-layout,
+.case-secondary-grid,
+.problem-summary-grid,
+.knowledge-layout{
+  align-items:start;
+}
+.external-operation-card{height:auto}
+
+/* En el ticket solo la cabecera Problema + Contexto usa dos columnas.
+ * Seguimiento, gestión, herramientas e historial aprovechan el ancho completo.
+ */
+@media(min-width:1001px){
+  .case-focus-workspace>.case-conversation-card,
+  .case-focus-workspace>.case-action-card,
+  .case-focus-workspace>.ticket-problem-link,
+  .case-focus-workspace>.suggested-solutions,
+  .case-focus-workspace>.similar-solutions,
+  .case-focus-workspace>.case-secondary-grid{
+    grid-column:1/-1;
+  }
+}
+
+/* Vacíos informativos compactos: comunican ausencia de datos sin convertirse en bloques gigantes. */
+.empty-state,
+.support-inline-empty,
+.itsm-inline-empty,
+.report-empty-info{
+  min-height:0!important;
+}
