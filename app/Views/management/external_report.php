@@ -12,7 +12,7 @@ $exportQuery=http_build_query(array_filter(['q'=>$filters['q'],'provider'=>$filt
 <div class="external-report-page">
   <div class="mgmt-head external-report-head">
     <div><span class="mgmt-kicker">Historial operativo</span><h1>Historial de proveedores</h1><p>Consulta quién participó, en qué caso, durante cuánto tiempo y qué actividad realizó.</p></div>
-    <div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos">Administrar proveedores</a><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/admin/externos/informe/exportar<?= $exportQuery?'?'.htmlspecialchars($exportQuery):'' ?>" data-action-message="Preparando archivo Excel…">Descargar Excel (.xlsx)</a></div>
+    <div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos">Administrar proveedores</a><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/admin/externos/informe/exportar<?= $exportQuery?'?'.htmlspecialchars($exportQuery):'' ?>" data-no-loading="1">Descargar Excel (.xlsx)</a></div>
   </div>
 
   <form class="external-report-filters" method="get" action="<?= APP_BASE_URL ?>/admin/externos/informe">
