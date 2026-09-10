@@ -68,6 +68,9 @@ jobs:
       - name: Dark theme public surfaces
         run: php tests/dark_theme_public_smoke.php
 
+      - name: Searchable select regression
+        run: php tests/searchable_select_smoke.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
