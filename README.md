@@ -16,7 +16,7 @@ La instalación limpia se construye desde **un único SQL maestro**:
 
 Ese archivo contiene todo el esquema actual, relaciones, trigger de resolución, perfiles, permisos, SLA, regiones, parques, categorías, puestos, soporte, administrador inicial, NPS, notificaciones, problemas conocidos y conocimiento.
 
-No se usan scripts `ACTUALIZAR_*`, fases antiguas, importadores ni parches para una instalación nueva.
+No se usan scripts históricos de actualización, fases antiguas, importadores ni parches para una instalación nueva.
 
 ## SQL vigentes
 
