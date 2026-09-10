@@ -34,4 +34,25 @@ xcheck(mb_strlen($short)<=31,'Nombre de hoja limitado a 31 caracteres');
 
 xcheck(class_exists(ZipArchive::class),'Extensión ZIP disponible para XLSX');
 
+$worksheetMethod=new ReflectionMethod(XlsxExportService::class,'worksheet');
+$worksheetMethod->setAccessible(true);
+$xml=$worksheetMethod->invoke(null,[
+    'name'=>'Prueba',
+    'title'=>'Libro de prueba',
+    'subtitle'=>'Compatibilidad Excel',
+    'headers'=>['Columna A','Columna B'],
+    'rows'=>[['Uno',1],['Dos',2]],
+]);
+
+$autoFilterPos=strpos($xml,'<autoFilter ');
+$mergeCellsPos=strpos($xml,'<mergeCells ');
+xcheck($autoFilterPos!==false,'Worksheet incluye autoFilter');
+xcheck($mergeCellsPos!==false,'Worksheet incluye mergeCells');
+xcheck($autoFilterPos!==false&&$mergeCellsPos!==false&&$autoFilterPos<$mergeCellsPos,'OOXML válido: autoFilter aparece antes de mergeCells');
+
+if(class_exists(DOMDocument::class)){
+    $dom=new DOMDocument();
+    xcheck(@$dom->loadXML($xml),'Worksheet XML bien formado');
+}
+
 exit($ok?0:1);
