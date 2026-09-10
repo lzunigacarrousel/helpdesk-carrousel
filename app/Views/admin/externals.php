@@ -5,21 +5,32 @@ $typeLabels=['PROVIDER'=>'Proveedor','PARTNER'=>'Socio / aliado','OTHER'=>'Otro'
 $providerCount=count($users);$accessCount=count($access);$shareableCount=count($tickets);
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
+<style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.external-provider-create{margin-bottom:16px}.external-provider-create>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;font-weight:850}.external-provider-create>summary::-webkit-details-marker{display:none}.external-provider-create>summary:after{content:'+';display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--border);border-radius:9px;color:var(--brand);font-size:18px}.external-provider-create[open]>summary:after{content:'−'}.external-provider-create[open]>summary{border-bottom:1px solid var(--border)}.external-provider-create-summary span,.external-provider-create-summary small{display:block}.external-provider-create-summary span{font-size:14px}.external-provider-create-summary small{margin-top:3px;color:var(--muted);font-size:11px;font-weight:500}.external-share-primary{border:2px solid color-mix(in srgb,var(--brand) 24%,var(--border) 76%)}.external-share-primary .external-form{grid-template-columns:1fr 1fr}.external-share-primary .mgmt-card-head{align-items:center}.external-share-note{font-size:11px;color:var(--muted);max-width:420px;text-align:right}.external-directory-card{margin-top:0}@media(max-width:760px){.external-share-primary .external-form{grid-template-columns:1fr}.external-share-primary .external-full{grid-column:1}.external-share-note{display:none}}
+</style>
 <div class="external-admin-page">
-<div class="mgmt-head external-admin-head"><div><span class="mgmt-kicker">Colaboración externa</span><h1>Proveedores</h1><p>Registra cada proveedor una sola vez y comparte únicamente los casos donde necesites su participación.</p></div><div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos/informe">Historial y Excel</a></div></div>
+<div class="mgmt-head external-admin-head"><div><span class="mgmt-kicker">Colaboración externa</span><h1>Proveedores</h1><p>Administra proveedores y comparte únicamente los casos donde necesites su participación.</p></div><div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos/informe">Ver historial</a></div></div>
 <?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
 <section class="external-admin-kpis">
   <article><span>Proveedores</span><strong><?= $providerCount ?></strong><small>Cuentas registradas</small></article>
-  <article><span>Casos compartidos</span><strong><?= $accessCount ?></strong><small>Accesos vigentes</small></article>
-  <article><span>Disponibles</span><strong><?= $shareableCount ?></strong><small>Tickets que puedes compartir</small></article>
+  <article><span>Casos con proveedor</span><strong><?= $accessCount ?></strong><small>Accesos vigentes</small></article>
+  <article><span>Casos disponibles</span><strong><?= $shareableCount ?></strong><small>Pueden compartirse</small></article>
 </section>
 
-<section class="external-security external-security-compact"><strong>Acceso restringido</strong><span>El proveedor solo ve los casos que compartiste y puede responder o adjuntar según los permisos otorgados.</span></section>
+<section class="mgmt-card external-operation-card external-share-card external-share-primary">
+  <div class="mgmt-card-head"><div><span>Trabajo diario</span><h2>Compartir un caso</h2></div><small class="external-share-note">El proveedor solo verá este caso. Puedes retirar su acceso cuando termine el apoyo.</small></div>
+  <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/asignar" class="external-form" data-single-submit>
+    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+    <label>Proveedor<select class="form-control" name="user_id" required><option value="">Selecciona proveedor</option><?php foreach($users as $u): ?><option value="<?= (int)$u['id'] ?>"><?= htmlspecialchars(($u['organization_name']?:$u['full_name']).' · '.$u['full_name']) ?></option><?php endforeach; ?></select></label>
+    <label>Caso<select class="form-control" name="ticket_id" required><option value="">Selecciona un ticket</option><?php foreach($tickets as $t): ?><option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['ticket_number'].' · '.$t['subject'].($t['park_name']?' · '.$t['park_name']:'')) ?></option><?php endforeach; ?></select></label>
+    <div class="external-permission-box external-full"><strong>Permisos</strong><label class="external-check"><input type="checkbox" name="can_comment" value="1" checked> Puede responder</label><label class="external-check"><input type="checkbox" name="can_upload" value="1" checked> Puede adjuntar evidencias</label></div>
+    <div class="external-full"><button class="btn btn-primary" <?= !$users||!$tickets?'disabled':'' ?>>Compartir caso</button><?php if(!$users): ?><small class="external-form-note">Primero registra un proveedor.</small><?php elseif(!$tickets): ?><small class="external-form-note">No hay tickets disponibles para compartir.</small><?php endif; ?></div>
+  </form>
+</section>
 
-<div class="external-layout external-ops-layout">
-<section class="mgmt-card external-operation-card">
-  <div class="mgmt-card-head"><div><span>Solo si es nuevo</span><h2>Registrar proveedor</h2></div><small class="muted">La cuenta usa acceso por OTP.</small></div>
+<details class="mgmt-card external-provider-create">
+  <summary><div class="external-provider-create-summary"><span>Registrar nuevo proveedor</span><small>Úsalo solo cuando la empresa o contacto todavía no exista en el directorio.</small></div></summary>
   <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/crear" class="external-form" data-single-submit>
     <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
     <label>Proveedor / empresa<input class="form-control" name="organization_name" required placeholder="Ej. Proveedor de Internet"></label>
@@ -30,25 +41,13 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <label>Servicio / referencia<input class="form-control" name="notes" placeholder="Ej. Internet, CCTV, soporte POS..."></label>
     <div class="external-full"><button class="btn btn-primary">Crear proveedor</button></div>
   </form>
-</section>
-
-<section class="mgmt-card external-operation-card external-share-card">
-  <div class="mgmt-card-head"><div><span>Trabajo diario</span><h2>Compartir un caso</h2></div><small class="muted">Puedes revocar el acceso cuando termine el apoyo.</small></div>
-  <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/asignar" class="external-form" data-single-submit>
-    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-    <label class="external-full">Proveedor<select class="form-control" name="user_id" required><option value="">Selecciona proveedor</option><?php foreach($users as $u): ?><option value="<?= (int)$u['id'] ?>"><?= htmlspecialchars(($u['organization_name']?:$u['full_name']).' · '.$u['full_name']) ?></option><?php endforeach; ?></select></label>
-    <label class="external-full">Caso<select class="form-control" name="ticket_id" required><option value="">Selecciona un ticket</option><?php foreach($tickets as $t): ?><option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['ticket_number'].' · '.$t['subject'].($t['park_name']?' · '.$t['park_name']:'')) ?></option><?php endforeach; ?></select></label>
-    <div class="external-permission-box external-full"><strong>Permisos</strong><label class="external-check"><input type="checkbox" name="can_comment" value="1" checked> Puede responder</label><label class="external-check"><input type="checkbox" name="can_upload" value="1" checked> Puede adjuntar evidencias</label></div>
-    <div class="external-full"><button class="btn btn-primary" <?= !$users||!$tickets?'disabled':'' ?>>Compartir caso</button><?php if(!$users): ?><small class="external-form-note">Primero registra un proveedor.</small><?php elseif(!$tickets): ?><small class="external-form-note">No hay tickets disponibles para compartir.</small><?php endif; ?></div>
-  </form>
-</section>
-</div>
+</details>
 
 <section class="mgmt-card external-directory-card" data-external-directory>
   <div class="mgmt-card-head external-directory-head"><div><span>Directorio</span><h2>Proveedores registrados</h2></div><div class="external-directory-tools"><input class="form-control" type="search" placeholder="Buscar empresa, contacto o correo" data-external-search><b><?= $providerCount ?></b></div></div>
   <div class="external-users">
     <?php foreach($users as $u): $searchText=mb_strtolower(trim(($u['organization_name']??'').' '.($u['full_name']??'').' '.($u['email']??'').' '.($u['phone']??''))); ?>
-      <article data-external-user data-search="<?= htmlspecialchars($searchText) ?>"><div class="external-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['organization_name']?:$u['full_name'],0,1))) ?></div><div><strong><?= htmlspecialchars($u['organization_name']?:$u['full_name']) ?></strong><span><?= htmlspecialchars($u['full_name']) ?></span><small><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></small><div class="external-user-meta"><span><?= htmlspecialchars($typeLabels[$u['external_type']]??'Externo') ?></span><span><?= (int)$u['active_cases'] ?> caso(s) activo(s)</span></div></div></article>
+      <article data-external-user data-search="<?= htmlspecialchars($searchText) ?>"><div class="external-avatar"><?= htmlspecialchars(mb_strtoupper(mb_substr($u['organization_name']?:$u['full_name'],0,1))) ?></div><div><strong><?= htmlspecialchars($u['organization_name']?:$u['full_name']) ?></strong><span><?= htmlspecialchars($u['full_name']) ?></span><small><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></small><div class="external-user-meta"><span><?= htmlspecialchars($typeLabels[$u['external_type']]??'Externo') ?></span><span><?= (int)$u['active_cases'] ?> <?= (int)$u['active_cases']===1?'caso activo':'casos activos' ?></span></div></div></article>
     <?php endforeach; ?>
     <?php if(!$users): ?><div class="empty-state">Todavía no hay proveedores registrados.</div><?php endif; ?>
     <div class="empty-state" data-external-empty hidden>No encontramos proveedores con esa búsqueda.</div>
