@@ -58,33 +58,43 @@ Estado: **COMPLETADA EN DOCUMENTACIÓN**.
 
 ## Fase 2 — UX solicitante
 
-Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN VISUAL EN PC TEST**.
+Estado: **IMPLEMENTADA / VALIDADA EN PC TEST PARA FLUJO PRINCIPAL**.
 
 Objetivo de BD: **0 cambios — cumplido**.
 
 - [x] Simplificar `app/Views/tickets/public_create.php` sin reconstruir el flujo de tickets.
-- [x] Presentar categorías en lenguaje humano sin cambiar `ticket_categories` ni sus IDs.
-- [x] Agregar ayuda contextual corta por selección.
+- [x] Presentar temas en lenguaje humano, basados en solicitudes históricas reales, sin cambiar `ticket_categories` ni sus IDs.
+- [x] Agregar ayuda y ejemplo contextual según el tema seleccionado.
 - [x] Reutilizar nombre, correo y teléfono del usuario autenticado; nombre/correo se toman del servidor y no de campos ocultos manipulables.
 - [x] Reutilizar una única asignación activa para proponer parque/área cuando sea inequívoca.
 - [x] Mantener opción secundaria `Reportar en otro lugar` para cambiar la ubicación propuesta.
 - [x] Mantener `subject` generado, CSRF, creación de ticket, SLA, notificaciones y modelo actual.
-- [x] Agregar `tests/requester_ux_smoke.php` y ejecutarlo en GitHub Actions.
-- [x] Actualizar el Manual integrado para explicar el flujo humano y la ubicación automática.
+- [x] Agregar `RequesterTopicService` y `tests/requester_ux_smoke.php`.
+- [x] Actualizar el Manual integrado.
 - [x] Validar automáticamente sintaxis PHP/JS, static checks, dark theme, searchable selects, project quality y XLSX.
-- [ ] Validación visual manual en PC TEST: usuario autenticado y no autenticado; 1920, 1366, iPad/tablet y móvil.
+- [ ] Completar validación responsive acumulada en 1920, 1366, iPad/tablet y móvil durante la validación integral.
 
 ## Fase 3 — Operación IT y SLA
 
-Estado: **PENDIENTE**.
+Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN VISUAL EN PC TEST**.
 
-Objetivo de BD: **0 cambios**.
+Objetivo de BD: **0 cambios — cumplido**.
 
-- [ ] Centralizar presentación de SLA con tiempo restante, porcentaje utilizado y estado operativo.
-- [ ] Corregir la cola para trabajar sobre todos los tickets visibles según scope, no solo propios + sin asignar.
-- [ ] Conservar filtros: míos, sin asignar, por vencer, vencidos, espera, reabiertos y críticos.
-- [ ] Mejorar cálculo histórico de esperas por `pending_reason_code`, incluyendo cambios de motivo sin cambio de estado.
-- [ ] Alinear acciones alrededor del estado `RESOLVED` y confirmación del solicitante.
+- [x] Crear `SlaPresentationService` para centralizar tiempo restante, porcentaje utilizado y estado operativo.
+- [x] Clasificar SLA como `Dentro de objetivo`, `Atención requerida`, `Próximo a vencer` o `Vencido` usando las fechas existentes.
+- [x] Corregir la cola para consultar todos los tickets operativos visibles según `ScopeService`, no solo propios + sin asignar.
+- [x] Mantener filtros `Míos`, `Sin asignar`, `Por vencer`, `Vencidos`, `En espera`, `Reabiertos` y `Críticos`, además de `Todos` y `En proceso`.
+- [x] Mostrar responsable real y lectura SLA en la cola.
+- [x] Aplicar el alcance también al backend al tomar un caso; no depender únicamente de la visibilidad del botón.
+- [x] Permitir abrir desde la cola/reportes únicamente tickets autorizados por scope, conservando el aislamiento EXTERNAL.
+- [x] Crear `TicketLifecycleService` para centralizar tiempos del ciclo de vida.
+- [x] Separar históricamente minutos de espera por `pending_reason_code`, incluyendo `PENDING_REASON_CHANGED` sin cambio de estado.
+- [x] Reutilizar el ciclo central en Informes y XLSX para evitar cálculos divergentes.
+- [x] Añadir en XLSX la hoja de esperas con casos activos y minutos históricos por motivo.
+- [x] Eliminar de la interfaz IT el cierre manual desde `RESOLVED`; la solución queda pendiente de confirmación del solicitante y se conserva `Reabrir`.
+- [x] Agregar `tests/phase3_operational_smoke.php` al CI.
+- [x] Actualizar Manual integrado con cola, SLA, espera histórica y cierre por confirmación.
+- [ ] Validación visual manual en PC TEST del Centro de soporte y workspace en claro/oscuro; revisión específica 1366/iPad/móvil se consolida en Fase 12.
 
 ## Fase 4 — Feedback
 
@@ -168,7 +178,7 @@ Objetivo de BD: **0 cambios previstos**.
 
 Estado: **PENDIENTE**.
 
-- [ ] Actualizar manual integrado según funciones realmente aprobadas.
+- [ ] Consolidar el manual integrado según funciones realmente aprobadas; Fases 2 y 3 ya incorporaron su documentación contextual.
 - [ ] Solicitante: crear, seguir, responder y confirmar solución.
 - [ ] IT: tomar, reasignar, responder, conversación interna, espera, proveedor, visita y resolución.
 - [ ] Proveedor: consultar, responder, adjuntar y registrar trabajo.
