@@ -10,37 +10,63 @@ final class TicketController
 {
     private const STATUS_LABELS=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
     private const PRIORITY_LABELS=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
+    private const REQUESTER_CATEGORY_PRESENTATION=[
+        'POS'=>['label'=>'Facturación / POS','help'=>'Indica qué caja presenta el problema y qué mensaje aparece.','order'=>10],
+        'SEMNOX'=>['label'=>'Semnox','help'=>'Indica dónde ocurre el problema y qué estabas intentando realizar.','order'=>20],
+        'NETWORK'=>['label'=>'Internet','help'=>'Indica si afecta a todo el parque o solamente a un equipo.','order'=>30],
+        'ACCESS'=>['label'=>'Acceso a un sistema','help'=>'Indica a qué sistema necesitas entrar y qué sucede al intentarlo.','order'=>40],
+        'HARDWARE'=>['label'=>'Equipo','help'=>'Indica qué equipo presenta el problema y qué comportamiento observas.','order'=>50],
+        'SOFTWARE'=>['label'=>'Programa / aplicación','help'=>'Indica qué programa estás usando y qué sucede cuando intentas trabajar.','order'=>60],
+        'REPORTS'=>['label'=>'Reporte','help'=>'Indica qué reporte necesitas o qué información no se muestra como esperabas.','order'=>70],
+        'OTHER'=>['label'=>'Otro','help'=>'Cuéntanos brevemente qué necesitas y qué resultado esperabas.','order'=>80],
+    ];
 
     public function publicHome():void{View::render('tickets/public_home',['user'=>Auth::user(),'flash'=>Flash::pull()]);}
 
     public function publicCreate():void{
-        $pdo=Database::pdo();
+        $pdo=Database::pdo();$user=Auth::user();
+        $categories=$pdo->query("SELECT id,code,TRIM(name) name FROM ticket_categories WHERE is_active=1 ORDER BY name")->fetchAll();
+        foreach($categories as &$category){
+            $presentation=self::REQUESTER_CATEGORY_PRESENTATION[(string)$category['code']]??['label'=>(string)$category['name'],'help'=>'Describe qué necesitas y qué sucede actualmente.','order'=>999];
+            $category['display_name']=$presentation['label'];$category['requester_help']=$presentation['help'];$category['requester_order']=$presentation['order'];
+        }
+        unset($category);
+        usort($categories,static fn(array $a,array $b):int=>((int)$a['requester_order']<=> (int)$b['requester_order'])?:strcmp((string)$a['display_name'],(string)$b['display_name']));
+        $assignment=$user?$this->singleActiveAssignment($pdo,(int)$user['id']):null;
         View::render('tickets/public_create',[
-            'user'=>Auth::user(),
-            'categories'=>$pdo->query("SELECT MIN(id) id,TRIM(name) name FROM ticket_categories WHERE is_active=1 GROUP BY LOWER(TRIM(name)) ORDER BY name")->fetchAll(),
+            'user'=>$user,
+            'categories'=>$categories,
             'parks'=>$pdo->query("SELECT MIN(id) id,TRIM(name) name FROM parks WHERE is_active=1 GROUP BY LOWER(TRIM(name)) ORDER BY name")->fetchAll(),
             'areas'=>$pdo->query("SELECT MIN(id) id,TRIM(name) name FROM areas WHERE is_active=1 GROUP BY LOWER(TRIM(name)) ORDER BY name")->fetchAll(),
+            'assignment'=>$assignment,
+            'defaultParkId'=>(int)($assignment['park_id']??0),
+            'defaultAreaId'=>(int)($assignment['area_id']??0),
             'flash'=>Flash::pull(),
         ]);
     }
 
     public function publicStore():void{
         Csrf::verify($_POST['_csrf']??null);
-        $name=trim(Http::post('name'));$email=strtolower(trim(Http::post('email')));$phone=trim(Http::post('phone'));
+        $authUser=Auth::user();$requesterUserId=null;
+        if($authUser){
+            $name=(string)$authUser['full_name'];$email=strtolower((string)$authUser['email']);$knownPhone=trim((string)($authUser['phone']??''));$phone=$knownPhone!==''?$knownPhone:trim(Http::post('phone'));$requesterUserId=(int)$authUser['id'];
+        }else{
+            $name=trim(Http::post('name'));$email=strtolower(trim(Http::post('email')));$phone=trim(Http::post('phone'));
+        }
         $parkId=(int)Http::post('park_id');$areaId=(int)Http::post('area_id');$categoryId=(int)Http::post('category_id');
         $subject=trim(Http::post('subject'));$description=trim(Http::post('description'));
         if(mb_strlen($name)<3)throw new \RuntimeException('Ingresa tu nombre completo.');
         if(!filter_var($email,FILTER_VALIDATE_EMAIL))throw new \RuntimeException('Ingresa un correo válido.');
-        if($categoryId<=0)throw new \RuntimeException('Selecciona el tipo de solicitud.');
+        if($categoryId<=0)throw new \RuntimeException('Selecciona en qué necesitas ayuda.');
         if(mb_strlen($subject)<5)throw new \RuntimeException('Escribe un resumen un poco más claro.');
         if(mb_strlen($description)<10)throw new \RuntimeException('Cuéntanos un poco más sobre lo que está pasando.');
         $pdo=Database::pdo();$this->rateLimit($email);
         $c=$pdo->prepare('SELECT id,default_priority FROM ticket_categories WHERE id=? AND is_active=1 LIMIT 1');$c->execute([$categoryId]);$category=$c->fetch();
-        if(!$category)throw new \RuntimeException('El tipo de solicitud seleccionado no está disponible.');
+        if(!$category)throw new \RuntimeException('La opción seleccionada no está disponible.');
         if($parkId>0&&!$this->activeExists('parks',$parkId))throw new \RuntimeException('La ubicación seleccionada no está disponible.');
         if($areaId>0&&!$this->activeExists('areas',$areaId))throw new \RuntimeException('El área seleccionada no está disponible.');
-        $priority=(string)$category['default_priority'];$requesterUserId=null;
-        $u=$pdo->prepare('SELECT id FROM users WHERE email=? AND email_verified_at IS NOT NULL AND deleted_at IS NULL LIMIT 1');$u->execute([$email]);$found=$u->fetchColumn();if($found)$requesterUserId=(int)$found;
+        $priority=(string)$category['default_priority'];
+        if($requesterUserId===null){$u=$pdo->prepare('SELECT id FROM users WHERE email=? AND email_verified_at IS NOT NULL AND deleted_at IS NULL LIMIT 1');$u->execute([$email]);$found=$u->fetchColumn();if($found)$requesterUserId=(int)$found;}
         $teamId=$pdo->query("SELECT id FROM support_teams WHERE code='IT' AND is_active=1 LIMIT 1")->fetchColumn()?:null;
         [$slaId,$firstDue,$resolutionDue]=$this->sla($categoryId,$priority);
         $ticket=Database::transaction(function(PDO $pdo)use($requesterUserId,$email,$name,$phone,$parkId,$areaId,$categoryId,$teamId,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue){
@@ -141,6 +167,23 @@ final class TicketController
         }
         if((int)($t['requester_user_id']??0)===$uid||strtolower((string)$t['requester_email'])===$email||(int)($t['assigned_to']??0)===$uid)return;
         Flash::set('No tienes acceso a ese caso.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;
+    }
+
+    private function singleActiveAssignment(PDO $pdo,int $userId):?array
+    {
+        if($userId<=0)return null;
+        $s=$pdo->prepare("SELECT ua.id,ua.assignment_type,ua.region_id,ua.park_id,ua.area_id,r.name region_name,p.name park_name,a.name area_name
+            FROM user_assignments ua
+            LEFT JOIN regions r ON r.id=ua.region_id
+            LEFT JOIN parks p ON p.id=ua.park_id
+            LEFT JOIN areas a ON a.id=ua.area_id
+            WHERE ua.user_id=? AND ua.status='ACTIVE' AND ua.starts_at<=NOW() AND (ua.ends_at IS NULL OR ua.ends_at>=NOW())
+              AND (ua.region_id IS NULL OR r.is_active=1)
+              AND (ua.park_id IS NULL OR p.is_active=1)
+              AND (ua.area_id IS NULL OR a.is_active=1)
+            ORDER BY ua.id DESC LIMIT 2");
+        $s->execute([$userId]);$rows=$s->fetchAll();
+        return count($rows)===1?$rows[0]:null;
     }
 
     private function activeExists(string $table,int $id):bool{if(!in_array($table,['parks','areas'],true))return false;$s=Database::pdo()->prepare("SELECT COUNT(*) FROM {$table} WHERE id=? AND is_active=1");$s->execute([$id]);return(int)$s->fetchColumn()>0;}
