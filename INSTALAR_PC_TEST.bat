@@ -84,15 +84,17 @@ if not exist "config\local.php" (
   echo [OK] Se conserva config\local.php existente.
 )
 
-for /f "usebackq delims=" %%D in (`"%PHP%" -r "$c=require 'config/local.php'; echo (string)($c['db_name']??'');"`) do set "LOCAL_DB=%%D"
-if /I not "!LOCAL_DB!"=="%DB_NAME%" (
+findstr /L /C:"'db_name' => 'carrousel_helpdesk'" "config\local.php" >nul
+if errorlevel 1 (
   echo.
-  echo [ERROR] config\local.php apunta a: !LOCAL_DB!
-  echo Debe apuntar a: %DB_NAME%
+  echo [ERROR] config\local.php no apunta a carrousel_helpdesk.
+  echo Debe contener: 'db_name' =^> 'carrousel_helpdesk'
   echo No se modifico ninguna base de datos.
   pause
   exit /b 1
 )
+
+echo [OK] config\local.php apunta a %DB_NAME%.
 
 echo.
 set /p "CONFIRM=Escriba REINSTALAR para continuar: "
@@ -156,6 +158,8 @@ if not errorlevel 1 (
 echo.
 echo [4/4] Ejecutando validaciones...
 "%PHP%" tests\static_checks.php
+if errorlevel 1 goto :test_error
+"%PHP%" tests\installer_safety_smoke.php
 if errorlevel 1 goto :test_error
 "%PHP%" tests\project_quality.php
 if errorlevel 1 goto :test_error
