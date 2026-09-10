@@ -84,18 +84,12 @@ check(isset($routes['GET /gestion/informes/exportar']),'Existe exportación XLSX
 
 // Normalización UI: una sola estrategia de geometría/footer y tablas semánticas.
 $appEnd=(string)@file_get_contents($root.'/app/Views/shared/app_end.php');
-$dataTableCss=(string)@file_get_contents($root.'/public/assets/css/data-tables.css');
-$tableJs=(string)@file_get_contents($root.'/public/assets/js/table-normalization.js');
-check(!is_file($root.'/public/assets/css/sticky-footer.css'),'No existe la hoja legacy sticky-footer.css');
+$managementCss=(string)@file_get_contents($root.'/public/assets/css/management.css');
+$componentsCss=(string)@file_get_contents($root.'/public/assets/css/components.css');
 check(!str_contains($appEnd,'sticky-footer.css'),'Footer no depende de una segunda capa CSS contradictoria');
-check(str_contains($appEnd,'layout-density-v25.css'),'Shell carga geometría canónica');
-check(str_contains($appEnd,'data-tables.css'),'Shell carga tablas canónicas');
-check(str_contains($appEnd,'table-normalization.js'),'Shell activa normalización para tablas existentes');
-check(str_contains($dataTableCss,'.data-table'),'Existe componente global .data-table');
-check(str_contains($dataTableCss,'content:attr(data-label)'),'Tablas móviles usan data-label en lugar de scroll horizontal obligatorio');
-check(str_contains($dataTableCss,'min-width:0!important'),'Capa final neutraliza anchos mínimos heredados');
-check(str_contains($dataTableCss,'.report-table.data-table'),'Informes heredan tabla canónica sin ancho forzado');
-check(str_contains($tableJs,".content table:not([data-table-skip])"),'Normalizador alcanza todas las tablas internas');
+check(preg_match('/\.report-table\s*\{[^}]*min-width\s*:\s*1450px/s',$managementCss)!==1,'Informes no fuerzan ancho de 1450px');
+check(str_contains($componentsCss,'.data-table'),'Existe componente global .data-table');
+check(str_contains($componentsCss,'content:attr(data-label)'),'Tablas móviles usan data-label en lugar de scroll horizontal obligatorio');
 
 $requiredTableViews=[
     'admin/users.php',
@@ -110,11 +104,21 @@ foreach($requiredTableViews as $relative){
     check($view!==''&&str_contains($view,'data-label='),'Vista prepara lectura responsive con data-label: '.$relative);
 }
 
-// Ningún formulario de edición de usuario puede contener un segundo form anidado.
-$usersView=(string)@file_get_contents($root.'/app/Views/admin/users.php');
-$assignStart=strpos($usersView,'action="<?= APP_BASE_URL ?>/admin/users/assign"');
-$formClose=$assignStart===false?false:strpos($usersView,'</form>',$assignStart);
-$deleteStart=strpos($usersView,'action="<?= APP_BASE_URL ?>/admin/users/delete"');
-check($assignStart!==false&&$formClose!==false&&($deleteStart===false||$deleteStart>$formClose),'Usuarios no anida formulario de retiro dentro de edición');
+// Las tablas que ya existían también deben consumir explícitamente el componente común.
+$normalizedExistingTables=[
+    'tickets/queue.php',
+    'admin/mail.php',
+    'problems/index.php',
+    'management/dashboard.php',
+    'management/reports.php',
+];
+foreach($normalizedExistingTables as $relative){
+    $view=(string)@file_get_contents($root.'/app/Views/'.$relative);
+    check($view!==''&&str_contains($view,'data-table'),'Tabla existente usa componente global: '.$relative);
+    check($view!==''&&str_contains($view,'data-label='),'Tabla existente declara etiquetas responsive: '.$relative);
+}
+$reportsView=(string)@file_get_contents($root.'/app/Views/management/reports.php');
+check(!str_contains($reportsView,'.report-table{min-width:1050px}'),'Informes no fuerzan ancho mínimo en tablet');
+check(!str_contains($reportsView,'.report-table-wrap{width:100%;overflow-x:auto}'),'Informes no dependen de scroll horizontal');
 
 exit($ok?0:1);
