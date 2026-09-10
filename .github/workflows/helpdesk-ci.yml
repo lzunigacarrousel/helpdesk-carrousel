@@ -89,16 +89,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mariadb-client
 
-      - name: Install current clean schema
+      - name: Install canonical schema
         env:
           MYSQL_PWD: root
-        shell: bash
-        run: |
-          set -euo pipefail
-          sed 's/helpdesk_carrousel_test/helpdesk_carrousel/g' database/INSTALAR.sql > /tmp/INSTALAR.sql
-          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < /tmp/INSTALAR.sql
-          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/FINALIZAR_ESQUEMA_V2.sql
-          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/CATALOGOS_CARROUSEL.sql
+        run: mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/INSTALAR.sql
 
       - name: Verify clean database
         env:
