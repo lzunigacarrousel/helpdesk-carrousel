@@ -62,7 +62,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="support-page queue-operational-page">
   <div class="support-hero queue-hero">
-    <div><div class="ticket-kicker">Equipo de soporte</div><h1 class="page-title">Centro de soporte</h1><p class="page-subtitle">Encuentra rápido qué requiere atención, entiende el problema y actúa sin perder contexto.</p></div>
+    <div><div class="ticket-kicker">Equipo de soporte</div><h1 class="page-title">Centro de soporte</h1></div>
     <div class="queue-summary"><strong><?= count($filtered) ?></strong><span><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span></div>
   </div>
   <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
@@ -72,7 +72,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </nav>
 
   <details class="queue-filters-panel" <?= $advancedActive?'open':'' ?>>
-    <summary><span>Filtros</span><small><?= $advancedActive?'Hay filtros avanzados aplicados':'Buscar por ticket, parque, categoría, prioridad o estado' ?></small></summary>
+    <summary><span>Filtros</span><small><?= $advancedActive?'Hay filtros avanzados aplicados':'Ticket, parque, categoría, prioridad o estado' ?></small></summary>
     <form method="get" action="<?= APP_BASE_URL ?>/tickets/queue" class="queue-filter-form">
       <input type="hidden" name="view" value="<?= htmlspecialchars($view) ?>">
       <label class="queue-filter-search">Buscar<input class="form-control" type="search" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Ticket, asunto, problema, solicitante…"></label>
@@ -85,25 +85,25 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </form>
   </details>
 
-  <section class="card queue-table-card">
-    <div class="queue-table-head"><div><span class="ticket-kicker"><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div><small>Ordenados por prioridad y vencimiento.</small></div>
+  <section class="card queue-table-card data-table-shell">
+    <div class="queue-table-head"><div><span class="ticket-kicker"><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div></div>
     <?php if($filtered): ?>
-    <div class="table-responsive queue-table-wrap"><table class="queue-table responsive"><thead><tr><th>Ticket / asunto</th><th>Solicitante</th><th>Parque</th><th>Prioridad</th><th>Estado</th><th>SLA</th><th>Responsable</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
+    <div class="table-responsive queue-table-wrap data-table-wrap"><table class="queue-table responsive data-table"><thead><tr><th>Ticket / asunto</th><th>Solicitante</th><th>Parque</th><th>Prioridad</th><th>Estado</th><th>SLA</th><th>Responsable</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
       <?php foreach($filtered as $t): [$slaText,$slaClass]=$formatSla($t);$assigned=(int)($t['assigned_to']??0); ?>
       <tr class="queue-row priority-row-<?= strtolower((string)$t['priority']) ?>">
         <td data-label="Ticket"><div class="queue-ticket-main"><span><?= htmlspecialchars($t['ticket_number']) ?></span><strong><?= htmlspecialchars($t['subject']) ?></strong><p><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,150,'…')) ?></p></div></td>
         <td data-label="Solicitante"><strong><?= htmlspecialchars($t['requester_name']??'Sin nombre') ?></strong><small><?= htmlspecialchars($t['requester_email']??'') ?></small></td>
-        <td data-label="Parque"><?= htmlspecialchars($t['park_name']??'No especificado') ?></td>
+        <td data-label="Parque" class="data-table-secondary"><?= htmlspecialchars($t['park_name']??'No especificado') ?></td>
         <td data-label="Prioridad"><span class="priority-chip priority-<?= strtolower((string)$t['priority']) ?>"><?= htmlspecialchars($priorityLabels[$t['priority']]??$t['priority']) ?></span></td>
         <td data-label="Estado"><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></td>
         <td data-label="SLA"><span class="queue-sla <?= $slaClass ?>"><?= htmlspecialchars($slaText) ?></span></td>
         <td data-label="Responsable"><?= $assigned===$uid?'Yo':($assigned===0?'Sin asignar':'Asignado') ?></td>
-        <td data-label="Actualizado"><?= htmlspecialchars(date('d/m H:i',strtotime((string)($t['updated_at']??$t['created_at'])))) ?></td>
-        <td data-label="Acción" class="queue-action-cell"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><?php else: ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php endif; ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a></td>
+        <td data-label="Actualizado" class="data-table-secondary"><?= htmlspecialchars(date('d/m H:i',strtotime((string)($t['updated_at']??$t['created_at'])))) ?></td>
+        <td data-label="Acción" class="queue-action-cell data-table-actions"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><?php else: ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php endif; ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a></td>
       </tr>
       <?php endforeach; ?>
     </tbody></table></div>
-    <?php else: ?><div class="empty-state queue-empty"><strong><?= $view==='available'?'La cola está al día':'No hay casos en esta vista' ?></strong><span><?= $advancedActive?'Prueba limpiar los filtros o cambiar el segmento.':'No tienes elementos que requieran atención aquí.' ?></span></div><?php endif; ?>
+    <?php else: ?><div class="empty-state queue-empty"><strong><?= $view==='available'?'La cola está al día':'No hay casos en esta vista' ?></strong><?php if($advancedActive): ?><span>Prueba limpiar los filtros.</span><?php endif; ?></div><?php endif; ?>
   </section>
 </div>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
