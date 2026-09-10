@@ -1,0 +1,5 @@
+/* Helpdesk Carrousel · entrada canónica del tema oscuro.
+ * Este archivo existe para que vistas standalone y el shell interno consuman
+ * exactamente la misma capa de modo oscuro sin duplicar reglas.
+ */
+@import url('./dark-refinement.css');
