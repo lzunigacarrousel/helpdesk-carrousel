@@ -13,13 +13,14 @@ $required=[
 foreach($required as $file)check(is_file($root.'/'.$file),'Existe '.$file);
 
 $checks=[
-'config/config.php'=>['2.4.0-dev','APP_CANONICAL_URL','helpdesk_carrousel'],
-'config/local.php.example'=>["'db_name' => 'helpdesk_carrousel'"],
-'database/INSTALAR.sql'=>['CREATE DATABASE IF NOT EXISTS helpdesk_carrousel','CREATE TABLE positions','CREATE TABLE ticket_resolutions','CREATE TABLE ticket_feedback','CREATE TABLE external_profiles','CREATE TABLE schema_migrations','management.view','external.manage','tickets.resolve','trg_tickets_require_resolution','CC_PARK_504','CC_PARK_516','OK - INSTALACION CANONICA HELPDESK CARROUSEL V2'],
-'database/VERIFICAR_INSTALACION.sql'=>['USE helpdesk_carrousel','required_tables','required_columns','tablas no canonicas/legacy','trg_tickets_require_resolution','OK - INSTALACION LIMPIA HELPDESK CARROUSEL V2'],
-'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['USE helpdesk_carrousel','CORREOS_ENVIADOS_SIN_FECHA','CORREOS_FALLIDOS_SIN_MOTIVO','CORREOS_PENDIENTES_MAS_10_MIN'],
-'INSTALAR_PC_TEST.bat'=>['DB_NAME=helpdesk_carrousel','database\\INSTALAR.sql','database\\VERIFICAR_INSTALACION.sql','REINSTALAR'],
-'README.md'=>['helpdesk_carrousel','database\\INSTALAR.sql','una sola base'],
+'config/config.php'=>['2.4.0-dev','APP_CANONICAL_URL','carrousel_helpdesk','carrousel_helpdesk_session'],
+'config/local.php.example'=>["'db_name' => 'carrousel_helpdesk'"],
+'database/INSTALAR.sql'=>['CREATE DATABASE IF NOT EXISTS carrousel_helpdesk','USE carrousel_helpdesk','CREATE TABLE positions','CREATE TABLE ticket_resolutions','CREATE TABLE ticket_feedback','CREATE TABLE external_profiles','CREATE TABLE schema_migrations','management.view','external.manage','tickets.resolve','trg_tickets_require_resolution','CC_PARK_504','CC_PARK_516','OK - INSTALACION CANONICA HELPDESK CARROUSEL V2'],
+'database/VERIFICAR_INSTALACION.sql'=>['USE carrousel_helpdesk','required_tables','required_columns','tablas no canonicas/legacy','trg_tickets_require_resolution','OK - INSTALACION LIMPIA HELPDESK CARROUSEL V2'],
+'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['USE carrousel_helpdesk','CORREOS_ENVIADOS_SIN_FECHA','CORREOS_FALLIDOS_SIN_MOTIVO','CORREOS_PENDIENTES_MAS_10_MIN'],
+'INSTALAR_PC_TEST.bat'=>['DB_NAME=carrousel_helpdesk','PROTECTED_DB=helpdesk_carrousel','database\\INSTALAR.sql','database\\VERIFICAR_INSTALACION.sql','REINSTALAR','if /I "%DB_NAME%"=="%PROTECTED_DB%"'],
+'README.md'=>['carrousel_helpdesk','helpdesk_carrousel','base historica','database\\INSTALAR.sql'],
+'tools/AUDITAR_TABLAS_HELPDESK.php'=>["'carrousel_helpdesk'"],
 'app/Core/Auth.php'=>['isSupportOperator','isManagementViewer','profileLabel'],
 'app/Services/ScopeService.php'=>['ticketConstraint','SUPERVISOR','scopeLabel'],
 'app/Views/tickets/feedback.php'=>['¿Quedó resuelto?','Calificar y cerrar','Devolver a soporte','nps_score'],
@@ -47,10 +48,13 @@ $legacyUpdate='ACTUALIZAR'.'_';
 $legacyPhase='INSTALAR_'.'FASE1.sql';
 $legacyImport='IMPORTAR_DESDE_'.'CAJA_CHICA.sql';
 $forbidden=[
-'config/config.php'=>[$legacyDb],
-'config/local.php.example'=>[$legacyDb],
-'tools/AUDITAR_TABLAS_HELPDESK.php'=>[$legacyDb],
-'INSTALAR_PC_TEST.bat'=>[$legacyFinalize,$legacyCatalogs,$legacyDb],
+'config/config.php'=>[$legacyDb,"?? 'helpdesk_carrousel'","session_name('helpdesk_carrousel_session')"],
+'config/local.php.example'=>[$legacyDb,"'db_name' => 'helpdesk_carrousel'"],
+'tools/AUDITAR_TABLAS_HELPDESK.php'=>[$legacyDb,"?? 'helpdesk_carrousel'"],
+'database/INSTALAR.sql'=>['CREATE DATABASE IF NOT EXISTS helpdesk_carrousel','USE helpdesk_carrousel'],
+'database/VERIFICAR_INSTALACION.sql'=>['USE helpdesk_carrousel'],
+'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['USE helpdesk_carrousel'],
+'INSTALAR_PC_TEST.bat'=>[$legacyFinalize,$legacyCatalogs,$legacyDb,'set "DB_NAME=helpdesk_carrousel"'],
 'README.md'=>[$legacyFinalize,$legacyCatalogs,$legacyDb,$legacyUpdate,$legacyPhase,$legacyImport],
 'app/Views/admin/users.php'=>['+ Nuevo usuario'],
 'app/Views/shared/app_end.php'=>['sticky-footer.css']];
