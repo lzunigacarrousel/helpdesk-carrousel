@@ -34,17 +34,32 @@ final class SupportTeamController
                 (int)$m['active_cases'],(int)$m['in_progress'],(int)$m['pending_cases'],(int)$m['resolved_30'],
                 $m['avg_first_response_min']!==null?round((float)$m['avg_first_response_min'],1):'',
                 $m['avg_resolution_hours']!==null?round((float)$m['avg_resolution_hours'],1):'',
-                $m['avg_nps']!==null?round((float)$m['avg_nps'],1):'',(int)$m['nps_responses'],
-                $m['last_login_at']?date('d/m/Y H:i',strtotime((string)$m['last_login_at'])):'Nunca'
+                $m['nps_value']!==null?(int)$m['nps_value']:'',
+                $m['avg_rating']!==null?round((float)$m['avg_rating'],1):'',
+                (int)$m['nps_responses'],(int)$m['nps_promoters'],(int)$m['nps_passives'],(int)$m['nps_detractors'],
+                $m['last_login_at']?date('d/m/Y H:i',strtotime((string)$m['last_login_at'])):'Sin ingreso todavía'
             ];
         }
 
         Audit::log('SUPPORT_TEAM_EXPORTED_XLSX','report',null,null,null,['rows'=>count($rows)]);
         XlsxExportService::download('helpdesk_equipo_soporte_'.date('Ymd_His').'.xlsx',[
             ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Equipo de soporte','subtitle'=>'Generado '.date('d/m/Y H:i:s'),'headers'=>['Indicador','Valor'],'rows'=>[
-                ['Integrantes',(int)$summary['members']],['Casos activos',(int)$summary['active_cases']],['En proceso',(int)$summary['in_progress']],['En espera',(int)$summary['pending_cases']],['Resueltos últimos 30 días',(int)$summary['resolved_30']],['Respuestas NPS',(int)$summary['nps_responses']],['NPS promedio',$summary['avg_nps']!==null?round((float)$summary['avg_nps'],1).'/10':''],
+                ['Integrantes',(int)$summary['members']],
+                ['Casos activos',(int)$summary['active_cases']],
+                ['En proceso',(int)$summary['in_progress']],
+                ['En espera',(int)$summary['pending_cases']],
+                ['Resueltos últimos 30 días',(int)$summary['resolved_30']],
+                ['Respuestas NPS',(int)$summary['nps_responses']],
+                ['Promotores (9-10)',(int)$summary['nps_promoters']],
+                ['Pasivos (7-8)',(int)$summary['nps_passives']],
+                ['Detractores (0-6)',(int)$summary['nps_detractors']],
+                ['NPS',$summary['nps_value']!==null?(int)$summary['nps_value']:''],
+                ['Calificación promedio',$summary['avg_rating']!==null?round((float)$summary['avg_rating'],1).'/10':''],
             ]],
-            ['name'=>'Tecnicos','title'=>'Helpdesk Carrousel · Carga y desempeño del equipo','subtitle'=>'Administradores, semiadministradores y técnicos activos','headers'=>['Nombre','Correo','Perfil','Puesto','Ubicación / área','Casos activos','En proceso','En espera','Resueltos 30 días','Primera respuesta prom. (min)','Resolución prom. (h)','Calificación prom.','Respuestas NPS','Último acceso'],'rows'=>$rows],
+            ['name'=>'Tecnicos','title'=>'Helpdesk Carrousel · Carga y desempeño del equipo','subtitle'=>'Administradores, semiadministradores y técnicos activos','headers'=>[
+                'Nombre','Correo','Perfil','Puesto','Ubicación / área','Casos activos','En proceso','En espera','Resueltos 30 días',
+                'Primera respuesta prom. (min)','Resolución prom. (h)','NPS','Calificación prom. (0-10)','Respuestas NPS','Promotores','Pasivos','Detractores','Último acceso'
+            ],'rows'=>$rows],
         ]);
     }
 
@@ -59,8 +74,11 @@ final class SupportTeamController
             (SELECT COUNT(*) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.resolved_at>=DATE_SUB(NOW(),INTERVAL 30 DAY)) resolved_30,
             (SELECT AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.first_response_at)) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.first_response_at IS NOT NULL) avg_first_response_min,
             (SELECT AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.resolved_at))/60 FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.resolved_at IS NOT NULL) avg_resolution_hours,
-            (SELECT AVG(tf.nps_score) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) avg_nps,
-            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) nps_responses
+            (SELECT AVG(tf.nps_score) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) avg_rating,
+            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) nps_responses,
+            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score>=9) nps_promoters,
+            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score BETWEEN 7 AND 8) nps_passives,
+            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score<=6) nps_detractors
             FROM users u
             JOIN roles r ON r.id=u.role_id AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN')
             LEFT JOIN user_assignments ua ON ua.id=(SELECT MAX(x.id) FROM user_assignments x WHERE x.user_id=u.id AND x.status='ACTIVE' AND x.ends_at IS NULL)
@@ -70,18 +88,38 @@ final class SupportTeamController
             LEFT JOIN regions rg ON rg.id=ua.region_id
             WHERE u.deleted_at IS NULL AND u.access_type='INTERNAL' AND u.status='ACTIVE'
             ORDER BY FIELD(r.code,'TECHNICIAN','SEMIADMIN','ADMIN'),u.full_name";
-        return $pdo->query($sql)->fetchAll()?:[];
+        $rows=$pdo->query($sql)->fetchAll()?:[];
+        foreach($rows as &$row){
+            $responses=(int)$row['nps_responses'];
+            $row['nps_value']=$responses>0?(int)round((((int)$row['nps_promoters']-(int)$row['nps_detractors'])/$responses)*100):null;
+        }
+        unset($row);
+        return $rows;
     }
 
     private function summary(array $members): array
     {
-        $s=['members'=>count($members),'active_cases'=>0,'in_progress'=>0,'pending_cases'=>0,'resolved_30'=>0,'nps_responses'=>0,'avg_nps'=>null];
-        $weightedNps=0.0;$npsCount=0;
+        $s=[
+            'members'=>count($members),'active_cases'=>0,'in_progress'=>0,'pending_cases'=>0,'resolved_30'=>0,
+            'nps_responses'=>0,'nps_promoters'=>0,'nps_passives'=>0,'nps_detractors'=>0,'nps_value'=>null,'avg_rating'=>null
+        ];
+        $ratingTotal=0.0;$ratingCount=0;
         foreach($members as $m){
-            $s['active_cases']+=(int)$m['active_cases'];$s['in_progress']+=(int)$m['in_progress'];$s['pending_cases']+=(int)$m['pending_cases'];$s['resolved_30']+=(int)$m['resolved_30'];
-            $count=(int)$m['nps_responses'];if($count>0&&$m['avg_nps']!==null){$weightedNps+=(float)$m['avg_nps']*$count;$npsCount+=$count;}
+            $s['active_cases']+=(int)$m['active_cases'];
+            $s['in_progress']+=(int)$m['in_progress'];
+            $s['pending_cases']+=(int)$m['pending_cases'];
+            $s['resolved_30']+=(int)$m['resolved_30'];
+            $responses=(int)$m['nps_responses'];
+            $s['nps_responses']+=$responses;
+            $s['nps_promoters']+=(int)$m['nps_promoters'];
+            $s['nps_passives']+=(int)$m['nps_passives'];
+            $s['nps_detractors']+=(int)$m['nps_detractors'];
+            if($responses>0&&$m['avg_rating']!==null){$ratingTotal+=(float)$m['avg_rating']*$responses;$ratingCount+=$responses;}
         }
-        $s['nps_responses']=$npsCount;$s['avg_nps']=$npsCount>0?round($weightedNps/$npsCount,1):null;
+        if($s['nps_responses']>0){
+            $s['nps_value']=(int)round((($s['nps_promoters']-$s['nps_detractors'])/$s['nps_responses'])*100);
+        }
+        $s['avg_rating']=$ratingCount>0?round($ratingTotal/$ratingCount,1):null;
         return $s;
     }
 
