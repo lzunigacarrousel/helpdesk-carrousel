@@ -3,7 +3,8 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "APP_DIR=%CD%"
-set "DB_NAME=helpdesk_carrousel"
+set "DB_NAME=carrousel_helpdesk"
+set "PROTECTED_DB=helpdesk_carrousel"
 set "MYSQL=C:\xampp\mysql\bin\mysql.exe"
 set "MYSQLDUMP=C:\xampp\mysql\bin\mysqldump.exe"
 set "PHP=C:\xampp\php\php.exe"
@@ -15,15 +16,32 @@ echo ============================================================
 echo       HELPDESK CARROUSEL - INSTALACION LIMPIA PC TEST
 echo ============================================================
 echo.
-echo Base unica que se recreara: %DB_NAME%
+echo Nueva base V2: %DB_NAME%
+echo Base historica protegida: %PROTECTED_DB%
 echo Carpeta actual: %APP_DIR%
 echo.
+
+if /I "%DB_NAME%"=="%PROTECTED_DB%" (
+  echo [ERROR] PROTECCION ACTIVADA.
+  echo El instalador V2 nunca puede operar sobre %PROTECTED_DB%.
+  pause
+  exit /b 1
+)
+
+if /I not "%DB_NAME%"=="carrousel_helpdesk" (
+  echo [ERROR] Nombre de base V2 inesperado: %DB_NAME%
+  echo Se esperaba exclusivamente carrousel_helpdesk.
+  pause
+  exit /b 1
+)
+
 echo Flujo:
-echo  1. Respaldar %DB_NAME% si existe.
-echo  2. Eliminar la base existente.
+echo  1. Respaldar SOLO %DB_NAME% si existe.
+echo  2. Eliminar SOLO %DB_NAME%.
 echo  3. Crear TODO desde database\INSTALAR.sql.
 echo  4. Instalar dependencias y ejecutar validaciones.
 echo.
+echo IMPORTANTE: %PROTECTED_DB% pertenece al Helpdesk anterior y NO se toca.
 echo ADVERTENCIA: se perderan los datos actuales de %DB_NAME%
 echo despues de crear el respaldo previo.
 echo.
@@ -66,6 +84,16 @@ if not exist "config\local.php" (
   echo [OK] Se conserva config\local.php existente.
 )
 
+for /f "usebackq delims=" %%D in (`"%PHP%" -r "$c=require 'config/local.php'; echo (string)($c['db_name']??'');"`) do set "LOCAL_DB=%%D"
+if /I not "!LOCAL_DB!"=="%DB_NAME%" (
+  echo.
+  echo [ERROR] config\local.php apunta a: !LOCAL_DB!
+  echo Debe apuntar a: %DB_NAME%
+  echo No se modifico ninguna base de datos.
+  pause
+  exit /b 1
+)
+
 echo.
 set /p "CONFIRM=Escriba REINSTALAR para continuar: "
 if /I not "%CONFIRM%"=="REINSTALAR" (
@@ -89,7 +117,7 @@ for /f "usebackq delims=" %%A in ("%TEMP%\helpdesk_db_exists.txt") do set "DB_EX
 
 if /I "%DB_EXISTS%"=="%DB_NAME%" (
   echo.
-  echo [1/4] Creando respaldo previo...
+  echo [1/4] Creando respaldo previo de %DB_NAME%...
   "%MYSQLDUMP%" %MYSQL_AUTH% --single-transaction --routines --triggers --events --default-character-set=utf8mb4 "%DB_NAME%" > "backups\%DB_NAME%_antes_reinstalar_%STAMP%.sql"
   if errorlevel 1 (
     echo [ERROR] No se pudo crear el respaldo. Se cancela la reinstalacion.
@@ -103,7 +131,7 @@ if /I "%DB_EXISTS%"=="%DB_NAME%" (
 )
 
 echo.
-echo [2/4] Creando base canonica desde cero...
+echo [2/4] Creando base V2 canonica desde cero...
 "%MYSQL%" %MYSQL_AUTH% -e "DROP DATABASE IF EXISTS `%DB_NAME%`;" || goto :sql_error
 "%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "database\INSTALAR.sql" || goto :sql_error
 echo [OK] INSTALAR.sql ejecutado.
@@ -140,7 +168,8 @@ echo.
 echo ============================================================
 echo                 INSTALACION COMPLETADA
 echo ============================================================
-echo Base unica: %DB_NAME%
+echo Base V2: %DB_NAME%
+echo Base historica intacta: %PROTECTED_DB%
 echo Administrador inicial: luis@carrousel.com.gt
 echo Acceso: OTP
 for %%P in ("%APP_DIR%") do set "APP_FOLDER=%%~nxP"
@@ -158,6 +187,7 @@ exit /b 1
 
 :sql_error
 echo [ERROR] Fallo una instruccion SQL. La instalacion NO es valida.
+echo La base protegida %PROTECTED_DB% no debe modificarse.
 pause
 exit /b 1
 
