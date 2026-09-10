@@ -5,41 +5,82 @@ declare(strict_types=1);
  * Helpdesk Carrousel V2 · Auditoría estructural de tablas
  * SOLO LECTURA. No ejecuta DROP, DELETE, TRUNCATE ni UPDATE.
  *
- * Objetivo:
- * - listar las tablas reales de la BD configurada;
- * - detectar referencias explícitas desde el código de la aplicación;
- * - mostrar relaciones FK entrantes/salientes;
- * - marcar candidatas para revisión humana antes de eliminar cualquier tabla.
+ * Este script es deliberadamente independiente del bootstrap web para que:
+ * - funcione correctamente desde CMD/PowerShell;
+ * - no inicialice sesión, autenticación ni vistas HTML;
+ * - muestre errores reales de conexión en consola;
+ * - no pueda confundirse con una petición web.
  */
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Este diagnóstico solo puede ejecutarse desde consola.');
+}
+
 $root = dirname(__DIR__);
-require $root . '/bootstrap.php';
+$localFile = $root . '/config/local.php';
 
-use App\Core\Database;
-
-$pdo = Database::pdo();
-$db = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
-if ($db === '') {
-    fwrite(STDERR, "[ERROR] No hay base de datos seleccionada.\n");
+if (!is_file($localFile)) {
+    fwrite(STDERR, "[ERROR] Falta config/local.php.\n");
     exit(1);
 }
 
-$tablesStmt = $pdo->prepare(
-    "SELECT TABLE_NAME, ENGINE, TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH
-     FROM information_schema.TABLES
-     WHERE TABLE_SCHEMA=? AND TABLE_TYPE='BASE TABLE'
-     ORDER BY TABLE_NAME"
-);
-$tablesStmt->execute([$db]);
-$tables = $tablesStmt->fetchAll(PDO::FETCH_ASSOC);
+$local = require $localFile;
+if (!is_array($local)) {
+    fwrite(STDERR, "[ERROR] config/local.php no devolvió una configuración válida.\n");
+    exit(1);
+}
 
-$fkStmt = $pdo->prepare(
-    "SELECT TABLE_NAME, REFERENCED_TABLE_NAME
-     FROM information_schema.KEY_COLUMN_USAGE
-     WHERE TABLE_SCHEMA=? AND REFERENCED_TABLE_NAME IS NOT NULL"
-);
-$fkStmt->execute([$db]);
-$fkRows = $fkStmt->fetchAll(PDO::FETCH_ASSOC);
+$dbHost = (string)($local['db_host'] ?? '127.0.0.1');
+$dbName = (string)($local['db_name'] ?? 'helpdesk_carrousel_test');
+$dbUser = (string)($local['db_user'] ?? 'root');
+$dbPass = (string)($local['db_pass'] ?? '');
+
+try {
+    $pdo = new PDO(
+        "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4",
+        $dbUser,
+        $dbPass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]
+    );
+} catch (Throwable $e) {
+    fwrite(STDERR, "[ERROR] No se pudo conectar a MariaDB.\n");
+    fwrite(STDERR, "Detalle: " . $e->getMessage() . "\n");
+    fwrite(STDERR, "Host: {$dbHost} | Base: {$dbName} | Usuario: {$dbUser}\n");
+    exit(1);
+}
+
+try {
+    $db = (string)$pdo->query('SELECT DATABASE()')->fetchColumn();
+    if ($db === '') {
+        throw new RuntimeException('No hay una base seleccionada.');
+    }
+
+    $tablesStmt = $pdo->prepare(
+        "SELECT TABLE_NAME, ENGINE, TABLE_ROWS, DATA_LENGTH, INDEX_LENGTH
+         FROM information_schema.TABLES
+         WHERE TABLE_SCHEMA=? AND TABLE_TYPE='BASE TABLE'
+         ORDER BY TABLE_NAME"
+    );
+    $tablesStmt->execute([$db]);
+    $tables = $tablesStmt->fetchAll();
+
+    $fkStmt = $pdo->prepare(
+        "SELECT TABLE_NAME, REFERENCED_TABLE_NAME
+         FROM information_schema.KEY_COLUMN_USAGE
+         WHERE TABLE_SCHEMA=? AND REFERENCED_TABLE_NAME IS NOT NULL"
+    );
+    $fkStmt->execute([$db]);
+    $fkRows = $fkStmt->fetchAll();
+} catch (Throwable $e) {
+    fwrite(STDERR, "[ERROR] No se pudo leer la estructura de la base.\n");
+    fwrite(STDERR, "Detalle: " . $e->getMessage() . "\n");
+    exit(1);
+}
 
 $inbound = [];
 $outbound = [];
@@ -104,6 +145,7 @@ printf("============================================================\n");
 printf(" HELPDESK CARROUSEL - AUDITORIA DE TABLAS (SOLO LECTURA)\n");
 printf("============================================================\n");
 printf("Base: %s\n", $db);
+printf("Host: %s\n", $dbHost);
 printf("Tablas detectadas: %d\n", count($tables));
 printf("Archivos de codigo revisados: %d\n\n", $filesScanned);
 
