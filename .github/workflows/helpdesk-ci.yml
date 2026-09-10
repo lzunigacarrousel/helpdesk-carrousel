@@ -43,7 +43,7 @@ jobs:
           set -euo pipefail
           while IFS= read -r -d '' file; do
             php -l "$file"
-          done < <(find app config public tests -type f -name '*.php' -print0)
+          done < <(find app config public tests tools -type f -name '*.php' -print0)
 
       - name: JavaScript syntax
         shell: bash
@@ -61,3 +61,47 @@ jobs:
 
       - name: XLSX regression smoke test
         run: php tests/xlsx_smoke.php
+
+  fresh-database-install:
+    name: Fresh MariaDB installation
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MariaDB client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+
+      - name: Install clean V2 schema
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/INSTALAR.sql
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/FINALIZAR_ESQUEMA_V2.sql
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/CATALOGOS_CARROUSEL.sql
+
+      - name: Verify clean database
+        env:
+          MYSQL_PWD: root
+        run: |
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='helpdesk_carrousel_test' AND TABLE_TYPE='BASE TABLE';")" = "36"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel_test.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM helpdesk_carrousel_test.users;")" = "1"
