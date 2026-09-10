@@ -44,15 +44,30 @@ $xml=$worksheetMethod->invoke(null,[
     'rows'=>[['Uno',1],['Dos',2]],
 ]);
 
-$autoFilterPos=strpos($xml,'<autoFilter ');
+xcheck(strpos($xml,'<dimension ref="A1:B5"/>')!==false,'Worksheet declara dimensión usada');
+xcheck(strpos($xml,'<sheetFormatPr defaultRowHeight="15"/>')!==false,'Worksheet declara formato base');
+xcheck(strpos($xml,'<mergeCells ')!==false,'Worksheet conserva título combinado');
+xcheck(strpos($xml,'<autoFilter ')===false,'Modo compatible: no serializa autoFilter manual');
+xcheck(strpos($xml,'<sheetViews>')===false,'Modo compatible: no serializa vistas congeladas manuales');
+
+$sheetDataPos=strpos($xml,'<sheetData>');
 $mergeCellsPos=strpos($xml,'<mergeCells ');
-xcheck($autoFilterPos!==false,'Worksheet incluye autoFilter');
-xcheck($mergeCellsPos!==false,'Worksheet incluye mergeCells');
-xcheck($autoFilterPos!==false&&$mergeCellsPos!==false&&$autoFilterPos<$mergeCellsPos,'OOXML válido: autoFilter aparece antes de mergeCells');
+$pageMarginsPos=strpos($xml,'<pageMargins ');
+xcheck($sheetDataPos!==false&&$mergeCellsPos!==false&&$sheetDataPos<$mergeCellsPos,'OOXML: mergeCells aparece después de sheetData');
+xcheck($mergeCellsPos!==false&&$pageMarginsPos!==false&&$mergeCellsPos<$pageMarginsPos,'OOXML: pageMargins aparece después de mergeCells');
 
 if(class_exists(DOMDocument::class)){
     $dom=new DOMDocument();
     xcheck(@$dom->loadXML($xml),'Worksheet XML bien formado');
+}
+
+$stylesMethod=new ReflectionMethod(XlsxExportService::class,'styles');
+$stylesMethod->setAccessible(true);
+$styles=$stylesMethod->invoke(null);
+xcheck(strpos($styles,'<protection ')===false,'Styles no incluye protección de celda innecesaria');
+if(class_exists(DOMDocument::class)){
+    $dom=new DOMDocument();
+    xcheck(@$dom->loadXML($styles),'Styles XML bien formado');
 }
 
 exit($ok?0:1);
