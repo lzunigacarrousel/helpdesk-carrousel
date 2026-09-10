@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Database,View};
-use App\Services\ScopeService;
+use App\Services\{ScopeService,TicketLifecycleService};
 use PDO;
 
 final class ManagementController
@@ -87,7 +87,7 @@ final class ManagementController
             {$where} ORDER BY t.created_at DESC LIMIT 500");
         $q->execute($params);$rows=$q->fetchAll();
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$rows));
-        foreach($rows as &$row)$row['lifecycle']=$this->lifecycle($row,$events[(int)$row['id']]??[]);
+        foreach($rows as &$row)$row['lifecycle']=TicketLifecycleService::analyze($row,$events[(int)$row['id']]??[]);
         unset($row);
 
         $reportStats=$this->reportStats($rows);$catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
@@ -106,48 +106,25 @@ final class ManagementController
         $q->execute($ticketIds);$grouped=[];foreach($q->fetchAll() as $event)$grouped[(int)$event['ticket_id']][]=$event;return$grouped;
     }
 
-    private function lifecycle(array $ticket,array $events):array
-    {
-        $created=strtotime((string)$ticket['created_at'])?:time();$initial=null;
-        foreach($events as $event){$new=$this->statusFromJson($event['new_value']??null);$old=$this->statusFromJson($event['old_value']??null);if(($event['event_type']??'')==='CREATED'&&$new){$initial=$new;break;}if($old){$initial=$old;break;}}
-        if(!$initial)$initial=(string)($ticket['status']??'NEW');
-        $current=$initial;$statusStarted=$created;$durations=[];$segments=[];$transitions=[];
-
-        foreach($events as $event){
-            $newData=$this->json((string)($event['new_value']??''));$new=$this->statusFromJson($event['new_value']??null);if(!$new||$new===$current)continue;
-            $at=strtotime((string)$event['created_at']);if(!$at||$at<$statusStarted)continue;
-            $minutes=max(0,(int)round(($at-$statusStarted)/60));$durations[$current]=($durations[$current]??0)+$minutes;
-            $segments[]=['status'=>$current,'label'=>self::STATUS_LABELS[$current]??$current,'from'=>date('Y-m-d H:i:s',$statusStarted),'to'=>(string)$event['created_at'],'minutes'=>$minutes];
-            $actor=trim((string)($event['actor_name']??''));if($actor==='')$actor=($event['actor_type']??'SYSTEM')==='PUBLIC'?'Solicitante':'Sistema';
-            $transitions[]=['from'=>$current,'to'=>$new,'from_label'=>self::STATUS_LABELS[$current]??$current,'to_label'=>self::STATUS_LABELS[$new]??$new,'at'=>(string)$event['created_at'],'actor'=>$actor,'event_type'=>(string)($event['event_type']??''),'pending_reason'=>(string)($newData['pending_reason_code']??''),'pending_note'=>(string)($newData['pending_note']??'')];
-            $current=$new;$statusStarted=$at;
-        }
-
-        $closedTs=!empty($ticket['closed_at'])?(strtotime((string)$ticket['closed_at'])?:null):null;$end=$closedTs?:time();if($end<$statusStarted)$end=$statusStarted;
-        $finalMinutes=max(0,(int)round(($end-$statusStarted)/60));$durations[$current]=($durations[$current]??0)+$finalMinutes;$segments[]=['status'=>$current,'label'=>self::STATUS_LABELS[$current]??$current,'from'=>date('Y-m-d H:i:s',$statusStarted),'to'=>$closedTs?(string)$ticket['closed_at']:null,'minutes'=>$finalMinutes];
-        $between=static function($from,$to):?int{if(empty($from)||empty($to))return null;$a=strtotime((string)$from);$b=strtotime((string)$to);return($a&&$b&&$b>=$a)?(int)round(($b-$a)/60):null;};
-        return['initial_status'=>$initial,'current_status'=>$current,'durations'=>$durations,'segments'=>$segments,'transitions'=>$transitions,'queue_minutes'=>(int)(($durations['NEW']??0)+($durations['AVAILABLE']??0)),'work_minutes'=>(int)(($durations['IN_PROGRESS']??0)+($durations['REOPENED']??0)),'pending_minutes'=>(int)($durations['PENDING']??0),'resolved_wait_minutes'=>(int)($durations['RESOLVED']??0),'assignment_minutes'=>$between($ticket['created_at']??null,$ticket['assigned_at']??null),'first_response_minutes'=>$between($ticket['created_at']??null,$ticket['first_response_at']??null),'resolution_minutes'=>$between($ticket['created_at']??null,$ticket['resolved_at']??null),'total_minutes'=>$between($ticket['created_at']??null,$ticket['closed_at']??date('Y-m-d H:i:s'))];
-    }
-
-    private function statusFromJson($json):?string
-    {
-        $data=$this->json((string)$json);$status=strtoupper(trim((string)($data['status']??'')));return isset(self::STATUS_LABELS[$status])?$status:null;
-    }
-    private function json(string $json):array{if(trim($json)==='')return[];$x=json_decode($json,true);return is_array($x)?$x:[];}
-
     private function reportStats(array $rows):array
     {
-        $documented=0;$first=[];$resolution=[];$work=[];$pending=[];$changes=0;$pendingReasons=[];
+        $documented=0;$first=[];$resolution=[];$work=[];$pending=[];$changes=0;$pendingReasons=[];$pendingReasonMinutes=[];
         foreach($rows as $row){
             if(!empty($row['solution_applied']))$documented++;
             $life=$row['lifecycle']??[];
             if(isset($life['first_response_minutes'])&&$life['first_response_minutes']!==null)$first[]=(int)$life['first_response_minutes'];
             if(isset($life['resolution_minutes'])&&$life['resolution_minutes']!==null)$resolution[]=(int)$life['resolution_minutes'];
             if(isset($life['work_minutes']))$work[]=(int)$life['work_minutes'];if(isset($life['pending_minutes']))$pending[]=(int)$life['pending_minutes'];
-            $changes+=count($life['transitions']??[]);if(!empty($row['pending_reason_code']))$pendingReasons[$row['pending_reason_code']]=($pendingReasons[$row['pending_reason_code']]??0)+1;
+            $changes+=count($life['transitions']??[]);
+            if(!empty($row['pending_reason_code']))$pendingReasons[$row['pending_reason_code']]=($pendingReasons[$row['pending_reason_code']]??0)+1;
+            foreach(($life['pending_reason_minutes']??[]) as $code=>$minutes)$pendingReasonMinutes[$code]=($pendingReasonMinutes[$code]??0)+(int)$minutes;
         }
         $avg=static fn(array $v):?float=>$v?round(array_sum($v)/count($v),1):null;$total=count($rows);
-        return['total'=>$total,'documented'=>$documented,'undocumented'=>$total-$documented,'documented_pct'=>$total?round(($documented/$total)*100,1):0,'avg_first_response_minutes'=>$avg($first),'avg_resolution_minutes'=>$avg($resolution),'avg_work_minutes'=>$avg($work),'avg_pending_minutes'=>$avg($pending),'status_changes'=>$changes,'pending_reasons'=>$pendingReasons];
+        return[
+            'total'=>$total,'documented'=>$documented,'undocumented'=>$total-$documented,'documented_pct'=>$total?round(($documented/$total)*100,1):0,
+            'avg_first_response_minutes'=>$avg($first),'avg_resolution_minutes'=>$avg($resolution),'avg_work_minutes'=>$avg($work),'avg_pending_minutes'=>$avg($pending),
+            'status_changes'=>$changes,'pending_reasons'=>$pendingReasons,'pending_reason_minutes'=>$pendingReasonMinutes,
+        ];
     }
 
     private function catalogs(PDO $pdo):array
