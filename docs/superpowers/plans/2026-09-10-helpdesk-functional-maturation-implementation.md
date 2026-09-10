@@ -58,17 +58,21 @@ Estado: **COMPLETADA EN DOCUMENTACIÓN**.
 
 ## Fase 2 — UX solicitante
 
-Estado: **PENDIENTE DE IMPLEMENTACIÓN**.
+Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN VISUAL EN PC TEST**.
 
-Objetivo de BD: **0 cambios**.
+Objetivo de BD: **0 cambios — cumplido**.
 
-- [ ] Simplificar `app/Views/tickets/public_create.php`.
-- [ ] Presentar categorías en lenguaje humano sin cambiar `ticket_categories`.
-- [ ] Agregar ayuda contextual corta por selección.
-- [ ] Reutilizar datos del usuario autenticado.
-- [ ] Reutilizar asignación activa para ubicación cuando sea inequívoca.
-- [ ] Mantener `subject` generado y modelo de ticket actual.
-- [ ] Validar público/autenticado, CSRF, responsive y dark theme.
+- [x] Simplificar `app/Views/tickets/public_create.php` sin reconstruir el flujo de tickets.
+- [x] Presentar categorías en lenguaje humano sin cambiar `ticket_categories` ni sus IDs.
+- [x] Agregar ayuda contextual corta por selección.
+- [x] Reutilizar nombre, correo y teléfono del usuario autenticado; nombre/correo se toman del servidor y no de campos ocultos manipulables.
+- [x] Reutilizar una única asignación activa para proponer parque/área cuando sea inequívoca.
+- [x] Mantener opción secundaria `Reportar en otro lugar` para cambiar la ubicación propuesta.
+- [x] Mantener `subject` generado, CSRF, creación de ticket, SLA, notificaciones y modelo actual.
+- [x] Agregar `tests/requester_ux_smoke.php` y ejecutarlo en GitHub Actions.
+- [x] Actualizar el Manual integrado para explicar el flujo humano y la ubicación automática.
+- [x] Validar automáticamente sintaxis PHP/JS, static checks, dark theme, searchable selects, project quality y XLSX.
+- [ ] Validación visual manual en PC TEST: usuario autenticado y no autenticado; 1920, 1366, iPad/tablet y móvil.
 
 ## Fase 3 — Operación IT y SLA
 
