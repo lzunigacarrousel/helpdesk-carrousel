@@ -3,7 +3,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);$ok=true;
 $required=[
 'bootstrap.php','config/config.php','config/local.php.example',
-'database/INSTALAR.sql','database/FINALIZAR_ESQUEMA_V2.sql','database/CATALOGOS_CARROUSEL.sql','database/VERIFICAR_INSTALACION.sql','database/VERIFICAR_ESTABILIDAD_V2.sql','database/ACTUALIZAR_NPS_CIERRE_V2.sql',
+'database/INSTALAR.sql','database/FINALIZAR_ESQUEMA_V2.sql','database/CATALOGOS_CARROUSEL.sql','database/VERIFICAR_INSTALACION.sql','database/VERIFICAR_ESTABILIDAD_V2.sql',
 'INSTALAR_PC_TEST.bat','README.md','docs/ESTANDAR_VISUAL_CARROUSEL.md',
 'app/Core/Auth.php','app/Services/AuthService.php','app/Services/ScopeService.php','app/Services/NotificationService.php','app/Services/MailService.php','app/Services/ProblemService.php','app/Services/SolutionSuggestionService.php','app/Services/XlsxExportService.php',
 'app/Controllers/DashboardController.php','app/Controllers/WorkflowController.php','app/Controllers/ConversationController.php','app/Controllers/ResolutionController.php','app/Controllers/TicketFeedbackController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/MailAdminController.php','app/Controllers/AdminController.php',
@@ -11,7 +11,8 @@ $required=[
 'public/assets/js/help-tour.js','public/assets/js/notifications.js','public/assets/css/ui-refresh.css','public/assets/css/components.css','public/assets/css/visual-system.css','public/index.php','HELPDESK_ADMIN.bat'];
 foreach($required as $file){$exists=is_file($root.'/'.$file);echo ($exists?'[OK] ':'[FALTA] ').$file.PHP_EOL;$ok=$ok&&$exists;}
 $checks=[
-'config/config.php'=>['2.4.0-dev','APP_CANONICAL_URL','helpdesk_carrousel_test'],
+'config/config.php'=>['2.4.0-dev','APP_CANONICAL_URL','helpdesk_carrousel'],
+'config/local.php.example'=>["'db_name' => 'helpdesk_carrousel'"],
 'app/Core/Auth.php'=>['isSupportOperator','isManagementViewer','profileLabel'],
 'app/Services/ScopeService.php'=>['ticketConstraint','SUPERVISOR','scopeLabel'],
 'app/Controllers/DashboardController.php'=>['externalCollabStats','WAITING_PROVIDER'],
@@ -37,12 +38,11 @@ $checks=[
 'app/Views/admin/mail.php'=>['Enviar correo de prueba','Entregas recientes','Reintentar','Modo prueba'],
 'app/Views/shared/help_widget.php'=>['Administrar usuarios','Dar acceso','Abrir manual'],
 'public/index.php'=>['/tickets/feedback','/tickets/feedback/reopen','/tickets/resolve','/gestion/informes/exportar','/admin/users/create','/admin/users/assign','/admin/users/delete'],
-'database/ACTUALIZAR_NPS_CIERRE_V2.sql'=>['CREATE TABLE IF NOT EXISTS ticket_feedback','nps_score','2026-09-09_nps_cierre_v2'],
 'database/FINALIZAR_ESQUEMA_V2.sql'=>['CREATE TABLE schema_migrations','CREATE TABLE positions','CREATE TABLE ticket_resolutions','CREATE TABLE ticket_feedback','CREATE TABLE external_profiles','management.view','external.manage','tickets.resolve','trg_tickets_require_resolution'],
-'database/CATALOGOS_CARROUSEL.sql'=>['CC_REGION_6','CC_REGION_7','CC_REGION_8','CC_REGION_9','CC_PARK_504','CC_PARK_516'],
+'database/CATALOGOS_CARROUSEL.sql'=>['USE helpdesk_carrousel','CC_REGION_6','CC_REGION_7','CC_REGION_8','CC_REGION_9','CC_PARK_504','CC_PARK_516'],
 'database/VERIFICAR_INSTALACION.sql'=>['required_tables','required_columns','tablas no canonicas/legacy','trg_tickets_require_resolution','OK - INSTALACION LIMPIA HELPDESK CARROUSEL V2'],
-'INSTALAR_PC_TEST.bat'=>['REINSTALAR','FINALIZAR_ESQUEMA_V2.sql','CATALOGOS_CARROUSEL.sql','VERIFICAR_INSTALACION.sql','helpdesk_carrousel: NO SE TOCA'],
-'README.md'=>['INSTALAR_PC_TEST.bat','helpdesk_carrousel_test','FINALIZAR_ESQUEMA_V2.sql','CATALOGOS_CARROUSEL.sql'],
+'INSTALAR_PC_TEST.bat'=>['REINSTALAR','CATALOGOS_CARROUSEL.sql','VERIFICAR_INSTALACION.sql','helpdesk_carrousel'],
+'README.md'=>['INSTALAR_PC_TEST.bat','helpdesk_carrousel','CATALOGOS_CARROUSEL.sql'],
 'database/VERIFICAR_ESTABILIDAD_V2.sql'=>['CORREOS_ENVIADOS_SIN_FECHA','CORREOS_FALLIDOS_SIN_MOTIVO','CORREOS_PENDIENTES_MAS_10_MIN']];
 foreach($checks as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle){$found=is_string($content)&&str_contains($content,$needle);echo ($found?'[OK] ':'[FALTA] ').$file.' contiene '.$needle.PHP_EOL;$ok=$ok&&$found;}}
 $forbidden=[
@@ -52,6 +52,6 @@ $forbidden=[
 'app/Views/tickets/show.php'=>['Problem Management','Nota interna · Solo Soporte'],
 'app/Views/admin/users.php'=>['Perfiles predefinidos','Qué hace cada perfil','Selecciona el perfil según la responsabilidad real','Nuevo acceso</span><h2>Crear usuario','Tipo de ubicación','+ Nuevo usuario'],
 'app/Controllers/ExternalController.php'=>['new MailService'],
-'README.md'=>['helpdesk360_test','C:\\xampp\\htdocs\\Helpdesk360']];
+'README.md'=>['helpdesk360_test','C:\\xampp\\htdocs\\Helpdesk360','database\\ACTUALIZAR_','INSTALAR_FASE1.sql','IMPORTAR_DESDE_CAJA_CHICA.sql']];
 foreach($forbidden as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle){$found=is_string($content)&&str_contains($content,$needle);echo (!$found?'[OK] ':'[NO DEBE ESTAR] ').$file.' no contiene '.$needle.PHP_EOL;$ok=$ok&&!$found;}}
 exit($ok?0:1);
