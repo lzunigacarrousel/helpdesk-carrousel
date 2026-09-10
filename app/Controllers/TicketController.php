@@ -115,7 +115,11 @@ final class TicketController
 
     public function claim():void{
         Auth::requirePermission('tickets.claim');Csrf::verify($_POST['_csrf']??null);$id=(int)Http::post('ticket_id');if($id<=0)throw new \RuntimeException('Ticket no válido.');
-        $pdo=Database::pdo();$s=$pdo->prepare("UPDATE tickets SET assigned_to=?,assigned_at=NOW(),status='IN_PROGRESS',updated_at=NOW() WHERE id=? AND assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED') AND deleted_at IS NULL");$s->execute([(int)Auth::id(),$id]);
+        $pdo=Database::pdo();[$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+        $allowed=$pdo->prepare("SELECT COUNT(*) FROM tickets t WHERE t.id=? AND t.deleted_at IS NULL AND t.assigned_to IS NULL AND t.status IN('NEW','AVAILABLE','REOPENED') AND ({$scopeSql})");
+        $allowed->execute(array_merge([$id],$scopeParams));
+        if((int)$allowed->fetchColumn()!==1)throw new \RuntimeException('Ese caso no está disponible dentro de tu alcance.');
+        $s=$pdo->prepare("UPDATE tickets SET assigned_to=?,assigned_at=NOW(),status='IN_PROGRESS',updated_at=NOW() WHERE id=? AND assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED') AND deleted_at IS NULL");$s->execute([(int)Auth::id(),$id]);
         if($s->rowCount()!==1){Flash::set('Ese caso ya fue tomado por otra persona.','info');header('Location: '.APP_BASE_URL.'/tickets/queue');exit;}
         $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,created_at) VALUES(?,'CLAIMED',?,'USER',?,NOW())")->execute([$id,(int)Auth::id(),json_encode(['assigned_to'=>(int)Auth::id(),'status'=>'IN_PROGRESS'],JSON_UNESCAPED_UNICODE)]);
         Audit::log('TICKET_CLAIMED','ticket',$id,null,['assigned_to'=>(int)Auth::id(),'status'=>'IN_PROGRESS']);
