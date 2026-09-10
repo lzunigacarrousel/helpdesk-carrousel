@@ -39,7 +39,7 @@ final class ConversationController
         }
 
         $commentId=null;$attachmentId=null;
-        Database::transaction(function(PDO $pdo)use($ticketId,$body,$visibility,$hasFile,&$commentId,&$attachmentId):void{
+        Database::transaction(function(PDO $pdo)use($ticketId,$body,$visibility,$hasFile,$isSupport,&$commentId,&$attachmentId):void{
             if($body!==''){
                 $u=Auth::user();$q=$pdo->prepare("INSERT INTO ticket_comments(ticket_id,author_user_id,author_name,author_email,visibility,body,created_at) VALUES(?,?,?,?,?,?,NOW())");
                 $q->execute([$ticketId,Auth::id(),$u['full_name']??null,$u['email']??null,$visibility,$body]);$commentId=(int)$pdo->lastInsertId();
@@ -47,7 +47,11 @@ final class ConversationController
             if($hasFile)$attachmentId=$this->storeUpload($pdo,$ticketId,$commentId,$visibility,$_FILES['attachment']);
             $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at) VALUES(?,'COMMENTED',?,'USER',?,?,NOW())")
                 ->execute([$ticketId,Auth::id(),json_encode(['visibility'=>$visibility],JSON_UNESCAPED_UNICODE),json_encode(['comment_id'=>$commentId,'attachment_id'=>$attachmentId],JSON_UNESCAPED_UNICODE)]);
-            $pdo->prepare('UPDATE tickets SET updated_at=NOW() WHERE id=?')->execute([$ticketId]);
+            if($isSupport&&$visibility==='PUBLIC'){
+                $pdo->prepare('UPDATE tickets SET first_response_at=COALESCE(first_response_at,NOW()),updated_at=NOW() WHERE id=?')->execute([$ticketId]);
+            }else{
+                $pdo->prepare('UPDATE tickets SET updated_at=NOW() WHERE id=?')->execute([$ticketId]);
+            }
         });
 
         Audit::log('TICKET_RESPONSE_ADDED','ticket',$ticketId,null,['visibility'=>$visibility,'comment_id'=>$commentId,'attachment_id'=>$attachmentId]);
