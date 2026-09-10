@@ -33,17 +33,16 @@ final class SlaPresentationService
         $total=max(1,$due-$created);
         $elapsed=max(0,$now-$created);
         $remaining=$due-$now;
-        $percent=(int)round(($elapsed/$total)*100);
-        $percent=max(0,$percent);
+        $percent=max(0,(int)round(($elapsed/$total)*100));
 
         if($remaining<0){
             $state='overdue';$label='Vencido';$tone='danger';
             $remainingLabel='Vencido hace '.self::duration(abs($remaining));
-        }elseif($percent>=90||$remaining<=1800){
+        }elseif($percent>=90||$remaining<=600){
             $state='near_due';$label='Próximo a vencer';$tone='warning';
             $remainingLabel=self::duration($remaining).' restantes';
         }elseif($percent>=75){
-            $state='attention';$label='Atención requerida';$tone='attention';
+            $state='attention';$label='Atención requerida';$tone='warning';
             $remainingLabel=self::duration($remaining).' restantes';
         }else{
             $state='within';$label='Dentro de objetivo';$tone='ok';
@@ -71,8 +70,8 @@ final class SlaPresentationService
     {
         $seconds=max(0,$seconds);
         $days=intdiv($seconds,86400);$hours=intdiv($seconds%86400,3600);$minutes=intdiv($seconds%3600,60);
-        if($days>0)return $days.' d '.($hours>0?$hours.' h':'');
-        if($hours>0)return $hours.' h '.($minutes>0?$minutes.' min':'');
+        if($days>0)return trim($days.' d '.($hours>0?$hours.' h':''));
+        if($hours>0)return trim($hours.' h '.($minutes>0?$minutes.' min':''));
         return max(1,$minutes).' min';
     }
 
