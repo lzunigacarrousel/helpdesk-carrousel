@@ -1,5 +1,5 @@
 <?php
-$pageTitle='Informes';$pageSection='Gestión';$activeNav='reports';$helpContext='reports';
+$pageTitle='Informes';$pageSection='Informes';$activeNav='reports';$helpContext='reports';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
@@ -18,140 +18,110 @@ $fmtMinutes=static function($minutes):string{
 $s=$reportStats??[];
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.report-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.report-summary-grid article{padding:16px 17px;min-height:104px}.report-summary-grid strong{font-size:25px}.report-summary-grid small{font-size:11px}.report-records{gap:16px;padding:16px}.report-record{border-radius:15px}.report-record-head{padding:14px 16px}.report-ticket-id strong{font-size:15px}.report-record-grid{grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)}.report-block{padding:16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.report-block:nth-child(2n){border-right:0}.report-block:nth-last-child(-n+2){border-bottom:0}.report-context h3{font-size:17px}.report-context>p{font-size:13px;max-height:none;overflow:visible;line-height:1.55}.report-context dt{font-size:10px}.report-context dd{font-size:12px}.report-time-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.report-time-grid>div{padding:9px 10px}.report-time-grid strong{font-size:14px}.report-timeline strong{font-size:12px}.report-timeline small{font-size:10.5px}.report-resolution-content p{font-size:12px;max-height:none;overflow:visible}.report-label{font-size:10.5px}.report-head p{max-width:840px}.report-filterbar{grid-template-columns:repeat(4,minmax(150px,1fr))}.report-filterbar .mgmt-filter-actions{grid-column:1/-1;justify-content:flex-end}.report-results-head{align-items:flex-start}.report-results-head small{max-width:540px;line-height:1.5}
-@media(max-width:1100px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-record-grid{grid-template-columns:1fr}.report-block{border-right:0!important;border-bottom:1px solid var(--border)!important}.report-block:last-child{border-bottom:0!important}.report-filterbar{grid-template-columns:repeat(2,minmax(0,1fr))}.report-time-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.report-summary-grid{grid-template-columns:1fr 1fr}.report-summary-grid article{min-height:94px;padding:13px}.report-summary-grid strong{font-size:20px}.report-filterbar{grid-template-columns:1fr}.report-time-grid{grid-template-columns:1fr 1fr}.report-records{padding:8px}.report-block{padding:13px}.report-results-head{flex-direction:column}.report-results-head small{text-align:left}.report-head .mgmt-head-actions{width:100%}.report-head .mgmt-head-actions .btn{flex:1}}
+.report-module-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;border:1px solid color-mix(in srgb,var(--brand) 34%,var(--border) 66%);border-left:6px solid var(--brand);border-radius:16px;padding:20px 22px;margin-bottom:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 7%,var(--card) 93%),var(--card));box-shadow:0 2px 8px rgba(16,24,40,.05)}.report-module-hero h1{margin:3px 0 5px;font-size:30px}.report-module-hero p{margin:0;max-width:850px;color:var(--muted);line-height:1.5}.report-module-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}.report-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.report-summary-grid article{border:1px solid var(--border);border-radius:13px;background:var(--card);padding:13px 15px;min-height:92px}.report-summary-grid article span,.report-summary-grid article strong,.report-summary-grid article small{display:block}.report-summary-grid article span{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:850}.report-summary-grid article strong{font-size:23px;color:var(--brand);margin-top:5px}.report-summary-grid article small{font-size:10.5px;color:var(--muted);margin-top:3px}.report-summary-grid .report-summary-alert{border-color:color-mix(in srgb,var(--warning) 30%,var(--border) 70%)}.report-filter-shell{border:1px solid var(--border);border-radius:14px;background:var(--card);padding:14px 16px;margin-bottom:14px}.report-filter-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}.report-filter-title strong{font-size:15px}.report-filter-title span{font-size:11px;color:var(--muted)}.report-filterbar{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px;align-items:end}.report-filterbar label{margin:0}.report-filterbar .form-control{min-height:43px}.report-filterbar .mgmt-filter-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}.report-table-card{border:1px solid var(--border);border-radius:15px;background:var(--card);overflow:hidden}.report-table-head{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:15px 17px;border-bottom:1px solid var(--border)}.report-table-head h2{margin:2px 0 0;font-size:19px}.report-table-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.report-table-search{min-width:300px;min-height:40px!important}.report-page-size{min-height:40px!important;width:auto}.report-table-wrap{width:100%;overflow-x:auto}.report-table{width:100%;border-collapse:collapse;table-layout:fixed}.report-table th{padding:10px 11px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:color-mix(in srgb,var(--card) 94%,var(--bg) 6%);border-bottom:1px solid var(--border)}.report-table td{padding:11px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:11.5px;line-height:1.35}.report-table tbody tr.report-main-row:hover{background:color-mix(in srgb,var(--brand) 3%,var(--card) 97%)}.report-table .ticket-cell a{font-weight:850;color:var(--brand);text-decoration:none}.report-table .ticket-cell small,.report-table td small{display:block;color:var(--muted);margin-top:3px;font-size:10px}.report-status-cell .badge{display:inline-flex;margin-bottom:3px}.report-doc-ok{color:var(--success);font-weight:800}.report-doc-missing{color:var(--warning);font-weight:800}.report-row-actions{display:flex;gap:6px;justify-content:flex-end}.report-row-actions .btn{min-height:34px;padding:6px 9px;font-size:10.5px}.report-detail-row td{padding:0!important;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.report-detail-panel{padding:14px 16px 16px;border-bottom:2px solid color-mix(in srgb,var(--brand) 24%,var(--border) 76%)}.report-detail-grid{display:grid;grid-template-columns:1.1fr .9fr 1fr 1fr;gap:12px}.report-detail-block{border:1px solid var(--border);border-radius:11px;background:var(--card);padding:12px}.report-detail-block>span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);font-weight:850;margin-bottom:7px}.report-detail-block h3{font-size:14px;margin:0 0 6px}.report-detail-block p{margin:0;color:var(--ink);font-size:11.5px;line-height:1.5}.report-detail-facts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.report-detail-facts div{font-size:10.5px;color:var(--muted)}.report-detail-facts b{display:block;color:var(--ink);font-size:10px}.report-time-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}.report-time-list div{border:1px solid var(--border);border-radius:9px;padding:8px}.report-time-list span,.report-time-list strong{display:block}.report-time-list span{font-size:9.5px;color:var(--muted)}.report-time-list strong{font-size:12px;margin-top:2px}.report-mini-timeline{display:grid;gap:7px;margin:0;padding:0;list-style:none}.report-mini-timeline li{padding-left:10px;border-left:2px solid color-mix(in srgb,var(--brand) 35%,var(--border) 65%)}.report-mini-timeline strong,.report-mini-timeline small{display:block}.report-mini-timeline strong{font-size:10.5px}.report-mini-timeline small{font-size:9.5px;color:var(--muted);margin-top:2px}.report-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}.report-pagination-info{font-size:11px;color:var(--muted)}.report-pagination-actions{display:flex;gap:7px}.report-pagination-actions .btn{min-height:36px;padding:7px 11px}.report-no-local-results{padding:24px;text-align:center;color:var(--muted)}.report-pending-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--border);border-radius:13px;padding:12px 15px;margin-bottom:14px;background:var(--card)}.report-pending-summary strong,.report-pending-summary span{display:block}.report-pending-chips{display:flex;gap:7px;flex-wrap:wrap}.report-pending-chips span{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--border);border-radius:999px;padding:6px 9px;font-size:10.5px}
+@media(max-width:1180px){.report-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-filterbar{grid-template-columns:repeat(2,minmax(0,1fr))}.report-detail-grid{grid-template-columns:1fr 1fr}.report-table{min-width:1050px}}
+@media(max-width:700px){.report-module-hero{display:block;padding:16px}.report-module-actions{justify-content:flex-start;margin-top:12px}.report-summary-grid{grid-template-columns:1fr 1fr}.report-filterbar{grid-template-columns:1fr}.report-table-head{align-items:flex-start;flex-direction:column}.report-table-tools{width:100%;justify-content:flex-start}.report-table-search{min-width:0;width:100%}.report-detail-grid{grid-template-columns:1fr}.report-pending-summary{display:block}.report-pending-chips{margin-top:9px}}
 </style>
 
-<div class="mgmt-head report-head">
+<section class="report-module-hero">
   <div>
-    <span class="mgmt-kicker">Reportería operativa y aprendizaje</span>
+    <span class="mgmt-kicker">Centro de reportes</span>
     <h1>Informes de tickets</h1>
-    <p>Seguimiento completo del caso: qué ocurrió, quién lo atendió, cuánto tiempo pasó en cada estado, por qué estuvo en espera y cómo se resolvió.</p>
+    <p>Métricas para análisis y una tabla operativa para trabajar muchos casos sin recorrer tarjetas extensas. El detalle completo se abre solo cuando lo necesitas.</p>
   </div>
-  <div class="mgmt-head-actions">
+  <div class="report-module-actions">
     <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion?<?= htmlspecialchars($q) ?>">← Dashboard</a>
     <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/gestion/informes/exportar?<?= htmlspecialchars($q) ?>" data-action-message="Preparando archivo Excel…">Descargar Excel (.xlsx)</a>
   </div>
-</div>
+</section>
 
 <section class="report-summary-grid" aria-label="Resumen del período">
-  <article><span>Tickets</span><strong><?= (int)($s['total']??0) ?></strong><small>Resultado actual</small></article>
+  <article><span>Tickets</span><strong><?= (int)($s['total']??0) ?></strong><small>Resultado del filtro</small></article>
   <article><span>Documentados</span><strong><?= (int)($s['documented']??0) ?></strong><small><?= htmlspecialchars((string)($s['documented_pct']??0)) ?>% con solución registrada</small></article>
-  <article class="report-summary-alert"><span>Sin documentar</span><strong><?= (int)($s['undocumented']??0) ?></strong><small>Casos sin aprendizaje registrado</small></article>
+  <article class="report-summary-alert"><span>Sin documentar</span><strong><?= (int)($s['undocumented']??0) ?></strong><small>Casos pendientes de aprendizaje</small></article>
   <article><span>Primera respuesta</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_first_response_minutes']??null)) ?></strong><small>Promedio del período</small></article>
-  <article><span>Hasta resolución</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_resolution_minutes']??null)) ?></strong><small>Desde creación hasta resuelto</small></article>
-  <article><span>Trabajo efectivo</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_work_minutes']??null)) ?></strong><small>Tiempo promedio en proceso</small></article>
-  <article><span>En espera</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_pending_minutes']??null)) ?></strong><small>Tiempo promedio pausado</small></article>
+  <article><span>Hasta resolución</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_resolution_minutes']??null)) ?></strong><small>Creación → resolución</small></article>
+  <article><span>Trabajo efectivo</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_work_minutes']??null)) ?></strong><small>Promedio en proceso</small></article>
+  <article><span>En espera</span><strong><?= htmlspecialchars($fmtMinutes($s['avg_pending_minutes']??null)) ?></strong><small>Promedio pausado</small></article>
   <article><span>Cambios de estado</span><strong><?= (int)($s['status_changes']??0) ?></strong><small>Movimientos registrados</small></article>
 </section>
 
 <?php if(!empty($s['pending_reasons'])): ?>
 <section class="report-pending-summary" aria-label="Motivos de espera actuales">
-  <div><span class="mgmt-kicker">Casos actualmente en espera</span><strong>¿Por qué están pausados?</strong></div>
+  <div><span class="mgmt-kicker">Casos actualmente en espera</span><strong>Motivos activos</strong></div>
   <div class="report-pending-chips"><?php foreach($s['pending_reasons'] as $code=>$count): ?><span><b><?= (int)$count ?></b><?= htmlspecialchars($pendingReasons[$code]??$code) ?></span><?php endforeach; ?></div>
 </section>
 <?php endif; ?>
 
-<form class="mgmt-filterbar report-filterbar" method="get" action="<?= APP_BASE_URL ?>/gestion/informes" data-processing-form>
-<label>Desde<input class="form-control" type="date" name="from" value="<?= htmlspecialchars($filters['from']) ?>"></label>
-<label>Hasta<input class="form-control" type="date" name="to" value="<?= htmlspecialchars($filters['to']) ?>"></label>
-<label>Parque<select class="form-control" name="park_id"><option value="0">Todos</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['park_id']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-<label>Categoría<select class="form-control" name="category_id"><option value="0">Todas</option><?php foreach($categories as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['category_id']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-<label>Responsable<select class="form-control" name="assigned_to"><option value="0">Todos</option><?php foreach($supportUsers as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['assigned_to']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['full_name']) ?></option><?php endforeach; ?></select></label>
-<label>Estado<select class="form-control" name="status"><option value="">Todos</option><?php foreach($statusLabels as $k=>$v): ?><option value="<?= $k ?>" <?= $filters['status']===$k?'selected':'' ?>><?= $v ?></option><?php endforeach; ?></select></label>
-<label>Prioridad<select class="form-control" name="priority"><option value="">Todas</option><?php foreach($priorityLabels as $k=>$v): ?><option value="<?= $k ?>" <?= $filters['priority']===$k?'selected':'' ?>><?= $v ?></option><?php endforeach; ?></select></label>
-<div class="mgmt-filter-actions"><button class="btn btn-primary">Aplicar filtros</button><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/informes">Limpiar</a></div>
-</form>
+<section class="report-filter-shell">
+  <div class="report-filter-title"><strong>Filtros del informe</strong><span>La exportación Excel conserva exactamente estos criterios.</span></div>
+  <form class="report-filterbar" method="get" action="<?= APP_BASE_URL ?>/gestion/informes" data-processing-form>
+    <label>Desde<input class="form-control" type="date" name="from" value="<?= htmlspecialchars($filters['from']) ?>"></label>
+    <label>Hasta<input class="form-control" type="date" name="to" value="<?= htmlspecialchars($filters['to']) ?>"></label>
+    <label>Parque<select class="form-control" name="park_id"><option value="0">Todos</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['park_id']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+    <label>Categoría<select class="form-control" name="category_id"><option value="0">Todas</option><?php foreach($categories as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['category_id']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+    <label>Responsable<select class="form-control" name="assigned_to"><option value="0">Todos</option><?php foreach($supportUsers as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$filters['assigned_to']===(int)$x['id']?'selected':'' ?>><?= htmlspecialchars($x['full_name']) ?></option><?php endforeach; ?></select></label>
+    <label>Estado<select class="form-control" name="status"><option value="">Todos</option><?php foreach($statusLabels as $k=>$v): ?><option value="<?= $k ?>" <?= $filters['status']===$k?'selected':'' ?>><?= $v ?></option><?php endforeach; ?></select></label>
+    <label>Prioridad<select class="form-control" name="priority"><option value="">Todas</option><?php foreach($priorityLabels as $k=>$v): ?><option value="<?= $k ?>" <?= $filters['priority']===$k?'selected':'' ?>><?= $v ?></option><?php endforeach; ?></select></label>
+    <div class="mgmt-filter-actions"><button class="btn btn-primary">Aplicar filtros</button><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/informes">Limpiar</a></div>
+  </form>
+</section>
 
-<section class="mgmt-card report-results-card">
-  <div class="mgmt-card-head report-results-head">
-    <div><span>Detalle operativo</span><h2><?= count($rows) ?> tickets analizados</h2></div>
-    <small class="muted">Cada caso concentra contexto, tiempos, historial y resolución. La exportación Excel conserva el filtro actual y agrega hojas de resumen y esperas.</small>
+<section class="report-table-card" data-report-table>
+  <div class="report-table-head">
+    <div><span class="mgmt-kicker">Detalle operativo</span><h2><?= count($rows) ?> tickets analizados</h2></div>
+    <?php if($rows): ?><div class="report-table-tools"><input class="form-control report-table-search" type="search" placeholder="Buscar dentro del informe…" data-report-search><select class="form-control report-page-size" data-report-page-size aria-label="Filas por página"><option value="10">10 filas</option><option value="25" selected>25 filas</option><option value="50">50 filas</option><option value="100">100 filas</option></select></div><?php endif; ?>
   </div>
 
   <?php if(!$rows): ?>
     <div class="empty-state"><strong>No hay tickets para este filtro.</strong><br>Ajusta el período o los criterios de búsqueda.</div>
   <?php else: ?>
-  <div class="report-records">
-    <?php foreach($rows as $r): $life=$r['lifecycle']??[]; ?>
-      <article class="report-record">
-        <header class="report-record-head">
-          <div class="report-ticket-id">
-            <a href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['id'] ?>"><strong><?= htmlspecialchars($r['ticket_number']) ?></strong></a>
-            <span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($r['created_at']))) ?> · <?= htmlspecialchars($priorityLabels[$r['priority']]??$r['priority']) ?></span>
-          </div>
-          <div class="report-record-status">
-            <span class="badge badge-primary"><?= htmlspecialchars($statusLabels[$r['status']]??$r['status']) ?></span>
-            <?php if($r['status']==='PENDING'&&!empty($r['pending_reason_code'])): ?><span class="report-waiting-reason"><?= htmlspecialchars($pendingReasons[$r['pending_reason_code']]??$r['pending_reason_code']) ?></span><?php endif; ?>
-            <small><?= htmlspecialchars($r['assigned_name']??'Sin asignar') ?></small>
-          </div>
-        </header>
-
-        <div class="report-record-grid">
-          <section class="report-block report-context">
-            <span class="report-label">Qué ocurrió</span>
-            <h3><?= htmlspecialchars($r['subject']) ?></h3>
-            <p><?= nl2br(htmlspecialchars($r['description'])) ?></p>
-            <dl>
-              <div><dt>Solicitante</dt><dd><?= htmlspecialchars($r['requester_name']) ?></dd></div>
-              <div><dt>Correo</dt><dd><?= htmlspecialchars($r['requester_email']) ?></dd></div>
-              <div><dt>Teléfono</dt><dd><?= htmlspecialchars($r['requester_phone']?:'—') ?></dd></div>
-              <div><dt>Ubicación</dt><dd><?= htmlspecialchars($r['park_name']??'Sin parque') ?><?= !empty($r['area_name'])?' · '.htmlspecialchars($r['area_name']):'' ?></dd></div>
-              <div><dt>Categoría</dt><dd><?= htmlspecialchars($r['category_name']??'—') ?></dd></div>
-              <?php if($r['status']==='PENDING'&&!empty($r['pending_reason_code'])): ?><div class="report-context-wide"><dt>Motivo de espera</dt><dd><?= htmlspecialchars($pendingReasons[$r['pending_reason_code']]??$r['pending_reason_code']) ?><?= !empty($r['pending_note'])?' · '.htmlspecialchars($r['pending_note']):'' ?></dd></div><?php endif; ?>
-            </dl>
-          </section>
-
-          <section class="report-block report-times">
-            <span class="report-label">Cuánto tomó</span>
-            <div class="report-time-grid">
-              <div><span>Hasta asignación</span><strong><?= htmlspecialchars($fmtMinutes($life['assignment_minutes']??null)) ?></strong></div>
-              <div><span>Primera respuesta</span><strong><?= htmlspecialchars($fmtMinutes($life['first_response_minutes']??null)) ?></strong></div>
-              <div><span>En cola</span><strong><?= htmlspecialchars($fmtMinutes($life['queue_minutes']??0)) ?></strong></div>
-              <div><span>Trabajando</span><strong><?= htmlspecialchars($fmtMinutes($life['work_minutes']??0)) ?></strong></div>
-              <div><span>En espera</span><strong><?= htmlspecialchars($fmtMinutes($life['pending_minutes']??0)) ?></strong></div>
-              <div><span>Hasta resolución</span><strong><?= htmlspecialchars($fmtMinutes($life['resolution_minutes']??null)) ?></strong></div>
-            </div>
-            <div class="report-dates">
-              <span><b>Asignado:</b> <?= !empty($r['assigned_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['assigned_at']))):'—' ?></span>
-              <span><b>Primera respuesta:</b> <?= !empty($r['first_response_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['first_response_at']))):'—' ?></span>
-              <span><b>Resuelto:</b> <?= !empty($r['resolved_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['resolved_at']))):'—' ?></span>
-              <span><b>Cerrado:</b> <?= !empty($r['closed_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['closed_at']))):'—' ?></span>
-            </div>
-          </section>
-
-          <section class="report-block report-status-history">
-            <span class="report-label">Cómo avanzó</span>
-            <?php if(!empty($life['transitions'])): ?>
-              <ol class="report-timeline">
-                <?php foreach($life['transitions'] as $t): ?>
-                  <li><span class="report-timeline-dot"></span><div><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><?php if(!empty($t['pending_reason'])): ?><em><?= htmlspecialchars($pendingReasons[$t['pending_reason']]??$t['pending_reason']) ?><?= !empty($t['pending_note'])?' · '.htmlspecialchars($t['pending_note']):'' ?></em><?php endif; ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?></small></div></li>
-                <?php endforeach; ?>
-              </ol>
-              <details class="report-status-durations"><summary>Ver tiempo acumulado por estado</summary><div><?php foreach(($life['durations']??[]) as $code=>$minutes): ?><span><b><?= htmlspecialchars($statusLabels[$code]??$code) ?>:</b> <?= htmlspecialchars($fmtMinutes($minutes)) ?></span><?php endforeach; ?></div></details>
-            <?php else: ?><div class="report-empty-info">Sin cambios de estado registrados todavía.</div><?php endif; ?>
-          </section>
-
-          <section class="report-block report-resolution-panel <?= empty($r['solution_applied'])?'is-missing':'' ?>">
-            <span class="report-label">Qué aprendimos</span>
-            <?php if(!empty($r['solution_applied'])): ?>
-              <strong class="report-resolution-type"><?= htmlspecialchars($resolutionLabels[$r['resolution_type']]??'Solución documentada') ?></strong>
-              <div class="report-resolution-content"><b>Causa encontrada</b><p><?= nl2br(htmlspecialchars($r['root_cause']??'No indicada')) ?></p><b>Solución aplicada</b><p><?= nl2br(htmlspecialchars($r['solution_applied'])) ?></p><?php if(!empty($r['preventive_action'])):?><b>Prevención / seguimiento</b><p><?= nl2br(htmlspecialchars($r['preventive_action'])) ?></p><?php endif; ?></div>
-              <small>Documentado por <?= htmlspecialchars($r['resolution_author']??'equipo de soporte') ?></small>
-            <?php else: ?>
-              <strong>Falta documentar la resolución</strong>
-              <p class="muted">Cuando se resuelva el caso deben quedar registrados causa, solución aplicada y prevención para alimentar informes, casos similares y conocimiento.</p>
-            <?php endif; ?>
-          </section>
-        </div>
-      </article>
-    <?php endforeach; ?>
-  </div>
+    <div class="report-table-wrap">
+      <table class="report-table">
+        <colgroup><col style="width:12%"><col style="width:15%"><col style="width:14%"><col style="width:11%"><col style="width:13%"><col style="width:9%"><col style="width:8%"><col style="width:10%"><col style="width:8%"></colgroup>
+        <thead><tr><th>Ticket</th><th>Solicitante</th><th>Ubicación / categoría</th><th>Estado</th><th>Responsable</th><th>1ª respuesta</th><th>Trabajo</th><th>Resolución</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach($rows as $i=>$r): $life=$r['lifecycle']??[];$searchText=strtolower(implode(' ',[(string)$r['ticket_number'],(string)$r['subject'],(string)$r['description'],(string)$r['requester_name'],(string)$r['requester_email'],(string)($r['park_name']??''),(string)($r['area_name']??''),(string)($r['category_name']??''),(string)($r['assigned_name']??''),(string)($r['solution_applied']??''),(string)($r['root_cause']??'')])); ?>
+          <tr class="report-main-row" data-report-main data-report-index="<?= (int)$i ?>" data-report-searchtext="<?= htmlspecialchars($searchText) ?>">
+            <td class="ticket-cell"><a href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['id'] ?>"><?= htmlspecialchars($r['ticket_number']) ?></a><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($r['created_at']))) ?></small></td>
+            <td><strong><?= htmlspecialchars($r['requester_name']) ?></strong><small><?= htmlspecialchars($r['requester_email']) ?></small></td>
+            <td><strong><?= htmlspecialchars($r['park_name']??'Sin ubicación') ?><?= !empty($r['area_name'])?' · '.htmlspecialchars($r['area_name']):'' ?></strong><small><?= htmlspecialchars($r['category_name']??'Sin categoría') ?></small></td>
+            <td class="report-status-cell"><span class="badge badge-primary"><?= htmlspecialchars($statusLabels[$r['status']]??$r['status']) ?></span><small><?= htmlspecialchars($priorityLabels[$r['priority']]??$r['priority']) ?></small></td>
+            <td><strong><?= htmlspecialchars($r['assigned_name']??'Sin asignar') ?></strong><?php if($r['status']==='PENDING'&&!empty($r['pending_reason_code'])): ?><small><?= htmlspecialchars($pendingReasons[$r['pending_reason_code']]??$r['pending_reason_code']) ?></small><?php endif; ?></td>
+            <td><strong><?= htmlspecialchars($fmtMinutes($life['first_response_minutes']??null)) ?></strong></td>
+            <td><strong><?= htmlspecialchars($fmtMinutes($life['work_minutes']??0)) ?></strong><small>Espera <?= htmlspecialchars($fmtMinutes($life['pending_minutes']??0)) ?></small></td>
+            <td><?php if(!empty($r['solution_applied'])): ?><span class="report-doc-ok">Documentada</span><small><?= htmlspecialchars($fmtMinutes($life['resolution_minutes']??null)) ?></small><?php else: ?><span class="report-doc-missing">Pendiente</span><small><?= htmlspecialchars($fmtMinutes($life['resolution_minutes']??null)) ?></small><?php endif; ?></td>
+            <td><div class="report-row-actions"><button class="btn btn-outline-secondary" type="button" data-report-toggle="<?= (int)$i ?>">Detalle</button></div></td>
+          </tr>
+          <tr class="report-detail-row" data-report-detail data-report-index="<?= (int)$i ?>" hidden><td colspan="9"><div class="report-detail-panel"><div class="report-detail-grid">
+            <section class="report-detail-block"><span>Qué ocurrió</span><h3><?= htmlspecialchars($r['subject']) ?></h3><p><?= nl2br(htmlspecialchars($r['description'])) ?></p><div class="report-detail-facts"><div><b>Teléfono</b><?= htmlspecialchars($r['requester_phone']?:'—') ?></div><div><b>Prioridad</b><?= htmlspecialchars($priorityLabels[$r['priority']]??$r['priority']) ?></div><div><b>Asignado</b><?= !empty($r['assigned_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['assigned_at']))):'—' ?></div><div><b>Cerrado</b><?= !empty($r['closed_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime($r['closed_at']))):'—' ?></div></div></section>
+            <section class="report-detail-block"><span>Tiempos</span><div class="report-time-list"><div><span>Hasta asignación</span><strong><?= htmlspecialchars($fmtMinutes($life['assignment_minutes']??null)) ?></strong></div><div><span>En cola</span><strong><?= htmlspecialchars($fmtMinutes($life['queue_minutes']??0)) ?></strong></div><div><span>Primera respuesta</span><strong><?= htmlspecialchars($fmtMinutes($life['first_response_minutes']??null)) ?></strong></div><div><span>Trabajando</span><strong><?= htmlspecialchars($fmtMinutes($life['work_minutes']??0)) ?></strong></div><div><span>En espera</span><strong><?= htmlspecialchars($fmtMinutes($life['pending_minutes']??0)) ?></strong></div><div><span>Hasta resolución</span><strong><?= htmlspecialchars($fmtMinutes($life['resolution_minutes']??null)) ?></strong></div></div></section>
+            <section class="report-detail-block"><span>Historial</span><?php if(!empty($life['transitions'])): ?><ol class="report-mini-timeline"><?php foreach($life['transitions'] as $t): ?><li><strong><?= htmlspecialchars($t['from_label']) ?> → <?= htmlspecialchars($t['to_label']) ?></strong><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime($t['at']))) ?> · <?= htmlspecialchars($t['actor']) ?><?= !empty($t['pending_reason'])?' · '.htmlspecialchars($pendingReasons[$t['pending_reason']]??$t['pending_reason']):'' ?></small></li><?php endforeach; ?></ol><?php else: ?><p>Sin cambios de estado registrados todavía.</p><?php endif; ?></section>
+            <section class="report-detail-block"><span>Resolución / aprendizaje</span><?php if(!empty($r['solution_applied'])): ?><h3><?= htmlspecialchars($resolutionLabels[$r['resolution_type']]??'Solución documentada') ?></h3><?php if(!empty($r['root_cause'])): ?><p><strong>Causa:</strong> <?= nl2br(htmlspecialchars($r['root_cause'])) ?></p><?php endif; ?><p><strong>Solución:</strong> <?= nl2br(htmlspecialchars($r['solution_applied'])) ?></p><?php if(!empty($r['preventive_action'])): ?><p style="margin-top:7px"><strong>Prevención:</strong> <?= nl2br(htmlspecialchars($r['preventive_action'])) ?></p><?php endif; ?><div class="report-row-actions" style="margin-top:10px;justify-content:flex-start"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['id'] ?>">Abrir caso</a></div><?php else: ?><p class="report-doc-missing">Falta documentar la resolución.</p><p style="margin-top:7px;color:var(--muted)">Al resolver deben quedar causa, solución y prevención para alimentar conocimiento e informes.</p><div class="report-row-actions" style="margin-top:10px;justify-content:flex-start"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['id'] ?>">Abrir caso</a></div><?php endif; ?></section>
+          </div></div></td></tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <div class="report-no-local-results" data-report-empty hidden>No hay filas que coincidan con esta búsqueda dentro del informe.</div>
+    <div class="report-pagination"><div class="report-pagination-info" data-report-page-info></div><div class="report-pagination-actions"><button class="btn btn-outline-secondary" type="button" data-report-prev>← Anterior</button><button class="btn btn-outline-secondary" type="button" data-report-next>Siguiente →</button></div></div>
   <?php endif; ?>
 </section>
 
 <div class="processing-overlay" data-processing-overlay hidden><div class="processing-box"><div class="processing-spinner"></div><h2>Procesando información</h2><p>Aplicando filtros al informe…</p><div class="processing-line"><i></i></div><small>Preparando métricas, tiempos e historial de los casos.</small></div></div>
-<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">document.querySelectorAll('[data-processing-form]').forEach(f=>f.addEventListener('submit',()=>{const x=document.querySelector('[data-processing-overlay]');if(x)x.hidden=false;}));</script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+(()=>{
+  document.querySelectorAll('[data-processing-form]').forEach(f=>f.addEventListener('submit',()=>{const x=document.querySelector('[data-processing-overlay]');if(x)x.hidden=false;}));
+  const root=document.querySelector('[data-report-table]');if(!root)return;
+  const mains=[...root.querySelectorAll('[data-report-main]')];const details=[...root.querySelectorAll('[data-report-detail]')];
+  const search=root.querySelector('[data-report-search]');const size=root.querySelector('[data-report-page-size]');const info=root.querySelector('[data-report-page-info]');const prev=root.querySelector('[data-report-prev]');const next=root.querySelector('[data-report-next]');const empty=root.querySelector('[data-report-empty]');let page=1;
+  const norm=v=>String(v||'').toLocaleLowerCase('es-GT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  function visibleRows(){const q=norm(search?.value||'');return mains.filter(row=>!q||norm(row.dataset.reportSearchtext||'').includes(q));}
+  function closeDetails(){details.forEach(row=>row.hidden=true);root.querySelectorAll('[data-report-toggle]').forEach(btn=>btn.textContent='Detalle');}
+  function render(){closeDetails();const rows=visibleRows();const per=Math.max(1,parseInt(size?.value||'25',10));const pages=Math.max(1,Math.ceil(rows.length/per));if(page>pages)page=pages;const start=(page-1)*per;const shown=new Set(rows.slice(start,start+per));mains.forEach(row=>row.hidden=!shown.has(row));details.forEach(row=>row.hidden=true);if(empty)empty.hidden=rows.length!==0;if(info)info.textContent=rows.length?`${start+1}-${Math.min(start+per,rows.length)} de ${rows.length} tickets`:'0 tickets';if(prev)prev.disabled=page<=1;if(next)next.disabled=page>=pages;}
+  root.addEventListener('click',e=>{const btn=e.target.closest('[data-report-toggle]');if(!btn)return;const index=btn.dataset.reportToggle;const row=details.find(x=>x.dataset.reportIndex===index);if(!row)return;const open=row.hidden;closeDetails();row.hidden=!open;btn.textContent=open?'Ocultar':'Detalle';});
+  search?.addEventListener('input',()=>{page=1;render();});size?.addEventListener('change',()=>{page=1;render();});prev?.addEventListener('click',()=>{if(page>1){page--;render();}});next?.addEventListener('click',()=>{page++;render();});render();
+})();
+</script>
 
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
