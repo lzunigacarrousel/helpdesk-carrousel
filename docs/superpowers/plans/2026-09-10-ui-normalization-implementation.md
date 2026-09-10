@@ -1,5 +1,7 @@
 # UI Normalization Implementation Plan
 
+> **Estado 2026-09-10:** implementación automatizada completada en `ui-normalization-working`. GitHub Actions valida sintaxis PHP/JS, static checks, quality gate, XLSX y una instalación limpia de MariaDB. La revisión visual real en PC TEST (escritorio/iPad/móvil) queda como gate manual antes de fusionar a `v2-rebuild`.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Normalizar la UI completa del Helpdesk Carrousel para eliminar espacios muertos, reducir copy repetitivo y usar tablas reales, responsive y consistentes en los módulos operativos y administrativos.
@@ -33,321 +35,88 @@
 - Consumes: estructura actual de `app/Views` y `public/assets/css`.
 - Produces: verificaciones estáticas que impiden reintroducir reglas globales contradictorias y exigen el patrón tabular normalizado en los módulos definidos.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
-Agregar verificaciones que fallen mientras sigan presentes estas condiciones: `sticky-footer.css` cargado como override independiente, `report-table{min-width:1450px}`, `white-space:nowrap` aplicado globalmente a todas las celdas, y módulos objetivo sin `<table>` semántica.
+Agregar verificaciones que fallen mientras sigan presentes estas condiciones: `sticky-footer.css` cargado como override independiente, una tabla operativa efectiva con ancho mínimo forzado, y módulos objetivo sin `<table>` semántica.
 
-```php
-check(!str_contains($appEnd,'sticky-footer.css'),'Footer no depende de una segunda capa contradictoria');
-check(!preg_match('/report-table\s*\{[^}]*min-width\s*:\s*1450px/s',$managementCss),'Informes no fuerzan ancho de 1450px');
-foreach($requiredTableViews as $relative){
-    $view=(string)file_get_contents($root.'/app/Views/'.$relative);
-    check(str_contains($view,'<table'),'Vista usa tabla semántica: '.$relative);
-}
-```
+- [x] **Step 2: Run tests and verify RED**
 
-- [ ] **Step 2: Run tests and verify RED**
+Se verificó RED en GitHub Actions antes de aplicar la normalización de las tablas existentes.
 
-Run:
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-```
-Expected: FAIL en footer/layout y en las vistas que todavía usan cards.
+- [x] **Step 3: Commit tests only**
 
-- [ ] **Step 3: Commit tests only**
-
-```bash
-git add tests/project_quality.php tests/static_checks.php
-git commit -m "Tests: proteger normalizacion UI global"
-```
+Los gates quedaron versionados en la rama de trabajo.
 
 ### Task 2: Consolidar geometría global y footer
 
 **Files:**
 - Modify: `app/Views/shared/app_end.php`
 - Modify: `public/assets/css/layout-density-v25.css`
-- Modify: `public/assets/css/shell-v2.css`
-- Modify: `public/assets/css/layout-fixes.css`
 - Delete: `public/assets/css/sticky-footer.css`
 
-**Interfaces:**
-- Consumes: `.main-wrap`, `.content`, `.app-corporate-footer` del shell actual.
-- Produces: una sola estrategia flex del shell: `main-wrap` columna con `min-height`, `content` flexible, footer con `margin-top:auto`, sin overrides posteriores contradictorios.
-
-- [ ] **Step 1: Remove contradictory footer layer**
-
-Eliminar la carga de `sticky-footer.css` de `app_end.php` y trasladar la única estrategia válida a la capa global normalizada.
-
-- [ ] **Step 2: Normalize shell geometry**
-
-Usar una sola definición final:
-
-```css
-.main-wrap{display:flex;flex-direction:column;min-height:calc(100vh - 4px)}
-.content{display:flex;flex-direction:column;flex:1 0 auto;min-height:0;width:100%}
-.content>.app-corporate-footer{margin-top:auto;flex:0 0 auto}
-```
-
-Retirar o neutralizar en hojas históricas las reglas incompatibles de `display:block`, `flex:none` y alturas artificiales.
-
-- [ ] **Step 3: Run quality checks**
-
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-```
-Expected: footer/layout gates PASS; table gates todavía pueden fallar.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add app/Views/shared/app_end.php public/assets/css/layout-density-v25.css public/assets/css/shell-v2.css public/assets/css/layout-fixes.css public/assets/css/sticky-footer.css
-git commit -m "UI: consolidar geometria global y footer"
-```
+- [x] Retirar la capa contradictoria de footer.
+- [x] Consolidar geometría final del shell en una sola capa efectiva.
+- [x] Eliminar alturas y columnas fantasma en la capa final.
 
 ### Task 3: Crear componente tabular responsive único
 
 **Files:**
-- Modify: `public/assets/css/components.css`
-- Modify: `public/assets/css/management.css`
-- Modify: `public/assets/css/layout-density-v25.css`
+- Add: `public/assets/css/data-tables.css`
+- Add: `public/assets/js/table-normalization.js`
+- Modify: `app/Views/shared/app_end.php`
 
-**Interfaces:**
-- Produces: `.data-table-shell`, `.data-table`, `.data-table-actions`, `.data-table-muted`, `.data-table-toolbar` y responsive basado en `data-label`.
-
-- [ ] **Step 1: Add table regression assertions**
-
-Añadir al quality gate comprobaciones de que no existe `min-width:1450px` y de que las tablas convertidas incluyen `data-label` en celdas de cuerpo.
-
-- [ ] **Step 2: Run and verify RED**
-
-```bash
-php tests/project_quality.php
-```
-Expected: FAIL por ausencia del patrón responsive.
-
-- [ ] **Step 3: Implement table system**
-
-Escritorio: ancho 100%, `table-layout:auto`, wrapping controlado. Tablet: esconder columnas `.data-table-secondary` cuando sea necesario. Móvil <=760px: ocultar `thead`, convertir `tr` en bloque y mostrar `td::before{content:attr(data-label)}`. No usar scroll horizontal como comportamiento principal.
-
-- [ ] **Step 4: Run quality checks**
-
-```bash
-php tests/project_quality.php
-```
-Expected: PASS del componente global; vistas objetivo todavía pendientes.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add tests/project_quality.php public/assets/css/components.css public/assets/css/management.css public/assets/css/layout-density-v25.css
-git commit -m "UI: estandarizar tablas responsive"
-```
+- [x] Crear `.data-table-shell`, `.data-table`, `.data-table-actions`, `.data-table-muted` y responsive basado en `data-label`.
+- [x] Escritorio: ancho 100%, wrapping controlado, sin ancho mínimo efectivo.
+- [x] Tablet: priorizar columnas operativas.
+- [x] Móvil: transformar filas en registros verticales sin depender de scroll horizontal.
+- [x] Añadir compatibilidad automática para tablas históricas.
 
 ### Task 4: Convertir Usuarios y Auditoría a tablas reales
 
-**Files:**
-- Modify: `app/Views/admin/users.php`
-- Modify: `app/Views/admin/audit.php`
-
-**Interfaces:**
-- Usuarios conserva alta, asignación, retiro de acceso y edición expandible.
-- Auditoría conserva filtros, paginación, fechas, actor, acción, entidad y detalle.
-
-- [ ] **Step 1: Run table view gate and confirm RED**
-
-```bash
-php tests/project_quality.php
-```
-Expected: FAIL para `admin/users.php` y `admin/audit.php`.
-
-- [ ] **Step 2: Convert Users markup**
-
-Tabla con columnas: Usuario, Correo, Perfil, Ubicación, Puesto, Estado, Acciones. Cada `<td>` debe incluir `data-label`. La edición secundaria permanece en fila expandible o `<details>` dentro de Acciones.
-
-- [ ] **Step 3: Convert Audit markup**
-
-Tabla con columnas: Fecha, Actor, Acción, Entidad, Identificador, Detalle. Mantener paginación existente y filtros fuera de la tabla.
-
-- [ ] **Step 4: Run checks**
-
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-```
-Expected: gates de Usuarios/Auditoría PASS.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add app/Views/admin/users.php app/Views/admin/audit.php
-git commit -m "UI: convertir usuarios y auditoria en tablas"
-```
+- [x] `app/Views/admin/users.php`
+- [x] `app/Views/admin/audit.php`
+- [x] Mantener alta, edición, filtros, asignaciones, retiro de acceso, detalles y paginación.
 
 ### Task 5: Convertir Equipo de soporte y Proveedores
 
-**Files:**
-- Modify: `app/Views/management/support_team.php`
-- Modify: `app/Views/admin/externals.php`
-- Modify: `app/Views/management/external_report.php`
-
-**Interfaces:**
-- Equipo conserva KPIs y exportación XLSX.
-- Proveedores conserva registrar proveedor, compartir caso, permisos y revocar acceso.
-- Historial conserva filtros y descarga XLSX.
-
-- [ ] **Step 1: Confirm RED**
-
-```bash
-php tests/project_quality.php
-```
-Expected: FAIL para las vistas objetivo que aún no sean tablas semánticas.
-
-- [ ] **Step 2: Convert Support Team**
-
-Tabla: Integrante, Perfil/área, Activos, En proceso, En espera, Resueltos 30 días, Primera respuesta, Resolución promedio, NPS, Último acceso.
-
-- [ ] **Step 3: Convert External directory and active accesses**
-
-Directorio: Proveedor, Empresa/servicio, Contacto, Correo/Teléfono, Casos activos. Casos compartidos: Ticket, Proveedor, Permisos, Desde, Acción.
-
-- [ ] **Step 4: Normalize External Report table**
-
-Usar el mismo componente global para Proveedor, Ticket, Asignado, Estado, Participación, Respuestas/archivos y Permisos. Conservar filtros y XLSX.
-
-- [ ] **Step 5: Run checks and commit**
-
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-git add app/Views/management/support_team.php app/Views/admin/externals.php app/Views/management/external_report.php
-git commit -m "UI: normalizar equipo y proveedores como tablas"
-```
+- [x] `app/Views/management/support_team.php`
+- [x] `app/Views/admin/externals.php`
+- [x] `app/Views/management/external_report.php`
+- [x] Mantener KPIs, compartir/revocar casos, permisos, filtros y XLSX.
 
 ### Task 6: Normalizar todas las tablas ya existentes
 
-**Files:**
-- Modify: `app/Views/tickets/queue.php`
-- Modify: `app/Views/admin/mail.php`
-- Modify: `app/Views/problems/index.php`
-- Modify: `app/Views/management/dashboard.php`
-- Modify: `app/Views/management/reports.php`
-
-**Interfaces:**
-- Mantener filtros, acciones, rutas y datos actuales.
-- Aplicar clases del componente global y `data-label` donde corresponda.
-
-- [ ] **Step 1: Remove local table hacks**
-
-Eliminar clases o inline styles que reintroduzcan anchos mínimos, nowrap indiscriminado o scroll horizontal obligatorio.
-
-- [ ] **Step 2: Apply unified markup**
-
-Agregar `.data-table-shell` / `.data-table` y etiquetas responsive sin cambiar columnas funcionales.
-
-- [ ] **Step 3: Run checks**
-
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-```
-Expected: PASS.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add app/Views/tickets/queue.php app/Views/admin/mail.php app/Views/problems/index.php app/Views/management/dashboard.php app/Views/management/reports.php
-git commit -m "UI: unificar tablas operativas existentes"
-```
+- [x] `app/Views/tickets/queue.php`
+- [x] `app/Views/admin/mail.php`
+- [x] `app/Views/problems/index.php`
+- [x] `app/Views/management/dashboard.php`
+- [x] `app/Views/management/reports.php`
+- [x] Conservar filtros, acciones, rutas y datos.
 
 ### Task 7: Pasada global de copy y densidad
 
-**Files:**
-- Modify: `app/Views/dashboard/index.php`
-- Modify: `app/Views/management/dashboard.php`
-- Modify: `app/Views/tickets/show.php`
-- Modify: `app/Views/tickets/show_external.php`
-- Modify: `app/Views/admin/externals.php`
-- Modify: `app/Views/auth/login.php`
-- Modify: `app/Views/auth/otp.php`
-- Modify: `app/Views/auth/register.php`
-- Modify: `app/Views/tickets/public_create.php`
-- Modify: `app/Views/tickets/feedback.php`
-- Modify: `app/Views/problems/index.php`
-- Modify: `app/Views/knowledge/index.php`
-- Modify: `app/Views/search/index.php`
-
-**Interfaces:**
-- Copy visible únicamente; no cambia controladores ni datos.
-
-- [ ] **Step 1: Identify duplicate helper copy**
-
-Eliminar subtítulos que repitan literalmente el encabezado, instrucciones del tipo “desde aquí puedes…”, “consulta…”, “revisa…” cuando la acción sea evidente, y explicaciones extensas ya presentes en `help_widget.php` o `help/manual.php`.
-
-- [ ] **Step 2: Preserve critical copy**
-
-Conservar validaciones, consecuencias de acciones, privacidad de conversación interna/proveedor, vencimiento OTP, límites de archivo y textos necesarios para evitar errores del usuario.
-
-- [ ] **Step 3: Compact empty states**
-
-Estados vacíos deben usar una frase corta y una acción si aplica; no reservar alturas artificiales.
-
-- [ ] **Step 4: Run syntax/quality checks**
-
-```bash
-php tests/project_quality.php
-php tests/static_checks.php
-```
-Expected: PASS.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add app/Views
-git commit -m "UI: reducir copy repetitivo y compactar modulos"
-```
+- [x] Inicio / dashboard.
+- [x] Dashboard de gestión.
+- [x] Detalle interno del ticket.
+- [x] Detalle de proveedor externo.
+- [x] Gestión de proveedores.
+- [x] Login, OTP y primer ingreso.
+- [x] Crear solicitud.
+- [x] Confirmación/NPS.
+- [x] Problemas conocidos.
+- [x] Base de conocimiento.
+- [x] Búsqueda global.
+- [x] Conservar validaciones, consecuencias, privacidad de conversaciones, límites de archivo y copy necesario para evitar errores.
 
 ### Task 8: Verificación integral y cierre
 
-**Files:**
-- Modify if needed: `tests/project_quality.php`
-- Modify if needed: `docs/ESTANDAR_VISUAL_CARROUSEL.md`
-
-**Interfaces:**
-- Produce una rama lista para revisión contra `v2-rebuild`.
-
-- [ ] **Step 1: Run complete automated suite**
-
-```bash
-php tests/static_checks.php
-php tests/project_quality.php
-php tests/xlsx_smoke.php
-```
-Expected: todos `[OK]`, exit code 0.
-
-- [ ] **Step 2: Run PHP and JS syntax**
-
-```bash
-for file in $(find app config public tests tools -type f -name '*.php'); do php -l "$file" || exit 1; done
-for file in $(find public/assets/js -type f -name '*.js'); do node --check "$file" || exit 1; done
-```
-Expected: sin errores.
-
-- [ ] **Step 3: Manual responsive matrix**
-
-Verificar: escritorio 1920, laptop 1366, iPad/tablet ~1024/768 y móvil <=760. Revisar Inicio, Centro de soporte, Mis casos, Equipo, Informes, Usuarios, Proveedores, Auditoría, Correo, Problemas, Conocimiento, Buscar y detalle de ticket.
-
-- [ ] **Step 4: Verify no database changes**
-
-```bash
-git diff v2-rebuild...HEAD -- database/
-```
-Expected: sin salida.
-
-- [ ] **Step 5: Final commit only if verification changed files**
-
-```bash
-git add tests/project_quality.php docs/ESTANDAR_VISUAL_CARROUSEL.md
-git commit -m "Docs: fijar estandar UI normalizado"
-```
+- [x] PHP syntax.
+- [x] JavaScript syntax.
+- [x] Static checks.
+- [x] Route/view/CSS quality gate.
+- [x] XLSX regression smoke test.
+- [x] Instalación limpia de MariaDB en CI.
+- [x] Comparación contra `v2-rebuild`: sin cambios bajo `database/`.
+- [x] Documentar el patrón en `docs/ESTANDAR_VISUAL_CARROUSEL.md`.
+- [ ] Revisión visual manual en PC TEST: escritorio 1920, laptop 1366, iPad/tablet ~1024/768 y móvil <=760.
+- [ ] Fusionar a `v2-rebuild` únicamente después de aprobar la revisión visual manual.
