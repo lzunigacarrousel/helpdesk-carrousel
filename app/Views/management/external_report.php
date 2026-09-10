@@ -7,11 +7,11 @@ $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Disponible','IN_PROGRESS'=>'En proce
 $exportQuery=http_build_query(array_filter(['q'=>$filters['q'],'provider'=>$filters['provider']?:null,'state'=>$filters['state'],'from'=>$filters['from'],'to'=>$filters['to']],static fn($v)=>$v!==null&&$v!==''));
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.external-report-page{max-width:1500px;margin:0 auto}.external-report-summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}.external-report-summary article{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:15px 16px}.external-report-summary span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.external-report-summary strong{display:block;margin-top:5px;font-size:24px;color:var(--brand-dark)}.external-history-list{display:grid;gap:10px}.external-history-row{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px 16px;display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(230px,1.4fr) repeat(4,minmax(100px,.65fr));gap:14px;align-items:center}.external-history-row span,.external-history-row small{display:block;color:var(--muted);font-size:11px}.external-history-row strong{display:block;margin-top:2px}.external-history-status{display:inline-flex!important;width:max-content;padding:4px 8px;border:1px solid var(--border);border-radius:999px;color:var(--text)!important;font-size:10px!important;font-weight:800}.external-history-status.active{background:color-mix(in srgb,#22c55e 12%,var(--card))}.external-report-head .mgmt-head-actions{display:flex;gap:8px;flex-wrap:wrap}.external-report-filters{display:grid;grid-template-columns:1.4fr 1fr .75fr .8fr .8fr auto;gap:10px;align-items:end;background:var(--card);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:16px}.external-report-filters label{font-size:11px;font-weight:800;color:var(--muted)}.external-report-filters .form-control{margin-top:5px;min-height:42px}.external-report-filter-actions{display:flex;gap:8px;white-space:nowrap}@media(max-width:1180px){.external-report-filters{grid-template-columns:1fr 1fr 1fr}.external-report-filter-actions{grid-column:1/-1}.external-report-summary{grid-template-columns:repeat(3,1fr)}.external-history-row{grid-template-columns:1fr 1fr 1fr}.external-history-row>div:nth-child(1),.external-history-row>div:nth-child(2){grid-column:span 3}}@media(max-width:700px){.external-report-filters{grid-template-columns:1fr}.external-report-filter-actions{grid-column:auto}.external-report-summary{grid-template-columns:1fr 1fr}.external-history-row{grid-template-columns:1fr 1fr}.external-history-row>div:nth-child(1),.external-history-row>div:nth-child(2){grid-column:1/-1}.external-report-head{align-items:stretch}.external-report-head .mgmt-head-actions{width:100%}.external-report-head .btn{flex:1}}
+.external-report-page{width:100%;margin:0}.external-report-summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}.external-report-summary article{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px}.external-report-summary span{display:block;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}.external-report-summary strong{display:block;margin-top:4px;font-size:22px;color:var(--brand-dark)}.external-report-head .mgmt-head-actions{display:flex;gap:8px;flex-wrap:wrap}.external-report-filters{display:grid;grid-template-columns:1.4fr 1fr .75fr .8fr .8fr auto;gap:10px;align-items:end;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:14px}.external-report-filters label{font-size:11px;font-weight:800;color:var(--muted)}.external-report-filters .form-control{margin-top:4px;min-height:40px}.external-report-filter-actions{display:flex;gap:8px;white-space:nowrap}.external-history-status{display:inline-flex;width:max-content;padding:4px 8px;border:1px solid var(--border);border-radius:999px;font-size:10px;font-weight:800}.external-history-status.active{background:color-mix(in srgb,#22c55e 12%,var(--card))}@media(max-width:1180px){.external-report-filters{grid-template-columns:1fr 1fr 1fr}.external-report-filter-actions{grid-column:1/-1}.external-report-summary{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.external-report-filters{grid-template-columns:1fr}.external-report-filter-actions{grid-column:auto}.external-report-summary{grid-template-columns:1fr 1fr}.external-report-head{align-items:stretch}.external-report-head .mgmt-head-actions{width:100%}.external-report-head .btn{flex:1}}
 </style>
 <div class="external-report-page">
   <div class="mgmt-head external-report-head">
-    <div><span class="mgmt-kicker">Historial operativo</span><h1>Historial de proveedores</h1><p>Consulta quién participó, en qué caso, durante cuánto tiempo y qué actividad realizó.</p></div>
+    <div><span class="mgmt-kicker">Historial operativo</span><h1>Historial de proveedores</h1></div>
     <div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos">Administrar proveedores</a><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/admin/externos/informe/exportar<?= $exportQuery?'?'.htmlspecialchars($exportQuery):'' ?>" data-no-loading="1">Descargar Excel (.xlsx)</a></div>
   </div>
 
@@ -33,18 +33,24 @@ $exportQuery=http_build_query(array_filter(['q'=>$filters['q'],'provider'=>$filt
     <article><span>Archivos</span><strong><?= (int)($summary['attachments']??0) ?></strong></article>
   </section>
 
-  <section class="external-history-list" aria-label="Historial de participaciones">
-    <?php foreach($rows as $r): ?>
-      <article class="external-history-row">
-        <div><span>Proveedor</span><strong><?= htmlspecialchars($r['organization']) ?></strong><small><?= htmlspecialchars($r['contact']) ?> · <?= htmlspecialchars($r['email']) ?></small></div>
-        <div><span>Ticket</span><a href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['ticket_id'] ?>"><strong><?= htmlspecialchars($r['ticket_number']) ?></strong></a><small><?= htmlspecialchars($r['subject']) ?></small></div>
-        <div><span>Asignado</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$r['granted_at']))) ?></strong><small><?= htmlspecialchars($r['granted_by']) ?></small></div>
-        <div><span>Estado</span><strong class="external-history-status <?= empty($r['revoked_at'])?'active':'' ?>"><?= empty($r['revoked_at'])?'Activo':'Finalizado' ?></strong><?php if(!empty($r['revoked_at'])): ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$r['revoked_at']))) ?> · <?= htmlspecialchars($r['revoked_by']?:'Sistema') ?></small><?php endif; ?></div>
-        <div><span>Participación</span><strong><?= htmlspecialchars($fmtDuration((int)$r['duration_minutes'])) ?></strong><small><?= (int)$r['responses'] ?> <?= (int)$r['responses']===1?'respuesta':'respuestas' ?> · <?= (int)$r['attachments'] ?> <?= (int)$r['attachments']===1?'archivo':'archivos' ?></small></div>
-        <div><span>Permisos</span><strong><?= $r['can_comment']?'Responder':'Solo lectura' ?><?= $r['can_upload']?' · Adjuntar':'' ?></strong><small>Ticket: <?= htmlspecialchars($statusLabels[$r['ticket_status']]??$r['ticket_status']) ?></small></div>
-      </article>
-    <?php endforeach; ?>
-    <?php if(!$rows): ?><div class="card"><div class="empty-state"><strong>No hay resultados con estos filtros.</strong><span>Ajusta los criterios o limpia los filtros para ver todo el historial.</span></div></div><?php endif; ?>
+  <section class="data-table-shell" aria-label="Historial de participaciones">
+    <div class="data-table-wrap"><table class="data-table">
+      <thead><tr><th>Proveedor</th><th>Ticket</th><th>Asignado</th><th>Estado</th><th>Participación</th><th>Actividad</th><th>Permisos</th></tr></thead>
+      <tbody>
+      <?php foreach($rows as $r): ?>
+        <tr>
+          <td data-label="Proveedor"><strong><?= htmlspecialchars($r['organization']) ?></strong><small><?= htmlspecialchars($r['contact']) ?> · <?= htmlspecialchars($r['email']) ?></small></td>
+          <td data-label="Ticket"><a href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$r['ticket_id'] ?>"><strong><?= htmlspecialchars($r['ticket_number']) ?></strong></a><small><?= htmlspecialchars($r['subject']) ?></small></td>
+          <td data-label="Asignado" class="data-table-nowrap"><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$r['granted_at']))) ?></strong><small><?= htmlspecialchars($r['granted_by']) ?></small></td>
+          <td data-label="Estado"><span class="external-history-status <?= empty($r['revoked_at'])?'active':'' ?>"><?= empty($r['revoked_at'])?'Activo':'Finalizado' ?></span><?php if(!empty($r['revoked_at'])): ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$r['revoked_at']))) ?> · <?= htmlspecialchars($r['revoked_by']?:'Sistema') ?></small><?php endif; ?></td>
+          <td data-label="Participación"><strong><?= htmlspecialchars($fmtDuration((int)$r['duration_minutes'])) ?></strong></td>
+          <td data-label="Actividad"><?= (int)$r['responses'] ?> <?= (int)$r['responses']===1?'respuesta':'respuestas' ?> · <?= (int)$r['attachments'] ?> <?= (int)$r['attachments']===1?'archivo':'archivos' ?></td>
+          <td data-label="Permisos"><?= $r['can_comment']?'Responder':'Solo lectura' ?><?= $r['can_upload']?' · Adjuntar':'' ?><small>Ticket: <?= htmlspecialchars($statusLabels[$r['ticket_status']]??$r['ticket_status']) ?></small></td>
+        </tr>
+      <?php endforeach; ?>
+      <?php if(!$rows): ?><tr><td class="data-table-empty" data-label="" colspan="7">No hay resultados con estos filtros.</td></tr><?php endif; ?>
+      </tbody>
+    </table></div>
   </section>
 </div>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
