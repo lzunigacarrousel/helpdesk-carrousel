@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260909-042'; ?>
+<?php use App\Core\Csrf; $u=$user??null; $helpContext='public_create'; $assetVersion='20260910-DARK2'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/dark-refinement.css?v=<?= $assetVersion ?>">
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 .public-request-body{min-height:100vh;background:var(--bg);color:var(--ink)}
 .public-request-topbar{position:sticky;top:4px;z-index:20;height:66px;border-bottom:1px solid var(--border);background:var(--card);box-shadow:0 1px 3px rgba(16,24,40,.04)}
