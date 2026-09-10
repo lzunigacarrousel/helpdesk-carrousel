@@ -21,6 +21,14 @@ final class ManagementController
         }
     }
 
+    private function requireReports(): void
+    {
+        Auth::requireLogin();
+        if(!in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)&&!Auth::can('reports.view')&&!Auth::can('management.view')){
+            header('Location: '.APP_BASE_URL.'/dashboard');exit;
+        }
+    }
+
     public function dashboard(): void
     {
         $this->requireManagement();
@@ -66,7 +74,7 @@ final class ManagementController
 
     public function reports(): void
     {
-        $this->requireManagement();
+        $this->requireReports();
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
 
         $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,t.requester_name,t.requester_email,t.requester_phone,t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,
