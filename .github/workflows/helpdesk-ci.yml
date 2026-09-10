@@ -74,6 +74,9 @@ jobs:
       - name: Requester UX regression
         run: php tests/requester_ux_smoke.php
 
+      - name: Phase 3 operational regression
+        run: php tests/phase3_operational_smoke.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
