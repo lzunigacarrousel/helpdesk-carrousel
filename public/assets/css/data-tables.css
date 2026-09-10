@@ -1,0 +1,53 @@
+/* Helpdesk Carrousel · tablas canónicas V3 */
+.data-table-shell{width:100%;overflow:visible;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow)}
+.data-table-toolbar{display:flex;align-items:end;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--border)}
+.data-table-toolbar .form-control{min-height:40px}
+.data-table-wrap{width:100%;overflow:visible}
+.data-table{width:100%;border-collapse:collapse;border-spacing:0;table-layout:auto;background:var(--card);font-size:12px}
+.data-table thead th{padding:10px 12px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--card) 94%,var(--bg) 6%);color:var(--muted);font-size:10px;line-height:1.25;text-transform:uppercase;letter-spacing:.055em;font-weight:850;text-align:left;vertical-align:bottom;white-space:normal}
+.data-table tbody td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink);line-height:1.4;white-space:normal;overflow-wrap:anywhere}
+.data-table tbody tr:last-child td{border-bottom:0}
+.data-table tbody tr:hover{background:color-mix(in srgb,var(--brand) 3%,var(--card) 97%)}
+.data-table strong,.data-table small,.data-table span{max-width:100%}
+.data-table small,.data-table-muted{display:block;margin-top:2px;color:var(--muted);font-size:10.5px;line-height:1.35}
+.data-table a{color:var(--brand);font-weight:800;text-decoration:none}.data-table a:hover{text-decoration:underline}
+.data-table-actions{display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;white-space:normal}
+.data-table-actions form{margin:0}
+.data-table-empty{padding:20px!important;text-align:center;color:var(--muted)}
+.data-table-number{text-align:right;font-variant-numeric:tabular-nums}
+.data-table-center{text-align:center}
+.data-table-nowrap{white-space:nowrap!important}
+.data-table .badge{display:inline-flex}
+.data-table-details{margin-top:7px}.data-table-details summary{cursor:pointer;color:var(--brand);font-weight:800;font-size:11px}
+.data-table-details>div{margin-top:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}
+
+/* Pantallas medianas: prioriza columnas de operación sin crear un lienzo de 1450px. */
+@media(max-width:1180px){
+  .data-table{font-size:11.5px}
+  .data-table thead th,.data-table tbody td{padding-left:9px;padding-right:9px}
+  .data-table-secondary{display:none}
+}
+
+/* Móvil: cada fila se lee como registro vertical. No depende de scroll horizontal. */
+@media(max-width:760px){
+  .data-table-shell{border:0;background:transparent;box-shadow:none}
+  .data-table-toolbar{padding:0 0 10px;border:0}
+  .data-table-wrap{overflow:visible}
+  .data-table,.data-table tbody,.data-table tr,.data-table td{display:block;width:100%}
+  .data-table thead{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .data-table tbody{display:grid;gap:10px}
+  .data-table tbody tr{border:1px solid var(--border);border-radius:12px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+  .data-table tbody td{display:grid;grid-template-columns:minmax(105px,.8fr) minmax(0,1.2fr);gap:10px;align-items:start;padding:9px 11px;border-bottom:1px solid var(--border);text-align:left!important;white-space:normal!important}
+  .data-table tbody td:last-child{border-bottom:0}
+  .data-table tbody td::before{content:attr(data-label);color:var(--muted);font-size:9.5px;line-height:1.35;text-transform:uppercase;letter-spacing:.05em;font-weight:850}
+  .data-table tbody td[data-label=""]::before{display:none}
+  .data-table tbody td[data-label=""]{grid-template-columns:1fr}
+  .data-table-actions{justify-content:flex-start}
+  .data-table-secondary{display:grid}
+  .data-table-empty{display:block!important;text-align:center!important}
+  .data-table-empty::before{display:none!important}
+}
+
+@media(max-width:430px){
+  .data-table tbody td{grid-template-columns:1fr;gap:3px}
+}
