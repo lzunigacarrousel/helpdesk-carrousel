@@ -1,8 +1,10 @@
 <?php
 use App\Core\Csrf;
+use App\Services\RequesterTopicService;
 $u=$user??null;$assignment=$assignment??null;$defaultParkId=(int)($defaultParkId??0);$defaultAreaId=(int)($defaultAreaId??0);
 $hasAssignedPark=$u&&$defaultParkId>0&&!empty($assignment['park_name']);$knownPhone=$u?trim((string)($u['phone']??'')):'';
-$helpContext='public_create';$assetVersion='20260910-REQ2';
+$requesterTopics=RequesterTopicService::options($categories??[]);
+$helpContext='public_create';$assetVersion='20260910-REQ2H';
 ?>
 <!doctype html>
 <html lang="es">
@@ -49,7 +51,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
   <div class="public-request-heading"><span>Soporte</span><h1>Solicitar ayuda</h1><p>No necesitas conocer la causa técnica. Cuéntanos qué necesitas y qué está pasando.</p></div>
 
   <form method="post" action="<?= APP_BASE_URL ?>/crear-ticket" class="public-ticket-form" id="publicTicketForm" data-single-submit>
-    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="subject" id="subject" value="">
+    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="subject" id="subject" value=""><input type="hidden" name="category_id" id="category_id" value="">
 
     <div class="public-context-grid">
       <section class="card public-request-card" data-public-step="requester"><div class="card-body">
@@ -77,8 +79,8 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
     <section class="card public-request-card public-help-card" data-public-step="problem"><div class="card-body">
       <div class="public-help-grid">
         <div>
-          <label class="form-label" for="category_id"><strong>¿En qué necesitas ayuda?</strong></label>
-          <select class="form-control" id="category_id" name="category_id" required><option value="">Selecciona una opción</option><?php foreach($categories as $c): ?><option value="<?= (int)$c['id'] ?>" data-category-help="<?= htmlspecialchars((string)$c['requester_help'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$c['display_name']) ?></option><?php endforeach; ?></select>
+          <label class="form-label" for="requester_topic"><strong>¿En qué necesitas ayuda?</strong></label>
+          <select class="form-control" id="requester_topic" name="requester_topic" required><option value="">Selecciona una opción</option><?php foreach($requesterTopics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></select>
           <p class="public-category-help" data-category-help-text aria-live="polite">Selecciona una opción y te mostraremos qué información puede ayudarnos.</p>
         </div>
         <div>
@@ -99,16 +101,18 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
   const form=document.getElementById('publicTicketForm');
   const description=document.getElementById('description');
   const subject=document.getElementById('subject');
-  const category=document.getElementById('category_id');
+  const categoryId=document.getElementById('category_id');
+  const category=document.getElementById('requester_topic');
   const categoryHelp=document.querySelector('[data-category-help-text]');
   const locationFields=document.querySelector('[data-location-fields]');
   const locationToggle=document.querySelector('[data-location-toggle]');
+  const defaultPlaceholder='Describe qué ocurre, desde cuándo y qué estabas intentando hacer.';
   if(!form||!description||!subject)return;
   const buildSubject=()=>{const clean=(description.value||'').replace(/\s+/g,' ').trim();if(!clean){subject.value='';return;}let short=clean.split(/[.!?]\s/)[0]||clean;if(short.length<5)short=clean;subject.value=short.slice(0,180).trim();};
-  const syncCategoryHelp=()=>{if(!category||!categoryHelp)return;const option=category.options[category.selectedIndex];categoryHelp.textContent=(option&&option.dataset.categoryHelp)||'Selecciona una opción y te mostraremos qué información puede ayudarnos.';};
+  const syncCategoryContext=()=>{if(!category)return;const option=category.options[category.selectedIndex];if(categoryId)categoryId.value=(option&&option.dataset.categoryId)||'';if(categoryHelp)categoryHelp.textContent=(option&&option.dataset.categoryHelp)||'Selecciona una opción y te mostraremos qué información puede ayudarnos.';description.placeholder=(option&&option.dataset.categoryPlaceholder)||defaultPlaceholder;};
   description.addEventListener('input',buildSubject);
-  form.addEventListener('submit',buildSubject,{capture:true});
-  if(category){category.addEventListener('change',syncCategoryHelp);syncCategoryHelp();}
+  form.addEventListener('submit',()=>{syncCategoryContext();buildSubject();},{capture:true});
+  if(category){category.addEventListener('change',syncCategoryContext);syncCategoryContext();}
   if(locationFields&&locationToggle){
     locationToggle.addEventListener('click',()=>{
       const opening=locationFields.hidden;locationFields.hidden=!opening;
