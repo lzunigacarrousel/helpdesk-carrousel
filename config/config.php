@@ -21,7 +21,7 @@ if (!is_file($localFile)) {
 $local = require $localFile;
 
 define('DB_HOST', (string)($local['db_host'] ?? '127.0.0.1'));
-define('DB_NAME', (string)($local['db_name'] ?? 'helpdesk_carrousel'));
+define('DB_NAME', (string)($local['db_name'] ?? 'carrousel_helpdesk'));
 define('DB_USER', (string)($local['db_user'] ?? 'root'));
 define('DB_PASS', (string)($local['db_pass'] ?? ''));
 define('DB_CHARSET', 'utf8mb4');
@@ -51,7 +51,7 @@ define('APP_CAN_USE_SECURE_FEATURES', $https || in_array($host, ['localhost', '1
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.cookie_httponly', '1');
-session_name('helpdesk_carrousel_session');
+session_name('carrousel_helpdesk_session');
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_set_cookie_params([
         'lifetime' => 50400,
