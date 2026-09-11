@@ -36,7 +36,7 @@ final class MailService
             'canonical_url'=>APP_CANONICAL_URL,
             'from'=>MAIL_FROM,
             'from_name'=>MAIL_FROM_NAME,
-            'support_group'=>SUPPORT_GROUP_EMAIL,
+            'support_delivery'=>'Integrantes activos de Equipo de soporte',
         ];
     }
 
