@@ -18,5 +18,4 @@ return [
     'smtp_password' => '',
     'mail_from' => 'no-reply@carrousel.local',
     'mail_from_name' => 'Helpdesk Carrousel',
-    'support_group_email' => 'sistemas@carrousel.com.gt',
 ];
