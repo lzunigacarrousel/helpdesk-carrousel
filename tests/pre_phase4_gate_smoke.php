@@ -25,6 +25,7 @@ $requiredTests = [
     'tests\\dark_theme_smoke.php',
     'tests\\dark_theme_coverage_smoke.php',
     'tests\\dark_theme_public_smoke.php',
+    'tests\\dark_theme_motion_smoke.php',
     'tests\\searchable_select_smoke.php',
     'tests\\requester_ux_smoke.php',
     'tests\\phase3_operational_smoke.php',
@@ -36,6 +37,7 @@ foreach ($requiredTests as $test) {
     gateCheck(str_contains($bat, $test), 'Gate local ejecuta ' . $test);
 }
 
+gateCheck(str_contains(strtolower($bat), 'call composer validate --no-check-publish'), 'Gate vuelve correctamente después de composer.bat en Windows');
 gateCheck(str_contains($bat, 'database\\VERIFICAR_INSTALACION.sql'), 'Gate valida esquema canónico');
 gateCheck(str_contains($bat, 'database\\VERIFICAR_ESTABILIDAD_V2.sql'), 'Gate valida estabilidad V2');
 gateCheck(str_contains($bat, 'carrousel_helpdesk'), 'Gate verifica la base V2 correcta');
@@ -47,7 +49,7 @@ foreach ($forbidden as $needle) {
     gateCheck(!str_contains(strtoupper($bat), $needle), 'Gate no contiene operación destructiva: ' . trim($needle));
 }
 
-$manualTerms = ['Solicitante', 'IT', 'Proveedor', 'Gerencia', 'Correo', 'Responsive', 'Claro', 'Oscuro', '1920', '1366', '1024', '760'];
+$manualTerms = ['Solicitante', 'IT', 'Proveedor', 'Gerencia', 'Correo', 'Responsive', 'Claro', 'Oscuro', 'System', 'Animaciones', '1920', '1366', '1024', '760'];
 foreach ($manualTerms as $term) {
     gateCheck(str_contains($manual, $term), 'Matriz manual cubre ' . $term);
 }
