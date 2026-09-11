@@ -11,7 +11,7 @@
 .data-table tbody tr:hover{background:color-mix(in srgb,var(--brand) 3%,var(--card) 97%)}
 .data-table strong,.data-table small,.data-table span{max-width:100%}
 .data-table small,.data-table-muted{display:block;margin-top:2px;color:var(--muted);font-size:10.5px;line-height:1.35}
-.data-table a{color:var(--brand);font-weight:800;text-decoration:none}.data-table a:hover{text-decoration:underline}
+.data-table a:not(.btn){color:var(--brand);font-weight:800;text-decoration:none}.data-table a:not(.btn):hover{text-decoration:underline}
 .data-table-actions:not(td){display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;white-space:normal}
 .data-table td.data-table-actions{display:table-cell;text-align:right;white-space:normal!important}
 .data-table td.data-table-actions>form{display:inline-block;margin:0 0 4px 4px}
