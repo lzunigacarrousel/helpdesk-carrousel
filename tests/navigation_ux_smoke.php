@@ -31,7 +31,7 @@ navCheck(str_contains($app,"/tickets/attachment"),'app.js excluye explícitament
 navCheck(str_contains($show,'data-no-loading="1"'),'Workspace interno marca adjuntos como descarga sin overlay');
 navCheck(str_contains($showExternal,'data-no-loading="1"'),'Workspace proveedor marca adjuntos como descarga sin overlay');
 navCheck(str_contains($appStart,'filemtime'),'Versionado de assets cambia cuando cambia el código estático');
-navCheck(!str_contains($appStart,"$assetVersion='20260909-024'"),'Versionado de assets ya no queda congelado en una cadena fija');
+navCheck(!str_contains($appStart,'20260909-024'),'Versionado de assets ya no queda congelado en una cadena fija');
 
 navCheck(str_contains($notifications,'normalizeNotificationHref'),'Notificaciones normalizan el destino antes de navegar');
 navCheck(str_contains($notifications,"/tickets/view"),'Notificaciones de ticket conservan el destino al caso');
