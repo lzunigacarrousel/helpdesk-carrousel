@@ -26,7 +26,7 @@ final class NotificationService
         $pdo=Database::pdo();
         $actorId=(int)(Auth::id()??0);
         $actionUrl=$this->normalizeActionUrl($actionUrl ?: APP_BASE_URL.'/tickets/view?id='.$ticketId);
-        $includeActorEmail=(bool)($options['include_actor_email']??false);
+        $includeActorEmail=(bool)($options['include_actor_email']??in_array(strtoupper($eventKey),['TICKET_CREATED_REQUESTER','TICKET_CREATED_SUPPORT'],true));
         $recipients=$this->resolveTicketRecipients($pdo,$ticketId,$audiences,$actorId,$includeActorEmail);
         if(!$recipients) return ['event_id'=>null,'emails'=>[]];
 
