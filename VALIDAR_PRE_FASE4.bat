@@ -71,7 +71,7 @@ if errorlevel 1 (
   set /a WARN+=1
 ) else (
   echo [TEST] Composer validate
-  composer validate --no-check-publish
+  call composer validate --no-check-publish
   if errorlevel 1 (echo [FALLO] Composer validate&set /a FAIL+=1) else echo [OK] Composer validate
 )
 
@@ -86,6 +86,7 @@ if exist "%PHP%" (
   call :run_php "Tema oscuro" "tests\dark_theme_smoke.php"
   call :run_php "Cobertura standalone tema oscuro" "tests\dark_theme_coverage_smoke.php"
   call :run_php "Superficies publicas tema oscuro" "tests\dark_theme_public_smoke.php"
+  call :run_php "Interacciones y animaciones tema oscuro" "tests\dark_theme_motion_smoke.php"
   call :run_php "Selects buscables" "tests\searchable_select_smoke.php"
   call :run_php "UX solicitante" "tests\requester_ux_smoke.php"
   call :run_php "Operacion y SLA Fase 3" "tests\phase3_operational_smoke.php"
@@ -137,7 +138,7 @@ echo [ ] Gerencia/Supervision: scopes, dashboard, informes, XLSX
 
 echo [ ] Correo: solicitante + integrantes activos de Equipo de soporte
 
-echo [ ] Visual: botones, textos, tablas, claro/oscuro/system
+echo [ ] Visual: botones, textos, tablas, claro/oscuro/system y animaciones
 
 echo [ ] Responsive: 1920, 1366, 1024/768 y movil ^<=760
 
