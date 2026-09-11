@@ -17,6 +17,7 @@
 
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-density-v25.css?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/data-tables.css?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>">
+<script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/navigation-guards.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/ticket-workspace.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/table-normalization.js?v=1"></script>
