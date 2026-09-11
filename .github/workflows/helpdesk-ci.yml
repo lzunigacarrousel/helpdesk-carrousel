@@ -74,6 +74,9 @@ jobs:
       - name: Attachment and notification navigation regression
         run: php tests/navigation_ux_smoke.php
 
+      - name: Requester return visibility regression
+        run: php tests/requester_return_visibility_smoke.php
+
       - name: Searchable select regression
         run: php tests/searchable_select_smoke.php
 
