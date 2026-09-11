@@ -64,6 +64,8 @@ $routes=[
     ['GET','/gestion/informes/exportar',[XlsxExportController::class,'export']],
     ['GET','/gestion/equipo',[SupportTeamController::class,'index']],
     ['GET','/gestion/equipo/exportar',[SupportTeamController::class,'export']],
+    ['POST','/gestion/equipo/agregar',[SupportTeamController::class,'addMember']],
+    ['POST','/gestion/equipo/retirar',[SupportTeamController::class,'removeMember']],
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/create',[AdminController::class,'create']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
