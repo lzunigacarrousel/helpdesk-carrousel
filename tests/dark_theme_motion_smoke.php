@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $root=dirname(__DIR__);
 $dark=(string)@file_get_contents($root.'/public/assets/css/dark-refinement.css');
+$config=(string)@file_get_contents($root.'/config/config.php');
 $appStart=(string)@file_get_contents($root.'/app/Views/shared/app_start.php');
 $ok=true;
 
@@ -37,7 +38,23 @@ motionCheck(str_contains($dark,'html[data-theme="dark"] .processing-line'),'Barr
 motionCheck(str_contains($dark,'html[data-theme="dark"] .mgmt-donut'),'Indicador circular de gestión tiene pista oscura');
 motionCheck(str_contains($dark,'html[data-theme="dark"] .mgmt-bar i'),'Barras de gestión tienen pista oscura');
 
-motionCheck(str_contains($appStart,'filemtime('),'Versionado de assets cambia cuando cambia CSS/JS');
-motionCheck(!str_contains($appStart,"$assetVersion='20260909-024'"),'No queda una versión fija obsoleta de assets');
+motionCheck(str_contains($config,"define('ASSET_VERSION'"),'Existe versionado central de assets');
+motionCheck(str_contains($config,'filemtime('),'Versionado central cambia cuando cambia CSS/JS');
+motionCheck(str_contains($appStart,'$assetVersion=ASSET_VERSION;'),'Shell autenticado consume versionado central');
+
+$missingAssetVersion=[];
+$iterator=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/app/Views',FilesystemIterator::SKIP_DOTS));
+foreach($iterator as $file){
+    if(!$file->isFile()||strtolower($file->getExtension())!=='php')continue;
+    $content=(string)@file_get_contents($file->getPathname());
+    if($content===''||stripos($content,'<!doctype html')===false)continue;
+    if(!str_contains($content,'ASSET_VERSION')){
+        $missingAssetVersion[]=str_replace('\\','/',substr($file->getPathname(),strlen($root)+1));
+    }
+}
+if($missingAssetVersion){
+    foreach($missingAssetVersion as $path)echo '[CACHE] '.$path.PHP_EOL;
+}
+motionCheck(!$missingAssetVersion,'Todas las vistas HTML independientes usan versionado central de assets');
 
 exit($ok?0:1);
