@@ -87,6 +87,7 @@ if exist "%PHP%" (
   call :run_php "Cobertura standalone tema oscuro" "tests\dark_theme_coverage_smoke.php"
   call :run_php "Superficies publicas tema oscuro" "tests\dark_theme_public_smoke.php"
   call :run_php "Interacciones y animaciones tema oscuro" "tests\dark_theme_motion_smoke.php"
+  call :run_php "Navegacion de adjuntos y notificaciones" "tests\navigation_ux_smoke.php"
   call :run_php "Selects buscables" "tests\searchable_select_smoke.php"
   call :run_php "UX solicitante" "tests\requester_ux_smoke.php"
   call :run_php "Operacion y SLA Fase 3" "tests\phase3_operational_smoke.php"
