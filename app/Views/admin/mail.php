@@ -25,7 +25,7 @@ $statusClasses=['SENT'=>'status-resolved','FAILED'=>'status-cancelled','PENDING'
       <div>
         <div class="ticket-kicker">Estado general</div>
         <h2 style="margin:5px 0 8px;font-size:20px"><?= $health['ready']?'Configuración lista':'Hay algo que revisar' ?></h2>
-        <p class="subtle" style="margin:0 0 12px">Remitente: <strong><?= htmlspecialchars((string)$health['from_name']) ?></strong> · Enlaces: <strong><?= htmlspecialchars($canonicalHost) ?></strong> · Avisos de cola: <strong><?= htmlspecialchars((string)$health['support_group']) ?></strong></p>
+        <p class="subtle" style="margin:0 0 12px">Remitente: <strong><?= htmlspecialchars((string)$health['from_name']) ?></strong> · Enlaces: <strong><?= htmlspecialchars($canonicalHost) ?></strong> · Avisos de soporte: <strong><?= htmlspecialchars((string)$health['support_delivery']) ?></strong></p>
         <?php foreach($health['issues'] as $issue): ?><div class="alert alert-danger" style="margin:8px 0"><?= htmlspecialchars($issue) ?></div><?php endforeach; ?>
         <?php foreach($health['warnings'] as $warning): ?><div class="alert alert-info" style="margin:8px 0"><?= htmlspecialchars($warning) ?></div><?php endforeach; ?>
         <?php if(!$health['issues']&&!$health['warnings']): ?><div class="alert alert-success" style="margin:8px 0">Configuración básica lista. Envía una prueba para confirmar la entrega.</div><?php endif; ?>
