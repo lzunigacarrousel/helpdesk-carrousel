@@ -71,6 +71,9 @@ jobs:
       - name: Dark theme interaction and motion parity
         run: php tests/dark_theme_motion_smoke.php
 
+      - name: Attachment and notification navigation regression
+        run: php tests/navigation_ux_smoke.php
+
       - name: Searchable select regression
         run: php tests/searchable_select_smoke.php
 
