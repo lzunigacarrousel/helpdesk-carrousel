@@ -80,6 +80,9 @@ jobs:
       - name: Pre Phase 4 cleanup regression
         run: php tests/pre_phase4_cleanup_smoke.php
 
+      - name: Pre Phase 4 integral gate definition
+        run: php tests/pre_phase4_gate_smoke.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
