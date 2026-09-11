@@ -6,8 +6,15 @@
   const readUrl=root.dataset.notificationReadUrl||'';
   const readAllUrl=root.dataset.notificationReadAllUrl||'';
   const csrf=root.dataset.notificationCsrf||'';
+  const appBaseUrl=root.dataset.notificationBaseUrl||'';
+  const fallbackUrl=root.dataset.notificationFallbackUrl||'';
   const badge=root.querySelector('[data-notification-badge]');
   const readAll=root.querySelector('[data-notifications-read-all]');
+
+  const INTERNAL_ROUTE_MARKERS=[
+    '/tickets/','/mis-tickets','/dashboard','/buscar','/manual','/crear-ticket',
+    '/problems','/knowledge','/gestion','/admin/'
+  ];
 
   async function post(url,data){
     if(!url||!csrf)return false;
@@ -27,24 +34,52 @@
   }
 
   function currentAppBase(){
-    if(!readUrl)return null;
+    const raw=appBaseUrl||readUrl;
+    if(!raw)return null;
     try{
-      const url=new URL(readUrl,window.location.href);
-      url.pathname=url.pathname.replace(/\/notifications\/read\/?$/,'');
+      const url=new URL(raw,window.location.href);
+      if(!appBaseUrl)url.pathname=url.pathname.replace(/\/notifications\/read\/?$/,'');
       url.search='';url.hash='';
       return url;
     }catch(_){return null;}
   }
 
-  function normalizeNotificationHref(rawHref){
+  function safeFallback(){
+    try{return new URL(fallbackUrl||'./dashboard',window.location.href).href;}catch(_){return window.location.href;}
+  }
+
+  function notificationTicketFallback(link){
+    const ticketId=Number(link?.dataset?.notificationTicketId||0);
+    const base=currentAppBase();
+    if(!base||ticketId<=0)return null;
+    return base.href.replace(/\/$/,'')+'/tickets/view?id='+encodeURIComponent(String(ticketId));
+  }
+
+  function internalRelativePath(destination,base){
+    const basePath=base.pathname.replace(/\/$/,'');
+    if(destination.origin===base.origin&&(destination.pathname===basePath||destination.pathname.startsWith(basePath+'/'))){
+      const suffix=destination.pathname.slice(basePath.length);
+      return suffix||'/dashboard';
+    }
+    for(const marker of INTERNAL_ROUTE_MARKERS){
+      const at=destination.pathname.indexOf(marker);
+      if(at>=0)return destination.pathname.slice(at);
+    }
+    return null;
+  }
+
+  function normalizeNotificationHref(rawHref,link){
+    const base=currentAppBase();
+    if(!base)return notificationTicketFallback(link)||safeFallback();
     try{
-      const destination=new URL(rawHref,window.location.href);
-      const marker='/tickets/view';
-      if(!destination.pathname.includes(marker))return destination.href;
-      const base=currentAppBase();
-      if(!base)return destination.href;
-      return base.href.replace(/\/$/,'')+marker+destination.search+destination.hash;
-    }catch(_){return rawHref;}
+      const destination=new URL(rawHref||'',window.location.href);
+      if(destination.protocol!=='http:'&&destination.protocol!=='https:')return notificationTicketFallback(link)||safeFallback();
+      const relative=internalRelativePath(destination,base);
+      if(!relative)return notificationTicketFallback(link)||safeFallback();
+      return base.href.replace(/\/$/,'')+(relative.startsWith('/')?relative:'/'+relative)+destination.search+destination.hash;
+    }catch(_){
+      return notificationTicketFallback(link)||safeFallback();
+    }
   }
 
   function clearUnreadUi(){
@@ -53,6 +88,21 @@
     readAll?.remove();
     const status=root.querySelector('.shell-notification-head span');
     if(status instanceof HTMLElement)status.textContent='Todo revisado';
+  }
+
+  function decrementUnreadUi(){
+    const currentBadge=root.querySelector('[data-notification-badge]');
+    if(!(currentBadge instanceof HTMLElement))return;
+    const current=Number(String(currentBadge.textContent||'').replace(/\D/g,''));
+    if(!Number.isFinite(current)||current<=1){
+      currentBadge.remove();readAll?.remove();
+      const status=root.querySelector('.shell-notification-head span');
+      if(status instanceof HTMLElement)status.textContent='Todo revisado';
+      return;
+    }
+    currentBadge.textContent=String(current-1);
+    const status=root.querySelector('.shell-notification-head span');
+    if(status instanceof HTMLElement)status.textContent=(current-1)+' sin leer';
   }
 
   root.addEventListener('click',async event=>{
@@ -72,16 +122,17 @@
     const link=target.closest('[data-notification-link]');
     if(!(link instanceof HTMLAnchorElement))return;
 
-    // Recalcula links de ticket contra la instancia actual. Evita que una
-    // notificacion creada en otro host/entorno redirija fuera del Helpdesk abierto.
-    link.href=normalizeNotificationHref(link.href);
+    // La URL guardada puede venir de otro host (servidor, localhost o IP).
+    // Siempre reconstruimos destinos internos contra la instancia que el usuario tiene abierta.
+    link.href=normalizeNotificationHref(link.getAttribute('href')||'',link);
 
     const id=link.dataset.notificationId||'';
     if(!id||!link.classList.contains('unread'))return;
 
-    // Marcar como leida nunca debe frenar la navegacion. El navegador sigue el
-    // enlace de inmediato y la escritura termina en segundo plano con keepalive.
+    // La lectura nunca debe frenar la navegación. El destino ya quedó resuelto
+    // y la escritura termina en segundo plano con keepalive.
     link.classList.remove('unread');
+    decrementUnreadUi();
     postInBackground(readUrl,{delivery_id:id});
   },true);
 })();

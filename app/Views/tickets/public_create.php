@@ -5,7 +5,7 @@ $u=$user??null;$assignment=$assignment??null;$defaultParkId=(int)($defaultParkId
 $hasAssignedPark=$u&&$defaultParkId>0&&!empty($assignment['park_name']);$knownPhone=$u?trim((string)($u['phone']??'')):'';
 $requesterTopics=RequesterTopicService::options($categories??[]);
 $requesterTopicGroups=[];foreach($requesterTopics as $topic){$requesterTopicGroups[(string)$topic['group']][]=$topic;}
-$helpContext='public_create';$assetVersion='20260910-REQ2H';
+$helpContext='public_create';$assetVersion='20260911-UXHELP1';
 ?>
 <!doctype html>
 <html lang="es">
@@ -19,6 +19,7 @@ $helpContext='public_create';$assetVersion='20260910-REQ2H';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/dark-refinement.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/help-tour-contrast.css?v=20260912-UXHELP2">
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 .public-request-body{min-height:100vh;background:var(--bg);color:var(--ink)}
 .public-request-topbar{position:sticky;top:4px;z-index:20;height:66px;border-bottom:1px solid var(--border);background:var(--card);box-shadow:0 1px 3px rgba(16,24,40,.04)}

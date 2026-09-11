@@ -9,13 +9,33 @@
   const TOUR_SEEN_KEY=`helpdesk:tour-seen:${context}`;
 
   const tours={
+    public_home:[
+      ['.public-brand','Inicio del Helpdesk','Desde aquí puedes crear una solicitud nueva o consultar algo que ya reportaste.','No necesitas iniciar sesión para registrar una solicitud.'],
+      ['.choice-grid','Elige qué quieres hacer','Usa Crear solicitud para un caso nuevo o Ver mis solicitudes para continuar uno existente.','Evita crear otro ticket cuando solo necesitas agregar información a uno que ya existe.'],
+      ['.help-note','Seguimiento seguro','Para consultar solicitudes confirmaremos tu correo con un código temporal.','El código protege la información de tus casos.']
+    ],
     public_create:[
-      ['.public-form-head','Antes de empezar','Esta pantalla sirve para reportar un problema sin aprender términos técnicos. Completa únicamente lo que conozcas.','No necesitas saber la causa; describe lo que estás viendo.'],
-      ['[data-public-step="requester"]','Tus datos','Usa un nombre y correo que puedas consultar. Ahí recibirás el número de caso y las novedades.','El teléfono es opcional y solo ayuda si necesitamos contactarte rápidamente.'],
-      ['[data-public-step="location"]','Dónde ocurre','Selecciona parque y área cuando los conozcas. Si no estás seguro, deja “No aplica / No lo sé”.','Es mejor dejar una ubicación sin definir que inventar un dato.'],
-      ['[data-public-step="classification"]','Tipo de solicitud','Elige la opción que más se parezca a lo que necesitas.','No hace falta encontrar una categoría perfecta; el equipo puede ajustar la clasificación después.'],
-      ['[data-public-step="problem"]','Cuéntanos qué sucede','Usa un solo espacio para explicar qué pasa, desde cuándo, a quién afecta y qué intentaste si ya hiciste alguna prueba.','Prioriza hechos concretos. No necesitas escribir un resumen adicional ni conocer la causa técnica.'],
-      ['[data-public-step="submit"]','Enviar y dar seguimiento','Al enviar recibirás un número de caso. Después podrás consultar avances desde Mis solicitudes y recibir novedades por correo.','Pulsa Enviar una sola vez; el sistema evita envíos duplicados mientras procesa la solicitud.']
+      ['.public-request-heading','Antes de empezar','Esta pantalla sirve para pedir ayuda sin aprender términos técnicos. Completa únicamente lo que conozcas.','Describe hechos concretos; no necesitas conocer la causa.'],
+      ['[data-public-step="requester"]','Tus datos','Usa un nombre y correo que puedas consultar. Ahí recibirás el número de caso y las novedades.','El teléfono es opcional y ayuda si necesitamos contactarte rápidamente.'],
+      ['[data-public-step="location"]','Dónde ocurre','Confirma la ubicación o cámbiala si reportas algo de otro parque o área.','Si no estás seguro, es mejor dejar el dato sin definir que inventarlo.'],
+      ['#requester_topic','¿En qué necesitas ayuda?','Elige la opción que más se parezca a lo que necesitas. El catálogo se mantiene actualizado y usa lenguaje cotidiano.','No hace falta encontrar una opción perfecta; soporte puede ajustar la clasificación después.'],
+      ['#description','Cuéntanos qué está pasando','Explica qué sucede, desde cuándo, a quién o qué equipo afecta y qué intentaste si ya hiciste alguna prueba.','Incluye mensajes de error si los conoces, pero nunca escribas contraseñas.'],
+      ['[data-public-step="submit"]','Enviar y dar seguimiento','Al enviar recibirás un número de caso. Después podrás consultar avances desde Mis solicitudes.','Pulsa Enviar una sola vez; el sistema evita envíos duplicados mientras procesa.']
+    ],
+    requester_home:[
+      ['.dashboard-primary-row','Tu espacio','Desde aquí puedes crear una solicitud nueva y entrar a tus casos.','Usa Nueva solicitud solo para algo diferente a lo que ya está reportado.'],
+      ['.dashboard-requester-grid','Resumen personal','Aquí ves cuántas solicitudes siguen abiertas y tu estructura organizacional cuando aplica.','Tu responsable directo es una referencia organizacional; no asigna tus tickets.'],
+      ['.dashboard-activity-card','Solicitudes recientes','Abre el caso que necesites continuar para ver respuestas, archivos y solución.','La campanita también te lleva directamente a las novedades relevantes.']
+    ],
+    external_home:[
+      ['.dashboard-primary-row','Tu espacio de colaboración','Aquí aparecen únicamente los casos que Carrousel comparte con tu cuenta.','No tienes acceso al resto de solicitudes internas.'],
+      ['.dashboard-requester-grid','Resumen de casos','Consulta activos y finalizados antes de abrir un caso.','Participa solo mientras tu apoyo sea necesario.'],
+      ['.dashboard-activity-card','Casos recientes','Abre un caso para responder o adjuntar evidencia según los permisos habilitados.','Cuando tu participación termine, el acceso se revoca pero queda trazabilidad.']
+    ],
+    my_tickets:[
+      ['.tickets-heading','Mis solicitudes o casos','Esta lista reúne únicamente lo que corresponde a tu cuenta.','Usa el mismo caso para continuar una conversación existente.'],
+      ['.ticket-review-notice','Confirmaciones pendientes','Si una solución necesita tu confirmación, aparecerá destacada aquí.','Confirma solo después de revisar la solución registrada.'],
+      ['.external-case-overview, .ticket-list','Estado y seguimiento','Abre una tarjeta para revisar el problema, estado, responsable y conversación.','Las notificaciones importantes también aparecen en la campanita.']
     ],
     support_dashboard:[
       ['.dashboard-primary-row','Centro de trabajo','Aquí tienes los accesos frecuentes y el objetivo operativo de la pantalla.','Empieza por lo que requiere acción; evita tomar casos nuevos si ya tienes trabajo activo.'],
@@ -36,7 +56,7 @@
       ['.suggested-solutions','Posibles soluciones','Revisa conocimiento, problemas conocidos y casos resueltos similares antes de empezar desde cero.','Las sugerencias ayudan, pero siempre valida que realmente apliquen.'],
       ['.case-action-card','Acciones','La acción principal cambia según el estado. Las opciones menos frecuentes quedan en segundo plano.','Usa En espera solo cuando exista una dependencia real y registra la razón.'],
       ['.case-conversation-card, .external-conversation-card, #conversacion','Conversaciones','El seguimiento distingue lo visible para el solicitante, la participación de proveedores y la conversación interna del equipo.','La conversación interna nunca se muestra ni se envía al solicitante o proveedor.'],
-      ['.external-reply-card','Responder','Si colaboras como proveedor, usa este espacio para enviar avance, consulta o evidencia.','Comparte únicamente la información necesaria para continuar el caso.'],
+      ['.external-reply-card','Responder como proveedor','Si colaboras como proveedor, usa este espacio para enviar avance, consulta o evidencia.','Comparte únicamente la información necesaria para continuar el caso.'],
       ['.resolution-card, .ticket-resolution-card, .case-resolution-capture, .external-solution-card','Solución','Cuando el caso se resuelve, la solución queda visible en un bloque fácil de encontrar.','Una buena resolución alimenta informes y conocimiento para futuros casos.']
     ],
     reports:[
@@ -65,21 +85,24 @@
       ['.search-result-section','Resultados agrupados','Los resultados se separan por tipo y respetan permisos.','Abre primero el tipo de resultado que responda mejor a lo que buscas.']
     ],
     manual:[
-      ['.manual-search','Buscar en el manual','Escribe una tarea, duda o palabra clave y la guía ocultará lo que no coincide.','Prueba con “resolver”, “proveedor”, “espera”, “correo” o “informe”.'],
+      ['.manual-search','Buscar en el manual','Escribe una tarea, duda o palabra clave y la guía ocultará lo que no coincide.','Prueba con “notificación”, “resolver”, “proveedor”, “espera”, “usuario” o “informe”.'],
       ['.manual-quick-grid','Empieza por tu objetivo','Estas tarjetas te llevan directamente a las tareas más frecuentes disponibles para tu perfil.','No necesitas leer el manual completo de principio a fin.'],
       ['.manual-index','Índice','Salta directamente al tema que necesitas.','El índice permanece visible mientras recorres la guía en pantallas grandes.'],
       ['.manual-faq','Preguntas frecuentes','Abre únicamente la duda que necesites resolver.','Las respuestas explican decisiones de uso, no detalles técnicos internos.'],
       ['.manual-section','Guía por función','El manual se adapta al perfil conectado y evita mostrar funciones que no corresponden.','Cada sección explica propósito, flujo y acciones relacionadas.']
     ],
     users:[
-      ['.organization-guide','Perfil y estructura','El perfil define permisos; la asignación define dónde trabaja la persona y quién es su responsable.','Perfil, alcance y atención de soporte son conceptos distintos.'],
-      ['.admin-user-toolbar','Buscar y filtrar','Encuentra rápidamente usuarios sin recorrer toda la lista.','Usa filtros antes de abrir fichas cuando existan muchos usuarios.'],
-      ['.admin-user-list','Usuarios','Abre únicamente el usuario que necesites editar.','Gerencia y Supervisión pueden consultar información sin formar parte del equipo técnico.']
+      ['.admin-users-heading','Usuarios','Desde aquí administras accesos internos sin crear identidades duplicadas.','Una misma persona puede cambiar entre acceso interno y externo conservando historial.'],
+      ['.admin-access-toggle','Dar acceso','Crea un acceso interno nuevo únicamente cuando el correo todavía no existe en Helpdesk.','Si ya es proveedor externo, conviértelo nuevamente en usuario interno.'],
+      ['.admin-user-toolbar','Buscar y filtrar','Encuentra rápidamente usuarios por nombre, perfil o estado.','Filtra antes de abrir fichas cuando existan muchos usuarios.'],
+      ['.admin-user-table','Asignación y responsable','La asignación indica dónde trabaja la persona; Responsable directo representa la jerarquía organizacional.','Responsable directo no asigna tickets, no cambia permisos ni modifica el alcance.']
     ],
     externals:[
       ['.external-admin-kpis','Resumen','Controla proveedores registrados, casos compartidos y accesos activos.','Un proveedor solo debe conservar acceso mientras su participación sea necesaria.'],
-      ['.external-ops-layout','Operación','Crea proveedores y comparte casos desde acciones separadas.','Compartir un caso no convierte al proveedor en usuario interno.'],
-      ['.external-access-list','Casos compartidos','Retira el acceso cuando la participación del proveedor termine.','La revocación conserva trazabilidad sin dejar el caso disponible.']
+      ['.external-share-primary','Compartir un caso','Selecciona un proveedor activo y un caso específico.','Compartir un caso no convierte al proveedor en usuario interno.'],
+      ['.external-provider-create','Registrar proveedor','Crea una cuenta externa para una empresa o colaborador que necesite participar en casos concretos.','Si la persona ya existe como usuario interno, conviértela en vez de duplicarla.'],
+      ['[data-external-directory]','Directorio','Edita, desactiva o convierte nuevamente un proveedor a usuario interno cuando corresponda.','La conversión conserva su historial.'],
+      ['.external-access-card','Casos compartidos','Retira el acceso cuando termine la participación externa.','La revocación conserva trazabilidad.']
     ],
     mail:[
       ['.mail-admin-page .audit-stats','Estado del canal','Aquí distingues un envío SMTP real del modo de prueba y ves fallos o pendientes.','En modo de prueba los mensajes se registran, pero no salen a Internet.'],
@@ -99,13 +122,26 @@
   let overlay=null;
   let popover=null;
 
-  function resolveSteps(){
-    const source=tours[context]||tours[rawContext]||[];
-    return source.map(([selector,title,text,tip])=>{
-      const el=document.querySelector(selector);
-      return el instanceof HTMLElement?{el,title,text,tip:tip||''}:null;
-    }).filter(Boolean);
+  function isVisible(el){
+    if(!(el instanceof HTMLElement))return false;
+    const style=window.getComputedStyle(el);
+    if(style.display==='none'||style.visibility==='hidden')return false;
+    const rect=el.getBoundingClientRect();
+    return rect.width>0&&rect.height>0;
   }
+
+  function resolveTour(){
+    const source=tours[context]||tours[rawContext]||[];
+    const found=[];const missing=[];
+    source.forEach(([selector,title,text,tip])=>{
+      const el=document.querySelector(selector);
+      if(isVisible(el))found.push({el,title,text,tip:tip||'',selector});
+      else missing.push({selector,title});
+    });
+    return{steps:found,missing,total:source.length};
+  }
+
+  function resolveSteps(){return resolveTour().steps;}
 
   function ensureUi(){
     if(overlay&&popover)return;
@@ -116,20 +152,27 @@
     popover.className='tour-popover';
     popover.setAttribute('role','dialog');
     popover.setAttribute('aria-modal','true');
+    popover.setAttribute('aria-live','polite');
+    popover.tabIndex=-1;
     document.body.append(overlay,popover);
   }
 
   function positionPopover(el){
-    if(!popover)return;
+    if(!popover||!isVisible(el))return;
     const r=el.getBoundingClientRect();
-    const width=Math.min(410,window.innerWidth-24);
+    const viewport=window.visualViewport;
+    const viewportWidth=viewport?.width||window.innerWidth;
+    const viewportHeight=viewport?.height||window.innerHeight;
+    const viewportTop=viewport?.offsetTop||0;
+    const viewportLeft=viewport?.offsetLeft||0;
+    const width=Math.min(410,viewportWidth-24);
     popover.style.width=`${width}px`;
     const h=popover.offsetHeight||250;
     let top=r.bottom+14;
-    if(top+h>window.innerHeight-12)top=Math.max(12,r.top-h-14);
+    if(top+h>viewportTop+viewportHeight-12)top=Math.max(viewportTop+12,r.top-h-14);
     let left=r.left;
-    if(left+width>window.innerWidth-12)left=window.innerWidth-width-12;
-    left=Math.max(12,left);
+    if(left+width>viewportLeft+viewportWidth-12)left=viewportLeft+viewportWidth-width-12;
+    left=Math.max(viewportLeft+12,left);
     popover.style.top=`${Math.round(top)}px`;
     popover.style.left=`${Math.round(left)}px`;
   }
@@ -140,7 +183,7 @@
     currentElement?.classList.remove('tour-highlight');
     currentElement=step.el;
     currentElement.classList.add('tour-highlight');
-    currentElement.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+    currentElement.scrollIntoView({behavior:'auto',block:'center',inline:'nearest'});
     if(!popover)return;
     popover.innerHTML=`
       <div class="tour-progress">Paso ${index+1} de ${steps.length}</div>
@@ -153,7 +196,8 @@
         ${index>0?'<button type="button" class="btn btn-outline-secondary" data-tour-prev>Anterior</button>':''}
         <button type="button" class="btn btn-primary" data-tour-next>${index===steps.length-1?'Finalizar':'Siguiente'}</button>
       </div>`;
-    window.setTimeout(()=>positionPopover(currentElement),260);
+    requestAnimationFrame(()=>{positionPopover(currentElement);popover?.focus({preventScroll:true});});
+    window.setTimeout(()=>positionPopover(currentElement),80);
   }
 
   function escapeHtml(value){
@@ -161,8 +205,13 @@
   }
 
   function start(){
-    steps=resolveSteps();
-    if(!steps.length){window.HelpdeskUI?.notify?.('Esta pantalla todavía no necesita un recorrido guiado.','info');return;}
+    const resolved=resolveTour();
+    steps=resolved.steps;
+    if(!steps.length){window.HelpdeskUI?.notify?.('Esta pantalla no tiene pasos visibles para el recorrido guiado.','info');return;}
+    if(resolved.missing.length){
+      console.warn('[Helpdesk tour] Pasos no disponibles',resolved.missing);
+      window.HelpdeskUI?.notify?.('Recorrido adaptado: algunas partes no están disponibles en esta vista.','info',4200);
+    }
     ensureUi();
     document.querySelector('[data-help-panel]')?.classList.remove('open');
     const backdrop=document.querySelector('[data-help-backdrop]');if(backdrop instanceof HTMLElement)backdrop.hidden=true;
@@ -171,7 +220,6 @@
     overlay?.classList.add('show');popover?.classList.add('show');
     document.body.classList.add('tour-open');
     localStorage.setItem(TOUR_SEEN_KEY,'1');
-    document.querySelector('[data-tour-hint]')?.setAttribute('hidden','');
     render();
   }
 
@@ -190,12 +238,9 @@
     if(target.closest('[data-tour-next]')){if(index>=steps.length-1){stop();return;}index+=1;render();return;}
   });
   document.addEventListener('keydown',e=>{if(active&&e.key==='Escape')stop();});
-  window.addEventListener('resize',()=>{if(active&&currentElement)positionPopover(currentElement);});
-  window.addEventListener('scroll',()=>{if(active&&currentElement)positionPopover(currentElement);},{passive:true});
-
-  const hint=document.querySelector('[data-tour-hint]');
-  if(hint instanceof HTMLElement&&localStorage.getItem(TOUR_SEEN_KEY)!=='1'&&resolveSteps().length>0){
-    hint.hidden=false;
-    window.setTimeout(()=>{if(!active)hint.classList.add('is-visible');},700);
-  }
+  const reposition=()=>{if(active&&currentElement)positionPopover(currentElement);};
+  window.addEventListener('resize',reposition);
+  window.addEventListener('scroll',reposition,{passive:true});
+  window.visualViewport?.addEventListener('resize',reposition);
+  window.visualViewport?.addEventListener('scroll',reposition);
 })();

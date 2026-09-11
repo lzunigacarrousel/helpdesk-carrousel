@@ -1,7 +1,7 @@
 <?php
 $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $isSupport=!$isExternal&&(\App\Core\Auth::can('tickets.view_queue')||\App\Core\Auth::can('tickets.change_status')||\App\Core\Auth::can('tickets.view_all'));
-$helpContext=$isSupport?'support_center':($isExternal?'my_tickets':'requester_home');
+$helpContext=$isSupport?'support_center':($isExternal?'external_home':'requester_home');
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Por atender','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $activityLabels=['CREATED'=>'Nuevo ticket','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto','STATUS_CHANGED'=>'Estado actualizado','PROBLEM_LINKED'=>'Relacionado con problema conocido','KNOWLEDGE_CREATED'=>'Artículo creado desde caso'];
 $pageTitle='Inicio';$pageSection='Inicio';$activeNav='home';
