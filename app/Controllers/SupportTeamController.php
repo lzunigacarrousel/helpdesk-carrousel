@@ -22,6 +22,7 @@ final class SupportTeamController
             'summary'=>$this->summary($members),
             'candidates'=>$this->candidates($pdo,$teamId),
             'canManage'=>$this->canManage(),
+            'flash'=>Flash::pull(),
         ]);
     }
 
