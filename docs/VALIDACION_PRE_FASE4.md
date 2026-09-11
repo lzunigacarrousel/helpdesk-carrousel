@@ -115,6 +115,12 @@ En cada resolución revisar:
 - [ ] Formularios y selects buscables utilizables con teclado y táctil.
 - [ ] Footer permanece al final y no deja huecos grandes artificiales.
 - [ ] No hay textos, párrafos, contadores o CTAs redundantes.
+- [ ] **Animaciones** y transiciones se perciben con claridad equivalente en Claro y Oscuro.
+- [ ] Hover de botones, tarjetas, filas y filtros produce una señal visible en ambos temas.
+- [ ] Focus de buscador y formularios conserva un anillo visible en ambos temas.
+- [ ] Spinners de acceso, acciones globales e informes muestran claramente el giro en Oscuro.
+- [ ] Barras de progreso e indicadores de gestión conservan contraste en Oscuro.
+- [ ] Apertura/cierre de sidebar, ayuda y selects conserva su transición sin saltos visuales.
 
 ## 10. Criterio de cierre
 
