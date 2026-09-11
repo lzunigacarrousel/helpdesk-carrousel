@@ -18,6 +18,35 @@
     }catch(_){return false;}
   }
 
+  function postInBackground(url,data){
+    if(!url||!csrf)return;
+    try{
+      const body=new URLSearchParams({_csrf:csrf,...data});
+      void fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8','X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',body,keepalive:true}).catch(()=>{});
+    }catch(_){}
+  }
+
+  function currentAppBase(){
+    if(!readUrl)return null;
+    try{
+      const url=new URL(readUrl,window.location.href);
+      url.pathname=url.pathname.replace(/\/notifications\/read\/?$/,'');
+      url.search='';url.hash='';
+      return url;
+    }catch(_){return null;}
+  }
+
+  function normalizeNotificationHref(rawHref){
+    try{
+      const destination=new URL(rawHref,window.location.href);
+      const marker='/tickets/view';
+      if(!destination.pathname.includes(marker))return destination.href;
+      const base=currentAppBase();
+      if(!base)return destination.href;
+      return base.href.replace(/\/$/,'')+marker+destination.search+destination.hash;
+    }catch(_){return rawHref;}
+  }
+
   function clearUnreadUi(){
     root.querySelectorAll('.shell-notification-item.unread').forEach(el=>el.classList.remove('unread'));
     badge?.remove();
@@ -42,11 +71,17 @@
 
     const link=target.closest('[data-notification-link]');
     if(!(link instanceof HTMLAnchorElement))return;
+
+    // Recalcula links de ticket contra la instancia actual. Evita que una
+    // notificacion creada en otro host/entorno redirija fuera del Helpdesk abierto.
+    link.href=normalizeNotificationHref(link.href);
+
     const id=link.dataset.notificationId||'';
-    const href=link.href;
     if(!id||!link.classList.contains('unread'))return;
-    event.preventDefault();event.stopPropagation();
-    await post(readUrl,{delivery_id:id});
-    window.location.href=href;
+
+    // Marcar como leida nunca debe frenar la navegacion. El navegador sigue el
+    // enlace de inmediato y la escritura termina en segundo plano con keepalive.
+    link.classList.remove('unread');
+    postInBackground(readUrl,{delivery_id:id});
   },true);
 })();
