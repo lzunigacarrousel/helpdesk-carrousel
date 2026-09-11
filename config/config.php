@@ -34,7 +34,6 @@ define('SMTP_USERNAME', trim((string)($local['smtp_username'] ?? '')));
 define('SMTP_PASSWORD', (string)($local['smtp_password'] ?? ''));
 define('MAIL_FROM', strtolower(trim((string)($local['mail_from'] ?? 'no-reply@carrousel.local'))));
 define('MAIL_FROM_NAME', trim((string)($local['mail_from_name'] ?? APP_NAME)) ?: APP_NAME);
-define('SUPPORT_GROUP_EMAIL', strtolower(trim((string)($local['support_group_email'] ?? 'sistemas@carrousel.com.gt'))));
 
 $https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
 $host = preg_replace('/:\\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
