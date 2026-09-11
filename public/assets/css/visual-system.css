@@ -49,6 +49,12 @@
 .queue-table th{font-size:12px!important}
 .queue-ticket-main strong{font-size:14px}.queue-ticket-main p{font-size:12.5px;line-height:1.45}
 
+/* Botones: el tipo de acción manda sobre estilos genéricos de enlaces y tablas */
+.btn.btn-primary,a.btn.btn-primary,a.btn.btn-primary:link,a.btn.btn-primary:visited{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important;text-decoration:none!important}
+.btn.btn-primary:hover,a.btn.btn-primary:hover,.btn.btn-primary:focus-visible,a.btn.btn-primary:focus-visible{color:#fff!important;filter:brightness(1.04)}
+.btn.btn-outline-secondary,a.btn.btn-outline-secondary,a.btn.btn-outline-secondary:link,a.btn.btn-outline-secondary:visited{background:var(--card)!important;border-color:#667085!important;color:var(--ink)!important;text-decoration:none!important}
+.btn.btn-outline-secondary:hover,a.btn.btn-outline-secondary:hover{background:color-mix(in srgb,var(--card) 90%,var(--bg) 10%)!important;color:var(--ink)!important}
+
 /* Formulario publico: centrado real y lectura simple */
 .public-form-page{display:flex!important;justify-content:center!important;align-items:flex-start!important;min-height:100dvh!important;padding:18px 24px 32px!important;overflow-x:hidden!important}
 .public-form-shell{width:min(1320px,100%)!important;max-width:1320px!important;margin:0 auto!important;justify-self:auto!important}
