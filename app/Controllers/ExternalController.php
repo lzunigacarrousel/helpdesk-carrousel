@@ -51,12 +51,31 @@ final class ExternalController
              ORDER BY eta.granted_at DESC"
         )->fetchAll();
 
+        $internalRoles=$pdo->query("SELECT id,code,name FROM roles WHERE is_active=1 AND code<>'EXTERNAL' ORDER BY FIELD(code,'REQUESTER','TECHNICIAN','SUPERVISOR','MANAGEMENT','SEMIADMIN','ADMIN'),name")->fetchAll();
+        $regions=$pdo->query('SELECT id,name FROM regions WHERE is_active=1 ORDER BY name')->fetchAll();
+        $parks=$pdo->query('SELECT id,name,region_id FROM parks WHERE is_active=1 ORDER BY name')->fetchAll();
+        $areas=$pdo->query('SELECT id,name FROM areas WHERE is_active=1 ORDER BY name')->fetchAll();
+        $positions=$pdo->query('SELECT id,code,name FROM positions WHERE is_active=1 ORDER BY sort_order,name')->fetchAll();
+        $managers=$pdo->query(
+            "SELECT DISTINCT u.id,u.full_name,pos.name position_name
+             FROM users u
+             JOIN user_assignments ua ON ua.user_id=u.id AND ua.status='ACTIVE' AND ua.ends_at IS NULL
+             JOIN positions pos ON pos.id=ua.position_id
+             WHERE u.deleted_at IS NULL AND u.access_type='INTERNAL' AND u.status IN('ACTIVE','PENDING')
+             ORDER BY FIELD(pos.code,'MANAGEMENT','REGIONAL_SUPERVISOR','PARK_MANAGER','TECHNOLOGY','ADMINISTRATION','OPERATIONS','MAINTENANCE','PARK_USER','OTHER'),u.full_name"
+        )->fetchAll();
         View::render('admin/externals',[
             'user'=>Auth::user(),
             'users'=>$users,
             'shareUsers'=>$shareUsers,
             'tickets'=>$tickets,
             'access'=>$access,
+            'internalRoles'=>$internalRoles,
+            'regions'=>$regions,
+            'parks'=>$parks,
+            'areas'=>$areas,
+            'positions'=>$positions,
+            'managers'=>$managers,
             'flash'=>Flash::pull(),
         ]);
     }
@@ -231,6 +250,74 @@ final class ExternalController
         exit;
     }
 
+    public function convertExternalToInternal(): void
+    {
+        Auth::requirePermission('users.manage');
+        Auth::requirePermission('external.manage');
+        Csrf::verify($_POST['_csrf']??null);
+
+        $uid=(int)Http::post('user_id');
+        if($uid<=0)$this->rejectTo('Selecciona un proveedor válido.','/admin/externos');
+        if(Http::post('confirm_convert_internal')!=='1')$this->rejectTo('Confirma que deseas convertir esta cuenta a usuario interno.','/admin/externos');
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare(
+            "SELECT u.id,u.email,u.full_name,u.phone,u.status,u.role_id,u.access_type,
+                    ep.organization_name,ep.external_type,ep.notes
+             FROM users u
+             LEFT JOIN external_profiles ep ON ep.user_id=u.id
+             WHERE u.id=? AND u.deleted_at IS NULL AND u.access_type='EXTERNAL'
+             LIMIT 1"
+        );
+        $q->execute([$uid]);
+        $before=$q->fetch();
+        if(!$before)$this->rejectTo('Ese proveedor ya no está disponible como cuenta externa.','/admin/externos');
+
+        $data=$this->readInternalConversionPayload($pdo,$uid);
+        if($data['role_code']==='ADMIN'&&Auth::role()!=='ADMIN')$this->rejectTo('Solo un Administrador puede asignar el perfil Administrador.','/admin/externos');
+
+        $tickets=$pdo->prepare('SELECT ticket_id FROM external_ticket_access WHERE user_id=? AND revoked_at IS NULL');
+        $tickets->execute([$uid]);
+        $ticketIds=array_map('intval',$tickets->fetchAll(PDO::FETCH_COLUMN)?:[]);
+
+        Database::transaction(function(PDO $pdo)use($uid,$data,$ticketIds):void{
+            $pdo->prepare("UPDATE external_ticket_access SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL")->execute([$uid]);
+            foreach($ticketIds as $ticketId){
+                $left=$pdo->prepare('SELECT COUNT(*) FROM external_ticket_access WHERE ticket_id=? AND revoked_at IS NULL');
+                $left->execute([$ticketId]);
+                if((int)$left->fetchColumn()===0)$pdo->prepare("UPDATE tickets SET visibility_mode='INTERNAL',updated_at=NOW() WHERE id=?")->execute([$ticketId]);
+            }
+
+            $pdo->prepare("UPDATE user_sessions SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL")->execute([$uid]);
+            $pdo->prepare("UPDATE otp_codes SET consumed_at=NOW() WHERE user_id=? AND consumed_at IS NULL")->execute([$uid]);
+            $pdo->prepare("UPDATE user_assignments SET status='ENDED',ends_at=NOW() WHERE user_id=? AND status='ACTIVE' AND ends_at IS NULL")->execute([$uid]);
+
+            $pdo->prepare(
+                "UPDATE users SET role_id=?,access_type='INTERNAL',status=?,updated_at=NOW()
+                 WHERE id=? AND deleted_at IS NULL AND access_type='EXTERNAL'"
+            )->execute([$data['role_id'],$data['status'],$uid]);
+
+            $pdo->prepare(
+                "INSERT INTO user_assignments(user_id,region_id,park_id,area_id,position_id,assignment_type,manager_user_id,status,starts_at,reason,created_by,created_at)
+                 VALUES(?,?,?,?,?,?,?,'ACTIVE',NOW(),?,?,NOW())"
+            )->execute([
+                $uid,$data['region_id'],$data['park_id'],$data['area_id'],$data['position_id'],
+                $data['assignment_type'],$data['manager_user_id'],'Conversión de proveedor a usuario interno',Auth::id()
+            ]);
+            $this->syncInternalSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
+        });
+
+        Audit::log('USER_CONVERTED_TO_INTERNAL','user',$uid,$before,[
+            'access_type'=>'INTERNAL','role_id'=>$data['role_id'],'role_code'=>$data['role_code'],'status'=>$data['status'],
+            'assignment_type'=>$data['assignment_type'],'region_id'=>$data['region_id'],'park_id'=>$data['park_id'],
+            'area_id'=>$data['area_id'],'position_id'=>$data['position_id'],'manager_user_id'=>$data['manager_user_id'],
+            'external_profile_preserved'=>true,'revoked_ticket_ids'=>$ticketIds,
+        ],['sessions_revoked'=>true,'external_history_preserved'=>true]);
+
+        Flash::set('Proveedor convertido a usuario interno. Su historial externo se conservó y deberá iniciar sesión nuevamente.','success');
+        header('Location: '.APP_BASE_URL.'/admin/users');
+        exit;
+    }
     public function updateUser(): void
     {
         Auth::requirePermission('external.manage');
@@ -420,6 +507,61 @@ final class ExternalController
         header('Location: '.APP_BASE_URL.'/admin/externos');exit;
     }
 
+    private function readInternalConversionPayload(PDO $pdo,int $uid): array
+    {
+        $roleId=(int)Http::post('role_id');
+        $status=strtoupper(trim(Http::post('status'))?:'ACTIVE');
+        $type=strtoupper(trim(Http::post('assignment_type')));
+        $region=(int)Http::post('region_id')?:null;
+        $park=(int)Http::post('park_id')?:null;
+        $area=(int)Http::post('area_id')?:null;
+        $position=(int)Http::post('position_id')?:null;
+        $manager=(int)Http::post('manager_user_id')?:null;
+
+        if($roleId<=0)$this->rejectTo('Selecciona el perfil interno.','/admin/externos');
+        if(!in_array($status,['PENDING','ACTIVE','BLOCKED','DISABLED'],true))$this->rejectTo('Estado de usuario no válido.','/admin/externos');
+        if(!in_array($type,['PARK','CORPORATE','OTHER'],true))$this->rejectTo('Selecciona dónde trabajará esta persona.','/admin/externos');
+        if(!$position)$this->rejectTo('Selecciona el puesto o función.','/admin/externos');
+        if($manager===$uid)$this->rejectTo('Una persona no puede ser su propio responsable directo.','/admin/externos');
+
+        $role=$pdo->prepare("SELECT code FROM roles WHERE id=? AND is_active=1 AND code<>'EXTERNAL' LIMIT 1");
+        $role->execute([$roleId]);$roleCode=(string)$role->fetchColumn();
+        if($roleCode==='')$this->rejectTo('El perfil interno seleccionado no está disponible.','/admin/externos');
+
+        if($type==='PARK'){
+            if(!$park)$this->rejectTo('Selecciona el parque.','/admin/externos');
+            $q=$pdo->prepare('SELECT region_id FROM parks WHERE id=? AND is_active=1 LIMIT 1');$q->execute([$park]);
+            $parkRegion=(int)$q->fetchColumn()?:null;if(!$parkRegion)$this->rejectTo('El parque seleccionado no está disponible.','/admin/externos');
+            $region=$parkRegion;$area=null;
+        }elseif($type==='CORPORATE'){
+            if(!$area)$this->rejectTo('Selecciona el área corporativa.','/admin/externos');
+            $q=$pdo->prepare('SELECT COUNT(*) FROM areas WHERE id=? AND is_active=1');$q->execute([$area]);
+            if((int)$q->fetchColumn()!==1)$this->rejectTo('El área seleccionada no está disponible.','/admin/externos');
+            $park=null;
+        }else{
+            $park=null;$area=null;
+        }
+
+        $q=$pdo->prepare('SELECT COUNT(*) FROM positions WHERE id=? AND is_active=1');$q->execute([$position]);
+        if((int)$q->fetchColumn()!==1)$this->rejectTo('El puesto seleccionado no está disponible.','/admin/externos');
+        if($manager){
+            $q=$pdo->prepare("SELECT COUNT(*) FROM users WHERE id=? AND deleted_at IS NULL AND access_type='INTERNAL' AND status IN('ACTIVE','PENDING')");
+            $q->execute([$manager]);if((int)$q->fetchColumn()!==1)$this->rejectTo('El responsable directo seleccionado no está disponible.','/admin/externos');
+        }
+        return ['role_id'=>$roleId,'role_code'=>$roleCode,'status'=>$status,'assignment_type'=>$type,'region_id'=>$region,'park_id'=>$park,'area_id'=>$area,'position_id'=>$position,'manager_user_id'=>$manager];
+    }
+
+    private function syncInternalSupportMembership(PDO $pdo,int $uid,string $roleCode,string $status): void
+    {
+        $teamId=(int)$pdo->query("SELECT id FROM support_teams WHERE code='IT' AND is_active=1 LIMIT 1")->fetchColumn();
+        if($teamId<=0)return;
+        $eligible=in_array($roleCode,['ADMIN','SEMIADMIN','TECHNICIAN'],true)&&$status==='ACTIVE';
+        if($eligible){
+            $pdo->prepare("INSERT INTO support_team_members(team_id,user_id,is_active,joined_at,ended_at) VALUES(?,?,1,NOW(),NULL) ON DUPLICATE KEY UPDATE is_active=1,ended_at=NULL")->execute([$teamId,$uid]);
+        }else{
+            $pdo->prepare("UPDATE support_team_members SET is_active=0,ended_at=NOW() WHERE team_id=? AND user_id=?")->execute([$teamId,$uid]);
+        }
+    }
     private function rejectTo(string $message,string $path): never
     {
         Flash::set($message,'danger');

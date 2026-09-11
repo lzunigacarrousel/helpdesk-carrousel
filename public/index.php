@@ -78,6 +78,7 @@ $routes=[
     ['GET','/admin/externos/informe',[ExternalReportController::class,'index']],
     ['GET','/admin/externos/informe/exportar',[ExternalReportController::class,'export']],
     ['POST','/admin/users/convertir-externo',[ExternalController::class,'convertInternal']],
+    ['POST','/admin/externos/convertir-interno',[ExternalController::class,'convertExternalToInternal']],
     ['POST','/admin/externos/actualizar',[ExternalController::class,'updateUser']],
     ['POST','/admin/externos/desactivar',[ExternalController::class,'deactivateUser']],
     ['POST','/admin/externos/crear',[ExternalController::class,'createUser']],

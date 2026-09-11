@@ -47,8 +47,7 @@ final class AdminController
              JOIN user_assignments ua ON ua.user_id=u.id AND ua.status='ACTIVE' AND ua.ends_at IS NULL
              JOIN positions pos ON pos.id=ua.position_id
              WHERE u.deleted_at IS NULL AND u.access_type='INTERNAL' AND u.status IN('ACTIVE','PENDING')
-               AND pos.code IN('PARK_MANAGER','REGIONAL_SUPERVISOR','MANAGEMENT')
-             ORDER BY u.full_name"
+             ORDER BY FIELD(pos.code,'MANAGEMENT','REGIONAL_SUPERVISOR','PARK_MANAGER','TECHNOLOGY','ADMINISTRATION','OPERATIONS','MAINTENANCE','PARK_USER','OTHER'),u.full_name"
         )->fetchAll();
 
         View::render('admin/users',compact('users','roles','regions','parks','areas','positions','managers')+['user'=>Auth::user(),'flash'=>Flash::pull()]);
@@ -60,33 +59,38 @@ final class AdminController
         Csrf::verify($_POST['_csrf']??null);
         $pdo=Database::pdo();
 
-        $data=$this->readPayload($pdo,null,null);
-        $this->assertEmailAvailable($pdo,$data['email'],null);
-        if($data['role_code']==='ADMIN' && Auth::role()!=='ADMIN') throw new \RuntimeException('Solo un Administrador puede crear otra cuenta Administrador.');
+        try{
+            $data=$this->readPayload($pdo,null,null);
+            $this->assertEmailAvailable($pdo,$data['email'],null);
+            if($data['role_code']==='ADMIN' && Auth::role()!=='ADMIN') throw new \RuntimeException('Solo un Administrador puede crear otra cuenta Administrador.');
 
-        $uid=Database::transaction(function(PDO $pdo)use($data):int{
-            $stmt=$pdo->prepare(
-                "INSERT INTO users(role_id,access_type,email,full_name,phone,status,created_at,updated_at)
-                 VALUES(?,'INTERNAL',?,?,?, ?,NOW(),NOW())"
-            );
-            $stmt->execute([$data['role_id'],$data['email'],$data['full_name'],$data['phone'],$data['status']]);
-            $uid=(int)$pdo->lastInsertId();
-            $this->replaceAssignment($pdo,$uid,$data,'Creación administrativa Helpdesk');
-            $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
-            return $uid;
-        });
+            $uid=Database::transaction(function(PDO $pdo)use($data):int{
+                $stmt=$pdo->prepare(
+                    "INSERT INTO users(role_id,access_type,email,full_name,phone,status,created_at,updated_at)
+                     VALUES(?,'INTERNAL',?,?,?, ?,NOW(),NOW())"
+                );
+                $stmt->execute([$data['role_id'],$data['email'],$data['full_name'],$data['phone'],$data['status']]);
+                $uid=(int)$pdo->lastInsertId();
+                $this->replaceAssignment($pdo,$uid,$data,'Creación administrativa Helpdesk');
+                $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
+                return $uid;
+            });
 
-        Audit::log('USER_CREATED','user',$uid,null,[
-            'email'=>$data['email'],'full_name'=>$data['full_name'],'status'=>$data['status'],
-            'role_id'=>$data['role_id'],'role_code'=>$data['role_code'],
-            'assignment_type'=>$data['assignment_type'],'region_id'=>$data['region_id'],
-            'park_id'=>$data['park_id'],'area_id'=>$data['area_id'],'position_id'=>$data['position_id'],
-            'manager_user_id'=>$data['manager_user_id']
-        ]);
-        Flash::set('Usuario creado. Ya puede ingresar con su correo y código de acceso.','success');
-        $this->redirectUsers();
+            Audit::log('USER_CREATED','user',$uid,null,[
+                'email'=>$data['email'],'full_name'=>$data['full_name'],'status'=>$data['status'],
+                'role_id'=>$data['role_id'],'role_code'=>$data['role_code'],
+                'assignment_type'=>$data['assignment_type'],'region_id'=>$data['region_id'],
+                'park_id'=>$data['park_id'],'area_id'=>$data['area_id'],'position_id'=>$data['position_id'],
+                'manager_user_id'=>$data['manager_user_id']
+            ]);
+            Flash::set('Usuario creado. Ya puede ingresar con su correo y código de acceso.','success');
+            $this->redirectUsers();
+        }catch(\RuntimeException $e){
+            Flash::set($e->getMessage(),'danger');
+            header('Location: '.APP_BASE_URL.'/admin/users?create=1');
+            exit;
+        }
     }
-
     public function assign(): void
     {
         Auth::requirePermission('users.manage');
@@ -250,15 +254,18 @@ final class AdminController
     private function assertEmailAvailable(PDO $pdo, string $email, ?int $ignoreUserId): void
     {
         if($ignoreUserId){
-            $q=$pdo->prepare('SELECT id FROM users WHERE LOWER(email)=? AND id<>? LIMIT 1');
+            $q=$pdo->prepare('SELECT id,access_type,deleted_at FROM users WHERE LOWER(email)=? AND id<>? LIMIT 1');
             $q->execute([$email,$ignoreUserId]);
         }else{
-            $q=$pdo->prepare('SELECT id FROM users WHERE LOWER(email)=? LIMIT 1');
+            $q=$pdo->prepare('SELECT id,access_type,deleted_at FROM users WHERE LOWER(email)=? LIMIT 1');
             $q->execute([$email]);
         }
-        if($q->fetchColumn()) throw new \RuntimeException('Ese correo ya pertenece a otro usuario o existe en el historial.');
+        $existing=$q->fetch();
+        if(!$existing)return;
+        if(!empty($existing['deleted_at'])) throw new \RuntimeException('Este correo pertenece a una cuenta histórica. Revisa el historial antes de crear una identidad duplicada.');
+        if(($existing['access_type']??'INTERNAL')==='EXTERNAL') throw new \RuntimeException('Este correo ya pertenece a un proveedor externo. Convierte esa cuenta nuevamente en usuario interno desde Proveedores externos.');
+        throw new \RuntimeException('Ese correo ya tiene una cuenta interna en Helpdesk.');
     }
-
     private function replaceAssignment(PDO $pdo, int $uid, array $data, string $reason): void
     {
         $pdo->prepare("UPDATE user_assignments SET status='ENDED',ends_at=NOW() WHERE user_id=? AND status='ACTIVE' AND ends_at IS NULL")->execute([$uid]);
