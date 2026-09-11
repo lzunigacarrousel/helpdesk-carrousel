@@ -12,6 +12,7 @@ $uid=(int)Auth::id();
 $isOpen=static fn(array $t):bool=>!in_array((string)$t['status'],['RESOLVED','CLOSED','CANCELLED'],true);
 $isOverdue=static fn(array $t):bool=>(string)($t['sla_summary']['state']??'')==='overdue';
 $isNearDue=static fn(array $t):bool=>(string)($t['sla_summary']['state']??'')==='near_due';
+$normalizeText=static fn(string $value):string=>mb_strtolower(trim((string)preg_replace('/\s+/u',' ',$value)));
 
 $quickMatch=static function(array $t)use($view,$uid,$isOpen,$isOverdue,$isNearDue):bool{
     return match($view){
@@ -57,7 +58,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 <div class="support-page queue-operational-page">
   <div class="support-hero queue-hero">
     <div><div class="ticket-kicker">Equipo de soporte</div><h1 class="page-title">Centro de soporte</h1></div>
-    <div class="queue-summary"><strong><?= count($filtered) ?></strong><span><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span></div>
   </div>
   <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
@@ -80,12 +80,12 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </details>
 
   <section class="card queue-table-card data-table-shell">
-    <div class="queue-table-head"><div><span class="ticket-kicker"><?= htmlspecialchars($viewLabels[$view]??'Casos') ?></span><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div></div>
+    <div class="queue-table-head"><div><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div></div>
     <?php if($filtered): ?>
     <div class="table-responsive queue-table-wrap data-table-wrap"><table class="queue-table responsive data-table"><thead><tr><th>Ticket / asunto</th><th>Solicitante</th><th>Parque</th><th>Prioridad</th><th>Estado</th><th>SLA</th><th>Responsable</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
-      <?php foreach($filtered as $t): $sla=$t['sla_summary']??[];$slaText=(string)($sla['remaining_label']??'Sin SLA');$slaClass=(string)($sla['tone']??'neutral');$slaState=(string)($sla['state_label']??'Sin SLA');$slaPercent=$sla['utilization_percent']??null;$assigned=(int)($t['assigned_to']??0); ?>
+      <?php foreach($filtered as $t): $sla=$t['sla_summary']??[];$slaText=(string)($sla['remaining_label']??'Sin SLA');$slaClass=(string)($sla['tone']??'neutral');$slaState=(string)($sla['state_label']??'Sin SLA');$slaPercent=$sla['utilization_percent']??null;$assigned=(int)($t['assigned_to']??0);$subjectText=trim((string)($t['subject']??''));$descriptionText=trim((string)($t['description']??''));$showDescription=$descriptionText!==''&&$normalizeText($descriptionText)!==$normalizeText($subjectText); ?>
       <tr class="queue-row priority-row-<?= strtolower((string)$t['priority']) ?>">
-        <td data-label="Ticket"><div class="queue-ticket-main"><span><?= htmlspecialchars($t['ticket_number']) ?></span><strong><?= htmlspecialchars($t['subject']) ?></strong><p><?= htmlspecialchars(mb_strimwidth(trim((string)($t['description']??'')),0,150,'…')) ?></p></div></td>
+        <td data-label="Ticket"><div class="queue-ticket-main"><span><?= htmlspecialchars($t['ticket_number']) ?></span><strong><?= htmlspecialchars($subjectText) ?></strong><?php if($showDescription): ?><p><?= htmlspecialchars(mb_strimwidth($descriptionText,0,150,'…')) ?></p><?php endif; ?></div></td>
         <td data-label="Solicitante"><strong><?= htmlspecialchars($t['requester_name']??'Sin nombre') ?></strong><small><?= htmlspecialchars($t['requester_email']??'') ?></small></td>
         <td data-label="Parque" class="data-table-secondary"><?= htmlspecialchars($t['park_name']??'No especificado') ?></td>
         <td data-label="Prioridad"><span class="priority-chip priority-<?= strtolower((string)$t['priority']) ?>"><?= htmlspecialchars($priorityLabels[$t['priority']]??$t['priority']) ?></span></td>
@@ -93,7 +93,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="SLA"><span class="queue-sla <?= htmlspecialchars($slaClass) ?>"><?= htmlspecialchars($slaText) ?></span><small><?= htmlspecialchars($slaState) ?><?= $slaPercent!==null?' · '.(int)$slaPercent.'% usado':'' ?></small></td>
         <td data-label="Responsable"><?= $assigned===$uid?'Yo':($assigned===0?'Sin asignar':htmlspecialchars((string)($t['assigned_name']??'Asignado'))) ?></td>
         <td data-label="Actualizado" class="data-table-secondary"><?= htmlspecialchars(date('d/m H:i',strtotime((string)($t['updated_at']??$t['created_at'])))) ?></td>
-        <td data-label="Acción" class="queue-action-cell data-table-actions"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><?php elseif($assigned===$uid): ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php endif; ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a></td>
+        <td data-label="Acción" class="queue-action-cell data-table-actions"><?php if($assigned===0): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/claim" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$t['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Tomar</button></form><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a><?php elseif($assigned===$uid): ?><a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Continuar</a><?php else: ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">Ver</a><?php endif; ?></td>
       </tr>
       <?php endforeach; ?>
     </tbody></table></div>
