@@ -10,19 +10,27 @@ function cleanupCheck(bool $condition,string $message):void{
 }
 
 $notification=(string)@file_get_contents($root.'/app/Services/NotificationService.php');
+$mailService=(string)@file_get_contents($root.'/app/Services/MailService.php');
+$mailView=(string)@file_get_contents($root.'/app/Views/admin/mail.php');
 $supportController=(string)@file_get_contents($root.'/app/Controllers/SupportTeamController.php');
 $supportView=(string)@file_get_contents($root.'/app/Views/management/support_team.php');
 $routes=(string)@file_get_contents($root.'/public/index.php');
 $ticketsIndex=(string)@file_get_contents($root.'/app/Views/tickets/index.php');
+$queueView=(string)@file_get_contents($root.'/app/Views/tickets/queue.php');
 $dashboard=(string)@file_get_contents($root.'/app/Views/dashboard/index.php');
 $knowledge=(string)@file_get_contents($root.'/app/Views/knowledge/index.php');
 $problems=(string)@file_get_contents($root.'/app/Views/problems/index.php');
 $config=(string)@file_get_contents($root.'/config/config.php');
 $configExample=(string)@file_get_contents($root.'/config/local.php.example');
+$components=(string)@file_get_contents($root.'/public/assets/css/components.css');
 
 cleanupCheck(str_contains($notification,'support_team_members'),'Notificaciones de soporte usan support_team_members');
 cleanupCheck(!str_contains($notification,'SUPPORT_GROUP_EMAIL'),'Notificaciones ya no dependen del correo grupal fijo');
+cleanupCheck(!str_contains($mailService,'SUPPORT_GROUP_EMAIL'),'MailService no referencia la constante de correo grupal eliminada');
 cleanupCheck(!str_contains($config,'SUPPORT_GROUP_EMAIL')&&!str_contains($configExample,'support_group_email'),'Configuración ya no publica un destinatario grupal fijo');
+cleanupCheck(str_contains($mailService,'support_delivery'),'Diagnóstico de correo describe el destino dinámico del equipo de soporte');
+cleanupCheck(str_contains($mailView,"support_delivery"),'Administración de correo muestra el destino dinámico de soporte');
+cleanupCheck(str_contains($notification,'include_actor_email'),'La confirmación puede enviarse por correo al solicitante autenticado que creó el ticket');
 cleanupCheck(str_contains($notification,'email_channel')&&str_contains($notification,'true,true'),'Integrantes de soporte reciben correo e in-app');
 cleanupCheck(str_contains($supportController,'support_team_members'),'Equipo de soporte se obtiene de la membresía real');
 cleanupCheck(str_contains($supportController,'function addMember')||str_contains($supportController,'function add'),'Equipo de soporte permite agregar integrantes');
@@ -39,6 +47,9 @@ cleanupCheck(substr_count($ticketsIndex,'/crear-ticket')===1,'Mis solicitudes no
 cleanupCheck(substr_count($dashboard,'/crear-ticket')===1,'Inicio de solicitante no repite el CTA Nueva solicitud');
 cleanupCheck(substr_count($knowledge,'/knowledge/new')===1,'Base de conocimiento no repite Nuevo artículo');
 cleanupCheck(substr_count($problems,'/problems/new')===1,'Problemas conocidos no repite Nuevo problema');
+cleanupCheck(!str_contains($queueView,'<div class="queue-summary">'),'Centro de soporte no repite el conteo activo en el encabezado');
+cleanupCheck(str_contains($queueView,'$showDescription'),'Centro de soporte no repite descripción cuando es igual al asunto');
+cleanupCheck(str_contains($components,'a.btn.btn-primary:visited'),'Botones primarios mantienen texto blanco también cuando son enlaces visitados');
 
 // Auditoría global: una misma vista no debe renderizar dos enlaces de acción primaria
 // con exactamente el mismo destino literal. Botones de formulario se excluyen porque
