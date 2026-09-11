@@ -26,7 +26,8 @@ final class NotificationService
         $pdo=Database::pdo();
         $actorId=(int)(Auth::id()??0);
         $actionUrl=$this->normalizeActionUrl($actionUrl ?: APP_BASE_URL.'/tickets/view?id='.$ticketId);
-        $recipients=$this->resolveTicketRecipients($pdo,$ticketId,$audiences,$actorId);
+        $includeActorEmail=(bool)($options['include_actor_email']??false);
+        $recipients=$this->resolveTicketRecipients($pdo,$ticketId,$audiences,$actorId,$includeActorEmail);
         if(!$recipients) return ['event_id'=>null,'emails'=>[]];
 
         $eventId=$this->insertEvent($pdo,$ticketId,$eventKey,$actorId,$payload);
@@ -215,15 +216,20 @@ final class NotificationService
         return $url;
     }
 
-    private function resolveTicketRecipients(PDO $pdo,int $ticketId,array $audiences,int $actorId): array
+    private function resolveTicketRecipients(PDO $pdo,int $ticketId,array $audiences,int $actorId,bool $includeActorEmail=false): array
     {
         $audiences=array_values(array_unique(array_map('strtolower',$audiences)));
         $q=$pdo->prepare("SELECT t.requester_user_id,t.requester_email,t.requester_name,t.assigned_to,t.support_team_id,u.email assigned_email,u.full_name assigned_name FROM tickets t LEFT JOIN users u ON u.id=t.assigned_to WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");
         $q->execute([$ticketId]);$ticket=$q->fetch();if(!$ticket)return [];
         $recipients=[];
-        $add=function(?int $userId,?string $email,?string $name,bool $emailChannel,bool $inApp)use(&$recipients,$actorId):void{
+        $add=function(?int $userId,?string $email,?string $name,bool $emailChannel,bool $inApp)use(&$recipients,$actorId,$includeActorEmail):void{
             $userId=(int)($userId??0);$email=strtolower(trim((string)$email));
-            if($userId>0&&$userId===$actorId)return;
+            $isActor=$userId>0&&$userId===$actorId;
+            if($isActor){
+                $inApp=false;
+                if(!$includeActorEmail)$emailChannel=false;
+            }
+            if(!$emailChannel&&!$inApp)return;
             if($userId<=0&&!filter_var($email,FILTER_VALIDATE_EMAIL))return;
             $key=$email!==''?'e:'.$email:'u:'.$userId;
             if(isset($recipients[$key])){
