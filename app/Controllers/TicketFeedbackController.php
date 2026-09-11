@@ -81,11 +81,12 @@ final class TicketFeedbackController
         $pdo=Database::pdo();$ticket=$this->requesterTicket($pdo,$id);
         if((string)$ticket['status']!=='RESOLVED')throw new \RuntimeException('Esta solicitud ya no puede devolverse desde su estado actual.');
         $uid=(int)Auth::id();$user=Auth::user();
+        $visibleReason='Devuelto por el solicitante · Motivo de devolución: '.$reason;
 
-        Database::transaction(function(PDO $pdo)use($id,$uid,$user,$reason):void{
+        Database::transaction(function(PDO $pdo)use($id,$uid,$user,$reason,$visibleReason):void{
             $pdo->prepare("UPDATE tickets SET status='REOPENED',resolved_at=NULL,closed_at=NULL,updated_at=NOW() WHERE id=? AND status='RESOLVED' AND deleted_at IS NULL")->execute([$id]);
             $q=$pdo->prepare("INSERT INTO ticket_comments(ticket_id,author_user_id,author_name,author_email,visibility,body,created_at) VALUES(?,?,?,?, 'PUBLIC', ?,NOW())");
-            $q->execute([$id,$uid?:null,$user['full_name']??null,$user['email']??null,$reason]);$commentId=(int)$pdo->lastInsertId();
+            $q->execute([$id,$uid?:null,$user['full_name']??null,$user['email']??null,$visibleReason]);$commentId=(int)$pdo->lastInsertId();
             $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
                 VALUES(?,'REOPENED',?,'USER',?,?,?,NOW())")
                 ->execute([$id,$uid,json_encode(['status'=>'RESOLVED'],JSON_UNESCAPED_UNICODE),json_encode(['status'=>'REOPENED'],JSON_UNESCAPED_UNICODE),json_encode(['source'=>'REQUESTER_RETURN','comment_id'=>$commentId],JSON_UNESCAPED_UNICODE)]);
@@ -100,7 +101,7 @@ final class TicketFeedbackController
                 $audiences,APP_BASE_URL.'/tickets/view?id='.$id.'#conversacion',['source'=>'REQUESTER_RETURN']
             );
         }catch(\Throwable $e){}
-        Flash::set('Listo. La solicitud volvió al equipo de soporte.','success');
+        Flash::set('Listo. La solicitud volvió al equipo de soporte y registramos el motivo.','success');
         header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
     }
 
