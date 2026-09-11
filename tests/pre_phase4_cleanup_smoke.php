@@ -23,6 +23,8 @@ $problems=(string)@file_get_contents($root.'/app/Views/problems/index.php');
 $config=(string)@file_get_contents($root.'/config/config.php');
 $configExample=(string)@file_get_contents($root.'/config/local.php.example');
 $visualSystem=(string)@file_get_contents($root.'/public/assets/css/visual-system.css');
+$dataTables=(string)@file_get_contents($root.'/public/assets/css/data-tables.css');
+$appEnd=(string)@file_get_contents($root.'/app/Views/shared/app_end.php');
 
 cleanupCheck(str_contains($notification,'support_team_members'),'Notificaciones de soporte usan support_team_members');
 cleanupCheck(!str_contains($notification,'SUPPORT_GROUP_EMAIL'),'Notificaciones ya no dependen del correo grupal fijo');
@@ -50,6 +52,9 @@ cleanupCheck(substr_count($problems,'/problems/new')===1,'Problemas conocidos no
 cleanupCheck(!str_contains($queueView,'<div class="queue-summary">'),'Centro de soporte no repite el conteo activo en el encabezado');
 cleanupCheck(str_contains($queueView,'$showDescription'),'Centro de soporte no repite descripción cuando es igual al asunto');
 cleanupCheck(str_contains($visualSystem,'a.btn.btn-primary:visited'),'Botones primarios mantienen texto blanco también cuando son enlaces visitados');
+cleanupCheck(str_contains($dataTables,'.data-table a:not(.btn)'),'Tablas aplican color de enlace solo a enlaces que no son botones');
+cleanupCheck(!str_contains($dataTables,'.data-table a{'),'Tablas no sobrescriben el color de los botones-enlace');
+cleanupCheck(str_contains($appEnd,"data-tables.css?v=<?= htmlspecialchars(\$assetVersion"),'Tabla canónica usa el versionado global de assets');
 
 // Auditoría global: una misma vista no debe renderizar dos enlaces de acción primaria
 // con exactamente el mismo destino literal. Botones de formulario se excluyen porque
