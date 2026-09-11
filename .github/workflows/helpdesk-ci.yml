@@ -77,6 +77,9 @@ jobs:
       - name: Phase 3 operational regression
         run: php tests/phase3_operational_smoke.php
 
+      - name: Pre Phase 4 cleanup regression
+        run: php tests/pre_phase4_cleanup_smoke.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
