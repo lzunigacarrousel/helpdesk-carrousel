@@ -2,7 +2,7 @@
 use App\Core\Csrf;
 $pageTitle='Equipo de soporte';$pageSection='Equipo de soporte';$activeNav='support-team';$helpContext='reports';
 require APP_ROOT.'/app/Views/shared/app_start.php';
-$summary=$summary??[];$members=$members??[];$candidates=$candidates??[];$canManage=(bool)($canManage??false);
+$summary=$summary??[];$members=$members??[];$candidates=$candidates??[];$pendingSupport=$pendingSupport??[];$canManage=(bool)($canManage??false);
 $fmtMin=static function($value):string{if($value===null||$value==='')return '—';$m=(int)round((float)$value);return $m<60?$m.' min':round($m/60,1).' h';};
 $fmtHours=static fn($value):string=>$value===null||$value===''?'—':round((float)$value,1).' h';
 $fmtNps=static fn($value):string=>$value===null||$value===''?'—':(((int)$value>0?'+':'').(int)$value);
@@ -21,13 +21,13 @@ $norm=static function(string $value):string{return mb_strtolower(trim((string)pr
 
   <section class="card support-routing-card">
     <div class="card-body support-routing-body">
-      <div class="support-routing-copy"><strong>Destinatarios de soporte</strong><p>Las personas activas de este equipo reciben los avisos operativos de tickets por correo y dentro del Helpdesk. Esta lista define notificaciones; los perfiles y permisos se administran por separado en Usuarios.</p></div>
+      <div class="support-routing-copy"><strong>Destinatarios de soporte</strong><p>Aquí aparecen las personas que realmente atienden tickets. Los perfiles Administrador, Semiadministrador y Técnico deben estar en estado Activo para formar parte del equipo y recibir avisos.</p></div>
       <?php if($canManage): ?>
         <?php if($candidates): ?><form class="support-routing-form" method="post" action="<?= APP_BASE_URL ?>/gestion/equipo/agregar" data-single-submit>
           <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
           <label>Agregar integrante<select class="form-control" name="user_id" required><option value="">Selecciona una persona</option><?php foreach($candidates as $c): ?><option value="<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['full_name'].' · '.$c['role_name'].' · '.$c['email']) ?></option><?php endforeach; ?></select><small>Recibe avisos por correo desde que se agrega al equipo.</small></label>
           <button class="btn btn-primary" type="submit">Agregar integrante</button>
-        </form><?php else: ?><div class="dashboard-scope-note"><strong>Todos los usuarios de soporte elegibles ya están agregados.</strong></div><?php endif; ?>
+        </form><?php else: ?><div class="dashboard-scope-note"><strong><?= $pendingSupport?'No hay usuarios activos por agregar.':'Todos los usuarios activos de soporte ya están agregados.' ?></strong></div><?php endif; ?><?php if($pendingSupport): ?><div class="dashboard-scope-note"><strong>Pendientes de activar:</strong> <?= htmlspecialchars(implode(', ',array_map(static fn(array $x):string=>$x['full_name'].' · '.$x['role_name'],$pendingSupport))) ?>. Actívalos en Usuarios para que aparezcan en el equipo.</div><?php endif; ?>
       <?php endif; ?>
     </div>
   </section>

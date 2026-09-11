@@ -21,6 +21,7 @@ CREATE TEMPORARY TABLE required_columns(table_name VARCHAR(100),column_name VARC
 INSERT INTO required_columns(table_name,column_name) VALUES
 ('users','full_name'),('users','access_type'),('users','status'),('users','email_verified_at'),
 ('user_assignments','region_id'),('user_assignments','position_id'),('user_assignments','assignment_type'),('user_assignments','manager_user_id'),
+('ticket_categories','parent_id'),('ticket_categories','sort_order'),('ticket_categories','is_active'),
 ('tickets','requester_user_id'),('tickets','requester_email'),('tickets','status'),('tickets','pending_reason_code'),('tickets','pending_note'),
 ('tickets','resolution_due_at'),('ticket_comments','visibility'),('ticket_attachments','visibility'),
 ('ticket_resolutions','solution_applied'),('ticket_resolutions','resolved_by'),
@@ -41,6 +42,7 @@ BEGIN
     DECLARE missing_permissions INT DEFAULT 0;
     DECLARE missing_admin INT DEFAULT 0;
     DECLARE missing_trigger INT DEFAULT 0;
+    DECLARE bad_categories INT DEFAULT 0;
 
     SELECT COUNT(*) INTO missing_tables
     FROM required_tables r
@@ -89,6 +91,14 @@ BEGIN
     WHERE code IN('tickets.resolve','management.view','external.manage');
     IF missing_permissions > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan permisos actuales';
+    END IF;
+
+    SELECT 15-COUNT(*) INTO bad_categories
+    FROM ticket_categories
+    WHERE code IN('HARDWARE','PRINTERS','NETWORK','ACCESS','POS','SEMNOX','SAP','PAYOUT','CARROUSEL_APPS','MAIL','SOFTWARE','REPORTS','MOBILE','REQUEST','OTHER')
+      AND is_active=1 AND parent_id IS NULL;
+    IF bad_categories > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan categorias raiz V2';
     END IF;
 
     SELECT COUNT(*) INTO missing_admin

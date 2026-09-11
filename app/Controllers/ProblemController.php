@@ -17,7 +17,7 @@ final class ProblemController
         $where=['1=1'];$params=[];
         if($q!==''){$where[]='(kp.problem_number LIKE ? OR kp.title LIKE ? OR kp.description LIKE ? OR kp.root_cause LIKE ? OR kp.workaround LIKE ?)';$like='%'.$q.'%';array_push($params,$like,$like,$like,$like,$like);}
         if(isset(self::STATUSES[$status])){$where[]='kp.status=?';$params[]=$status;}
-        if($category>0){$where[]='kp.category_id=?';$params[]=$category;}
+        if($category>0){$where[]='kp.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';$params[]=$category;$params[]=$category;}
         if($park>0){$where[]='kp.park_id=?';$params[]=$park;}
         if($owner>0){$where[]='kp.owner_user_id=?';$params[]=$owner;}
         $sql="SELECT kp.*,c.name category_name,p.name park_name,u.full_name owner_name
@@ -29,9 +29,9 @@ final class ProblemController
 
     public function form(): void
     {
-        Auth::requirePermission('problems.manage');$pdo=Database::pdo();$ticketId=(int)($_GET['ticket_id']??0);$prefill=['title'=>'','description'=>'','category_id'=>null,'park_id'=>null,'related_tickets'=>''];
-        if($ticketId>0){$s=$pdo->prepare('SELECT ticket_number,subject,description,category_id,park_id FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$s->execute([$ticketId]);if($t=$s->fetch())$prefill=['title'=>$t['subject'],'description'=>$t['description'],'category_id'=>$t['category_id'],'park_id'=>$t['park_id'],'related_tickets'=>$t['ticket_number']];}
-        View::render('problems/form',['user'=>Auth::user(),'problem'=>null,'prefill'=>$prefill,'statuses'=>self::STATUSES,'categories'=>$this->categories(),'parks'=>$this->parks(),'owners'=>$this->owners(),'flash'=>Flash::pull()]);
+        Auth::requirePermission('problems.manage');$pdo=Database::pdo();$ticketId=(int)($_GET['ticket_id']??0);$prefill=['title'=>'','description'=>'','category_id'=>null,'park_id'=>null,'related_tickets'=>'','related_ticket_id'=>0];
+        if($ticketId>0){$s=$pdo->prepare('SELECT ticket_number,subject,description,category_id,park_id FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');$s->execute([$ticketId]);if($t=$s->fetch())$prefill=['title'=>$t['subject'],'description'=>$t['description'],'category_id'=>$t['category_id'],'park_id'=>$t['park_id'],'related_tickets'=>(string)$ticketId,'related_ticket_id'=>$ticketId];}
+        View::render('problems/form',['user'=>Auth::user(),'problem'=>null,'prefill'=>$prefill,'statuses'=>self::STATUSES,'categories'=>$this->categories(),'parks'=>$this->parks(),'owners'=>$this->owners(),'availableTickets'=>$this->availableTickets($pdo),'flash'=>Flash::pull()]);
     }
 
     public function create(): void
@@ -57,8 +57,9 @@ final class ProblemController
         $o=$pdo->prepare("SELECT t.id,t.ticket_number,t.subject,t.status,t.priority,t.created_at,t.updated_at,p.name park_name,c.name category_name FROM problem_occurrences po JOIN tickets t ON t.id=po.ticket_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN ticket_categories c ON c.id=t.category_id WHERE po.problem_id=? AND t.deleted_at IS NULL ORDER BY t.created_at DESC");$o->execute([$id]);
         $a=$pdo->prepare("SELECT ka.*,ps.is_primary,u.full_name author_name FROM problem_solutions ps JOIN knowledge_articles ka ON ka.id=ps.article_id LEFT JOIN users u ON u.id=ka.author_user_id WHERE ps.problem_id=? ORDER BY ps.is_primary DESC,ka.updated_at DESC");$a->execute([$id]);
         $tl=$pdo->prepare("SELECT al.*,u.full_name actor_name FROM audit_logs al LEFT JOIN users u ON u.id=al.actor_user_id WHERE al.entity_type='problem' AND al.entity_id=? ORDER BY al.created_at DESC LIMIT 40");$tl->execute([(string)$id]);
+        $availableTickets=Auth::can('problems.manage')?$this->availableTickets($pdo,$id):[];
         $availableArticles=[];if(Auth::can('problems.manage')&&Auth::can('knowledge.view')){$s=$pdo->prepare("SELECT ka.id,ka.article_number,ka.title FROM knowledge_articles ka WHERE ka.status<>'ARCHIVED' AND NOT EXISTS(SELECT 1 FROM problem_solutions ps WHERE ps.problem_id=? AND ps.article_id=ka.id) ORDER BY ka.updated_at DESC LIMIT 100");$s->execute([$id]);$availableArticles=$s->fetchAll();}
-        View::render('problems/show',['user'=>Auth::user(),'problem'=>$problem,'occurrences'=>$o->fetchAll(),'articles'=>$a->fetchAll(),'timeline'=>$tl->fetchAll(),'availableArticles'=>$availableArticles,'statuses'=>self::STATUSES,'categories'=>$this->categories(),'parks'=>$this->parks(),'owners'=>$this->owners(),'flash'=>Flash::pull()]);
+        View::render('problems/show',['user'=>Auth::user(),'problem'=>$problem,'occurrences'=>$o->fetchAll(),'articles'=>$a->fetchAll(),'timeline'=>$tl->fetchAll(),'availableArticles'=>$availableArticles,'availableTickets'=>$availableTickets,'statuses'=>self::STATUSES,'categories'=>$this->categories(),'parks'=>$this->parks(),'owners'=>$this->owners(),'flash'=>Flash::pull()]);
     }
 
     public function update(): void
@@ -95,9 +96,21 @@ final class ProblemController
         Auth::requirePermission('problems.manage');Csrf::verify($_POST['_csrf']??null);$problemId=(int)($_POST['problem_id']??0);$articleId=(int)($_POST['article_id']??0);Database::pdo()->prepare('DELETE FROM problem_solutions WHERE problem_id=? AND article_id=?')->execute([$problemId,$articleId]);Audit::log('PROBLEM_ARTICLE_UNLINKED','problem',$problemId,['article_id'=>$articleId],null);Flash::set('Artículo desvinculado.','success');header('Location: '.APP_BASE_URL.'/problems/view?id='.$problemId);exit;
     }
 
+    private function availableTickets(PDO $pdo,int $problemId=0): array
+    {
+        $sql="SELECT t.id,t.ticket_number,t.subject,t.status,t.created_at,COALESCE(p.name,'Sin parque') park_name,COALESCE(c.name,'Sin categoría') category_name
+              FROM tickets t
+              LEFT JOIN parks p ON p.id=t.park_id
+              LEFT JOIN ticket_categories c ON c.id=t.category_id
+              WHERE t.deleted_at IS NULL";
+        $params=[];
+        if($problemId>0){$sql.=" AND NOT EXISTS(SELECT 1 FROM problem_occurrences po WHERE po.problem_id=? AND po.ticket_id=t.id)";$params[]=$problemId;}
+        $sql.=" ORDER BY t.created_at DESC LIMIT 300";
+        $q=$pdo->prepare($sql);$q->execute($params);return $q->fetchAll()?:[];
+    }
     private function redirectAfterRelation(int $problemId,int $returnTicket):void{header('Location: '.APP_BASE_URL.($returnTicket>0?'/tickets/view?id='.$returnTicket:'/problems/view?id='.$problemId));}
     private function problemData(): array{return['root_cause'=>trim((string)($_POST['root_cause']??'')),'workaround'=>trim((string)($_POST['workaround']??'')),'permanent_solution'=>trim((string)($_POST['permanent_solution']??'')),'category_id'=>(int)($_POST['category_id']??0),'park_id'=>(int)($_POST['park_id']??0),'owner_user_id'=>(int)($_POST['owner_user_id']??0)];}
-    private function categories():array{return Database::pdo()->query('SELECT id,name FROM ticket_categories WHERE is_active=1 ORDER BY name')->fetchAll();}
+    private function categories():array{return Database::pdo()->query("SELECT c.id,c.code,c.parent_id,CASE WHEN p.id IS NULL THEN c.name ELSE CONCAT(p.name,' · ',c.name) END name FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.is_active=1 ORDER BY COALESCE(p.sort_order,c.sort_order),p.id IS NULL DESC,c.sort_order,c.name")->fetchAll();}
     private function parks():array{return Database::pdo()->query('SELECT id,name FROM parks WHERE is_active=1 ORDER BY name')->fetchAll();}
     private function owners():array{return Database::pdo()->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll();}
     private function ticketEvent(int $ticketId,string $type,array $payload):void{$s=Database::pdo()->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,created_at) VALUES(?, ?, ?, 'USER', ?, NOW())");$s->execute([$ticketId,$type,(int)Auth::id(),json_encode($payload,JSON_UNESCAPED_UNICODE)]);}

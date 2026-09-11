@@ -4,6 +4,7 @@ use App\Services\RequesterTopicService;
 $u=$user??null;$assignment=$assignment??null;$defaultParkId=(int)($defaultParkId??0);$defaultAreaId=(int)($defaultAreaId??0);
 $hasAssignedPark=$u&&$defaultParkId>0&&!empty($assignment['park_name']);$knownPhone=$u?trim((string)($u['phone']??'')):'';
 $requesterTopics=RequesterTopicService::options($categories??[]);
+$requesterTopicGroups=[];foreach($requesterTopics as $topic){$requesterTopicGroups[(string)$topic['group']][]=$topic;}
 $helpContext='public_create';$assetVersion='20260910-REQ2H';
 ?>
 <!doctype html>
@@ -80,7 +81,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
       <div class="public-help-grid">
         <div>
           <label class="form-label" for="requester_topic"><strong>¿En qué necesitas ayuda?</strong></label>
-          <select class="form-control" id="requester_topic" name="requester_topic" required><option value="">Selecciona una opción</option><?php foreach($requesterTopics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></select>
+          <select class="form-control" id="requester_topic" name="requester_topic" required><option value="">Selecciona una opción</option><?php foreach($requesterTopicGroups as $group=>$topics): ?><optgroup label="<?= htmlspecialchars((string)$group) ?>"><?php foreach($topics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
           <p class="public-category-help" data-category-help-text aria-live="polite">Selecciona una opción y te mostraremos qué información puede ayudarnos.</p>
         </div>
         <div>

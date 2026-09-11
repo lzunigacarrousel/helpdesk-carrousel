@@ -72,7 +72,7 @@ final class AdminController
             $stmt->execute([$data['role_id'],$data['email'],$data['full_name'],$data['phone'],$data['status']]);
             $uid=(int)$pdo->lastInsertId();
             $this->replaceAssignment($pdo,$uid,$data,'Creación administrativa Helpdesk');
-            $this->syncSupportMembership($pdo,$uid,$data['role_code']);
+            $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
             return $uid;
         });
 
@@ -124,7 +124,7 @@ final class AdminController
             )->execute([$data['email'],$data['full_name'],$data['phone'],$data['status'],$data['role_id'],$uid]);
 
             $this->replaceAssignment($pdo,$uid,$data,'Actualización administrativa Helpdesk');
-            $this->syncSupportMembership($pdo,$uid,$data['role_code']);
+            $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
 
             if(in_array($data['status'],['BLOCKED','DISABLED'],true)){
                 $pdo->prepare("UPDATE user_sessions SET revoked_at=NOW() WHERE user_id=? AND revoked_at IS NULL")->execute([$uid]);
@@ -271,18 +271,17 @@ final class AdminController
         ]);
     }
 
-    private function syncSupportMembership(PDO $pdo, int $uid, string $roleCode): void
+    private function syncSupportMembership(PDO $pdo, int $uid, string $roleCode, string $status): void
     {
-        $teamId=(int)$pdo->query("SELECT id FROM support_teams WHERE code='IT' LIMIT 1")->fetchColumn();
+        $teamId=(int)$pdo->query("SELECT id FROM support_teams WHERE code='IT' AND is_active=1 LIMIT 1")->fetchColumn();
         if($teamId<=0) return;
-        if(in_array($roleCode,['ADMIN','SEMIADMIN','TECHNICIAN'],true)){
-            $pdo->prepare(
-                "INSERT INTO support_team_members(team_id,user_id,is_active,joined_at,ended_at)
-                 VALUES(?,?,1,NOW(),NULL)
-                 ON DUPLICATE KEY UPDATE is_active=1,ended_at=NULL"
-            )->execute([$teamId,$uid]);
+        $eligible=in_array($roleCode,['ADMIN','SEMIADMIN','TECHNICIAN'],true)&&$status==='ACTIVE';
+        if($eligible){
+            $pdo->prepare("INSERT INTO support_team_members(team_id,user_id,is_active,joined_at,ended_at) VALUES(?,?,1,NOW(),NULL) ON DUPLICATE KEY UPDATE is_active=1,ended_at=NULL")
+                ->execute([$teamId,$uid]);
         }else{
-            $pdo->prepare("UPDATE support_team_members SET is_active=0,ended_at=NOW() WHERE team_id=? AND user_id=?")->execute([$teamId,$uid]);
+            $pdo->prepare("UPDATE support_team_members SET is_active=0,ended_at=NOW() WHERE team_id=? AND user_id=?")
+                ->execute([$teamId,$uid]);
         }
     }
 

@@ -21,6 +21,7 @@ final class SupportTeamController
             'members'=>$members,
             'summary'=>$this->summary($members),
             'candidates'=>$this->candidates($pdo,$teamId),
+            'pendingSupport'=>$this->pendingSupport($pdo),
             'canManage'=>$this->canManage(),
             'flash'=>Flash::pull(),
         ]);
@@ -161,6 +162,16 @@ final class SupportTeamController
         $q->execute([$teamId]);return$q->fetchAll()?:[];
     }
 
+    private function pendingSupport(PDO $pdo): array
+    {
+        $q=$pdo->query("SELECT u.id,u.full_name,u.email,u.status,r.name role_name
+            FROM users u
+            JOIN roles r ON r.id=u.role_id
+            WHERE u.access_type='INTERNAL' AND u.deleted_at IS NULL
+              AND u.status='PENDING' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN')
+            ORDER BY u.full_name");
+        return $q->fetchAll()?:[];
+    }
     private function activeTeamId(PDO $pdo): int
     {
         $q=$pdo->prepare('SELECT id FROM support_teams WHERE code=? AND is_active=1 LIMIT 1');$q->execute([self::TEAM_CODE]);return(int)($q->fetchColumn()?:0);

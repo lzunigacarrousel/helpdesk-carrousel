@@ -53,7 +53,7 @@ final class ManagementController
         $kpis['sla_porcentaje']=(int)($kpis['sla_medidos']??0)>0?round(((int)$kpis['sla_ok']/(int)$kpis['sla_medidos'])*100,1):null;
 
         $byStatus=$this->group($pdo,"SELECT t.status label,COUNT(*) total FROM tickets t {$where} GROUP BY t.status ORDER BY total DESC",$params);
-        $byCategory=$this->group($pdo,"SELECT COALESCE(c.name,'Sin categoría') label,COUNT(*) total FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id {$where} GROUP BY c.id,c.name ORDER BY total DESC LIMIT 8",$params);
+        $byCategory=$this->group($pdo,"SELECT COALESCE(pc.name,c.name,'Sin categoría') label,COUNT(*) total FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN ticket_categories pc ON pc.id=c.parent_id {$where} GROUP BY COALESCE(pc.id,c.id),COALESCE(pc.name,c.name) ORDER BY total DESC LIMIT 8",$params);
         $byPark=$this->group($pdo,"SELECT COALESCE(p.name,'Sin ubicación') label,COUNT(*) total FROM tickets t LEFT JOIN parks p ON p.id=t.park_id {$where} GROUP BY p.id,p.name ORDER BY total DESC LIMIT 8",$params);
         $byAssignee=$this->group($pdo,"SELECT COALESCE(u.full_name,'Sin asignar') label,COUNT(*) total,COALESCE(SUM(t.status IN('IN_PROGRESS','PENDING','REOPENED')),0) activos FROM tickets t LEFT JOIN users u ON u.id=t.assigned_to {$where} GROUP BY u.id,u.full_name ORDER BY total DESC LIMIT 8",$params);
         $byPendingReason=$this->group($pdo,"SELECT t.pending_reason_code label,COUNT(*) total FROM tickets t {$where} AND t.status='PENDING' AND t.pending_reason_code IS NOT NULL GROUP BY t.pending_reason_code ORDER BY total DESC",$params);
@@ -134,7 +134,7 @@ final class ManagementController
             $scope=new ScopeService();
             $parks=array_values(array_filter($parks,static fn(array $p):bool=>$scope->canAccessOrganization((int)($p['region_id']??0),(int)$p['id'],null)));
         }
-        return['parks'=>$parks,'categories'=>$pdo->query("SELECT id,name FROM ticket_categories WHERE is_active=1 ORDER BY name")->fetchAll(),'supportUsers'=>$pdo->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.status='ACTIVE' AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll()];
+        return['parks'=>$parks,'categories'=>$pdo->query("SELECT c.id,c.code,c.parent_id,CASE WHEN p.id IS NULL THEN c.name ELSE CONCAT(p.name,' · ',c.name) END name FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.is_active=1 ORDER BY COALESCE(p.sort_order,c.sort_order),p.id IS NULL DESC,c.sort_order,c.name")->fetchAll(),'supportUsers'=>$pdo->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.status='ACTIVE' AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll()];
     }
 
     private function filters():array
@@ -147,7 +147,7 @@ final class ManagementController
         $w=['t.deleted_at IS NULL','t.created_at>=?','t.created_at<DATE_ADD(?,INTERVAL 1 DAY)'];$p=[$f['from'],$f['to']];
         [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
         if($scopeSql!=='1=1'){$w[]=$scopeSql;array_push($p,...$scopeParams);}
-        if($f['park_id']>0){$w[]='t.park_id=?';$p[]=$f['park_id'];}if($f['category_id']>0){$w[]='t.category_id=?';$p[]=$f['category_id'];}if($f['assigned_to']>0){$w[]='t.assigned_to=?';$p[]=$f['assigned_to'];}
+        if($f['park_id']>0){$w[]='t.park_id=?';$p[]=$f['park_id'];}if($f['category_id']>0){$w[]='t.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';$p[]=$f['category_id'];$p[]=$f['category_id'];}if($f['assigned_to']>0){$w[]='t.assigned_to=?';$p[]=$f['assigned_to'];}
         if(in_array($f['status'],array_keys(self::STATUS_LABELS),true)){$w[]='t.status=?';$p[]=$f['status'];}if(in_array($f['priority'],['LOW','MEDIUM','HIGH','CRITICAL'],true)){$w[]='t.priority=?';$p[]=$f['priority'];}
         return[' WHERE '.implode(' AND ',$w),$p];
     }

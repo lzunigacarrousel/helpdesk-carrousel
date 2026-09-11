@@ -1,6 +1,5 @@
 <footer class="app-corporate-footer">
   <div>© <?= date('Y') ?> <strong>Carrousel Guatemala ✨🎠</strong> · Desarrollado por <strong>Luis Fernando Zuniga</strong></div>
-  <div class="app-footer-actions no-print"><span class="app-footer-chip">Helpdesk Carrousel</span></div>
 </footer>
 </main></div></div>
 

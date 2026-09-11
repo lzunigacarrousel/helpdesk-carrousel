@@ -5,6 +5,7 @@ use App\Controllers\{AuthController,DashboardController,AdminController,AuditCon
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
+$path=strtolower($path);
 $method=$_SERVER['REQUEST_METHOD']??'GET';
 $routes=[
     ['GET','/',[TicketController::class,'publicHome']],
@@ -42,6 +43,7 @@ $routes=[
 
     ['GET','/problems',[ProblemController::class,'index']],
     ['GET','/problems/new',[ProblemController::class,'form']],
+    ['GET','/problems/create',[ProblemController::class,'form']],
     ['POST','/problems/create',[ProblemController::class,'create']],
     ['GET','/problems/view',[ProblemController::class,'view']],
     ['POST','/problems/update',[ProblemController::class,'update']],
@@ -52,6 +54,8 @@ $routes=[
 
     ['GET','/knowledge',[KnowledgeController::class,'index']],
     ['GET','/knowledge/new',[KnowledgeController::class,'form']],
+    ['GET','/knowledge/create',[KnowledgeController::class,'form']],
+    ['GET','/knowledge/gestion',[KnowledgeController::class,'index']],
     ['GET','/knowledge/edit',[KnowledgeController::class,'form']],
     ['POST','/knowledge/create',[KnowledgeController::class,'create']],
     ['POST','/knowledge/update',[KnowledgeController::class,'update']],
@@ -73,6 +77,9 @@ $routes=[
     ['GET','/admin/externos',[ExternalController::class,'index']],
     ['GET','/admin/externos/informe',[ExternalReportController::class,'index']],
     ['GET','/admin/externos/informe/exportar',[ExternalReportController::class,'export']],
+    ['POST','/admin/users/convertir-externo',[ExternalController::class,'convertInternal']],
+    ['POST','/admin/externos/actualizar',[ExternalController::class,'updateUser']],
+    ['POST','/admin/externos/desactivar',[ExternalController::class,'deactivateUser']],
     ['POST','/admin/externos/crear',[ExternalController::class,'createUser']],
     ['POST','/admin/externos/asignar',[ExternalController::class,'grant']],
     ['POST','/admin/externos/revocar',[ExternalController::class,'revoke']],

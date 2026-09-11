@@ -244,6 +244,7 @@ CREATE TABLE ticket_categories (
     description VARCHAR(255) NULL,
     default_priority ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL DEFAULT 'MEDIUM',
     is_active TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order INT NOT NULL DEFAULT 100,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_category_parent FOREIGN KEY (parent_id) REFERENCES ticket_categories(id) ON DELETE SET NULL
@@ -706,15 +707,123 @@ INSERT INTO positions(code,name,description,sort_order) VALUES
 ('TECHNOLOGY','Tecnologia','Personal de tecnologia / sistemas',80),
 ('OTHER','Otro','Otro puesto o funcion',99);
 
-INSERT INTO ticket_categories(code,name,default_priority) VALUES
-('HARDWARE','Hardware','MEDIUM'),
-('SOFTWARE','Software','MEDIUM'),
-('NETWORK','Red e Internet','HIGH'),
-('ACCESS','Accesos y Credenciales','HIGH'),
-('POS','POS y Facturacion','HIGH'),
-('SEMNOX','Semnox / Parafait','HIGH'),
-('REPORTS','Reportes y BI','MEDIUM'),
-('OTHER','Otros','MEDIUM');
+INSERT INTO ticket_categories(parent_id,code,name,description,default_priority,is_active,sort_order)
+VALUES
+(NULL,'HARDWARE','Computadora y equipo','Computadoras, laptops, monitores, perifericos y fallas fisicas.','MEDIUM',1,60),
+(NULL,'PRINTERS','Impresoras','Impresoras de oficina, termicas y configuracion de impresion.','MEDIUM',1,70),
+(NULL,'NETWORK','Internet y conexión','Internet, Wi-Fi, red local, cableado y acceso remoto.','HIGH',1,10),
+(NULL,'ACCESS','Acceso a sistemas','Usuarios, contrasenas, permisos, OTP y bloqueos.','HIGH',1,20),
+(NULL,'POS','Facturación y POS','Facturacion, cajas, impresion y configuracion POS.','HIGH',1,30),
+(NULL,'SEMNOX','Semnox / Parafait','POS Semnox, kioscos, promociones, cajeros y OPOS/AutoPrint.','HIGH',1,40),
+(NULL,'SAP','SAP Business One','Acceso, documentos, consultas, errores y permisos SAP B1.','HIGH',1,110),
+(NULL,'PAYOUT','Payout / Kiddies','Payout Parques, Kiddies, cierres, reversiones, maquinas y contadores.','HIGH',1,50),
+(NULL,'CARROUSEL_APPS','Aplicaciones Carrousel','Portal y aplicaciones internas desarrolladas para Corporacion Carrousel.','MEDIUM',1,80),
+(NULL,'MAIL','Correo','Cuentas, envio/recepcion, SMTP y firmas de correo.','MEDIUM',1,100),
+(NULL,'SOFTWARE','Programas y software','Instalacion, actualizacion, configuracion, errores y licencias.','MEDIUM',1,120),
+(NULL,'REPORTS','Reportes y datos','Power BI, reportes, datos, exportaciones y consultas.','MEDIUM',1,90),
+(NULL,'MOBILE','Celular / Tablet / iPad','Celulares, tablets, iPad, configuracion y accesos.','MEDIUM',1,130),
+(NULL,'REQUEST','Solicitud o requerimiento','Solicitudes de servicio que no representan una incidencia tecnica.','MEDIUM',1,140),
+(NULL,'OTHER','Otro','Ultima alternativa cuando ninguna categoria describe la solicitud.','MEDIUM',1,999)
+ON DUPLICATE KEY UPDATE
+    parent_id=VALUES(parent_id),name=VALUES(name),description=VALUES(description),
+    default_priority=VALUES(default_priority),is_active=VALUES(is_active),sort_order=VALUES(sort_order);
+
+SET @HARDWARE=(SELECT id FROM ticket_categories WHERE code='HARDWARE' LIMIT 1);
+SET @PRINTERS=(SELECT id FROM ticket_categories WHERE code='PRINTERS' LIMIT 1);
+SET @NETWORK=(SELECT id FROM ticket_categories WHERE code='NETWORK' LIMIT 1);
+SET @ACCESS=(SELECT id FROM ticket_categories WHERE code='ACCESS' LIMIT 1);
+SET @POS=(SELECT id FROM ticket_categories WHERE code='POS' LIMIT 1);
+SET @SEMNOX=(SELECT id FROM ticket_categories WHERE code='SEMNOX' LIMIT 1);
+SET @SAP=(SELECT id FROM ticket_categories WHERE code='SAP' LIMIT 1);
+SET @PAYOUT=(SELECT id FROM ticket_categories WHERE code='PAYOUT' LIMIT 1);
+SET @APPS=(SELECT id FROM ticket_categories WHERE code='CARROUSEL_APPS' LIMIT 1);
+SET @MAIL=(SELECT id FROM ticket_categories WHERE code='MAIL' LIMIT 1);
+SET @SOFTWARE=(SELECT id FROM ticket_categories WHERE code='SOFTWARE' LIMIT 1);
+SET @REPORTS=(SELECT id FROM ticket_categories WHERE code='REPORTS' LIMIT 1);
+SET @MOBILE=(SELECT id FROM ticket_categories WHERE code='MOBILE' LIMIT 1);
+
+INSERT INTO ticket_categories(parent_id,code,name,description,default_priority,is_active,sort_order)
+VALUES
+(@HARDWARE,'HARDWARE_COMPUTER','Computadora o laptop','Equipo de computo de escritorio o portatil.','MEDIUM',1,10),
+(@HARDWARE,'HARDWARE_MONITOR','Pantalla o monitor','Pantallas, video y visualizacion.','MEDIUM',1,20),
+(@HARDWARE,'HARDWARE_PERIPHERAL','Teclado, mouse u otro periférico','Teclado, mouse, lector, UPS y otros perifericos.','MEDIUM',1,30),
+(@HARDWARE,'HARDWARE_DAMAGE','Equipo no enciende o presenta una falla','Equipo que no enciende, se reinicia o presenta falla fisica.','HIGH',1,40),
+(@HARDWARE,'HARDWARE_INSTALL','Instalar o reemplazar equipo','Instalacion, cambio o preparacion de equipo.','MEDIUM',1,50),
+
+(@PRINTERS,'PRINTER_OFFICE','Impresora de oficina','Impresion administrativa o de oficina.','MEDIUM',1,10),
+(@PRINTERS,'PRINTER_THERMAL','Impresora térmica','Impresoras termicas no asociadas directamente a un flujo POS.','HIGH',1,20),
+(@PRINTERS,'PRINTER_DRIVER','No imprime / configuración / driver','Controladores, puertos y configuracion de impresoras.','MEDIUM',1,30),
+
+(@NETWORK,'NETWORK_OUTAGE','No tengo Internet','Caida total del servicio de Internet.','HIGH',1,10),
+(@NETWORK,'NETWORK_UNSTABLE','Internet lento o intermitente','Intermitencia, lentitud o microcortes.','HIGH',1,20),
+(@NETWORK,'NETWORK_WIFI','Problema con Wi-Fi','Cobertura, conexion o autenticacion Wi-Fi.','MEDIUM',1,30),
+(@NETWORK,'NETWORK_LAN','Red local o cableado','LAN, cableado, switch, puertos o comunicacion local.','HIGH',1,40),
+(@NETWORK,'NETWORK_REMOTE','Acceso remoto (RDP / AnyDesk)','RDP, AnyDesk u otros accesos remotos autorizados.','HIGH',1,50),
+
+(@ACCESS,'ACCESS_CREATE','Necesito un usuario','Alta de usuario en un sistema autorizado.','MEDIUM',1,10),
+(@ACCESS,'ACCESS_PASSWORD','No puedo ingresar / contraseña','Restablecimiento o problema de contrasena.','HIGH',1,20),
+(@ACCESS,'ACCESS_PERMISSION','Necesito acceso o permisos','Acceso insuficiente o cambio de permisos.','HIGH',1,30),
+(@ACCESS,'ACCESS_OTP','No recibo o no funciona el código OTP','Codigo OTP, verificacion o acceso por codigo temporal.','HIGH',1,40),
+(@ACCESS,'ACCESS_LOCKED','Usuario bloqueado','Cuenta bloqueada o sesion que impide el acceso.','HIGH',1,50),
+
+(@POS,'POS_BILLING','No puedo facturar','Problemas para facturar o completar una venta.','HIGH',1,10),
+(@POS,'POS_CASH','Problema en caja / POS','Operacion de caja o estacion POS.','HIGH',1,20),
+(@POS,'POS_PRINTING','Factura pero no imprime','El POS factura pero no imprime o imprime incorrectamente.','HIGH',1,30),
+(@POS,'POS_CONFIG','Configuración de caja / POS','Configuracion de estacion, dispositivos o parametros POS.','HIGH',1,40),
+
+(@SEMNOX,'SEMNOX_POS','Problema en POS Semnox','Operacion del punto de venta Semnox/Parafait.','HIGH',1,10),
+(@SEMNOX,'SEMNOX_KIOSK','Problema en kiosco','Kioscos Semnox/Parafait.','HIGH',1,20),
+(@SEMNOX,'SEMNOX_PROMO','Promoción o código no aparece','Promociones, codigos o configuracion comercial Semnox.','HIGH',1,30),
+(@SEMNOX,'SEMNOX_CASHIER','Cajero o usuario de Semnox','Usuarios/cajeros o datos mostrados en recibos.','HIGH',1,40),
+(@SEMNOX,'SEMNOX_OPOS','No imprime / AutoPrint / OPOS','Impresion, OPOS y AutoPrint en Semnox/Parafait.','HIGH',1,50),
+
+(@SAP,'SAP_ACCESS','No puedo ingresar a SAP','Inicio de sesion o conexion a SAP Business One.','HIGH',1,10),
+(@SAP,'SAP_DOCUMENTS','Factura o documento en SAP','Facturas, documentos y transacciones SAP B1.','MEDIUM',1,20),
+(@SAP,'SAP_QUERIES','Consulta o búsqueda en SAP','Consultas, busquedas o SQL relacionado con SAP B1.','MEDIUM',1,30),
+(@SAP,'SAP_ERRORS','Error en SAP','Mensajes o comportamiento inesperado de SAP B1.','HIGH',1,40),
+(@SAP,'SAP_PERMISSIONS','Necesito permisos en SAP','Autorizaciones o accesos dentro de SAP B1.','HIGH',1,50),
+
+(@PAYOUT,'PAYOUT_PARKS','Payout Parques','Operacion de Payout de parques.','HIGH',1,10),
+(@PAYOUT,'PAYOUT_KIDDIES','Payout Kiddies','Operacion de Payout Kiddies.','HIGH',1,20),
+(@PAYOUT,'PAYOUT_CLOSURES','Cierres','Cierres, validaciones y estados de Payout.','HIGH',1,30),
+(@PAYOUT,'PAYOUT_REVERSALS','Revertir o corregir un cierre','Reversion de cierres o movimientos autorizados.','HIGH',1,40),
+(@PAYOUT,'PAYOUT_MACHINES','Máquina o activo','Maquinas, activos o configuracion relacionada.','MEDIUM',1,50),
+(@PAYOUT,'PAYOUT_COUNTERS','Contadores o diferencias','Contadores, lecturas y diferencias.','HIGH',1,60),
+(@PAYOUT,'PAYOUT_PROMOS','Promocionales o códigos','Codigos, promocionales o inventario relacionado.','MEDIUM',1,70),
+
+(@APPS,'APP_PORTAL','Portal Carrousel','Portal corporativo y navegacion entre aplicaciones.','HIGH',1,10),
+(@APPS,'APP_HELPDESK','Helpdesk','Helpdesk Carrousel.','HIGH',1,20),
+(@APPS,'APP_CONTROL_IT','Control IT','Control IT y sus modulos.','MEDIUM',1,30),
+(@APPS,'APP_CASH','Caja Chica / NIT / facturas','Caja Chica, NIT, facturas y acceso relacionado.','MEDIUM',1,40),
+(@APPS,'APP_JORNADAS','Control Jornadas','Control de Jornadas.','MEDIUM',1,50),
+(@APPS,'APP_RENDIMIENTOS','Rendimientos de máquinas','Rendimientos de Maquinas.','MEDIUM',1,60),
+(@APPS,'APP_SUPERVISION','Supervisión','Aplicacion de Supervision.','MEDIUM',1,70),
+(@APPS,'APP_DESTROYED_TICKETS','Tickets destruidos','Registro o correccion de tickets destruidos.','MEDIUM',1,80),
+
+(@MAIL,'MAIL_ACCOUNT','Cuenta de correo','Alta o configuracion de cuenta de correo.','MEDIUM',1,10),
+(@MAIL,'MAIL_SEND_RECEIVE','No puedo enviar o recibir correos','Problemas para enviar o recibir mensajes.','HIGH',1,20),
+(@MAIL,'MAIL_SMTP','Configuración SMTP','Configuracion o diagnostico SMTP.','HIGH',1,30),
+(@MAIL,'MAIL_SIGNATURE','Firma de correo','Firma HTML o configuracion de firma.','LOW',1,40),
+
+(@SOFTWARE,'SOFTWARE_INSTALL','Instalar un programa','Instalacion de software autorizado.','MEDIUM',1,10),
+(@SOFTWARE,'SOFTWARE_UPDATE','Actualizar un programa','Actualizacion de software.','MEDIUM',1,20),
+(@SOFTWARE,'SOFTWARE_CONFIG','Configurar un programa','Configuracion de programa o aplicacion.','MEDIUM',1,30),
+(@SOFTWARE,'SOFTWARE_ERROR','Un programa muestra un error','Falla o comportamiento inesperado de software.','HIGH',1,40),
+(@SOFTWARE,'SOFTWARE_LICENSE','Licencia o activación','Licenciamiento o activacion.','MEDIUM',1,50),
+
+(@REPORTS,'REPORT_POWERBI','Power BI / Dashboard','Dashboard, dataset, gateway o visual de Power BI.','MEDIUM',1,10),
+(@REPORTS,'REPORT_DATA','Datos incorrectos o faltantes','Datos faltantes, incorrectos o inconsistentes.','HIGH',1,20),
+(@REPORTS,'REPORT_EXPORT','No puedo exportar','Archivos XLSX/CSV/PDF o exportaciones.','MEDIUM',1,30),
+(@REPORTS,'REPORT_QUERY','Necesito un reporte o consulta','Consulta, informe o reporte operativo.','MEDIUM',1,40),
+
+(@MOBILE,'MOBILE_PHONE','Celular','Telefono movil corporativo.','MEDIUM',1,10),
+(@MOBILE,'MOBILE_TABLET','Tablet','Tablet distinta de iPad.','MEDIUM',1,20),
+(@MOBILE,'MOBILE_IPAD','iPad','Visualizacion, configuracion o acceso desde iPad.','MEDIUM',1,30),
+(@MOBILE,'MOBILE_CONFIG','Configurar un dispositivo','Configuracion general de dispositivo movil.','MEDIUM',1,40),
+(@MOBILE,'MOBILE_ACCESS','No puedo ingresar desde el celular o tablet','Acceso a sistemas desde celular o tablet.','HIGH',1,50)
+ON DUPLICATE KEY UPDATE
+    parent_id=VALUES(parent_id),name=VALUES(name),description=VALUES(description),
+    default_priority=VALUES(default_priority),is_active=VALUES(is_active),sort_order=VALUES(sort_order);
 
 INSERT INTO sla_policies(name,category_id,priority,first_response_minutes,resolution_minutes,business_hours_only) VALUES
 ('SLA Baja',NULL,'LOW',480,2880,0),

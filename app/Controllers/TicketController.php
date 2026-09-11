@@ -10,28 +10,12 @@ final class TicketController
 {
     private const STATUS_LABELS=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
     private const PRIORITY_LABELS=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
-    private const REQUESTER_CATEGORY_PRESENTATION=[
-        'POS'=>['label'=>'Facturación / POS','help'=>'Indica qué caja presenta el problema y qué mensaje aparece.','order'=>10],
-        'SEMNOX'=>['label'=>'Semnox','help'=>'Indica dónde ocurre el problema y qué estabas intentando realizar.','order'=>20],
-        'NETWORK'=>['label'=>'Internet','help'=>'Indica si afecta a todo el parque o solamente a un equipo.','order'=>30],
-        'ACCESS'=>['label'=>'Acceso a un sistema','help'=>'Indica a qué sistema necesitas entrar y qué sucede al intentarlo.','order'=>40],
-        'HARDWARE'=>['label'=>'Equipo','help'=>'Indica qué equipo presenta el problema y qué comportamiento observas.','order'=>50],
-        'SOFTWARE'=>['label'=>'Programa / aplicación','help'=>'Indica qué programa estás usando y qué sucede cuando intentas trabajar.','order'=>60],
-        'REPORTS'=>['label'=>'Reporte','help'=>'Indica qué reporte necesitas o qué información no se muestra como esperabas.','order'=>70],
-        'OTHER'=>['label'=>'Otro','help'=>'Cuéntanos brevemente qué necesitas y qué resultado esperabas.','order'=>80],
-    ];
 
     public function publicHome():void{View::render('tickets/public_home',['user'=>Auth::user(),'flash'=>Flash::pull()]);}
 
     public function publicCreate():void{
         $pdo=Database::pdo();$user=Auth::user();
-        $categories=$pdo->query("SELECT id,code,TRIM(name) name FROM ticket_categories WHERE is_active=1 ORDER BY name")->fetchAll();
-        foreach($categories as &$category){
-            $presentation=self::REQUESTER_CATEGORY_PRESENTATION[(string)$category['code']]??['label'=>(string)$category['name'],'help'=>'Describe qué necesitas y qué sucede actualmente.','order'=>999];
-            $category['display_name']=$presentation['label'];$category['requester_help']=$presentation['help'];$category['requester_order']=$presentation['order'];
-        }
-        unset($category);
-        usort($categories,static fn(array $a,array $b):int=>((int)$a['requester_order']<=> (int)$b['requester_order'])?:strcmp((string)$a['display_name'],(string)$b['display_name']));
+        $categories=$pdo->query("SELECT c.id,c.code,TRIM(c.name) name,c.parent_id,c.sort_order,TRIM(p.name) parent_name,p.code parent_code,p.sort_order parent_sort_order FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.is_active=1 ORDER BY COALESCE(p.sort_order,c.sort_order),p.id IS NULL DESC,c.sort_order,c.name")->fetchAll();
         $assignment=$user?$this->singleActiveAssignment($pdo,(int)$user['id']):null;
         View::render('tickets/public_create',[
             'user'=>$user,

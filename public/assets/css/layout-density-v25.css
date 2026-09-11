@@ -278,3 +278,19 @@
   .manual-flow,
   .dashboard-action-grid{grid-template-columns:1fr!important}
 }
+
+
+/* FASE CATEGORIAS/UI 2026-09-11 · alineacion final dashboard */
+.mgmt-grid{align-items:stretch!important}
+.mgmt-grid>.mgmt-card{height:100%!important;align-self:stretch!important}
+.dashboard-work-grid{align-items:stretch!important}
+.dashboard-work-grid>.card{height:100%!important;align-self:stretch!important}
+.mgmt-filterbar{align-items:end!important}
+.mgmt-filterbar>label{display:flex!important;flex-direction:column!important;height:100%!important}
+.mgmt-filterbar>label>.form-control{margin-top:auto!important}
+@media(max-width:900px){.mgmt-grid>.mgmt-card,.dashboard-work-grid>.card{height:auto!important}.mgmt-filterbar>label{height:auto!important}}
+
+
+/* AJUSTES FINALES 2026-09-11 · KPI dashboard */
+@media(min-width:1501px){.mgmt-kpis-expanded{grid-template-columns:repeat(8,minmax(0,1fr))!important}}
+@media(min-width:901px) and (max-width:1500px){.mgmt-kpis-expanded{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
