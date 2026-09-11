@@ -26,6 +26,7 @@ $requiredTests = [
     'tests\\dark_theme_coverage_smoke.php',
     'tests\\dark_theme_public_smoke.php',
     'tests\\dark_theme_motion_smoke.php',
+    'tests\\navigation_ux_smoke.php',
     'tests\\searchable_select_smoke.php',
     'tests\\requester_ux_smoke.php',
     'tests\\phase3_operational_smoke.php',
