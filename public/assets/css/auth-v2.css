@@ -200,7 +200,6 @@
 .auth-actions-v2 .btn{min-height:36px;padding:7px 11px;font-size:12px}
 .auth-card-v2 .theme-btn{min-width:38px}
 .auth-card-v2 .alert{margin:0 0 18px}
-.auth-field-hidden{display:none!important}
 
 html[data-theme="dark"] .auth-panel-v2,html[data-theme="dark"] .auth-card-v2{background:var(--card,#172033);color:var(--ink,#f5f7fb)}
 html[data-theme="dark"] .auth-card-v2 h2,html[data-theme="dark"] .auth-card-v2 .auth-lead strong,html[data-theme="dark"] .auth-form-v2 label{color:var(--ink,#f5f7fb)}
