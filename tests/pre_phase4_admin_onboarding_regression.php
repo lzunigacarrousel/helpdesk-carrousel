@@ -15,6 +15,7 @@ function ok(bool $cond,string $msg): void {
 }
 
 $auth=body($root.'/app/Controllers/AuthController.php');
+$authService=body($root.'/app/Services/AuthService.php');
 $router=body($root.'/public/index.php');
 $login=body($root.'/app/Views/auth/login.php');
 $admin=body($root.'/app/Controllers/AdminController.php');
@@ -43,6 +44,12 @@ ok(str_contains($login,"APP_BASE_URL ?>/crear-ticket"),'CTA de acceso no habilit
 ok(str_contains($admin,'UPDATE tickets SET requester_user_id=? WHERE requester_user_id IS NULL AND LOWER(requester_email)=LOWER(?)'),'Admin conserva vinculación automática de tickets históricos por correo');
 ok(str_contains($admin,"Flash::set('Usuario creado. Ya puede ingresar con su correo y código de acceso.'"),'Admin deja claro que la cuenta creada usa código OTP');
 ok(str_contains($manual,'Las cuentas de acceso las crea Administración'),'Manual explica que el acceso se habilita desde Administración');
+
+ok(!is_file($root.'/app/Views/auth/register.php'),'Se elimina la vista de autorregistro que ya no tiene ruta');
+ok(!str_contains($authService,'public function register('),'AuthService elimina lógica muerta de autorregistro');
+ok(!str_contains($authService,'private function resolveManager('),'AuthService elimina helper usado solo por autorregistro');
+ok(str_contains($authService,'public function sendOtp('),'AuthService conserva envío OTP');
+ok(str_contains($authService,'public function verify('),'AuthService conserva verificación OTP');
 
 if($fails>0){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
