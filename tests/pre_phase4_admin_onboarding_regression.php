@@ -20,6 +20,7 @@ $router=body($root.'/public/index.php');
 $login=body($root.'/app/Views/auth/login.php');
 $admin=body($root.'/app/Controllers/AdminController.php');
 $manual=body($root.'/app/Views/help/manual.php');
+$authCss=body($root.'/public/assets/css/auth-v2.css');
 
 ok(str_contains($router,"['GET','/crear-ticket',[TicketController::class,'publicCreate']"),'Solicitar ayuda público continúa disponible sin cuenta');
 ok(str_contains($router,"['POST','/auth/request',[AuthController::class,'requestOtp']"),'Login por correo/OTP continúa disponible');
@@ -50,6 +51,11 @@ ok(!str_contains($authService,'public function register('),'AuthService elimina 
 ok(!str_contains($authService,'private function resolveManager('),'AuthService elimina helper usado solo por autorregistro');
 ok(str_contains($authService,'public function sendOtp('),'AuthService conserva envío OTP');
 ok(str_contains($authService,'public function verify('),'AuthService conserva verificación OTP');
+ok(!str_contains($authCss,'auth-register-page'),'CSS elimina estilos exclusivos de la pantalla de autorregistro');
+ok(!str_contains($authCss,'auth-register-section'),'CSS elimina secciones exclusivas de autorregistro');
+ok(!str_contains($authCss,'auth-register-grid'),'CSS elimina grid exclusivo de autorregistro');
+ok(!str_contains($authCss,'auth-work-option'),'CSS elimina opciones exclusivas de autorregistro');
+ok(!str_contains($authCss,'auth-register-note'),'CSS elimina notas exclusivas de autorregistro');
 
 if($fails>0){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
