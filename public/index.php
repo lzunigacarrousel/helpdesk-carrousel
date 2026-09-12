@@ -15,6 +15,7 @@ $routes=[
     ['GET','/mis-tickets',[TicketController::class,'index']],
     ['GET','/login',[AuthController::class,'home']],
     ['POST','/auth/request',[AuthController::class,'requestOtp']],
+    ['GET','/register',[AuthController::class,'legacyRegister']],
     ['GET','/otp',[AuthController::class,'otp']],
     ['POST','/auth/verify',[AuthController::class,'verify']],
     ['POST','/auth/resend',[AuthController::class,'resend']],
