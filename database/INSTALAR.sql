@@ -49,6 +49,7 @@ CREATE TABLE users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     role_id BIGINT UNSIGNED NOT NULL,
     access_type ENUM('INTERNAL','EXTERNAL') NOT NULL DEFAULT 'INTERNAL',
+    requester_entity_type ENUM('PARK','PERSON','DEPARTMENT') NOT NULL DEFAULT 'PERSON',
     email VARCHAR(190) NOT NULL UNIQUE,
     full_name VARCHAR(180) NOT NULL,
     phone VARCHAR(40) NULL,
@@ -272,6 +273,7 @@ CREATE TABLE tickets (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ticket_number VARCHAR(30) NOT NULL UNIQUE,
     case_type ENUM('NORMAL','SPECIAL') NOT NULL DEFAULT 'NORMAL',
+    request_type ENUM('INCIDENT','SERVICE_REQUEST') NOT NULL DEFAULT 'INCIDENT',
     visibility_mode ENUM('INTERNAL','EXTERNAL_ALLOWED') NOT NULL DEFAULT 'INTERNAL',
     origin ENUM('PUBLIC_WEB','AUTHENTICATED_WEB','INTERNAL','IMPORT') NOT NULL DEFAULT 'PUBLIC_WEB',
     requester_user_id BIGINT UNSIGNED NULL,
@@ -282,12 +284,15 @@ CREATE TABLE tickets (
     area_id BIGINT UNSIGNED NULL,
     supervisor_user_id BIGINT UNSIGNED NULL,
     category_id BIGINT UNSIGNED NULL,
+    impact ENUM('INDIVIDUAL','AREA','PARK','MULTI_PARK') NULL,
+    urgency ENUM('LOW','MEDIUM','HIGH','CRITICAL') NULL,
     support_team_id BIGINT UNSIGNED NULL,
     assigned_to BIGINT UNSIGNED NULL,
     assigned_at DATETIME NULL,
     subject VARCHAR(220) NOT NULL,
     description TEXT NOT NULL,
     priority ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL DEFAULT 'MEDIUM',
+    priority_source ENUM('CALCULATED','MANUAL','LEGACY') NOT NULL DEFAULT 'LEGACY',
     status ENUM('NEW','AVAILABLE','IN_PROGRESS','PENDING','RESOLVED','CLOSED','REOPENED','CANCELLED') NOT NULL DEFAULT 'NEW',
     pending_reason_code VARCHAR(50) NULL,
     pending_note VARCHAR(500) NULL,
@@ -625,6 +630,7 @@ INSERT INTO permissions (code, name, module, description) VALUES
 ('tickets.view_all','Ver todos los tickets','tickets','Consulta global sin restriccion organizacional'),
 ('tickets.manage_special','Gestionar casos especiales','tickets','Habilitar y administrar acceso externo'),
 ('tickets.resolve','Documentar y resolver tickets','tickets','Permite registrar causa, solucion y marcar un caso como resuelto.'),
+('tickets.classify','Clasificar casos','tickets','Permite definir tipo, impacto, urgencia y ajustar prioridad con auditoria.'),
 ('users.view','Ver usuarios','users','Consulta de usuarios'),
 ('users.manage','Administrar usuarios','users','Alta, activacion, bloqueo y edicion'),
 ('assignments.view','Ver asignaciones','organization','Consulta de asignaciones organizacionales'),
@@ -650,7 +656,7 @@ INSERT INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p
 WHERE r.code='SEMIADMIN' AND p.code IN(
     'tickets.view_own','tickets.view_queue','tickets.claim','tickets.reassign','tickets.change_status',
-    'tickets.comment_public','tickets.comment_internal','tickets.view_all','tickets.manage_special','tickets.resolve',
+    'tickets.comment_public','tickets.comment_internal','tickets.view_all','tickets.manage_special','tickets.resolve','tickets.classify',
     'users.view','assignments.view','assignments.manage','catalogs.manage','reports.view','reports.global',
     'management.view','external.manage','problems.view','problems.manage','knowledge.view','knowledge.manage','sla.manage'
 );
@@ -659,7 +665,7 @@ WHERE r.code='SEMIADMIN' AND p.code IN(
 INSERT INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p
 WHERE r.code='TECHNICIAN' AND p.code IN(
-    'tickets.view_own','tickets.view_queue','tickets.claim','tickets.change_status','tickets.resolve',
+    'tickets.view_own','tickets.view_queue','tickets.claim','tickets.change_status','tickets.resolve','tickets.classify',
     'tickets.comment_public','tickets.comment_internal','reports.view','problems.view','knowledge.view'
 );
 

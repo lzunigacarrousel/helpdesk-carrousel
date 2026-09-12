@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260910-DARK2'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260912-ITSM21CLOSE'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -30,6 +30,12 @@
       <h2>Completa tus datos</h2>
       <p class="auth-lead"><strong><?= htmlspecialchars((string)$email) ?></strong></p>
       <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
+      <?php if((int)($historicalTicketCount??0)>0): ?>
+        <div class="alert">
+          Encontramos <?= (int)$historicalTicketCount ?> solicitud<?= (int)$historicalTicketCount===1?'':'es' ?> anteriores con este correo.
+          Al completar el registro se vincularán a tu cuenta. La ubicación de esos casos no se cambiará automáticamente.
+        </div>
+      <?php endif; ?>
 
       <form method="post" action="<?= APP_BASE_URL ?>/auth/register" id="registerForm" data-single-submit data-action-message="Guardando tus datos y enviando código…">
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="email" value="<?= htmlspecialchars((string)$email) ?>">

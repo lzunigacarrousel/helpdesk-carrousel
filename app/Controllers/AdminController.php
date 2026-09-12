@@ -13,14 +13,21 @@ final class AdminController
         $pdo=Database::pdo();
 
         $users=$pdo->query(
-            "SELECT u.id,u.email,u.full_name,u.phone,u.status,u.role_id,u.access_type,u.last_login_at,
+            "SELECT u.id,u.email,u.full_name,u.phone,u.status,u.role_id,u.access_type,u.requester_entity_type,u.last_login_at,
                     r.code role_code,r.name role_name,
                     ua.id assignment_id,ua.assignment_type,ua.region_id,ua.park_id,ua.area_id,
                     ua.position_id,ua.manager_user_id,
                     rg.name region_name,p.name park_name,a.name area_name,pos.name position_name,m.full_name manager_name,
                     (SELECT COUNT(*) FROM tickets t
                      WHERE t.assigned_to=u.id AND t.deleted_at IS NULL
-                       AND t.status NOT IN('RESOLVED','CLOSED','CANCELLED')) active_ticket_count
+                       AND t.status NOT IN('RESOLVED','CLOSED','CANCELLED')) active_ticket_count,
+                    (SELECT COUNT(*) FROM tickets t
+                     WHERE t.deleted_at IS NULL AND t.park_id IS NULL
+                       AND (t.requester_user_id=u.id OR (t.requester_user_id IS NULL AND LOWER(t.requester_email)=LOWER(u.email)))) missing_park_ticket_count,
+                    (SELECT COUNT(*) FROM tickets t
+                     WHERE t.deleted_at IS NULL AND t.park_id IS NOT NULL AND ua.park_id IS NOT NULL
+                       AND t.park_id<>ua.park_id
+                       AND (t.requester_user_id=u.id OR (t.requester_user_id IS NULL AND LOWER(t.requester_email)=LOWER(u.email)))) conflicting_park_ticket_count
              FROM users u
              JOIN roles r ON r.id=u.role_id
              LEFT JOIN user_assignments ua ON ua.id=(
@@ -66,13 +73,14 @@ final class AdminController
 
             $uid=Database::transaction(function(PDO $pdo)use($data):int{
                 $stmt=$pdo->prepare(
-                    "INSERT INTO users(role_id,access_type,email,full_name,phone,status,created_at,updated_at)
-                     VALUES(?,'INTERNAL',?,?,?, ?,NOW(),NOW())"
+                    "INSERT INTO users(role_id,access_type,requester_entity_type,email,full_name,phone,status,created_at,updated_at)
+                     VALUES(?,'INTERNAL',?,?,?,?, ?,NOW(),NOW())"
                 );
-                $stmt->execute([$data['role_id'],$data['email'],$data['full_name'],$data['phone'],$data['status']]);
+                $stmt->execute([$data['role_id'],$data['requester_entity_type'],$data['email'],$data['full_name'],$data['phone'],$data['status']]);
                 $uid=(int)$pdo->lastInsertId();
                 $this->replaceAssignment($pdo,$uid,$data,'Creación administrativa Helpdesk');
                 $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
+                $pdo->prepare("UPDATE tickets SET requester_user_id=? WHERE requester_user_id IS NULL AND LOWER(requester_email)=LOWER(?)")->execute([$uid,$data['email']]);
                 return $uid;
             });
 
@@ -81,7 +89,7 @@ final class AdminController
                 'role_id'=>$data['role_id'],'role_code'=>$data['role_code'],
                 'assignment_type'=>$data['assignment_type'],'region_id'=>$data['region_id'],
                 'park_id'=>$data['park_id'],'area_id'=>$data['area_id'],'position_id'=>$data['position_id'],
-                'manager_user_id'=>$data['manager_user_id']
+                'manager_user_id'=>$data['manager_user_id'],'requester_entity_type'=>$data['requester_entity_type']
             ]);
             Flash::set('Usuario creado. Ya puede ingresar con su correo y código de acceso.','success');
             $this->redirectUsers();
@@ -100,7 +108,7 @@ final class AdminController
         if($uid<=0) throw new \RuntimeException('Usuario no válido.');
 
         $q=$pdo->prepare(
-            "SELECT u.id,u.email,u.full_name,u.phone,u.status,u.role_id,u.access_type,r.code role_code
+            "SELECT u.id,u.email,u.full_name,u.phone,u.status,u.role_id,u.access_type,u.requester_entity_type,r.code role_code
              FROM users u JOIN roles r ON r.id=u.role_id
              WHERE u.id=? AND u.deleted_at IS NULL AND u.access_type='INTERNAL' LIMIT 1"
         );
@@ -119,13 +127,15 @@ final class AdminController
             if(($before['role_code']??'')==='ADMIN' && $data['role_code']!=='ADMIN') throw new \RuntimeException('No puedes quitarte a ti mismo el perfil Administrador.');
         }
         if(($before['role_code']??'')==='ADMIN' && $data['role_code']!=='ADMIN') $this->assertAnotherActiveAdmin($pdo,$uid);
+        $previousEmail=strtolower((string)($before['email']??''));
 
-        Database::transaction(function(PDO $pdo)use($uid,$data):void{
+        Database::transaction(function(PDO $pdo)use($uid,$data,$previousEmail):void{
+            $pdo->prepare("UPDATE tickets SET requester_user_id=? WHERE requester_user_id IS NULL AND (LOWER(requester_email)=LOWER(?) OR LOWER(requester_email)=LOWER(?))")->execute([$uid,$previousEmail,$data['email']]);
             $pdo->prepare(
                 "UPDATE users
-                 SET email=?,full_name=?,phone=?,status=?,role_id=?,access_type='INTERNAL',updated_at=NOW()
+                 SET email=?,full_name=?,phone=?,status=?,role_id=?,requester_entity_type=?,access_type='INTERNAL',updated_at=NOW()
                  WHERE id=? AND deleted_at IS NULL"
-            )->execute([$data['email'],$data['full_name'],$data['phone'],$data['status'],$data['role_id'],$uid]);
+            )->execute([$data['email'],$data['full_name'],$data['phone'],$data['status'],$data['role_id'],$data['requester_entity_type'],$uid]);
 
             $this->replaceAssignment($pdo,$uid,$data,'Actualización administrativa Helpdesk');
             $this->syncSupportMembership($pdo,$uid,$data['role_code'],$data['status']);
@@ -141,10 +151,139 @@ final class AdminController
             'status'=>$data['status'],'role_id'=>$data['role_id'],'role_code'=>$data['role_code'],
             'assignment_type'=>$data['assignment_type'],'region_id'=>$data['region_id'],
             'park_id'=>$data['park_id'],'area_id'=>$data['area_id'],'position_id'=>$data['position_id'],
-            'manager_user_id'=>$data['manager_user_id']
+            'manager_user_id'=>$data['manager_user_id'],'requester_entity_type'=>$data['requester_entity_type']
         ]);
         Flash::set('Usuario actualizado correctamente.','success');
         $this->redirectUsers();
+    }
+
+
+    public function backfillParkTickets(): void
+
+    {
+
+        Auth::requirePermission('users.manage');
+
+        Csrf::verify($_POST['_csrf']??null);
+
+        $pdo=Database::pdo();
+
+        $uid=(int)Http::post('user_id');
+
+        $reason=trim(Http::post('backfill_reason'));
+
+        if($uid<=0)throw new \RuntimeException('Usuario no válido.');
+
+        if(mb_strlen($reason)<8)throw new \RuntimeException('Explica por qué estás completando la ubicación histórica.');
+
+
+
+        $q=$pdo->prepare(
+
+            "SELECT u.id,u.email,u.full_name,u.requester_entity_type,ua.park_id,p.name park_name
+
+             FROM users u
+
+             LEFT JOIN user_assignments ua ON ua.id=(
+
+                SELECT MAX(x.id) FROM user_assignments x
+
+                WHERE x.user_id=u.id AND x.status='ACTIVE' AND x.ends_at IS NULL
+
+             )
+
+             LEFT JOIN parks p ON p.id=ua.park_id AND p.is_active=1
+
+             WHERE u.id=? AND u.deleted_at IS NULL AND u.access_type='INTERNAL'
+
+             LIMIT 1"
+
+        );
+
+        $q->execute([$uid]);$account=$q->fetch();
+
+        if(!$account)throw new \RuntimeException('Usuario interno no encontrado.');
+
+        if(($account['requester_entity_type']??'PERSON')!=='PARK')throw new \RuntimeException('Esta acción solo aplica a cuentas que representan un parque.');
+
+        $parkId=(int)($account['park_id']??0);
+
+        if($parkId<=0)throw new \RuntimeException('La cuenta de parque todavía no tiene un parque configurado.');
+
+
+
+        $tickets=$pdo->prepare(
+
+            "SELECT id,area_id
+
+             FROM tickets
+
+             WHERE deleted_at IS NULL AND park_id IS NULL
+
+               AND (requester_user_id=? OR (requester_user_id IS NULL AND LOWER(requester_email)=LOWER(?)))
+
+             ORDER BY created_at,id"
+
+        );
+
+        $tickets->execute([$uid,(string)$account['email']]);
+
+        $rows=$tickets->fetchAll();
+
+        if(!$rows){
+
+            Flash::set('No hay tickets históricos sin parque para completar.','info');
+
+            $this->redirectUsers();
+
+        }
+
+
+
+        Database::transaction(function(PDO $pdo)use($uid,$parkId,$reason,$rows):void{
+
+            foreach($rows as $row){
+
+                $ticketId=(int)$row['id'];
+
+                $pdo->prepare('UPDATE tickets SET requester_user_id=COALESCE(requester_user_id,?),park_id=?,updated_at=NOW() WHERE id=? AND park_id IS NULL')
+
+                    ->execute([$uid,$parkId,$ticketId]);
+
+                $pdo->prepare(
+
+                    "INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
+
+                     VALUES(?,'LOCATION_CHANGED',?,'USER',?,?,?,NOW())"
+
+                )->execute([
+
+                    $ticketId,(int)Auth::id(),
+
+                    json_encode(['park_id'=>null,'area_id'=>(int)($row['area_id']??0)?:null],JSON_UNESCAPED_UNICODE),
+
+                    json_encode(['park_id'=>$parkId,'area_id'=>(int)($row['area_id']??0)?:null],JSON_UNESCAPED_UNICODE),
+
+                    json_encode(['reason'=>$reason,'source'=>'PARK_ACCOUNT_BACKFILL'],JSON_UNESCAPED_UNICODE)
+
+                ]);
+
+            }
+
+        });
+
+
+
+        Audit::log('PARK_ACCOUNT_HISTORY_BACKFILLED','user',$uid,null,[
+
+            'park_id'=>$parkId,'tickets_updated'=>count($rows),'reason'=>$reason
+
+        ]);
+
+        Flash::set(count($rows).' ticket(s) histórico(s) sin parque fueron asignados a '.($account['park_name']?:'el parque configurado').'.','success');
+
+        $this->redirectUsers();
+
     }
 
     public function delete(): void
@@ -205,12 +344,14 @@ final class AdminController
         $area=(int)Http::post('area_id') ?: null;
         $position=(int)Http::post('position_id') ?: null;
         $manager=(int)Http::post('manager_user_id') ?: null;
+        $requesterEntityType=strtoupper(trim(Http::post('requester_entity_type')) ?: (string)($fallback['requester_entity_type']??'PERSON'));
 
         if(!filter_var($email,FILTER_VALIDATE_EMAIL)) throw new \RuntimeException('Ingresa un correo válido.');
         if(mb_strlen($fullName)<3) throw new \RuntimeException('Ingresa el nombre completo del usuario.');
         if(!in_array($status,['PENDING','ACTIVE','BLOCKED','DISABLED'],true)) throw new \RuntimeException('Estado de usuario no válido.');
         if($roleId<=0) throw new \RuntimeException('Selecciona el perfil del usuario.');
         if(!in_array($type,['PARK','CORPORATE','OTHER'],true)) throw new \RuntimeException('Selecciona el tipo de ubicación.');
+        if(!in_array($requesterEntityType,['PARK','PERSON','DEPARTMENT'],true)) throw new \RuntimeException('Selecciona qué representa esta cuenta.');
         if($type==='PARK'&&!$park) throw new \RuntimeException('Selecciona el parque del usuario.');
         if($type==='CORPORATE'&&!$area) throw new \RuntimeException('Selecciona el área del usuario.');
         if(!$position) throw new \RuntimeException('Selecciona el puesto o función.');
@@ -220,6 +361,8 @@ final class AdminController
         $role->execute([$roleId]);
         $roleCode=(string)$role->fetchColumn();
         if($roleCode===''||$roleCode==='EXTERNAL') throw new \RuntimeException('Para proveedores utiliza la sección Proveedores externos.');
+        if($requesterEntityType==='PARK' && ($type!=='PARK'||!$park)) throw new \RuntimeException('Una cuenta que representa un parque debe tener ese parque definido en Dónde trabaja.');
+        if($requesterEntityType==='PARK' && $roleCode==='SUPERVISOR') throw new \RuntimeException('Una cuenta de Supervisión debe ser Persona o Área / departamento, no una cuenta de parque.');
 
         if($park){
             $q=$pdo->prepare('SELECT region_id FROM parks WHERE id=? AND is_active=1 LIMIT 1');
@@ -247,7 +390,7 @@ final class AdminController
             'email'=>$email,'full_name'=>$fullName,'phone'=>$phone,'status'=>$status,
             'role_id'=>$roleId,'role_code'=>$roleCode,'assignment_type'=>$type,
             'region_id'=>$region,'park_id'=>$park,'area_id'=>$area,'position_id'=>$position,
-            'manager_user_id'=>$manager,
+            'manager_user_id'=>$manager,'requester_entity_type'=>$requesterEntityType,
         ];
     }
 

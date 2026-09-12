@@ -22,13 +22,14 @@ final class SearchController
             $canViewAll=Auth::can('tickets.view_all');
             $isSupport=!$isExternal&&($canViewAll||Auth::can('tickets.view_queue')||Auth::can('tickets.change_status'));
 
-            $ticketSql="SELECT t.id,t.ticket_number,t.subject,t.description,t.status,t.priority,t.created_at,t.requester_name,t.requester_email,
+            $ticketSql="SELECT t.id,t.ticket_number,t.subject,t.description,t.status,t.priority,t.created_at,COALESCE(req.full_name,t.requester_name) requester_name,COALESCE(req.email,t.requester_email) requester_email,
                 p.name park_name,a.name area_name,c.name category_name,u.full_name assigned_name
                 FROM tickets t
                 LEFT JOIN parks p ON p.id=t.park_id
                 LEFT JOIN areas a ON a.id=t.area_id
                 LEFT JOIN ticket_categories c ON c.id=t.category_id
-                LEFT JOIN users u ON u.id=t.assigned_to ";
+                LEFT JOIN users u ON u.id=t.assigned_to
+                LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL ";
             $params=[];$where=['t.deleted_at IS NULL'];
 
             if($isExternal){
@@ -49,8 +50,8 @@ final class SearchController
                 't.ticket_number LIKE ?',
                 't.subject LIKE ?',
                 't.description LIKE ?',
-                't.requester_name LIKE ?',
-                't.requester_email LIKE ?',
+                'COALESCE(req.full_name,t.requester_name) LIKE ?',
+                'COALESCE(req.email,t.requester_email) LIKE ?',
                 'p.name LIKE ?',
                 'a.name LIKE ?',
                 'c.name LIKE ?',

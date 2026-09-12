@@ -62,6 +62,7 @@ $assetVersion='20260911-UXHELP1';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/visual-system.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/dark-refinement.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/help-tour-contrast.css?v=20260912-UXHELP2">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/itsm-classification.css?v=20260912-ITSM21">
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">try{const p=localStorage.getItem('carrousel-theme')||'system';const r=p==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.dataset.theme=r}catch(e){}</script>
 </head>
 <body><div class="brand-strip"></div><div class="app-shell">

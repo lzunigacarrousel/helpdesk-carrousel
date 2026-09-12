@@ -43,6 +43,7 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
         <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><option value="">Selecciona</option><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
         <div><label class="form-label">Estado</label><select class="form-control" name="status"><option value="ACTIVE">Activo</option><option value="PENDING">Pendiente</option><option value="BLOCKED">Bloqueado</option><option value="DISABLED">Deshabilitado</option></select></div>
         <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+        <div><label class="form-label">¿Qué representa esta cuenta?</label><select class="form-control" name="requester_entity_type" required data-requester-entity><option value="PERSON">Persona</option><option value="DEPARTMENT">Área / departamento</option><option value="PARK">Parque</option></select><small class="field-help">Parque = correo oficial de un parque. Persona/Área puede reportar otras ubicaciones según su perfil.</small></div>
         <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="">Selecciona</option><option value="PARK">Parque / ubicación</option><option value="CORPORATE">Área corporativa</option><option value="OTHER">Otro</option></select></div>
       </div>
       <div class="admin-access-org">
@@ -85,7 +86,7 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
       ?>
         <tr data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
           <td data-label="Usuario"><strong><?= htmlspecialchars($u['full_name']) ?></strong><small><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></small></td>
-          <td data-label="Perfil"><?= htmlspecialchars($preset['label']) ?></td>
+          <td data-label="Perfil"><?= htmlspecialchars($preset['label']) ?><small><?= htmlspecialchars(match($u['requester_entity_type']??'PERSON'){'PARK'=>'Cuenta de parque','DEPARTMENT'=>'Área / departamento',default=>'Persona'}) ?></small></td>
           <td data-label="Ubicación"><strong><?= htmlspecialchars($assignmentText) ?></strong><?php if(!empty($u['manager_name'])): ?><small>Responsable: <?= htmlspecialchars($u['manager_name']) ?></small><?php endif; ?></td>
           <td data-label="Puesto"><?= htmlspecialchars($u['position_name']??'Pendiente') ?></td>
           <td data-label="Estado"><span class="badge"><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span></td>
@@ -101,6 +102,7 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
                 <div><label class="form-label">Estado</label><select class="form-control" name="status"><?php foreach($statusLabels as $code=>$label): ?><option value="<?= $code ?>" <?= $u['status']===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></div>
                 <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
                 <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+                <div><label class="form-label">¿Qué representa esta cuenta?</label><select class="form-control" name="requester_entity_type" required data-requester-entity><option value="PERSON" <?= ($u['requester_entity_type']??'PERSON')==='PERSON'?'selected':'' ?>>Persona</option><option value="DEPARTMENT" <?= ($u['requester_entity_type']??'PERSON')==='DEPARTMENT'?'selected':'' ?>>Área / departamento</option><option value="PARK" <?= ($u['requester_entity_type']??'PERSON')==='PARK'?'selected':'' ?>>Parque</option></select></div>
                 <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>En un parque</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>En un área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
                 <div data-location-park><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
                 <div data-location-area><label class="form-label">Área corporativa</label><select class="form-control" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
@@ -108,7 +110,39 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
                 <div><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select><small class="field-help">Referencia organizacional: persona a la que reporta. No asigna tickets y no cambia permisos ni alcance.</small></div>
                 <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
               </form>
-              <?php if((int)$u['id']!==(int)Auth::id()): ?>
+              <?php if(($u['requester_entity_type']??'PERSON')==='PARK' && !empty($u['park_id'])): ?>
+
+                <?php if((int)($u['missing_park_ticket_count']??0)>0): ?>
+
+                  <details class="admin-user-convert"><summary>Completar tickets históricos sin parque</summary><div class="admin-user-convert-zone">
+
+                    <strong><?= (int)$u['missing_park_ticket_count'] ?> tickets anteriores sin parque</strong>
+
+                    <p>Esta cuenta representa <?= htmlspecialchars((string)$u['park_name']) ?>. Puedes completar únicamente los tickets que todavía estén sin parque; nunca se sobrescribe un ticket que ya tenga otra ubicación.</p>
+
+                    <form method="post" action="<?= APP_BASE_URL ?>/admin/users/backfill-park-tickets" data-single-submit class="admin-user-convert-form">
+
+                      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+
+                      <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+
+                      <label class="external-full"><span class="form-label">Motivo de la actualización histórica</span><input class="form-control" name="backfill_reason" required minlength="8" maxlength="500" placeholder="Ej. Se confirmó que este correo es la cuenta oficial del parque."></label>
+
+                      <div class="external-full"><button class="btn btn-primary" type="submit">Asignar <?= htmlspecialchars((string)$u['park_name']) ?> a los <?= (int)$u['missing_park_ticket_count'] ?> tickets sin parque</button></div>
+
+                    </form>
+
+                  </div></details>
+
+                <?php endif; ?>
+
+                <?php if((int)($u['conflicting_park_ticket_count']??0)>0): ?>
+
+                  <div class="alert alert-warning"><?= (int)$u['conflicting_park_ticket_count'] ?> ticket(s) ya tienen un parque distinto. No se modifican automáticamente y deben revisarse individualmente.</div>
+
+                <?php endif; ?>
+
+              <?php endif; ?>              <?php if((int)$u['id']!==(int)Auth::id()): ?>
               <details class="admin-user-convert"><summary>Convertir a proveedor externo</summary><div class="admin-user-convert-zone">
                 <strong>Convertir a proveedor externo</strong>
                 <p>Esta persona dejará de tener acceso interno, permisos, ubicación y participación en soporte. Después solo podrá consultar los casos que Carrousel comparta expresamente con su cuenta.</p>
@@ -152,16 +186,19 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
   const sync=function(form){
     const type=form.querySelector('[data-assignment-type]');
     const role=form.querySelector('[data-role-select]');
+    const entity=form.querySelector('[data-requester-entity]');
     if(!type)return;
-    const value=type.value;
+    let value=type.value;
     const roleCode=role?.selectedOptions?.[0]?.dataset?.roleCode||'';
+    const entityValue=entity?.value||'PERSON';
+    if(entityValue==='PARK'&&roleCode!=='SUPERVISOR'){type.value='PARK';value='PARK';}
     const park=form.querySelector('[data-location-park]');
     const area=form.querySelector('[data-location-area]');
     const region=form.querySelector('[data-location-region]');
     const set=function(wrap,show,required){if(!wrap)return;wrap.hidden=!show;const field=wrap.querySelector('select,input');if(!field)return;field.disabled=!show;field.required=!!(show&&required);if(!show)field.required=false;};
     set(park,value==='PARK',true);set(area,value==='CORPORATE',true);set(region,roleCode==='SUPERVISOR'||value==='OTHER',false);
   };
-  document.querySelectorAll('[data-user-admin-form]').forEach(function(form){sync(form);form.querySelector('[data-assignment-type]')?.addEventListener('change',function(){sync(form)});form.querySelector('[data-role-select]')?.addEventListener('change',function(){sync(form)});});
+  document.querySelectorAll('[data-user-admin-form]').forEach(function(form){sync(form);form.querySelector('[data-assignment-type]')?.addEventListener('change',function(){sync(form)});form.querySelector('[data-role-select]')?.addEventListener('change',function(){sync(form)});form.querySelector('[data-requester-entity]')?.addEventListener('change',function(){sync(form)});});
 })();
 </script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>

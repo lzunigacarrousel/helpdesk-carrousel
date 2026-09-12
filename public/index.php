@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -36,6 +36,8 @@ $routes=[
     ['POST','/tickets/assign',[TicketController::class,'assign']],
     ['POST','/tickets/release',[TicketController::class,'release']],
     ['POST','/tickets/status',[WorkflowController::class,'changeStatus']],
+    ['POST','/tickets/classification',[TicketClassificationController::class,'update']],
+    ['POST','/tickets/location',[TicketLocationController::class,'update']],
     ['GET','/tickets/resolve',[ResolutionController::class,'index']],
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
@@ -73,6 +75,7 @@ $routes=[
     ['GET','/admin/users',[AdminController::class,'users']],
     ['POST','/admin/users/create',[AdminController::class,'create']],
     ['POST','/admin/users/assign',[AdminController::class,'assign']],
+    ['POST','/admin/users/backfill-park-tickets',[AdminController::class,'backfillParkTickets']],
     ['POST','/admin/users/delete',[AdminController::class,'delete']],
     ['GET','/admin/externos',[ExternalController::class,'index']],
     ['GET','/admin/externos/informe',[ExternalReportController::class,'index']],

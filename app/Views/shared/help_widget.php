@@ -7,7 +7,7 @@ $help = [
     ],
     'public_create' => [
         'title' => 'Cómo registrar una solicitud',
-        'steps' => ['Completa únicamente los datos que conozcas; si no sabes la ubicación exacta, puedes dejarla sin definir.', 'Elige el tipo más parecido a tu caso.', 'En Detalles explica qué sucede, desde cuándo, a quién o qué equipo afecta y qué intentaste si ya hiciste alguna prueba.', 'Después de enviar recibirás un número de caso y podrás seguir las novedades desde Mis solicitudes.'],
+        'steps' => ['Completa únicamente los datos que conozcas; la ubicación puede quedar sin definir.', 'Elige en qué necesitas ayuda usando el catálogo en lenguaje cotidiano.', 'Cuéntanos qué sucede, desde cuándo y qué intentaste si ya hiciste alguna prueba.', 'Después de enviar recibirás un número de caso y podrás seguir las novedades desde Mis solicitudes.'],
     ],
     'requester_home' => [
         'title' => 'Tu espacio de soporte',

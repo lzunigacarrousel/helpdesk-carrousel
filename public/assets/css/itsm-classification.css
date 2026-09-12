@@ -1,0 +1,38 @@
+/* Helpdesk Carrousel · ITSM 2.1 · clasificación de casos */
+.public-itsm-classification .card-body{padding:18px 20px}
+.public-itsm-classification-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.public-itsm-classification-head h2{margin:0;font-size:17px}.public-itsm-classification-head p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.45;max-width:760px}
+.public-case-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.public-case-type-option{position:relative;display:block;cursor:pointer}
+.public-case-type-option input{position:absolute;opacity:0;pointer-events:none}
+.public-case-type-option>span{display:block;min-height:92px;padding:13px 14px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%);transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
+.public-case-type-option strong,.public-case-type-option small{display:block}.public-case-type-option strong{font-size:14px;color:var(--ink)}.public-case-type-option small{margin-top:5px;color:var(--muted);font-size:11.5px;line-height:1.4}
+.public-case-type-option input:checked+span{border:2px solid var(--brand);background:color-mix(in srgb,var(--brand) 7%,var(--card) 93%);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 10%,transparent)}
+.public-case-type-option input:focus-visible+span{outline:3px solid color-mix(in srgb,var(--brand) 28%,transparent);outline-offset:2px}
+.public-itsm-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}.public-itsm-select-grid .form-label{margin:0 0 6px}.public-itsm-select-grid small{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.4}
+
+.case-kind-chip{display:inline-flex;align-items:center;min-height:25px;padding:4px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--brand) 22%,var(--border) 78%);background:color-mix(in srgb,var(--brand) 6%,var(--card) 94%);color:var(--brand);font-size:10px;font-weight:850;white-space:nowrap}
+.queue-ticket-kind{margin-top:5px}.queue-priority-context{display:block;margin-top:5px;color:var(--muted);font-size:10.5px;line-height:1.35}
+
+.ticket-classification-card{border-left:4px solid color-mix(in srgb,var(--brand) 72%,#6b46c1 28%)}
+.ticket-classification-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.ticket-classification-summary>div{min-width:0;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}
+.ticket-classification-summary span,.ticket-classification-summary strong,.ticket-classification-summary small{display:block}.ticket-classification-summary span{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:850}.ticket-classification-summary strong{margin-top:3px;font-size:13.5px;color:var(--ink)}.ticket-classification-summary small{margin-top:3px;font-size:10.5px;color:var(--muted)}
+.ticket-classification-edit{margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
+.ticket-classification-edit>summary{cursor:pointer;color:var(--brand);font-weight:850;font-size:12px}
+.ticket-classification-form{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px 12px;align-items:end;margin-top:12px}
+.ticket-classification-form label{min-width:0}.ticket-classification-form .form-label{margin:0 0 5px;font-size:11px}
+.ticket-classification-form .classification-note{grid-column:1/-2}.ticket-classification-form .classification-submit{align-self:end}
+.ticket-classification-form .field-help{margin:4px 0 0;font-size:10.5px}
+
+@media(max-width:1050px){
+  .ticket-classification-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ticket-classification-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ticket-classification-form .classification-note{grid-column:1/-1}
+}
+@media(max-width:650px){
+  .public-case-type-grid,.public-itsm-select-grid,.ticket-classification-summary,.ticket-classification-form{grid-template-columns:1fr}
+  .public-case-type-option>span{min-height:auto}
+  .ticket-classification-form .classification-note{grid-column:auto}
+  .ticket-classification-form .classification-submit .btn{width:100%}
+}

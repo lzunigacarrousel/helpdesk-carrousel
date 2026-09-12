@@ -219,7 +219,7 @@ final class NotificationService
     private function resolveTicketRecipients(PDO $pdo,int $ticketId,array $audiences,int $actorId,bool $includeActorEmail=false): array
     {
         $audiences=array_values(array_unique(array_map('strtolower',$audiences)));
-        $q=$pdo->prepare("SELECT t.requester_user_id,t.requester_email,t.requester_name,t.assigned_to,t.support_team_id,u.email assigned_email,u.full_name assigned_name FROM tickets t LEFT JOIN users u ON u.id=t.assigned_to WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");
+        $q=$pdo->prepare("SELECT t.requester_user_id,COALESCE(req.email,t.requester_email) requester_email,COALESCE(req.full_name,t.requester_name) requester_name,t.assigned_to,t.support_team_id,u.email assigned_email,u.full_name assigned_name FROM tickets t LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");
         $q->execute([$ticketId]);$ticket=$q->fetch();if(!$ticket)return [];
         $recipients=[];
         $add=function(?int $userId,?string $email,?string $name,bool $emailChannel,bool $inApp)use(&$recipients,$actorId,$includeActorEmail):void{

@@ -16,7 +16,7 @@ final class XlsxExportController
     {
         $this->requireManagement();
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
-        $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,t.requester_name,t.requester_email,t.requester_phone,
+        $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,COALESCE(req.full_name,t.requester_name) requester_name,COALESCE(req.email,t.requester_email) requester_email,COALESCE(req.phone,t.requester_phone) requester_phone,
             COALESCE(p.name,'') park_name,COALESCE(a.name,'') area_name,COALESCE(c.name,'') category_name,
             t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,COALESCE(u.full_name,'') assigned_name,t.assigned_at,
             t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
@@ -27,6 +27,7 @@ final class XlsxExportController
             FROM tickets t
             LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id
             LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by
+            LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
             LEFT JOIN ticket_feedback tf ON tf.ticket_id=t.id
             {$where} ORDER BY t.created_at DESC");
         $q->execute($params);$records=$q->fetchAll();

@@ -47,12 +47,16 @@ final class AuthController
         $parks=$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll();
         $areas=$pdo->query("SELECT id,name FROM areas WHERE is_active=1 ORDER BY name")->fetchAll();
         $positions=$pdo->query("SELECT id,code,name FROM positions WHERE is_active=1 ORDER BY sort_order,name")->fetchAll();
+        $history=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND requester_user_id IS NULL AND LOWER(requester_email)=LOWER(?)");
+        $history->execute([$email]);
+        $historicalTicketCount=(int)$history->fetchColumn();
 
         View::render('auth/register', [
             'email'=>$email,
             'parks'=>$parks,
             'areas'=>$areas,
             'positions'=>$positions,
+            'historicalTicketCount'=>$historicalTicketCount,
             'flash'=>Flash::pull(),
         ]);
     }

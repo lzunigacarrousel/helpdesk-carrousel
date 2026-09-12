@@ -1,11 +1,11 @@
 <?php
 use App\Core\Csrf;
 use App\Services\RequesterTopicService;
-$u=$user??null;$assignment=$assignment??null;$defaultParkId=(int)($defaultParkId??0);$defaultAreaId=(int)($defaultAreaId??0);
+$u=$user??null;$assignment=$assignment??null;$locationPolicy=$locationPolicy??['mode'=>'ANY_PARK','entity_type'=>'PERSON','parks'=>$parks??[],'fixed_park_id'=>null,'park_required'=>false,'help'=>''];$defaultParkId=(int)($defaultParkId??0);$defaultAreaId=(int)($defaultAreaId??0);
 $hasAssignedPark=$u&&$defaultParkId>0&&!empty($assignment['park_name']);$knownPhone=$u?trim((string)($u['phone']??'')):'';
 $requesterTopics=RequesterTopicService::options($categories??[]);
 $requesterTopicGroups=[];foreach($requesterTopics as $topic){$requesterTopicGroups[(string)$topic['group']][]=$topic;}
-$helpContext='public_create';$assetVersion='20260911-UXHELP1';
+$helpContext='public_create';$assetVersion='20260912-ITSM21AUTO1';
 ?>
 <!doctype html>
 <html lang="es">
@@ -67,14 +67,53 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
       </div></section>
 
       <section class="card public-request-card" data-public-step="location"><div class="card-body">
+
         <h2 class="public-section-title">¿Dónde ocurre?</h2>
-        <?php if($hasAssignedPark): ?>
-          <div class="public-location-summary" data-location-summary><div><span>Ubicación</span><strong><?= htmlspecialchars((string)$assignment['park_name']) ?><?= !empty($assignment['area_name'])?' · '.htmlspecialchars((string)$assignment['area_name']):'' ?></strong></div><button class="btn btn-outline-secondary btn-sm" type="button" data-location-toggle>Reportar en otro lugar</button></div>
+
+        <?php $locationMode=(string)($locationPolicy['mode']??'ANY_PARK'); ?>
+
+        <?php if($locationMode==='FIXED_PARK'): ?>
+
+          <?php $fixedPark=$parks[0]??null; ?>
+
+          <div class="public-location-summary">
+
+            <div><span>Parque de esta cuenta</span><strong><?= htmlspecialchars((string)($fixedPark['name']??'Pendiente de configurar')) ?></strong><small>Cuenta de parque: no puede reportar solicitudes de otra ubicación.</small></div>
+
+          </div>
+
+          <?php if($fixedPark): ?><input type="hidden" name="park_id" value="<?= (int)$fixedPark['id'] ?>"><?php endif; ?>
+
+        <?php elseif($locationMode==='ASSIGNED_PARKS'): ?>
+
+          <div class="public-request-fields public-location-fields">
+
+            <div><label class="form-label" for="park_id">Parques asignados</label><select class="form-control" id="park_id" name="park_id" required><option value="">Selecciona</option><?php foreach($parks as $p): ?><option value="<?= (int)$p['id'] ?>" <?= count($parks)===1?'selected':'' ?>><?= htmlspecialchars($p['name']) ?></option><?php endforeach; ?></select><small class="field-help">Supervisión solo puede reportar solicitudes de los parques dentro de su alcance.</small></div>
+
+            <div><label class="form-label" for="area_id">Área <span class="optional">Opcional</span></label><select class="form-control" id="area_id" name="area_id"><option value="">No especificar</option><?php foreach($areas as $a): ?><option value="<?= (int)$a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option><?php endforeach; ?></select></div>
+
+          </div>
+
+          <?php if(!$parks): ?><div class="alert alert-warning">Tu cuenta de Supervisión no tiene parques asignados. Administración debe completar tu alcance antes de reportar un caso.</div><?php endif; ?>
+
+        <?php else: ?>
+
+          <?php if($hasAssignedPark): ?>
+
+            <div class="public-location-summary" data-location-summary><div><span>Ubicación sugerida</span><strong><?= htmlspecialchars((string)$assignment['park_name']) ?><?= !empty($assignment['area_name'])?' · '.htmlspecialchars((string)$assignment['area_name']):'' ?></strong></div><button class="btn btn-outline-secondary btn-sm" type="button" data-location-toggle>Cambiar ubicación</button></div>
+
+          <?php endif; ?>
+
+          <div class="public-request-fields public-location-fields" data-location-fields data-assigned-park="<?= $defaultParkId ?>" data-assigned-area="<?= $defaultAreaId ?>" <?= $hasAssignedPark?'hidden':'' ?>>
+
+            <div><label class="form-label" for="park_id">Parque o ubicación <span class="optional">Opcional</span></label><select class="form-control" id="park_id" name="park_id"><option value="">No especificar</option><?php foreach($parks as $p): ?><option value="<?= (int)$p['id'] ?>" <?= $defaultParkId===(int)$p['id']?'selected':'' ?>><?= htmlspecialchars($p['name']) ?></option><?php endforeach; ?></select></div>
+
+            <div><label class="form-label" for="area_id">Área <span class="optional">Opcional</span></label><select class="form-control" id="area_id" name="area_id"><option value="">No especificar</option><?php foreach($areas as $a): ?><option value="<?= (int)$a['id'] ?>" <?= $defaultAreaId===(int)$a['id']?'selected':'' ?>><?= htmlspecialchars($a['name']) ?></option><?php endforeach; ?></select></div>
+
+          </div>
+
         <?php endif; ?>
-        <div class="public-request-fields public-location-fields" data-location-fields data-assigned-park="<?= $defaultParkId ?>" data-assigned-area="<?= $defaultAreaId ?>" <?= $hasAssignedPark?'hidden':'' ?>>
-          <div><label class="form-label" for="park_id">Parque o ubicación</label><select class="form-control" id="park_id" name="park_id"><option value="">No especificar</option><?php foreach($parks as $p): ?><option value="<?= (int)$p['id'] ?>" <?= $defaultParkId===(int)$p['id']?'selected':'' ?>><?= htmlspecialchars($p['name']) ?></option><?php endforeach; ?></select></div>
-          <div><label class="form-label" for="area_id">Área</label><select class="form-control" id="area_id" name="area_id"><option value="">No especificar</option><?php foreach($areas as $a): ?><option value="<?= (int)$a['id'] ?>" <?= $defaultAreaId===(int)$a['id']?'selected':'' ?>><?= htmlspecialchars($a['name']) ?></option><?php endforeach; ?></select></div>
-        </div>
+
       </div></section>
     </div>
 

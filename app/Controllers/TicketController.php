@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService};
 use PDO;
 
 final class TicketController
@@ -14,19 +14,39 @@ final class TicketController
     public function publicHome():void{View::render('tickets/public_home',['user'=>Auth::user(),'flash'=>Flash::pull()]);}
 
     public function publicCreate():void{
+
         $pdo=Database::pdo();$user=Auth::user();
+
         $categories=$pdo->query("SELECT c.id,c.code,TRIM(c.name) name,c.parent_id,c.sort_order,TRIM(p.name) parent_name,p.code parent_code,p.sort_order parent_sort_order FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.is_active=1 ORDER BY COALESCE(p.sort_order,c.sort_order),p.id IS NULL DESC,c.sort_order,c.name")->fetchAll();
+
         $assignment=$user?$this->singleActiveAssignment($pdo,(int)$user['id']):null;
+
+        $locationPolicy=(new RequesterLocationPolicyService())->forUser($user);
+
+        $defaultParkId=(int)($locationPolicy['fixed_park_id']??($assignment['park_id']??0));
+
         View::render('tickets/public_create',[
+
             'user'=>$user,
+
             'categories'=>$categories,
-            'parks'=>$pdo->query("SELECT MIN(id) id,TRIM(name) name FROM parks WHERE is_active=1 GROUP BY LOWER(TRIM(name)) ORDER BY name")->fetchAll(),
+
+            'parks'=>$locationPolicy['parks'],
+
             'areas'=>$pdo->query("SELECT MIN(id) id,TRIM(name) name FROM areas WHERE is_active=1 GROUP BY LOWER(TRIM(name)) ORDER BY name")->fetchAll(),
+
             'assignment'=>$assignment,
-            'defaultParkId'=>(int)($assignment['park_id']??0),
+
+            'locationPolicy'=>$locationPolicy,
+
+            'defaultParkId'=>$defaultParkId,
+
             'defaultAreaId'=>(int)($assignment['area_id']??0),
+
             'flash'=>Flash::pull(),
+
         ]);
+
     }
 
     public function publicStore():void{
@@ -45,23 +65,25 @@ final class TicketController
         if(mb_strlen($subject)<5)throw new \RuntimeException('Escribe un resumen un poco más claro.');
         if(mb_strlen($description)<10)throw new \RuntimeException('Cuéntanos un poco más sobre lo que está pasando.');
         $pdo=Database::pdo();$this->rateLimit($email);
-        $c=$pdo->prepare('SELECT id,default_priority FROM ticket_categories WHERE id=? AND is_active=1 LIMIT 1');$c->execute([$categoryId]);$category=$c->fetch();
+        $parkId=(new RequesterLocationPolicyService())->resolveParkId($authUser,$parkId);
+        $c=$pdo->prepare('SELECT c.id,c.code,p.code parent_code FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.id=? AND c.is_active=1 LIMIT 1');$c->execute([$categoryId]);$category=$c->fetch();
         if(!$category)throw new \RuntimeException('La opción seleccionada no está disponible.');
         if($parkId>0&&!$this->activeExists('parks',$parkId))throw new \RuntimeException('La ubicación seleccionada no está disponible.');
         if($areaId>0&&!$this->activeExists('areas',$areaId))throw new \RuntimeException('El área seleccionada no está disponible.');
-        $priority=(string)$category['default_priority'];
+        $classification=TicketClassificationService::inferInitialClassification($category,$subject,$description);
+        $requestType=(string)$classification['request_type'];$impact=(string)$classification['impact'];$urgency=(string)$classification['urgency'];$priority=(string)$classification['priority'];
         if($requesterUserId===null){$u=$pdo->prepare('SELECT id FROM users WHERE email=? AND email_verified_at IS NOT NULL AND deleted_at IS NULL LIMIT 1');$u->execute([$email]);$found=$u->fetchColumn();if($found)$requesterUserId=(int)$found;}
         $teamId=$pdo->query("SELECT id FROM support_teams WHERE code='IT' AND is_active=1 LIMIT 1")->fetchColumn()?:null;
         [$slaId,$firstDue,$resolutionDue]=$this->sla($categoryId,$priority);
-        $ticket=Database::transaction(function(PDO $pdo)use($requesterUserId,$email,$name,$phone,$parkId,$areaId,$categoryId,$teamId,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue){
-            $s=$pdo->prepare("INSERT INTO tickets(ticket_number,case_type,visibility_mode,origin,requester_user_id,requester_email,requester_name,requester_phone,park_id,area_id,category_id,support_team_id,subject,description,priority,status,sla_policy_id,first_response_due_at,resolution_due_at,source_ip,created_at,updated_at) VALUES('', 'NORMAL','INTERNAL','PUBLIC_WEB',?,?,?,?,?,?,?,?,?,?,?,'AVAILABLE',?,?,?,?,NOW(),NOW())");
-            $s->execute([$requesterUserId,$email,$name,$phone?:null,$parkId?:null,$areaId?:null,$categoryId,$teamId?:null,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue,Http::ip()]);
+        $ticket=Database::transaction(function(PDO $pdo)use($requesterUserId,$email,$name,$phone,$parkId,$areaId,$categoryId,$requestType,$impact,$urgency,$teamId,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue){
+            $s=$pdo->prepare("INSERT INTO tickets(ticket_number,case_type,request_type,visibility_mode,origin,requester_user_id,requester_email,requester_name,requester_phone,park_id,area_id,category_id,impact,urgency,support_team_id,subject,description,priority,priority_source,status,sla_policy_id,first_response_due_at,resolution_due_at,source_ip,created_at,updated_at) VALUES('', 'NORMAL',?,'INTERNAL','PUBLIC_WEB',?,?,?,?,?,?,?,?,?,?,?,?,?,'CALCULATED','AVAILABLE',?,?,?,?,NOW(),NOW())");
+            $s->execute([$requestType,$requesterUserId,$email,$name,$phone?:null,$parkId?:null,$areaId?:null,$categoryId,$impact,$urgency,$teamId?:null,$subject,$description,$priority,$slaId,$firstDue,$resolutionDue,Http::ip()]);
             $id=(int)$pdo->lastInsertId();$number='HD-'.date('Y').'-'.str_pad((string)$id,6,'0',STR_PAD_LEFT);
             $pdo->prepare('UPDATE tickets SET ticket_number=? WHERE id=?')->execute([$number,$id]);
-            $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at) VALUES(?,'CREATED',NULL,'PUBLIC',?,?,NOW())")->execute([$id,json_encode(['status'=>'AVAILABLE','priority'=>$priority],JSON_UNESCAPED_UNICODE),json_encode(['origin'=>'PUBLIC_WEB'],JSON_UNESCAPED_UNICODE)]);
+            $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at) VALUES(?,'CREATED',NULL,'PUBLIC',?,?,NOW())")->execute([$id,json_encode(['status'=>'AVAILABLE','request_type'=>$requestType,'impact'=>$impact,'urgency'=>$urgency,'priority'=>$priority,'priority_source'=>'CALCULATED'],JSON_UNESCAPED_UNICODE),json_encode(['origin'=>'PUBLIC_WEB'],JSON_UNESCAPED_UNICODE)]);
             return['id'=>$id,'number'=>$number];
         });
-        Audit::log('TICKET_CREATED_PUBLIC','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['number'],'email'=>$email],[],'PUBLIC_WEB');
+        Audit::log('TICKET_CREATED_PUBLIC','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['number'],'email'=>$email,'request_type'=>$requestType,'impact'=>$impact,'urgency'=>$urgency,'priority'=>$priority,'priority_source'=>'CALCULATED'],[],'PUBLIC_WEB');
         $this->notifyCreated((int)$ticket['id']);
         $_SESSION['public_ticket_created']=$ticket['number'];header('Location: '.APP_BASE_URL.'/ticket-enviado');exit;
     }
@@ -81,12 +103,13 @@ final class TicketController
     public function queue():void{
         Auth::requirePermission('tickets.view_queue');$pdo=Database::pdo();
         [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
-        $q=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name
+        $q=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,COALESCE(req.full_name,t.requester_name) current_requester_name,COALESCE(req.email,t.requester_email) current_requester_email
             FROM tickets t
             LEFT JOIN ticket_categories c ON c.id=t.category_id
             LEFT JOIN parks p ON p.id=t.park_id
             LEFT JOIN areas a ON a.id=t.area_id
             LEFT JOIN users u ON u.id=t.assigned_to
+            LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
             WHERE t.deleted_at IS NULL
               AND t.status IN('NEW','AVAILABLE','IN_PROGRESS','PENDING','REOPENED')
               AND ({$scopeSql})
@@ -149,11 +172,14 @@ final class TicketController
 
     public function show():void{
         Auth::requireLogin();$id=(int)($_GET['id']??0);if($id<=0)throw new \RuntimeException('Ticket no válido.');$pdo=Database::pdo();
-        $s=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,u.email assigned_email FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN users u ON u.id=t.assigned_to WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");$s->execute([$id]);$ticket=$s->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');$this->visible($ticket);
+        $s=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,u.email assigned_email,COALESCE(req.full_name,t.requester_name) current_requester_name,COALESCE(req.email,t.requester_email) current_requester_email,COALESCE(req.phone,t.requester_phone) current_requester_phone,rp.name current_requester_park_name,ra.name current_requester_area_name FROM tickets t LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL LEFT JOIN user_assignments rqa ON rqa.id=(SELECT MAX(x.id) FROM user_assignments x WHERE x.user_id=t.requester_user_id AND x.status='ACTIVE' AND x.ends_at IS NULL) LEFT JOIN parks rp ON rp.id=rqa.park_id LEFT JOIN areas ra ON ra.id=rqa.area_id WHERE t.id=? AND t.deleted_at IS NULL LIMIT 1");$s->execute([$id]);$ticket=$s->fetch();if(!$ticket)throw new \RuntimeException('Ticket no encontrado.');$this->visible($ticket);
         $e=$pdo->prepare("SELECT te.*,u.full_name actor_name FROM ticket_events te LEFT JOIN users u ON u.id=te.actor_user_id WHERE te.ticket_id=? ORDER BY te.created_at,te.id");$e->execute([$id]);
         $ticket['sla_summary']=SlaPresentationService::summary($ticket);
+        $canEditLocation=Auth::can('tickets.classify');
+        $locationParks=$canEditLocation?$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll():[];
+        $locationAreas=$canEditLocation?$pdo->query("SELECT id,name FROM areas WHERE is_active=1 ORDER BY name")->fetchAll():[];
         $isSupport=Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.reassign')||Auth::can('tickets.view_all');$supportUsers=[];if(Auth::can('tickets.reassign'))$supportUsers=$pdo->query("SELECT u.id,u.full_name,u.email,r.name role_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll();
-        View::render('tickets/show',['user'=>Auth::user(),'ticket'=>$ticket,'events'=>$e->fetchAll(),'flash'=>Flash::pull(),'isSupport'=>$isSupport,'supportUsers'=>$supportUsers,'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),'canReassign'=>Auth::can('tickets.reassign'),'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),'statusLabels'=>self::STATUS_LABELS,'priorityLabels'=>self::PRIORITY_LABELS]);
+        View::render('tickets/show',['user'=>Auth::user(),'ticket'=>$ticket,'events'=>$e->fetchAll(),'flash'=>Flash::pull(),'isSupport'=>$isSupport,'supportUsers'=>$supportUsers,'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),'canReassign'=>Auth::can('tickets.reassign'),'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),'canClassify'=>Auth::can('tickets.classify')&&!in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'statusLabels'=>self::STATUS_LABELS,'priorityLabels'=>self::PRIORITY_LABELS,'canEditLocation'=>$canEditLocation,'locationParks'=>$locationParks,'locationAreas'=>$locationAreas]);
     }
 
     private function visible(array $t):void{

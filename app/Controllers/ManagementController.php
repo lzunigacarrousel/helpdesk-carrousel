@@ -60,8 +60,8 @@ final class ManagementController
         $trend=$this->group($pdo,"SELECT DATE_FORMAT(t.created_at,'%Y-%m') periodo,COUNT(*) total,COALESCE(SUM(t.status IN('RESOLVED','CLOSED')),0) completados FROM tickets t {$where} GROUP BY DATE_FORMAT(t.created_at,'%Y-%m') ORDER BY periodo",$params);
 
         $detail=$pdo->prepare("SELECT t.id,t.ticket_number,t.subject,t.description,t.status,t.priority,t.pending_reason_code,t.pending_note,t.created_at,t.first_response_at,t.resolved_at,t.resolution_due_at,
-            p.name park_name,c.name category_name,u.full_name assigned_name,t.requester_name
-            FROM tickets t LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN users u ON u.id=t.assigned_to
+            p.name park_name,c.name category_name,u.full_name assigned_name,COALESCE(req.full_name,t.requester_name) requester_name
+            FROM tickets t LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN ticket_categories c ON c.id=t.category_id LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
             {$where} ORDER BY t.created_at DESC LIMIT 80");
         $detail->execute($params);
 
@@ -77,13 +77,13 @@ final class ManagementController
         $this->requireReports();
         $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
 
-        $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,t.requester_name,t.requester_email,t.requester_phone,t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,
+        $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,COALESCE(req.full_name,t.requester_name) requester_name,COALESCE(req.email,t.requester_email) requester_email,COALESCE(req.phone,t.requester_phone) requester_phone,t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,
             p.name park_name,a.name area_name,c.name category_name,u.full_name assigned_name,t.assigned_at,
             t.first_response_at,t.resolved_at,t.closed_at,t.first_response_due_at,t.resolution_due_at,
             tr.resolution_type,tr.root_cause,tr.solution_applied,tr.preventive_action,tr.is_reusable,ru.full_name resolution_author
             FROM tickets t
             LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id
-            LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by
+            LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
             {$where} ORDER BY t.created_at DESC LIMIT 500");
         $q->execute($params);$rows=$q->fetchAll();
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$rows));
