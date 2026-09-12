@@ -1,4 +1,4 @@
-<?php use App\Core\Csrf; $assetVersion='20260910-DARK2'; ?>
+<?php use App\Core\Csrf; $assetVersion='20260912-ADMINONBOARD1'; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -40,11 +40,14 @@
         <button class="btn btn-primary auth-primary" type="submit">Continuar</button>
       </form>
 
-      <div class="auth-helper-v2"><span>i</span><div><strong>¿Primer ingreso?</strong> Si el correo no existe, completarás tu perfil antes de recibir el código.</div></div>
+      <div class="auth-helper-v2"><span>i</span><div><strong>¿Aún no tienes acceso?</strong> Puedes reportar una solicitud sin iniciar sesión. Para consultar tu historial, tu cuenta debe estar habilitada por Administración.</div></div>
       <p class="auth-security-v2">El código OTP es temporal. No lo compartas.</p>
 
       <div class="auth-actions-v2">
-        <div class="auth-action-group"><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver</a></div>
+        <div class="auth-action-group">
+          <a class="btn btn-primary btn-sm" href="<?= APP_BASE_URL ?>/crear-ticket">Reportar una solicitud</a>
+          <a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/">← Volver</a>
+        </div>
         <button class="btn btn-outline-secondary btn-sm theme-btn" type="button" data-theme-toggle title="Cambiar apariencia" aria-label="Cambiar apariencia"><span data-theme-icon>◐</span></button>
       </div>
     </div>
