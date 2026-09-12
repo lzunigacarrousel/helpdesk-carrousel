@@ -25,12 +25,15 @@ ok(str_contains($router,"['POST','/auth/request',[AuthController::class,'request
 ok(str_contains($router,"['GET','/otp',[AuthController::class,'otp']"),'Pantalla OTP continúa disponible');
 ok(str_contains($router,"['POST','/auth/verify',[AuthController::class,'verify']"),'Verificación OTP continúa disponible');
 
-ok(!str_contains($router,"['GET','/register'"),'Se elimina ruta pública de autorregistro');
+ok(str_contains($router,"['GET','/register',[AuthController::class,'legacyRegister']"),'URL antigua /register conserva redirección compatible');
 ok(!str_contains($router,"['POST','/auth/register'"),'Se elimina endpoint de creación por autorregistro');
 ok(!str_contains($auth,"APP_BASE_URL.'/register'"),'Correo desconocido ya no se redirige a registro');
 ok(!str_contains($auth,"register_email"),'Autenticación ya no mantiene sesión de autorregistro');
 ok(!str_contains($auth,'public function register(): void'),'AuthController elimina pantalla de autorregistro');
 ok(!str_contains($auth,'public function createUser(): void'),'AuthController elimina creación pública de usuario');
+ok(str_contains($auth,'public function legacyRegister(): void'),'AuthController conserva compatibilidad para /register');
+ok(str_contains($auth,"Flash::set('El registro de cuentas se gestiona desde Administración.'"),'Compatibilidad /register explica que Administración habilita la cuenta');
+ok(str_contains($auth,"header('Location: '.APP_BASE_URL.'/login')"),'Compatibilidad /register vuelve al login');
 ok(str_contains($auth,'Este correo todavía no tiene acceso al Helpdesk.'),'Correo desconocido recibe mensaje simple de acceso no habilitado');
 
 ok(!str_contains($login,'¿Primer ingreso?'),'Login elimina invitación al autorregistro');
