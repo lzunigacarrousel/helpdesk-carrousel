@@ -21,6 +21,7 @@ $login=body($root.'/app/Views/auth/login.php');
 $admin=body($root.'/app/Controllers/AdminController.php');
 $manual=body($root.'/app/Views/help/manual.php');
 $authCss=body($root.'/public/assets/css/auth-v2.css');
+$darkCss=body($root.'/public/assets/css/dark-refinement.css');
 
 ok(str_contains($router,"['GET','/crear-ticket',[TicketController::class,'publicCreate']"),'Solicitar ayuda público continúa disponible sin cuenta');
 ok(str_contains($router,"['POST','/auth/request',[AuthController::class,'requestOtp']"),'Login por correo/OTP continúa disponible');
@@ -56,6 +57,10 @@ ok(!str_contains($authCss,'auth-register-section'),'CSS elimina secciones exclus
 ok(!str_contains($authCss,'auth-register-grid'),'CSS elimina grid exclusivo de autorregistro');
 ok(!str_contains($authCss,'auth-work-option'),'CSS elimina opciones exclusivas de autorregistro');
 ok(!str_contains($authCss,'auth-register-note'),'CSS elimina notas exclusivas de autorregistro');
+ok(!str_contains($authCss,'auth-field-hidden'),'CSS elimina helper huérfano del autorregistro');
+ok(!str_contains($darkCss,'auth-register-section'),'Refinamiento oscuro elimina sección huérfana de autorregistro');
+ok(!str_contains($darkCss,'auth-register-grid'),'Refinamiento oscuro elimina grid huérfano de autorregistro');
+ok(!str_contains($darkCss,'auth-register-note'),'Refinamiento oscuro elimina notas huérfanas de autorregistro');
 
 if($fails>0){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
