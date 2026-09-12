@@ -8,7 +8,7 @@ function ok(bool $cond,string $msg):void{global $fails;echo ($cond?'[OK] ':'[FAL
 
 $authController=body($root.'/app/Controllers/AuthController.php');
 $authService=body($root.'/app/Services/AuthService.php');
-$register=body($root.'/app/Views/auth/register.php');
+$router=body($root.'/public/index.php');
 $admin=body($root.'/app/Controllers/AdminController.php');
 $users=body($root.'/app/Views/admin/users.php');
 $policy=body($root.'/app/Services/RequesterLocationPolicyService.php');
@@ -16,18 +16,13 @@ $ticket=body($root.'/app/Controllers/TicketController.php');
 $location=body($root.'/app/Controllers/TicketLocationController.php');
 $install=body($root.'/database/INSTALAR.sql');
 
-ok(str_contains($authController,'historicalTicketCount'),'Primer ingreso detecta solicitudes históricas del correo');
-ok(!str_contains($authController,"'requester_entity_type'=>Http::post"),'Primer ingreso no pide clasificar PARK/PERSON/DEPARTMENT');
-ok(str_contains($register,'Ubicación y función'),'Primer ingreso conserva flujo simple');
-ok(str_contains($register,'name="assignment_type" value="PARK"'),'Primer ingreso conserva Parque / ubicación');
-ok(str_contains($register,'name="assignment_type" value="CORPORATE"'),'Primer ingreso conserva Área corporativa');
-ok(str_contains($register,'name="assignment_type" value="OTHER"'),'Primer ingreso conserva Otro');
-ok(!str_contains($register,'name="requester_entity_type"'),'Primer ingreso no muestra tipo administrativo de cuenta');
-ok(!str_contains($register,'¿Qué representa este correo?'),'Primer ingreso elimina pregunta redundante');
-ok(str_contains($register,'anteriores con este correo'),'Primer ingreso avisa si hay tickets anteriores');
-ok(!str_contains($authService,'requester_entity_type'),'Autorregistro depende del default PERSON de BD');
-ok(str_contains($authService,"status'=>'PENDING'"),'Autorregistro continúa PENDING');
-ok(str_contains($authService,'UPDATE tickets SET requester_user_id=?'),'Autorregistro conserva vinculación de tickets históricos');
+ok(!str_contains($router,"['POST','/auth/register'"),'Onboarding administrado elimina creación pública de cuentas');
+ok(str_contains($router,"['GET','/register',[AuthController::class,'legacyRegister']"),'Ruta legacy de registro conserva salida segura al login');
+ok(str_contains($authController,'legacyRegister'),'Acceso conserva compatibilidad con URL antigua de registro');
+ok(!str_contains($authService,'public function register('),'AuthService ya no contiene autorregistro');
+ok(str_contains($authService,'public function sendOtp('),'Acceso conserva envío OTP');
+ok(str_contains($authService,'public function verify('),'Acceso conserva verificación OTP');
+ok(str_contains($admin,'UPDATE tickets SET requester_user_id=? WHERE requester_user_id IS NULL AND LOWER(requester_email)=LOWER(?)'),'Administración vincula solicitudes históricas por correo al crear usuario');
 
 ok(str_contains($install,'requester_entity_type'),'BD conserva clasificación administrativa de cuenta');
 ok(str_contains($admin,'requester_entity_type'),'Administración conserva clasificación PARK/PERSON/DEPARTMENT');
@@ -43,4 +38,4 @@ if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
     exit(1);
 }
-echo PHP_EOL."[OK] Cierre funcional ITSM 2.1 validado.".PHP_EOL;
+echo PHP_EOL."[OK] Cierre funcional ITSM 2.1 validado con onboarding administrado.".PHP_EOL;
