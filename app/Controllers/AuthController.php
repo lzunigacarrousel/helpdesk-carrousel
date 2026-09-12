@@ -19,6 +19,13 @@ final class AuthController
         ]);
     }
 
+    public function legacyRegister(): void
+    {
+        Flash::set('El registro de cuentas se gestiona desde Administración.','info');
+        header('Location: '.APP_BASE_URL.'/login');
+        exit;
+    }
+
     public function requestOtp(): void
     {
         Csrf::verify($_POST['_csrf'] ?? null);
