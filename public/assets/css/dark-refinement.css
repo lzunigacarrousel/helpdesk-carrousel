@@ -217,8 +217,7 @@ html[data-theme="dark"] .public-result-card,
 html[data-theme="dark"] .friendly-error-card,
 html[data-theme="dark"] .auth-layout-v2,
 html[data-theme="dark"] .auth-panel-v2,
-html[data-theme="dark"] .auth-card-v2,
-html[data-theme="dark"] .auth-register-section{background:var(--dark-surface);border-color:var(--dark-border);color:var(--dark-text);box-shadow:var(--shadow)}
+html[data-theme="dark"] .auth-card-v2{background:var(--dark-surface);border-color:var(--dark-border);color:var(--dark-text);box-shadow:var(--shadow)}
 html[data-theme="dark"] .choice-card.primary{background:linear-gradient(180deg,rgba(127,167,255,.10),rgba(127,167,255,.025));border-color:#4c6fa8}
 html[data-theme="dark"] .choice-icon,
 html[data-theme="dark"] .help-note{background:#14243b;color:#b6ceff}
@@ -240,12 +239,8 @@ html[data-theme="dark"] .auth-helper-v2{background:var(--dark-surface-raised);bo
 html[data-theme="dark"] .auth-security-v2{border-color:var(--dark-border);color:var(--dark-muted)}
 html[data-theme="dark"] .auth-card-v2 h2,
 html[data-theme="dark"] .auth-card-v2 .auth-lead strong,
-html[data-theme="dark"] .auth-form-v2 label,
-html[data-theme="dark"] .auth-register-section h3,
-html[data-theme="dark"] .auth-register-grid label{color:var(--dark-text)}
-html[data-theme="dark"] .auth-card-v2 .auth-lead,
-html[data-theme="dark"] .auth-register-section>p,
-html[data-theme="dark"] .auth-register-note{color:var(--dark-muted)}
+html[data-theme="dark"] .auth-form-v2 label{color:var(--dark-text)}
+html[data-theme="dark"] .auth-card-v2 .auth-lead{color:var(--dark-muted)}
 
 /* Footer */
 html[data-theme="dark"] .app-corporate-footer{color:#8796a9;border-top-color:var(--dark-border)}
