@@ -9,7 +9,15 @@ $providerCount=count($users);$activeProviderCount=count($shareUsers);$accessCoun
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-.external-admin-page{display:grid;gap:12px}.external-admin-page>.mgmt-head,.external-admin-page>.external-admin-kpis,.external-admin-page>.mgmt-card{margin-bottom:0}.external-provider-create{margin:0}.external-provider-create>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;font-weight:850}.external-provider-create>summary::-webkit-details-marker{display:none}.external-provider-create>summary:after{content:'+';display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--border);border-radius:8px;color:var(--brand);font-size:18px}.external-provider-create[open]>summary:after{content:'−'}.external-provider-create[open]>summary{border-bottom:1px solid var(--border)}.external-share-primary{height:auto!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--brand) 28%,var(--border) 72%)}.external-share-primary .external-form{grid-template-columns:1fr 1fr}.external-share-primary .mgmt-card-head{align-items:center}.external-directory-tools{display:flex;align-items:center;gap:8px}.external-directory-tools .form-control{min-width:280px}.external-provider-name strong{display:block}.external-provider-name small{display:block}.external-admin-kpis article small{display:none}.external-provider-actions details{min-width:240px}.external-provider-actions summary{cursor:pointer;color:var(--brand);font-weight:850}.external-provider-edit-form{display:grid;gap:7px;padding:9px 0}.external-provider-edit-form label{font-size:10.5px;font-weight:800;color:var(--muted)}.external-provider-edit-form .form-control{margin-top:3px}.external-provider-origin{font-size:10.5px;color:var(--muted)}.external-provider-disabled{opacity:.72}.external-provider-danger{margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}.external-convert-internal{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}.external-convert-internal>summary{color:var(--brand)!important}.external-convert-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.external-convert-grid .external-full{grid-column:1/-1}.external-convert-grid small{display:block;margin-top:3px;color:var(--muted);font-size:10px}@media(max-width:760px){.external-convert-grid{grid-template-columns:1fr}}@media(max-width:760px){.external-share-primary .external-form{grid-template-columns:1fr}.external-share-primary .external-full{grid-column:1}.external-directory-tools{width:100%}.external-directory-tools .form-control{min-width:0;width:100%}}
+.external-admin-page{display:grid;gap:12px}.external-admin-page>.mgmt-head,.external-admin-page>.external-admin-kpis,.external-admin-page>.mgmt-card{margin-bottom:0}
+.external-provider-create{margin:0}.external-provider-create>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;font-weight:850}.external-provider-create>summary::-webkit-details-marker{display:none}.external-provider-create>summary:after{content:'+';display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--border);border-radius:8px;color:var(--brand);font-size:18px}.external-provider-create[open]>summary:after{content:'−'}.external-provider-create[open]>summary{border-bottom:1px solid var(--border)}
+.external-share-primary{height:auto!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--brand) 28%,var(--border) 72%)}.external-share-primary .external-form{grid-template-columns:1fr 1fr}.external-share-primary .mgmt-card-head{align-items:center}
+.external-directory-tools{display:flex;align-items:center;gap:8px}.external-directory-tools .form-control{min-width:280px}.external-provider-name strong{display:block}.external-provider-name small{display:block}.external-admin-kpis article small{display:none}.external-provider-origin{font-size:10.5px;color:var(--muted)}.external-provider-disabled{opacity:.72}.external-provider-edit-toggle{white-space:nowrap}
+.external-provider-edit-row[hidden]{display:none!important}.external-provider-edit-row>td{padding:0 10px 14px!important;background:transparent!important}.external-provider-edit-shell{padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow-sm)}.external-provider-edit-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--border)}.external-provider-edit-head strong{display:block;font-size:16px;color:var(--brand-dark)}.external-provider-edit-head small{display:block;margin-top:2px;color:var(--muted)}.external-provider-edit-panel{padding:0}
+.external-provider-edit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px}.external-provider-edit-grid label{font-size:10.5px;font-weight:800;color:var(--muted)}.external-provider-edit-grid .form-control{margin-top:3px}.external-provider-edit-grid .external-full{grid-column:1/-1}.external-provider-edit-grid .external-save{grid-column:1/-1;display:flex;justify-content:flex-end}.external-provider-edit-grid .external-save .btn{min-width:220px}
+.external-provider-danger{margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}.external-convert-internal{margin-top:10px;padding-top:8px;border-top:1px solid var(--border)}.external-convert-internal>summary{cursor:pointer;color:var(--brand);font-weight:850}.external-convert-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;margin-top:8px}.external-convert-grid .external-full{grid-column:1/-1}.external-convert-grid small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+@media(max-width:1180px){.external-provider-edit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.external-provider-edit-grid .external-full{grid-column:1/-1}}
+@media(max-width:760px){.external-share-primary .external-form{grid-template-columns:1fr}.external-share-primary .external-full{grid-column:1}.external-directory-tools{width:100%}.external-directory-tools .form-control{min-width:0;width:100%}.external-provider-edit-row>td{display:block!important;width:100%!important;padding:8px 0 14px!important}.external-provider-edit-shell{padding:14px}.external-provider-edit-head{align-items:flex-start;flex-direction:column}.external-provider-edit-head .btn{width:100%}.external-provider-edit-grid{grid-template-columns:1fr}.external-provider-edit-grid .external-full,.external-provider-edit-grid .external-save{grid-column:auto}.external-provider-edit-grid .external-save .btn{width:100%;min-width:0}.external-convert-grid{grid-template-columns:1fr}}
 </style>
 <div class="external-admin-page">
 <div class="mgmt-head external-admin-head"><div><span class="mgmt-kicker">Colaboración externa</span><h1>Proveedores</h1></div><div class="mgmt-head-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos/informe">Ver historial</a></div></div>
@@ -55,7 +63,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       $searchText=mb_strtolower(trim(($u['organization_name']??'').' '.($u['full_name']??'').' '.($u['email']??'').' '.($u['phone']??'').' '.($statusLabels[$u['status']]??'')));
       $converted=!empty($u['converted_from_internal']);
     ?>
-      <tr data-external-user data-search="<?= htmlspecialchars($searchText) ?>" class="<?= ($u['status']??'')==='DISABLED'?'external-provider-disabled':'' ?>">
+      <tr id="external-provider-<?= (int)$u['id'] ?>" data-external-user data-search="<?= htmlspecialchars($searchText) ?>" class="<?= ($u['status']??'')==='DISABLED'?'external-provider-disabled':'' ?>">
         <td data-label="Proveedor" class="external-provider-name"><strong><?= htmlspecialchars($u['organization_name']?:$u['full_name']) ?></strong></td>
         <td data-label="Tipo"><?= htmlspecialchars($typeLabels[$u['external_type']]??'Externo') ?></td>
         <td data-label="Contacto"><?= htmlspecialchars($u['full_name']) ?></td>
@@ -64,46 +72,57 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="Estado"><span class="badge"><?= htmlspecialchars($statusLabels[$u['status']]??$u['status']) ?></span></td>
         <td data-label="Origen"><span class="external-provider-origin"><?= $converted?'Convertido desde usuario interno':'Creado como proveedor' ?></span></td>
         <td data-label="Casos activos" class="data-table-number"><?= (int)$u['active_cases'] ?></td>
-        <td data-label="Acciones" class="external-provider-actions">
-          <details><summary>Editar</summary>
-            <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/actualizar" class="external-provider-edit-form" data-single-submit>
-              <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-              <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-              <label>Proveedor / empresa<input class="form-control" name="organization_name" required value="<?= htmlspecialchars((string)($u['organization_name']??'')) ?>"></label>
-              <label>Tipo<select class="form-control" name="external_type"><?php foreach($typeLabels as $code=>$label): ?><option value="<?= $code ?>" <?= ($u['external_type']??'PROVIDER')===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label>
-              <label>Contacto<input class="form-control" name="name" required value="<?= htmlspecialchars($u['full_name']) ?>"></label>
-              <label>Correo<input class="form-control" type="email" name="email" required value="<?= htmlspecialchars($u['email']) ?>"></label>
-              <label>Teléfono<input class="form-control" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></label>
-              <label>Servicio / referencia<input class="form-control" name="notes" value="<?= htmlspecialchars((string)($u['notes']??'')) ?>" placeholder="Ej. Internet, CCTV, POS..."></label>
-              <button class="btn btn-primary btn-sm" type="submit">Guardar cambios</button>
-            </form>
-            <?php if($canConvertToInternal): ?>
-            <details class="external-convert-internal"><summary>Convertir a usuario interno</summary>
-              <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/convertir-interno" class="external-provider-edit-form external-convert-grid" data-single-submit>
-                <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                <div class="external-full"><small>Conserva la misma identidad e historial. Se revocarán sus casos compartidos como proveedor y deberá iniciar sesión nuevamente.</small></div>
-                <label>Perfil interno<select class="form-control" name="role_id" required><option value="">Selecciona</option><?php foreach(($internalRoles??[]) as $r): if(!$isFullAdmin&&($r['code']??'')==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></label>
-                <label>Estado<select class="form-control" name="status"><option value="ACTIVE">Activo</option><option value="PENDING">Pendiente</option><option value="BLOCKED">Bloqueado</option><option value="DISABLED">Deshabilitado</option></select></label>
-                <label>Puesto o función<select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach(($positions??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-                <label>Dónde trabaja<select class="form-control" name="assignment_type" required><option value="">Selecciona</option><option value="PARK">Parque / ubicación</option><option value="CORPORATE">Área corporativa</option><option value="OTHER">Otro</option></select></label>
-                <label>Parque<select class="form-control" name="park_id"><option value="">No aplica</option><?php foreach(($parks??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-                <label>Área corporativa<select class="form-control" name="area_id"><option value="">No aplica</option><?php foreach(($areas??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-                <label>Región <span class="optional">Opcional</span><select class="form-control" name="region_id"><option value="">No aplica / automática por parque</option><?php foreach(($regions??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
-                <label>Responsable directo <span class="optional">Opcional</span><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach(($managers??[]) as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>"><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select><small>Referencia organizacional: persona a la que reporta. No asigna tickets y no cambia permisos ni alcance.</small></label>
-                <label class="external-full"><input type="checkbox" name="confirm_convert_internal" value="1" required> Confirmo que esta cuenta dejará de ser proveedor externo y volverá a tener acceso interno según el perfil seleccionado.</label>
-                <div class="external-full"><button class="btn btn-primary btn-sm" type="submit">Convertir a usuario interno</button></div>
-              </form>
-            </details>
-            <?php endif; ?>
-            <?php if(($u['status']??'')!=='DISABLED'): ?><div class="external-provider-danger">
-              <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/desactivar" data-single-submit>
+        <td data-label="Acciones"><button class="btn btn-outline-secondary external-provider-edit-toggle" type="button" data-external-edit-toggle aria-expanded="false" aria-controls="external-edit-<?= (int)$u['id'] ?>">Editar</button></td>
+      </tr>
+      <tr class="external-provider-edit-row" data-external-edit-row hidden id="external-edit-<?= (int)$u['id'] ?>">
+        <td colspan="9">
+          <div class="external-provider-edit-shell" data-external-edit-panel>
+            <div class="external-provider-edit-head">
+              <div><strong>Editar proveedor · <?= htmlspecialchars($u['organization_name']?:$u['full_name']) ?></strong><small><?= htmlspecialchars($u['email']) ?></small></div>
+              <button class="btn btn-outline-secondary" type="button" data-external-edit-close>Cancelar edición</button>
+            </div>
+            <div class="external-provider-edit-panel">
+              <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/actualizar" class="external-provider-edit-grid" data-single-submit>
                 <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
                 <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                <button class="btn btn-outline-secondary btn-sm" type="submit">Desactivar proveedor</button>
+                <label>Proveedor / empresa<input class="form-control" name="organization_name" required value="<?= htmlspecialchars((string)($u['organization_name']??'')) ?>"></label>
+                <label>Tipo<select class="form-control" name="external_type"><?php foreach($typeLabels as $code=>$label): ?><option value="<?= $code ?>" <?= ($u['external_type']??'PROVIDER')===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></label>
+                <label>Contacto<input class="form-control" name="name" required value="<?= htmlspecialchars($u['full_name']) ?>"></label>
+                <label>Correo<input class="form-control" type="email" name="email" required value="<?= htmlspecialchars($u['email']) ?>"></label>
+                <label>Teléfono<input class="form-control" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></label>
+                <label>Servicio / referencia<input class="form-control" name="notes" value="<?= htmlspecialchars((string)($u['notes']??'')) ?>" placeholder="Ej. Internet, CCTV, POS..."></label>
+                <div class="external-save"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
               </form>
-              <small class="external-form-note">Desactivar revoca todos sus casos compartidos y sesiones vigentes.</small>
-            </div><?php else: ?><small class="external-form-note">Proveedor desactivado. Ya no puede recibir casos nuevos.</small><?php endif; ?>
-          </details>
+
+              <?php if($canConvertToInternal): ?>
+              <details class="external-convert-internal"><summary>Convertir a usuario interno</summary>
+                <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/convertir-interno" class="external-convert-grid" data-single-submit>
+                  <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                  <div class="external-full"><small>Conserva la misma identidad e historial. Se revocarán sus casos compartidos como proveedor y deberá iniciar sesión nuevamente.</small></div>
+                  <label>Perfil interno<select class="form-control" name="role_id" required><option value="">Selecciona</option><?php foreach(($internalRoles??[]) as $r): if(!$isFullAdmin&&($r['code']??'')==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>"><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></label>
+                  <label>Estado<select class="form-control" name="status"><option value="ACTIVE">Activo</option><option value="PENDING">Pendiente</option><option value="BLOCKED">Bloqueado</option><option value="DISABLED">Deshabilitado</option></select></label>
+                  <label>Puesto o función<select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach(($positions??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+                  <label>Dónde trabaja<select class="form-control" name="assignment_type" required><option value="">Selecciona</option><option value="PARK">Parque / ubicación</option><option value="CORPORATE">Área corporativa</option><option value="OTHER">Otro</option></select></label>
+                  <label>Parque<select class="form-control" name="park_id"><option value="">No aplica</option><?php foreach(($parks??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+                  <label>Área corporativa<select class="form-control" name="area_id"><option value="">No aplica</option><?php foreach(($areas??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+                  <label>Región <span class="optional">Opcional</span><select class="form-control" name="region_id"><option value="">No aplica / automática por parque</option><?php foreach(($regions??[]) as $x): ?><option value="<?= (int)$x['id'] ?>"><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></label>
+                  <label>Responsable directo <span class="optional">Opcional</span><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach(($managers??[]) as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>"><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select><small>Referencia organizacional: persona a la que reporta. No asigna tickets y no cambia permisos ni alcance.</small></label>
+                  <label class="external-full"><input type="checkbox" name="confirm_convert_internal" value="1" required> Confirmo que esta cuenta dejará de ser proveedor externo y volverá a tener acceso interno según el perfil seleccionado.</label>
+                  <div class="external-full"><button class="btn btn-primary btn-sm" type="submit">Convertir a usuario interno</button></div>
+                </form>
+              </details>
+              <?php endif; ?>
+
+              <?php if(($u['status']??'')!=='DISABLED'): ?><div class="external-provider-danger">
+                <form method="post" action="<?= APP_BASE_URL ?>/admin/externos/desactivar" data-single-submit>
+                  <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+                  <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                  <button class="btn btn-outline-secondary btn-sm" type="submit">Desactivar proveedor</button>
+                </form>
+                <small class="external-form-note">Desactivar revoca todos sus casos compartidos y sesiones vigentes.</small>
+              </div><?php else: ?><small class="external-form-note">Proveedor desactivado. Ya no puede recibir casos nuevos.</small><?php endif; ?>
+            </div>
+          </div>
         </td>
       </tr>
     <?php endforeach; ?>
@@ -132,6 +151,52 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 </section>
 </div>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
-(function(){const root=document.querySelector('[data-external-directory]');if(!root)return;const q=root.querySelector('[data-external-search]');const rows=[...root.querySelectorAll('[data-external-user]')];const empty=root.querySelector('[data-external-empty]');const norm=v=>String(v||'').toLocaleLowerCase('es-GT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();q?.addEventListener('input',()=>{const term=norm(q.value);let visible=0;rows.forEach(r=>{const show=!term||norm(r.dataset.search).includes(term);r.hidden=!show;if(show)visible++});if(empty)empty.hidden=visible!==0;});})();
+(function(){
+  const root=document.querySelector('[data-external-directory]');
+  if(!root)return;
+  const q=root.querySelector('[data-external-search]');
+  const rows=[...root.querySelectorAll('[data-external-user]')];
+  const empty=root.querySelector('[data-external-empty]');
+  const editToggles=root.querySelectorAll('[data-external-edit-toggle]');
+  const editRows=root.querySelectorAll('[data-external-edit-row]');
+  const norm=v=>String(v||'').toLocaleLowerCase('es-GT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+
+  const closeAllExternalEditors=function(exceptId=''){
+    editRows.forEach(function(row){
+      if(exceptId&&row.id===exceptId)return;
+      row.hidden=true;
+      const button=root.querySelector('[data-external-edit-toggle][aria-controls="'+row.id+'"]');
+      button?.setAttribute('aria-expanded','false');
+    });
+  };
+
+  editToggles.forEach(function(button){
+    button.addEventListener('click',function(){
+      const row=document.getElementById(button.getAttribute('aria-controls')||'');
+      if(!row)return;
+      const opening=row.hidden;
+      closeAllExternalEditors(opening?row.id:'');
+      row.hidden=!opening;
+      button.setAttribute('aria-expanded',opening?'true':'false');
+      if(opening)row.querySelector('input[name="organization_name"]')?.focus();
+    });
+  });
+
+  root.querySelectorAll('[data-external-edit-close]').forEach(function(button){
+    button.addEventListener('click',function(){
+      const row=button.closest('[data-external-edit-row]');
+      if(!row)return;
+      row.hidden=true;
+      root.querySelector('[data-external-edit-toggle][aria-controls="'+row.id+'"]')?.setAttribute('aria-expanded','false');
+    });
+  });
+
+  q?.addEventListener('input',()=>{
+    closeAllExternalEditors();
+    const term=norm(q.value);let visible=0;
+    rows.forEach(r=>{const show=!term||norm(r.dataset.search).includes(term);r.hidden=!show;if(show)visible++});
+    if(empty)empty.hidden=visible!==0;
+  });
+})();
 </script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
