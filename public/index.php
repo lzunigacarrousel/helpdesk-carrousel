@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,WorkReportController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ExternalTemplateController,ResolutionController,ConversationController,WorkReportController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -83,9 +83,10 @@ $routes=[
     ['POST','/admin/users/convertir-externo',[ExternalController::class,'convertInternal']],
     ['POST','/admin/externos/convertir-interno',[ExternalController::class,'convertExternalToInternal']],
     ['POST','/admin/externos/actualizar',[ExternalController::class,'updateUser']],
+    ['POST','/admin/externos/plantilla',[ExternalTemplateController::class,'updateProviderTemplate']],
     ['POST','/admin/externos/desactivar',[ExternalController::class,'deactivateUser']],
     ['POST','/admin/externos/crear',[ExternalController::class,'createUser']],
-    ['POST','/admin/externos/asignar',[ExternalController::class,'grant']],
+    ['POST','/admin/externos/asignar',[ExternalTemplateController::class,'grant']],
     ['POST','/admin/externos/revocar',[ExternalController::class,'revoke']],
     ['GET','/admin/audit',[AuditController::class,'index']],
     ['GET','/admin/correo',[MailAdminController::class,'index']],
