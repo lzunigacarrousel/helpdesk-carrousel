@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ResolutionController,ConversationController,WorkReportController,SearchController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -40,6 +40,7 @@ $routes=[
     ['GET','/tickets/resolve',[ResolutionController::class,'index']],
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
+    ['POST','/tickets/work-report',[WorkReportController::class,'store']],
     ['GET','/tickets/attachment',[ConversationController::class,'download']],
 
     ['GET','/problems',[ProblemController::class,'index']],
