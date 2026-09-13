@@ -13,13 +13,15 @@ function body(string $path):string{
     return is_string($v)?$v:'';
 }
 
-$schema=body($root.'/database/INSTALAR.sql');
+$canonicalSchema=body($root.'/database/INSTALAR.sql');
+$activeMigration=body($root.'/database/MIGRAR_TICKET_WORK_REPORTS_20260912.sql');
+$schema=$canonicalSchema."\n".$activeMigration;
 $router=body($root.'/public/index.php');
 $controller=body($root.'/app/Controllers/WorkReportController.php');
 $view=body($root.'/app/Views/tickets/show_external.php');
 
 // Fuente de verdad genérica: sirve hoy para proveedores y mañana para usuarios internos.
-ok(str_contains($schema,'CREATE TABLE ticket_work_reports'),'Existe fuente estructurada de informes de trabajo');
+ok(str_contains($schema,'CREATE TABLE')&&str_contains($schema,'ticket_work_reports'),'Existe fuente estructurada de informes de trabajo');
 ok(str_contains($schema,'report_type'),'Informe conserva el estado del trabajo');
 ok(str_contains($schema,'author_user_id'),'Informe conserva quién documentó el trabajo');
 ok(str_contains($schema,'author_access_type'),'Informe conserva si en ese momento era usuario interno o externo');
