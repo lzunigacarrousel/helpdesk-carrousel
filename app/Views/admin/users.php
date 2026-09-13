@@ -20,11 +20,11 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
 .admin-access-panel{margin:0 0 14px;overflow:hidden}.admin-access-panel[hidden]{display:none!important}.admin-access-panel .card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 16px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.admin-access-panel .card-header strong{font-size:16px;color:var(--brand-dark)}.admin-access-close{border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:4px 6px}
 .admin-access-form{padding:16px;display:grid;gap:12px}.admin-access-grid,.admin-access-org{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;align-items:end}.admin-access-wide{grid-column:span 2}.admin-access-org{padding-top:12px;border-top:1px solid var(--border)}.admin-access-actions{display:flex;justify-content:flex-end;gap:8px}[data-location-park][hidden],[data-location-area][hidden],[data-location-region][hidden]{display:none!important}
 .admin-users-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}.admin-users-kpis>div{padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card)}.admin-users-kpis strong,.admin-users-kpis span{display:block}.admin-users-kpis strong{font-size:22px;color:var(--brand)}.admin-users-kpis span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:850}
-.admin-user-toolbar{display:grid;grid-template-columns:minmax(260px,1.6fr) minmax(150px,.6fr) minmax(150px,.6fr) auto;gap:8px;align-items:end;margin-bottom:10px}.admin-user-toolbar .form-label{margin-bottom:4px}.admin-users-summary{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;color:var(--muted);font-size:11px}.admin-user-table td:first-child strong{font-size:13px}.admin-user-table .admin-user-edit summary{cursor:pointer;color:var(--brand);font-weight:850}.admin-user-edit-panel{min-width:min(760px,72vw);padding:10px}.admin-user-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.admin-form-action{display:flex;align-items:end}.admin-user-convert{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-convert summary{cursor:pointer;color:var(--brand);font-weight:850}.admin-user-convert-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--brand) 24%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--info-bg) 42%,var(--card) 58%)}.admin-user-convert-zone>p{margin:4px 0 10px;color:var(--muted);font-size:11px}.admin-user-convert-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-user-convert-form .external-full{grid-column:1/-1}.admin-user-convert-confirm{display:flex;gap:7px;align-items:flex-start;font-size:11px;color:var(--text)}
+.admin-user-toolbar{display:grid;grid-template-columns:minmax(260px,1.6fr) minmax(150px,.6fr) minmax(150px,.6fr) auto;gap:8px;align-items:end;margin-bottom:10px}.admin-user-toolbar .form-label{margin-bottom:4px}.admin-users-summary{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;color:var(--muted);font-size:11px}.admin-user-table td:first-child strong{font-size:13px}.admin-user-edit-toggle{white-space:nowrap}.admin-user-edit-row[hidden]{display:none!important}.admin-user-edit-row>td{padding:0 10px 14px!important;background:transparent!important}.admin-user-edit-shell{padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow-sm)}.admin-user-edit-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--border)}.admin-user-edit-head strong{display:block;font-size:16px;color:var(--brand-dark)}.admin-user-edit-head small{display:block;margin-top:2px;color:var(--muted)}.admin-user-edit-panel{padding:0}.admin-user-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px}.admin-form-action{display:flex;align-items:end}.admin-form-action .btn{width:100%}.admin-user-convert{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-convert summary{cursor:pointer;color:var(--brand);font-weight:850}.admin-user-convert-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--brand) 24%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--info-bg) 42%,var(--card) 58%)}.admin-user-convert-zone>p{margin:4px 0 10px;color:var(--muted);font-size:11px}.admin-user-convert-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-user-convert-form .external-full{grid-column:1/-1}.admin-user-convert-confirm{display:flex;gap:7px;align-items:flex-start;font-size:11px;color:var(--text)}
 .admin-user-remove{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-remove summary{cursor:pointer;color:var(--danger);font-weight:800}.admin-user-danger-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--danger) 28%,var(--border));border-radius:10px}.admin-delete-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .admin-users-empty{margin-top:10px;padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}
 @media(max-width:1180px){.admin-access-grid,.admin-access-org{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-access-wide{grid-column:span 2}.admin-user-form{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-user-toolbar{grid-template-columns:1fr 1fr 1fr auto}}
-@media(max-width:760px){.admin-user-convert-form{grid-template-columns:1fr}.admin-users-heading{align-items:stretch}.admin-access-toggle{width:100%}.admin-access-grid,.admin-access-org,.admin-user-form,.admin-user-toolbar{grid-template-columns:1fr}.admin-access-wide{grid-column:auto}.admin-access-form{padding:14px}.admin-access-actions{display:grid;grid-template-columns:1fr}.admin-access-actions .btn{width:100%}.admin-users-kpis{grid-template-columns:repeat(3,1fr)}.admin-user-edit-panel{min-width:0;padding:4px 0}.admin-users-summary{align-items:center}}
+@media(max-width:760px){.admin-user-convert-form{grid-template-columns:1fr}.admin-users-heading{align-items:stretch}.admin-access-toggle{width:100%}.admin-access-grid,.admin-access-org,.admin-user-toolbar{grid-template-columns:1fr}.admin-user-form{grid-template-columns:1fr}.admin-access-wide{grid-column:auto}.admin-access-form{padding:14px}.admin-access-actions{display:grid;grid-template-columns:1fr}.admin-access-actions .btn{width:100%}.admin-users-kpis{grid-template-columns:repeat(3,1fr)}.admin-user-edit-row>td{display:block!important;width:100%!important;padding:8px 0 14px!important}.admin-user-edit-shell{padding:14px}.admin-user-edit-head{align-items:flex-start;flex-direction:column}.admin-user-edit-head .btn{width:100%}.admin-users-summary{align-items:center}}
 </style>
 <div class="admin-users-page">
   <div class="page-heading admin-users-heading">
@@ -84,7 +84,7 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
         $searchText=implode(' ',array_filter([$u['full_name']??'', $u['email']??'', $u['phone']??'', $u['role_name']??'', $statusLabels[$u['status']]??($u['status']??''), $u['region_name']??'', $u['park_name']??'', $u['area_name']??'', $u['position_name']??'', $u['manager_name']??'']));
         $canEditThis=!($u['role_code']==='ADMIN'&&!$isFullAdmin);
       ?>
-        <tr data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
+        <tr id="user-<?= (int)$u['id'] ?>" data-user-row data-user-search="<?= htmlspecialchars($searchText) ?>" data-user-role="<?= htmlspecialchars($u['role_name']) ?>" data-user-status="<?= htmlspecialchars($u['status']) ?>">
           <td data-label="Usuario"><strong><?= htmlspecialchars($u['full_name']) ?></strong><small><?= htmlspecialchars($u['email']) ?><?= !empty($u['phone'])?' · '.htmlspecialchars($u['phone']):'' ?></small></td>
           <td data-label="Perfil"><?= htmlspecialchars($preset['label']) ?><small><?= htmlspecialchars(match($u['requester_entity_type']??'PERSON'){'PARK'=>'Cuenta de parque','DEPARTMENT'=>'Área / departamento',default=>'Persona'}) ?></small></td>
           <td data-label="Ubicación"><strong><?= htmlspecialchars($assignmentText) ?></strong><?php if(!empty($u['manager_name'])): ?><small>Responsable: <?= htmlspecialchars($u['manager_name']) ?></small><?php endif; ?></td>
@@ -93,79 +93,77 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
           <td data-label="Alcance" class="data-table-secondary"><?= htmlspecialchars($scopeText) ?></td>
           <td data-label="Acciones">
           <?php if($canEditThis): ?>
-            <details class="admin-user-edit" id="user-<?= (int)$u['id'] ?>"><summary>Editar</summary><div class="admin-user-edit-panel">
-              <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form" data-user-admin-form>
-                <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required></div>
-                <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" value="<?= htmlspecialchars($u['email']) ?>" required></div>
-                <div><label class="form-label">Teléfono</label><input class="form-control" type="text" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></div>
-                <div><label class="form-label">Estado</label><select class="form-control" name="status"><?php foreach($statusLabels as $code=>$label): ?><option value="<?= $code ?>" <?= $u['status']===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></div>
-                <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
-                <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-                <div><label class="form-label">¿Qué representa esta cuenta?</label><select class="form-control" name="requester_entity_type" required data-requester-entity><option value="PERSON" <?= ($u['requester_entity_type']??'PERSON')==='PERSON'?'selected':'' ?>>Persona</option><option value="DEPARTMENT" <?= ($u['requester_entity_type']??'PERSON')==='DEPARTMENT'?'selected':'' ?>>Área / departamento</option><option value="PARK" <?= ($u['requester_entity_type']??'PERSON')==='PARK'?'selected':'' ?>>Parque</option></select></div>
-                <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>En un parque</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>En un área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
-                <div data-location-park><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-                <div data-location-area><label class="form-label">Área corporativa</label><select class="form-control" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-                <div data-location-region><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id"><option value="">Selecciona</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
-                <div><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select><small class="field-help">Referencia organizacional: persona a la que reporta. No asigna tickets y no cambia permisos ni alcance.</small></div>
-                <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
-              </form>
-              <?php if(($u['requester_entity_type']??'PERSON')==='PARK' && !empty($u['park_id'])): ?>
-
-                <?php if((int)($u['missing_park_ticket_count']??0)>0): ?>
-
-                  <details class="admin-user-convert"><summary>Completar tickets históricos sin parque</summary><div class="admin-user-convert-zone">
-
-                    <strong><?= (int)$u['missing_park_ticket_count'] ?> tickets anteriores sin parque</strong>
-
-                    <p>Esta cuenta representa <?= htmlspecialchars((string)$u['park_name']) ?>. Puedes completar únicamente los tickets que todavía estén sin parque; nunca se sobrescribe un ticket que ya tenga otra ubicación.</p>
-
-                    <form method="post" action="<?= APP_BASE_URL ?>/admin/users/backfill-park-tickets" data-single-submit class="admin-user-convert-form">
-
-                      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-
-                      <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-
-                      <label class="external-full"><span class="form-label">Motivo de la actualización histórica</span><input class="form-control" name="backfill_reason" required minlength="8" maxlength="500" placeholder="Ej. Se confirmó que este correo es la cuenta oficial del parque."></label>
-
-                      <div class="external-full"><button class="btn btn-primary" type="submit">Asignar <?= htmlspecialchars((string)$u['park_name']) ?> a los <?= (int)$u['missing_park_ticket_count'] ?> tickets sin parque</button></div>
-
-                    </form>
-
-                  </div></details>
-
-                <?php endif; ?>
-
-                <?php if((int)($u['conflicting_park_ticket_count']??0)>0): ?>
-
-                  <div class="alert alert-warning"><?= (int)$u['conflicting_park_ticket_count'] ?> ticket(s) ya tienen un parque distinto. No se modifican automáticamente y deben revisarse individualmente.</div>
-
-                <?php endif; ?>
-
-              <?php endif; ?>              <?php if((int)$u['id']!==(int)Auth::id()): ?>
-              <details class="admin-user-convert"><summary>Convertir a proveedor externo</summary><div class="admin-user-convert-zone">
-                <strong>Convertir a proveedor externo</strong>
-                <p>Esta persona dejará de tener acceso interno, permisos, ubicación y participación en soporte. Después solo podrá consultar los casos que Carrousel comparta expresamente con su cuenta.</p>
-                <?php if((int)($u['active_ticket_count']??0)>0): ?>
-                  <div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s) asignado(s). Reasígnalos antes de convertir la cuenta.</div>
-                <?php else: ?>
-                  <form method="post" action="<?= APP_BASE_URL ?>/admin/users/convertir-externo" data-single-submit class="admin-user-convert-form">
-                    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-                    <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                    <label><span class="form-label">Proveedor / empresa</span><input class="form-control" name="organization_name" required placeholder="Ej. Empresa de Internet"></label>
-                    <label><span class="form-label">Tipo</span><select class="form-control" name="external_type"><option value="PROVIDER">Proveedor</option><option value="PARTNER">Socio / aliado</option><option value="OTHER">Otro</option></select></label>
-                    <label class="external-full"><span class="form-label">Servicio / referencia</span><input class="form-control" name="notes" placeholder="Ej. Internet, CCTV, POS, mantenimiento..."></label>
-                    <label class="admin-user-convert-confirm external-full"><input type="checkbox" name="confirm_convert" value="1" required> Confirmo que esta cuenta dejará de ser interna y pasará a proveedor externo.</label>
-                    <div class="external-full"><button class="btn btn-primary" type="submit">Convertir a proveedor externo</button></div>
-                  </form>
-                <?php endif; ?>
-              </div></details>
-              <details class="admin-user-remove"><summary>Retirar acceso</summary><div class="admin-user-danger-zone"><strong>Retirar acceso</strong><?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes.</div><?php else: ?><form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo el retiro.</label><button class="btn btn-danger" type="submit">Retirar acceso</button></form><?php endif; ?></div></details>
-              <?php endif; ?>
-            </div></details>
+            <button class="btn btn-outline-secondary admin-user-edit-toggle" type="button" data-user-edit-toggle aria-expanded="false" aria-controls="user-edit-<?= (int)$u['id'] ?>">Editar</button>
           <?php else: ?><span class="data-table-muted">Solo administrador</span><?php endif; ?>
           </td>
         </tr>
+        <?php if($canEditThis): ?>
+        <tr class="admin-user-edit-row" data-user-edit-row hidden id="user-edit-<?= (int)$u['id'] ?>">
+          <td colspan="7">
+            <div class="admin-user-edit-shell" data-user-edit-panel>
+              <div class="admin-user-edit-head">
+                <div><strong>Editar usuario · <?= htmlspecialchars($u['full_name']) ?></strong><small><?= htmlspecialchars($u['email']) ?></small></div>
+                <button class="btn btn-outline-secondary" type="button" data-user-edit-close>Cancelar edición</button>
+              </div>
+              <div class="admin-user-edit-panel">
+                <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form" data-user-admin-form>
+                  <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                  <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required></div>
+                  <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" value="<?= htmlspecialchars($u['email']) ?>" required></div>
+                  <div><label class="form-label">Teléfono</label><input class="form-control" type="text" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></div>
+                  <div><label class="form-label">Estado</label><select class="form-control" name="status"><?php foreach($statusLabels as $code=>$label): ?><option value="<?= $code ?>" <?= $u['status']===$code?'selected':'' ?>><?= htmlspecialchars($label) ?></option><?php endforeach; ?></select></div>
+                  <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
+                  <div><label class="form-label">Puesto o función</label><select class="form-control" name="position_id" required><option value="">Selecciona</option><?php foreach($positions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['position_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+                  <div><label class="form-label">¿Qué representa esta cuenta?</label><select class="form-control" name="requester_entity_type" required data-requester-entity><option value="PERSON" <?= ($u['requester_entity_type']??'PERSON')==='PERSON'?'selected':'' ?>>Persona</option><option value="DEPARTMENT" <?= ($u['requester_entity_type']??'PERSON')==='DEPARTMENT'?'selected':'' ?>>Área / departamento</option><option value="PARK" <?= ($u['requester_entity_type']??'PERSON')==='PARK'?'selected':'' ?>>Parque</option></select></div>
+                  <div><label class="form-label">Dónde trabaja</label><select class="form-control" name="assignment_type" required data-assignment-type><option value="PARK" <?= $u['assignment_type']==='PARK'?'selected':'' ?>>En un parque</option><option value="CORPORATE" <?= $u['assignment_type']==='CORPORATE'?'selected':'' ?>>En un área corporativa</option><option value="OTHER" <?= $u['assignment_type']==='OTHER'||empty($u['assignment_type'])?'selected':'' ?>>Otro</option></select></div>
+                  <div data-location-park><label class="form-label">Parque</label><select class="form-control" name="park_id"><option value="">Selecciona</option><?php foreach($parks as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['park_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+                  <div data-location-area><label class="form-label">Área corporativa</label><select class="form-control" name="area_id"><option value="">Selecciona</option><?php foreach($areas as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['area_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+                  <div data-location-region><label class="form-label">Región <span class="optional">Si aplica</span></label><select class="form-control" name="region_id"><option value="">Selecciona</option><?php foreach($regions as $x): ?><option value="<?= (int)$x['id'] ?>" <?= (int)$x['id']===(int)($u['region_id']??0)?'selected':'' ?>><?= htmlspecialchars($x['name']) ?></option><?php endforeach; ?></select></div>
+                  <div><label class="form-label">Responsable directo <span class="optional">Opcional</span></label><select class="form-control" name="manager_user_id"><option value="">Sin responsable / nivel superior</option><?php foreach($managers as $m): if((int)$m['id']===(int)$u['id'])continue; ?><option value="<?= (int)$m['id'] ?>" <?= (int)$m['id']===(int)($u['manager_user_id']??0)?'selected':'' ?>><?= htmlspecialchars($m['full_name']) ?><?= !empty($m['position_name'])?' · '.htmlspecialchars($m['position_name']):'' ?></option><?php endforeach; ?></select><small class="field-help">Referencia organizacional: persona a la que reporta. No asigna tickets y no cambia permisos ni alcance.</small></div>
+                  <div class="admin-form-action"><button class="btn btn-primary" type="submit">Guardar cambios</button></div>
+                </form>
+                <?php if(($u['requester_entity_type']??'PERSON')==='PARK' && !empty($u['park_id'])): ?>
+                  <?php if((int)($u['missing_park_ticket_count']??0)>0): ?>
+                    <details class="admin-user-convert"><summary>Completar tickets históricos sin parque</summary><div class="admin-user-convert-zone">
+                      <strong><?= (int)$u['missing_park_ticket_count'] ?> tickets anteriores sin parque</strong>
+                      <p>Esta cuenta representa <?= htmlspecialchars((string)$u['park_name']) ?>. Puedes completar únicamente los tickets que todavía estén sin parque; nunca se sobrescribe un ticket que ya tenga otra ubicación.</p>
+                      <form method="post" action="<?= APP_BASE_URL ?>/admin/users/backfill-park-tickets" data-single-submit class="admin-user-convert-form">
+                        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+                        <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                        <label class="external-full"><span class="form-label">Motivo de la actualización histórica</span><input class="form-control" name="backfill_reason" required minlength="8" maxlength="500" placeholder="Ej. Se confirmó que este correo es la cuenta oficial del parque."></label>
+                        <div class="external-full"><button class="btn btn-primary" type="submit">Asignar <?= htmlspecialchars((string)$u['park_name']) ?> a los <?= (int)$u['missing_park_ticket_count'] ?> tickets sin parque</button></div>
+                      </form>
+                    </div></details>
+                  <?php endif; ?>
+                  <?php if((int)($u['conflicting_park_ticket_count']??0)>0): ?>
+                    <div class="alert alert-warning"><?= (int)$u['conflicting_park_ticket_count'] ?> ticket(s) ya tienen un parque distinto. No se modifican automáticamente y deben revisarse individualmente.</div>
+                  <?php endif; ?>
+                <?php endif; ?>
+                <?php if((int)$u['id']!==(int)Auth::id()): ?>
+                <details class="admin-user-convert"><summary>Convertir a proveedor externo</summary><div class="admin-user-convert-zone">
+                  <strong>Convertir a proveedor externo</strong>
+                  <p>Esta persona dejará de tener acceso interno, permisos, ubicación y participación en soporte. Después solo podrá consultar los casos que Carrousel comparta expresamente con su cuenta.</p>
+                  <?php if((int)($u['active_ticket_count']??0)>0): ?>
+                    <div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s) asignado(s). Reasígnalos antes de convertir la cuenta.</div>
+                  <?php else: ?>
+                    <form method="post" action="<?= APP_BASE_URL ?>/admin/users/convertir-externo" data-single-submit class="admin-user-convert-form">
+                      <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+                      <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                      <label><span class="form-label">Proveedor / empresa</span><input class="form-control" name="organization_name" required placeholder="Ej. Empresa de Internet"></label>
+                      <label><span class="form-label">Tipo</span><select class="form-control" name="external_type"><option value="PROVIDER">Proveedor</option><option value="PARTNER">Socio / aliado</option><option value="OTHER">Otro</option></select></label>
+                      <label class="external-full"><span class="form-label">Servicio / referencia</span><input class="form-control" name="notes" placeholder="Ej. Internet, CCTV, POS, mantenimiento..."></label>
+                      <label class="admin-user-convert-confirm external-full"><input type="checkbox" name="confirm_convert" value="1" required> Confirmo que esta cuenta dejará de ser interna y pasará a proveedor externo.</label>
+                      <div class="external-full"><button class="btn btn-primary" type="submit">Convertir a proveedor externo</button></div>
+                    </form>
+                  <?php endif; ?>
+                </div></details>
+                <details class="admin-user-remove"><summary>Retirar acceso</summary><div class="admin-user-danger-zone"><strong>Retirar acceso</strong><?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes.</div><?php else: ?><form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo el retiro.</label><button class="btn btn-danger" type="submit">Retirar acceso</button></form><?php endif; ?></div></details>
+                <?php endif; ?>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <?php endif; ?>
       <?php endforeach; ?>
       <?php if(!$users): ?><tr><td class="data-table-empty" data-label="" colspan="7">No hay usuarios registrados.</td></tr><?php endif; ?>
       </tbody>
@@ -182,6 +180,39 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
   const setPanel=function(open){if(!panel||!toggle)return;panel.hidden=!open;toggle.setAttribute('aria-expanded',open?'true':'false');toggle.textContent=open?'Cerrar':'+ Dar acceso';if(open){panel.querySelector('input[name="full_name"]')?.focus();}};
   toggle?.addEventListener('click',function(){setPanel(panel?.hidden??true)});
   closeButtons.forEach(function(button){button.addEventListener('click',function(){setPanel(false)})});
+
+  const editToggles=document.querySelectorAll('[data-user-edit-toggle]');
+  const editRows=document.querySelectorAll('[data-user-edit-row]');
+  const closeAllEditors=function(exceptId=''){
+    editRows.forEach(function(row){
+      if(exceptId&&row.id===exceptId)return;
+      row.hidden=true;
+      const button=document.querySelector('[data-user-edit-toggle][aria-controls="'+row.id+'"]');
+      button?.setAttribute('aria-expanded','false');
+    });
+  };
+  editToggles.forEach(function(button){
+    button.addEventListener('click',function(){
+      const row=document.getElementById(button.getAttribute('aria-controls')||'');
+      if(!row)return;
+      const opening=row.hidden;
+      closeAllEditors(opening?row.id:'');
+      row.hidden=!opening;
+      button.setAttribute('aria-expanded',opening?'true':'false');
+      if(opening)row.querySelector('input[name="full_name"]')?.focus();
+    });
+  });
+  document.querySelectorAll('[data-user-edit-close]').forEach(function(button){
+    button.addEventListener('click',function(){
+      const row=button.closest('[data-user-edit-row]');
+      if(!row)return;
+      row.hidden=true;
+      document.querySelector('[data-user-edit-toggle][aria-controls="'+row.id+'"]')?.setAttribute('aria-expanded','false');
+    });
+  });
+  document.querySelectorAll('[data-users-search],[data-users-role-filter],[data-users-status-filter],[data-users-clear]').forEach(function(control){
+    control.addEventListener(control.matches('input')?'input':'change',function(){closeAllEditors();});
+  });
 
   const sync=function(form){
     const type=form.querySelector('[data-assignment-type]');
