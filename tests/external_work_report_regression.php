@@ -20,7 +20,7 @@ $router=body($root.'/public/index.php');
 $controller=body($root.'/app/Controllers/WorkReportController.php');
 $ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
 $view=body($root.'/app/Views/tickets/show_external.php');
-$externalController=body($root.'/app/Controllers/ExternalController.php');
+$externalController=body($root.'/app/Controllers/ExternalController.php')."\n".body($root.'/app/Controllers/ExternalTemplateController.php');
 $externalAdmin=body($root.'/app/Views/admin/externals.php');
 
 // Fuente estructurada reutilizable para cualquier proveedor y cualquier servicio.
