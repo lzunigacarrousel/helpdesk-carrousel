@@ -26,9 +26,11 @@ final class TicketViewController
         }
 
         $pdo=Database::pdo();
-        $q=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,u.email assigned_email
+        $q=$pdo->prepare("SELECT t.*,c.name category_name,p.name park_name,a.name area_name,u.full_name assigned_name,u.email assigned_email,
+                COALESCE(NULLIF(eta.report_template,''),NULLIF(ep.report_template,''),'GENERAL_SUPPORT') report_template
             FROM external_ticket_access eta
             JOIN tickets t ON t.id=eta.ticket_id
+            LEFT JOIN external_profiles ep ON ep.user_id=eta.user_id
             LEFT JOIN ticket_categories c ON c.id=t.category_id
             LEFT JOIN parks p ON p.id=t.park_id
             LEFT JOIN areas a ON a.id=t.area_id
