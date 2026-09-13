@@ -17,7 +17,7 @@ $schema=body($root.'/database/INSTALAR.sql')."\n".
         body($root.'/database/MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql');
 $controller=body($root.'/app/Controllers/WorkReportController.php');
 $ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
-$externalController=body($root.'/app/Controllers/ExternalController.php');
+$externalController=body($root.'/app/Controllers/ExternalController.php')."\n".body($root.'/app/Controllers/ExternalTemplateController.php');
 $adminView=body($root.'/app/Views/admin/externals.php');
 $view=body($root.'/app/Views/tickets/show_external.php');
 $js=body($root.'/public/assets/js/external-work-report.js');
