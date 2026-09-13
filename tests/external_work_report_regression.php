@@ -18,11 +18,12 @@ $schema=body($root.'/database/INSTALAR.sql')."\n".
         body($root.'/database/MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql');
 $router=body($root.'/public/index.php');
 $controller=body($root.'/app/Controllers/WorkReportController.php');
+$ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
 $view=body($root.'/app/Views/tickets/show_external.php');
 $externalController=body($root.'/app/Controllers/ExternalController.php');
 $externalAdmin=body($root.'/app/Views/admin/externals.php');
 
-// Fuente estructurada reutilizable, sin forzar un mismo formulario a todos los proveedores.
+// Fuente estructurada reutilizable para cualquier proveedor y cualquier servicio.
 ok(str_contains($schema,'ticket_work_reports'),'Existe fuente estructurada de informes de trabajo');
 ok(str_contains($schema,'author_user_id'),'Informe conserva quién documentó el trabajo');
 ok(str_contains($schema,'author_access_type'),'Informe conserva si en ese momento era usuario interno o externo');
@@ -40,25 +41,33 @@ ok(str_contains($schema,'provider_reference'),'Informe conserva referencia del p
 ok(str_contains($schema,'time_spent_minutes'),'Informe puede capturar tiempo invertido');
 ok(str_contains($schema,'comment_id'),'Informe puede quedar ligado a conversación/evidencia existente');
 
-// Cada proveedor recibe una plantilla administrada por Carrousel.
-ok(str_contains($schema,'report_template')&&str_contains($schema,'external_profiles'),'Perfil externo conserva plantilla de documentación');
-ok(str_contains($externalController,'report_template'),'Administración lee y persiste la plantilla del proveedor');
+// Carrousel administra una plantilla por defecto por proveedor y puede cambiarla por caso.
+ok(str_contains($schema,'external_profiles')&&str_contains($schema,'report_template'),'Perfil externo conserva plantilla por defecto');
+ok(str_contains($schema,'external_ticket_access')&&str_contains($schema,'report_template'),'Caso compartido puede sobrescribir la plantilla por defecto');
+ok(str_contains($externalController,'report_template'),'Administración lee y persiste la plantilla');
 ok(str_contains($externalAdmin,'name="report_template"'),'Administración puede asignar plantilla al proveedor');
-ok(str_contains($externalAdmin,'ACSE_SEMNOX'),'Existe plantilla ACSE / SEMNOX');
-ok(str_contains($externalAdmin,'SOFTWARE_DEV'),'Existe plantilla Desarrollo de software');
+ok(str_contains($externalAdmin,'GENERAL_SUPPORT'),'Existe plantilla Soporte general');
+ok(str_contains($externalAdmin,'SOFTWARE_SUPPORT'),'Existe plantilla Soporte de software');
+ok(str_contains($externalAdmin,'SOFTWARE_DEVELOPMENT'),'Existe plantilla Desarrollo de software');
 ok(str_contains($externalAdmin,'AUDIT_ADVISORY'),'Existe plantilla Auditoría / asesoría');
+ok(!str_contains($externalAdmin,'ACSE_SEMNOX'),'Las plantillas no están amarradas a nombres de proveedores');
+
+// La vista resuelve la plantilla efectiva del caso, no la identidad del proveedor.
+ok(str_contains($ticketViewController,'report_template'),'Vista del ticket conoce la plantilla efectiva');
+ok(str_contains($ticketViewController,'external_ticket_access'),'Vista puede resolver configuración específica del caso');
+ok(str_contains($ticketViewController,'external_profiles'),'Vista puede usar la plantilla por defecto del proveedor');
 
 // Endpoint separado de conversación libre y controlado por acceso externo.
 ok(str_contains($router,"['POST','/tickets/work-report',[WorkReportController::class,'store']]"),'Existe endpoint de informe técnico');
 ok(str_contains($controller,'final class WorkReportController'),'Existe controlador dedicado para informes técnicos');
-ok(str_contains($controller,'external_profiles'),'Controlador resuelve la plantilla asignada al proveedor');
-ok(str_contains($controller,'external_ticket_access'),'Controlador respeta acceso externo al ticket');
+ok(str_contains($controller,'external_profiles'),'Controlador conoce plantilla por defecto');
+ok(str_contains($controller,'external_ticket_access'),'Controlador respeta acceso y plantilla del caso');
 ok(str_contains($controller,'can_comment'),'Controlador respeta permiso de participación');
 ok(str_contains($controller,'WORK_REPORT_ADDED'),'Informe deja evento auditable');
 ok(!str_contains($controller,"SET status='RESOLVED'"),'Proveedor no resuelve automáticamente el ticket');
 ok(!str_contains($controller,"SET status='CLOSED'"),'Proveedor no cierra automáticamente el ticket');
 
-// UX: Carrousel define la documentación; no se pide porcentaje manual ni materiales de forma universal.
+// UX dirigida por Carrousel: sin porcentaje manual ni campos físicos obligatorios para todos.
 ok(str_contains($view,'external-work-report'),'Ticket externo contiene módulo de documentación técnica');
 ok(str_contains($view,'Informe técnico requerido'),'Carrousel presenta documentación obligatoria');
 ok(!str_contains($view,'name="progress_percent"'),'Formulario externo ya no exige porcentaje manual');
@@ -86,4 +95,4 @@ if($fails){
     exit(1);
 }
 
-echo PHP_EOL."[OK] Regresión base de documentación externa por plantilla completada.".PHP_EOL;
+echo PHP_EOL."[OK] Regresión base de documentación externa por tipo de servicio completada.".PHP_EOL;
