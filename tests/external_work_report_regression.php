@@ -16,7 +16,7 @@ function body(string $path):string{
 $schema=body($root.'/database/INSTALAR.sql');
 $router=body($root.'/public/index.php');
 $controller=body($root.'/app/Controllers/WorkReportController.php');
-$view=body($root.'/app/Views/tickets/show.php');
+$view=body($root.'/app/Views/tickets/show_external.php');
 
 // Fuente de verdad genérica: sirve hoy para proveedores y mañana para usuarios internos.
 ok(str_contains($schema,'CREATE TABLE ticket_work_reports'),'Existe fuente estructurada de informes de trabajo');
@@ -90,7 +90,7 @@ ok((bool)preg_match('/name="time_spent_minutes"[^>]*required/s',$view),'Tiempo i
 // La colaboración externa debe ser visible para el propio proveedor, pero nunca la interna.
 ok(str_contains($view,"tc.visibility IN('PUBLIC','EXTERNAL')"),'Proveedor puede ver conversación pública y externa');
 ok(str_contains($view,"ta.visibility IN('PUBLIC','EXTERNAL')"),'Proveedor puede ver evidencias públicas y externas');
-ok(!str_contains($view,'$isExternal?\'\':" AND tc.visibility=\'PUBLIC\'"'),'Vista ya no limita al proveedor solo a PUBLIC');
+ok(!str_contains($view,"tc.visibility='PUBLIC'"),'Vista externa no limita al proveedor solo a PUBLIC');
 
 // Se conserva la resolución canónica interna existente.
 ok(str_contains($schema,'CREATE TABLE ticket_resolutions'),'Se conserva ticket_resolutions como solución canónica interna');
