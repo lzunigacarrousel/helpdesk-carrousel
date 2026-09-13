@@ -54,6 +54,7 @@ try{
 $pageTitle=$ticket['ticket_number'];$pageSection='Mis casos';$activeNav='mine';$helpContext='ticket';require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+.external-work-grid{grid-template-columns:1fr}
 .external-report-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.external-report-template{display:inline-flex;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:11px;font-weight:800;color:var(--brand-dark);background:var(--surface-soft)}
 .external-report-form{display:grid;gap:14px}.external-report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.external-report-grid .external-full{grid-column:1/-1}.external-report-block{display:grid;gap:10px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-soft)}.external-report-block[hidden]{display:none!important}.external-report-block h3{margin:0;font-size:14px}.external-report-block p{margin:0;color:var(--muted);font-size:11px}.external-report-block textarea{min-height:88px}.external-report-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:4px}.external-report-help{font-size:11px;color:var(--muted);max-width:680px}
 @media(max-width:760px){.external-report-intro{flex-direction:column}.external-report-grid{grid-template-columns:1fr}.external-report-grid .external-full{grid-column:auto}.external-report-actions{align-items:stretch;flex-direction:column}.external-report-actions .btn{width:100%}}
@@ -198,8 +199,6 @@ $pageTitle=$ticket['ticket_number'];$pageSection='Mis casos';$activeNav='mine';$
 
     <?php if($resolution): ?><section class="card external-solution-card"><div class="card-body"><span class="ticket-kicker">Resultado</span><h2>Solución final</h2><div class="external-problem-primary"><p><?= nl2br(htmlspecialchars((string)$resolution['solution_applied'])) ?></p></div><?php if(!empty($resolution['preventive_action'])): ?><div class="dashboard-scope-note"><strong>Recomendación</strong><span><?= nl2br(htmlspecialchars((string)$resolution['preventive_action'])) ?></span></div><?php endif; ?><div class="subtle" style="margin-top:10px"><?= !empty($resolution['resolved_by_name'])?htmlspecialchars((string)$resolution['resolved_by_name']).' · ':'' ?><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$resolution['updated_at']))) ?></div></div></section><?php endif; ?>
   </main>
-
-  <aside class="external-work-side"><section class="card external-side-card"><div class="card-body"><span class="ticket-kicker">Flujo</span><h2>Qué sigue</h2><ol class="external-next-steps"><li><span>1</span><div><strong>Revisa</strong><small>Contexto y conversación del caso.</small></div></li><li><span>2</span><div><strong>Documenta</strong><small>Actualiza el estado y la información técnica correspondiente.</small></div></li><li><span>3</span><div><strong>Revisión</strong><small>Carrousel revisará la entrega cuando esté lista.</small></div></li></ol></div></section></aside>
   </div>
 </div>
 <script src="<?= APP_BASE_URL ?>/assets/js/external-work-report.js?v=1" defer></script>
