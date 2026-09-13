@@ -75,7 +75,7 @@ ok(str_contains($view,'name="ready_for_review"'),'Trabajo realizado puede marcar
 // La colaboración externa debe ser visible para el propio proveedor, pero nunca la interna.
 ok(str_contains($view,"tc.visibility IN('PUBLIC','EXTERNAL')"),'Proveedor puede ver conversación pública y externa');
 ok(str_contains($view,"ta.visibility IN('PUBLIC','EXTERNAL')"),'Proveedor puede ver evidencias públicas y externas');
-ok(!str_contains($view,"$isExternal?'':\" AND tc.visibility='PUBLIC'\""),'Vista ya no limita al proveedor solo a PUBLIC');
+ok(!str_contains($view,'$isExternal?\'\':" AND tc.visibility=\'PUBLIC\'"'),'Vista ya no limita al proveedor solo a PUBLIC');
 
 // Se conserva la resolución canónica interna existente.
 ok(str_contains($schema,'CREATE TABLE ticket_resolutions'),'Se conserva ticket_resolutions como solución canónica interna');
