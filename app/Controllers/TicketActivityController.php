@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Csrf,Flash,Http};
-use App\Services\{NotificationService,TicketActivityService};
+use App\Services\{NotificationService,TicketActivityService,TicketAttachmentService};
 use RuntimeException;
 
 final class TicketActivityController
@@ -68,12 +68,23 @@ final class TicketActivityController
     public function complete(): void
     {
         $this->guard('activities.manage');
-        $result=(new TicketActivityService())->complete((int)Http::post('activity_id'),[
-            'result_code'=>Http::post('result_code'),
-            'work_performed'=>Http::post('work_performed'),
-            'result_summary'=>Http::post('result_summary'),
-            'pending_items'=>Http::post('pending_items'),
-        ]);
+        $activityId=(int)Http::post('activity_id');
+        $evidence=null;
+        if(isset($_FILES['evidence']) && (int)($_FILES['evidence']['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_NO_FILE){
+            $evidence=$_FILES['evidence'];
+        }
+
+        $result=(new TicketActivityService())->complete(
+            $activityId,
+            [
+                'result_code'=>Http::post('result_code'),
+                'work_performed'=>Http::post('work_performed'),
+                'result_summary'=>Http::post('result_summary'),
+                'pending_items'=>Http::post('pending_items'),
+            ],
+            $evidence!==null?new TicketAttachmentService():null,
+            $evidence
+        );
 
         Flash::set(
             ($result['result_code']??'')==='REQUIERE_SEGUIMIENTO'
