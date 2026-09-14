@@ -454,6 +454,101 @@ final class TicketActivityService
         return $result;
     }
 
+    public function addParticipant(int $activityId,int $userId): array
+    {
+        if($userId<=0)throw new InvalidArgumentException('Participante inválido.');
+        $user=$this->requireInternalActiveUser($userId);
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para agregar participantes.');
+
+        $result=Database::transaction(function(PDO $pdo) use($activityId,$userId,$user,$actorId): array {
+            $activity=$this->requireActivity($activityId,true);
+            if(in_array((string)$activity['status'],['FINALIZADA','CANCELADA'],true)){
+                throw new InvalidArgumentException('No se pueden modificar participantes de una actividad finalizada o cancelada.');
+            }
+            if((int)$activity['responsible_user_id']===$userId){
+                throw new InvalidArgumentException('El responsable principal no debe duplicarse como participante.');
+            }
+
+            $insert=$pdo->prepare(
+                'INSERT IGNORE INTO ticket_activity_participants(activity_id,user_id,created_by,created_at) VALUES(?,?,?,NOW())'
+            );
+            $insert->execute([$activityId,$userId,$actorId]);
+            $added=$insert->rowCount()>0;
+
+            if($added){
+                $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_PARTICIPANT_ADDED',[
+                    'activity_id'=>$activityId,
+                    'participant_user_id'=>$userId,
+                    'participant_name'=>(string)$user['full_name'],
+                ]);
+            }
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>(string)$activity['status'],
+                'participant_user_id'=>$userId,
+                'participant_name'=>(string)$user['full_name'],
+                'added'=>$added,
+            ];
+        });
+
+        if($result['added']){
+            Audit::log('ACTIVITY_PARTICIPANT_ADDED','ticket_activity',$activityId,null,$result);
+        }
+        return $result;
+    }
+
+    public function removeParticipant(int $activityId,int $userId): array
+    {
+        if($userId<=0)throw new InvalidArgumentException('Participante inválido.');
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para retirar participantes.');
+
+        $result=Database::transaction(function(PDO $pdo) use($activityId,$userId): array {
+            $activity=$this->requireActivity($activityId,true);
+            if(in_array((string)$activity['status'],['FINALIZADA','CANCELADA'],true)){
+                throw new InvalidArgumentException('No se pueden modificar participantes de una actividad finalizada o cancelada.');
+            }
+
+            $lookup=$pdo->prepare(
+                'SELECT u.full_name
+                 FROM ticket_activity_participants ap
+                 JOIN users u ON u.id=ap.user_id
+                 WHERE ap.activity_id=? AND ap.user_id=? LIMIT 1'
+            );
+            $lookup->execute([$activityId,$userId]);
+            $participant=$lookup->fetch();
+
+            $delete=$pdo->prepare('DELETE FROM ticket_activity_participants WHERE activity_id=? AND user_id=?');
+            $delete->execute([$activityId,$userId]);
+            $removed=$delete->rowCount()>0;
+
+            if($removed){
+                $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_PARTICIPANT_REMOVED',[
+                    'activity_id'=>$activityId,
+                    'participant_user_id'=>$userId,
+                    'participant_name'=>(string)($participant['full_name']??''),
+                ]);
+            }
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>(string)$activity['status'],
+                'participant_user_id'=>$userId,
+                'participant_name'=>(string)($participant['full_name']??''),
+                'removed'=>$removed,
+            ];
+        });
+
+        if($result['removed']){
+            Audit::log('ACTIVITY_PARTICIPANT_REMOVED','ticket_activity',$activityId,null,$result);
+        }
+        return $result;
+    }
+
     private function requireScheduledWindow(string $start,string $end): array
     {
         $start=trim($start);
