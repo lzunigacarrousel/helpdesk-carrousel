@@ -133,6 +133,29 @@ ok(str_contains($ticketView,'ticket-activity-more-options'),'Formulario agrupa o
 ok(str_contains($ticketView,'Más opciones')||str_contains($ticketView,'Mas opciones'),'Formulario ofrece Más opciones');
 ok(str_contains($activityCss,'.ticket-activity-more-options'),'CSS contempla bloque de opciones secundarias');
 
+// Task 8: resumen seguro para solicitante.
+ok(str_contains($ticketView,'ticket-requester-activities'),'Vista define bloque seguro de actividades para solicitante');
+ok(str_contains($ticketView,'Próxima atención')||str_contains($ticketView,'Proxima atención'),'Solicitante ve Próxima atención');
+ok(str_contains($ticketView,'$requesterActivities'),'Vista consume requesterActivities');
+ok(str_contains($ticketView,"['requester_summary']")||str_contains($ticketView,'[\'requester_summary\']'),'Resumen visible usa requester_summary');
+ok(str_contains($ticketView,'scheduled_start_at'),'Resumen visible puede mostrar fecha programada');
+
+$requesterBlock='';
+if(preg_match('/<section[^>]*class="[^"]*ticket-requester-activities[^"]*".*?<\/section>/s',$ticketView,$m)){
+    $requesterBlock=$m[0];
+}
+ok($requesterBlock!=='','Se puede aislar el bloque visible al solicitante');
+foreach([
+    'responsible_user_id'=>'No expone responsable interno',
+    'provider_user_id'=>'No expone proveedor interno',
+    'internal_preparation_notes'=>'No expone preparación interna',
+    'cancel_reason'=>'No expone motivo interno de cancelación',
+    'work_performed'=>'No expone trabajo realizado',
+    'result_summary'=>'No expone resultado técnico interno',
+] as $needle=>$label){
+    ok($requesterBlock!==''&&!str_contains($requesterBlock,$needle),$label);
+}
+
 if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
     exit(1);
