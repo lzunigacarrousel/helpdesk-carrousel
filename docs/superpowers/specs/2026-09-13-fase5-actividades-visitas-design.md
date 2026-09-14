@@ -181,14 +181,15 @@ Reglas:
 
 - no se permiten duplicados;
 - el responsable no necesita duplicarse como participante;
-- pueden ser usuarios internos activos relacionados con la ejecución;
+- pueden ser usuarios internos activos relacionados con la ejecución, aunque no todos sean operadores de soporte;
+- ser participante no concede permisos para administrar la actividad;
 - pueden agregarse o retirarse mientras la actividad no esté finalizada ni cancelada.
 
 ### Proveedor
 
 `provider_user_id` es opcional salvo en `INTERVENCION_PROVEEDOR`, donde es obligatorio.
 
-Debe referenciar un usuario `access_type = EXTERNAL`, idealmente con acceso vigente al ticket mediante el mecanismo existente de colaboración externa.
+Debe referenciar un usuario `access_type = EXTERNAL` con acceso vigente al ticket mediante `external_ticket_access`. Si no existe acceso vigente, primero debe otorgarse usando el flujo de colaboración externa existente; la actividad no se crea con un proveedor sin acceso al caso.
 
 El proveedor puede documentar su trabajo a través del flujo externo ya existente, pero no administra los estados de la actividad.
 
@@ -198,13 +199,13 @@ La actividad hereda por defecto `park_id` del ticket, pero soporte puede cambiar
 
 Reglas:
 
-- `VISITA_EN_SITIO`: `park_id` obligatorio.
-- `SOPORTE_REMOTO`: `park_id` puede ser `NULL`.
-- `SEGUIMIENTO`: `park_id` puede ser `NULL`.
-- `INTERVENCION_PROVEEDOR`: puede tener o no ubicación física según el caso.
+- `VISITA_EN_SITIO`: `park_id` obligatorio e `is_remote = 0`.
+- `SOPORTE_REMOTO`: `park_id` puede ser `NULL` e `is_remote = 1`.
+- `SEGUIMIENTO`: `park_id` puede ser `NULL`; `is_remote` depende de la ejecución.
+- `INTERVENCION_PROVEEDOR`: puede tener o no ubicación física; `is_remote` debe reflejar la modalidad real.
 - `OTRA`: depende del caso.
 
-Se incluye `is_remote` para distinguir explícitamente trabajo sin ubicación física cuando el tipo por sí solo no sea suficiente.
+`is_remote` distingue explícitamente trabajo sin ubicación física cuando el tipo por sí solo no sea suficiente.
 
 ## 11. Objetivo y creación
 
@@ -346,9 +347,9 @@ No se crea otra tabla de archivos.
 activity_id BIGINT UNSIGNED NULL
 ```
 
-con FK hacia `ticket_activities.id` y un índice apropiado.
+con FK hacia `ticket_activities.id ON DELETE SET NULL` y un índice apropiado. Esto preserva el adjunto del ticket incluso ante una eliminación administrativa excepcional de la actividad.
 
-Todo adjunto sigue perteneciendo obligatoriamente a su ticket. La relación con actividad es opcional y debe validarse para impedir asociar un adjunto de un ticket con una actividad de otro ticket.
+Todo adjunto sigue perteneciendo obligatoriamente a su ticket. La relación con actividad es opcional y el backend debe impedir asociar un adjunto de un ticket con una actividad de otro ticket.
 
 ## 15. Historial y eventos
 
@@ -483,6 +484,7 @@ Fase 5 no reemplaza ni duplica el módulo de documentación externa existente.
 Cuando exista `INTERVENCION_PROVEEDOR`:
 
 - Carrousel programa y administra la actividad;
+- el proveedor ya debe tener acceso vigente al ticket;
 - el proveedor documenta su trabajo en el flujo externo autorizado;
 - Carrousel inicia/finaliza/cancela la actividad;
 - el proveedor no resuelve ni cierra el ticket automáticamente.
@@ -557,9 +559,9 @@ Antes de implementar UI se crearán regresiones RED que cubran:
 4. creación exige ticket, responsable, tipo, objetivo e intervalo válido;
 5. `VISITA_EN_SITIO` exige parque;
 6. remoto/seguimiento permiten ubicación nula;
-7. `INTERVENCION_PROVEEDOR` exige proveedor externo válido;
+7. `INTERVENCION_PROVEEDOR` exige proveedor externo válido y con acceso vigente al ticket;
 8. responsable debe ser operador interno autorizado;
-9. participantes no se duplican;
+9. participantes no se duplican y no adquieren permisos por participar;
 10. transición `PROGRAMADA -> EN_CURSO -> FINALIZADA`;
 11. transición inválida rechazada;
 12. cancelación exige motivo;
@@ -575,7 +577,8 @@ Antes de implementar UI se crearán regresiones RED que cubran:
 22. CSRF en endpoints mutables;
 23. evento y auditoría por operación;
 24. adjunto solo puede vincularse a actividad del mismo ticket;
-25. comportamiento responsive y tema claro/oscuro no regresan.
+25. reglas `is_remote`/`park_id` son coherentes con el tipo;
+26. comportamiento responsive y tema claro/oscuro no regresan.
 
 También deben mantenerse verdes las regresiones existentes de ITSM, feedback, usuarios, proveedores, flujo externo, notificaciones y calidad del proyecto.
 
