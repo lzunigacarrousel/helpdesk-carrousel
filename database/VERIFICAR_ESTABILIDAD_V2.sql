@@ -118,8 +118,43 @@ SELECT 'CORREOS_PENDIENTES_MAS_10_MIN' prueba, COUNT(*) hallazgos
 FROM notification_deliveries
 WHERE channel='EMAIL' AND status='PENDING' AND created_at<DATE_SUB(NOW(),INTERVAL 10 MINUTE);
 
+SELECT 'ACTIVIDADES_FINALIZADAS_INCOMPLETAS' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE status='FINALIZADA'
+  AND (started_at IS NULL OR finished_at IS NULL OR result_code IS NULL
+       OR NULLIF(TRIM(work_performed),'') IS NULL
+       OR NULLIF(TRIM(result_summary),'') IS NULL);
+
+SELECT 'ACTIVIDADES_CANCELADAS_SIN_MOTIVO' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE status='CANCELADA'
+  AND (cancelled_at IS NULL OR cancelled_by IS NULL OR NULLIF(TRIM(cancel_reason),'') IS NULL);
+
+SELECT 'VISITAS_SIN_PARQUE' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE activity_type='VISITA_EN_SITIO' AND park_id IS NULL;
+
+SELECT 'REMOTOS_INCONSISTENTES' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE (activity_type='SOPORTE_REMOTO' AND is_remote<>1)
+   OR (activity_type='VISITA_EN_SITIO' AND is_remote<>0);
+
+SELECT 'INTERVENCIONES_SIN_PROVEEDOR' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE activity_type='INTERVENCION_PROVEEDOR' AND provider_user_id IS NULL;
+
+SELECT 'RESUMEN_PUBLICO_INCOMPLETO' prueba, COUNT(*) hallazgos
+FROM ticket_activities
+WHERE requester_visible=1 AND NULLIF(TRIM(requester_summary),'') IS NULL;
+
+SELECT 'ADJUNTOS_ACTIVIDAD_OTRO_TICKET' prueba, COUNT(*) hallazgos
+FROM ticket_attachments ta
+JOIN ticket_activities act ON act.id=ta.activity_id
+WHERE ta.ticket_id<>act.ticket_id;
+
 SELECT 'MIGRACIONES_REGISTRADAS' prueba, COUNT(*) hallazgos FROM schema_migrations;
 SELECT 'TOTAL_TICKETS' prueba, COUNT(*) hallazgos FROM tickets WHERE deleted_at IS NULL;
+SELECT 'TOTAL_ACTIVIDADES' prueba, COUNT(*) hallazgos FROM ticket_activities;
 SELECT 'TOTAL_USUARIOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL;
 SELECT 'TOTAL_EXTERNOS' prueba, COUNT(*) hallazgos FROM users WHERE deleted_at IS NULL AND access_type='EXTERNAL';
 SELECT 'ACCESOS_EXTERNOS_ACTIVOS' prueba, COUNT(*) hallazgos FROM external_ticket_access WHERE revoked_at IS NULL;
