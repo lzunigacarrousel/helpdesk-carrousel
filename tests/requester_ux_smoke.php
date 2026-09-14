@@ -16,28 +16,42 @@ $topics=(string)@file_get_contents($root.'/app/Services/RequesterTopicService.ph
 requesterCheck($controller!=='','Se puede leer TicketController');
 requesterCheck($view!=='','Se puede leer public_create.php');
 requesterCheck($topics!=='','Se puede leer RequesterTopicService');
-requesterCheck(str_contains($topics,'REQUESTER_TOPIC_PRESENTATION'),'Existe catálogo de temas separado de las categorías internas');
-
-$labels=[
-    'Caja Chica / NIT',
-    'Payout / Kiddies / Promocionales',
-    'Tickets Destruidos',
-    'Facturación / POS / Impresora',
-    'Acceso / Contraseña',
-    'Computadora / Equipo',
-    'Internet / Conexión',
-    'Reportes / Dashboards / Formularios',
-    'Semnox / Parafait',
-    'Otro',
-];
-foreach($labels as $label){
-    requesterCheck(str_contains($topics,$label),'Tema humano disponible: '.$label);
-}
-foreach(['SOFTWARE','POS','ACCESS','HARDWARE','NETWORK','REPORTS','SEMNOX','OTHER'] as $code){
-    requesterCheck(str_contains($topics,"'category_code'=>'{$code}'"),'Tema mapea a categoría canónica: '.$code);
-}
+requesterCheck(str_contains($topics,'public static function options(array $categories):array'),'Existe catálogo dinámico de temas separado de la presentación');
+requesterCheck(str_contains($topics,'HELP_BY_CODE'),'El catálogo dinámico conserva ayuda contextual por código');
+requesterCheck(str_contains($topics,'HELP_BY_PARENT'),'El catálogo dinámico conserva ayuda contextual por familia');
+requesterCheck(str_contains($topics,"'category_id'=>$id"),'Cada tema conserva category_id real de BD');
+requesterCheck(str_contains($topics,"'category_code'=>$code"),'Cada tema conserva category_code real de BD');
+requesterCheck(str_contains($topics,"'label'=>$name"),'La etiqueta visible del tema proviene de BD');
+requesterCheck(str_contains($topics,"'group'=>$parentName"),'Los temas conservan agrupación por categoría padre');
+requesterCheck(str_contains($topics,'isset($hasChildren[$id])'),'El selector evita ofrecer padres que tienen subcategorías');
 requesterCheck(str_contains($topics,'No escribas tu contraseña'),'Ayuda de accesos evita pedir contraseñas');
 requesterCheck(str_contains($topics,'Ejemplo:'),'Los temas incluyen ejemplos escritos como solicitudes reales');
+
+if(is_file($root.'/app/Services/RequesterTopicService.php')){
+    require_once $root.'/app/Services/RequesterTopicService.php';
+    $sampleCategories=[
+        ['id'=>1,'code'=>'NETWORK','name'=>'Internet / Conexión','parent_id'=>null,'parent_name'=>null,'parent_code'=>null,'sort_order'=>10,'parent_sort_order'=>null],
+        ['id'=>2,'code'=>'NETWORK_OUTAGE','name'=>'Sin Internet','parent_id'=>1,'parent_name'=>'Internet / Conexión','parent_code'=>'NETWORK','sort_order'=>10,'parent_sort_order'=>10],
+        ['id'=>3,'code'=>'ACCESS','name'=>'Acceso','parent_id'=>null,'parent_name'=>null,'parent_code'=>null,'sort_order'=>20,'parent_sort_order'=>null],
+        ['id'=>4,'code'=>'ACCESS_PASSWORD','name'=>'No puedo ingresar','parent_id'=>3,'parent_name'=>'Acceso','parent_code'=>'ACCESS','sort_order'=>10,'parent_sort_order'=>20],
+        ['id'=>5,'code'=>'OTHER','name'=>'Otro','parent_id'=>null,'parent_name'=>null,'parent_code'=>null,'sort_order'=>999,'parent_sort_order'=>null],
+    ];
+    $sampleOptions=\App\Services\RequesterTopicService::options($sampleCategories);
+    $byKey=[];
+    foreach($sampleOptions as $option)$byKey[(string)$option['key']]=$option;
+
+    requesterCheck(count($sampleOptions)===3,'El catálogo público ofrece hojas y categorías sin hijos');
+    requesterCheck(!isset($byKey['NETWORK'])&&!isset($byKey['ACCESS']),'Los padres con subcategorías no se ofrecen como temas finales');
+    requesterCheck(isset($byKey['NETWORK_OUTAGE']),'Tema dinámico disponible desde categoría hoja de red');
+    requesterCheck(isset($byKey['ACCESS_PASSWORD']),'Tema dinámico disponible desde categoría hoja de acceso');
+    requesterCheck(isset($byKey['OTHER']),'Categoría sin hijos sigue disponible como tema');
+    requesterCheck(($byKey['NETWORK_OUTAGE']['label']??'')==='Sin Internet','Etiqueta visible se toma de la categoría real');
+    requesterCheck((int)($byKey['NETWORK_OUTAGE']['category_id']??0)===2,'Tema conserva category_id canónico');
+    requesterCheck(($byKey['NETWORK_OUTAGE']['category_code']??'')==='NETWORK_OUTAGE','Tema conserva category_code canónico');
+    requesterCheck(($byKey['NETWORK_OUTAGE']['group']??'')==='Internet / Conexión','Tema conserva grupo padre');
+    requesterCheck(str_contains((string)($byKey['ACCESS_PASSWORD']['help']??''),'No escribas tu contraseña'),'Tema de acceso conserva ayuda segura contextual');
+    requesterCheck(str_contains((string)($byKey['ACCESS_PASSWORD']['placeholder']??''),'Ejemplo:'),'Tema dinámico conserva ejemplo contextual');
+}
 
 requesterCheck(str_contains($controller,'singleActiveAssignment'),'El formulario puede detectar una única asignación activa');
 requesterCheck(str_contains($controller,"ua.status='ACTIVE'"),'La ubicación automática usa asignaciones activas');
