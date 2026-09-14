@@ -1,8 +1,10 @@
 $ErrorActionPreference = 'Stop'
 
-$repo = Split-Path -Parent $PSScriptRoot
-$sourcePath = Join-Path $PSScriptRoot 'apply_phase5_task7_activity_ui.ps1'
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repo = Split-Path -Parent $scriptDir
+$sourcePath = Join-Path $scriptDir 'apply_phase5_task7_activity_ui.ps1'
 $viewPath = Join-Path $repo 'app\Views\tickets\show.php'
+$tempPath = Join-Path $scriptDir ('._task7_utf8_' + [Guid]::NewGuid().ToString('N') + '.ps1')
 
 if (-not (Test-Path $sourcePath)) {
     throw "No existe $sourcePath"
@@ -11,12 +13,20 @@ if (-not (Test-Path $viewPath)) {
     throw "No existe $viewPath"
 }
 
-$utf8 = New-Object System.Text.UTF8Encoding($false)
-$source = [System.IO.File]::ReadAllText($sourcePath, $utf8)
-$script = [ScriptBlock]::Create($source)
-& $script
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$utf8Bom = New-Object System.Text.UTF8Encoding($true)
 
-$generated = [System.IO.File]::ReadAllText($viewPath, $utf8)
+try {
+    $source = [System.IO.File]::ReadAllText($sourcePath, $utf8NoBom)
+    [System.IO.File]::WriteAllText($tempPath, $source, $utf8Bom)
+    & $tempPath
+} finally {
+    if (Test-Path $tempPath) {
+        Remove-Item -LiteralPath $tempPath -Force
+    }
+}
+
+$generated = [System.IO.File]::ReadAllText($viewPath, $utf8NoBom)
 $badC3 = [string][char]0x00C3
 $badC2 = [string][char]0x00C2
 
