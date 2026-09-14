@@ -36,6 +36,7 @@ if($status) fail('El working tree debe estar limpio antes de aplicar este ajuste
 
 // RED: gates visuales antes de tocar la vista/CSS.
 $testBody=readStrict($test);
+$testEol=str_contains($testBody,"\r\n")?"\r\n":"\n";
 $checks=<<<'PHP'
 // Pulido final Fase 5: todas las transiciones aprovechan el ancho disponible.
 ok(substr_count($ticketView,'ticket-activity-transition-details')>=3,'Reprogramar, Finalizar y Cancelar comparten contenedor de ancho completo');
@@ -48,7 +49,8 @@ ok(str_contains($activityCss,'.ticket-activity-transition-actions{display:flex;j
 ok(str_contains($activityCss,'.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}'),'Botones de transición se adaptan en móvil');
 
 PHP;
-$anchor="foreach([\n    'ACTIVITY_CREATED'=>'Actividad programada',";
+$checks=str_replace("\n",$testEol,$checks);
+$anchor='// Hardening final Fase 5: privacidad integral del solicitante.';
 $testBody=replaceOnce($testBody,$anchor,$checks.$anchor,'Inserción de gates de anchos');
 writeStrict($test,$testBody);
 
@@ -88,24 +90,24 @@ writeStrict($view,$viewBody);
 
 // GREEN: CSS.
 $cssBody=readStrict($css);
+$cssEol=str_contains($cssBody,"\r\n")?"\r\n":"\n";
 $cssBody=replaceOnce(
     $cssBody,
     '.ticket-activity-create{border:1px solid color-mix(in srgb,var(--brand) 16%,var(--border) 84%);border-radius:14px;background:var(--vs-brand-soft);overflow:hidden}',
     '.ticket-activity-create{border:1px solid color-mix(in srgb,var(--brand) 16%,var(--border) 84%);border-radius:14px;background:var(--vs-brand-soft);overflow:hidden;width:100%}',
     'Programar ancho completo'
 );
-$cssBody=replaceOnce(
-    $cssBody,
-    '.ticket-activity-actions details.ticket-activity-complete-details[open]{flex:1 0 100%;width:100%}\n.ticket-activity-transition--complete{width:100%;min-width:0}',
-    '.ticket-activity-actions details.ticket-activity-transition-details[open]{flex:1 0 100%;width:100%}\n.ticket-activity-transition--reschedule,.ticket-activity-transition--cancel{width:100%;min-width:0}\n.ticket-activity-transition-actions{display:flex;justify-content:flex-end;align-items:center}\n.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn{min-width:180px}\n.ticket-activity-transition--complete{width:100%;min-width:0}',
-    'Transiciones amplias'
-);
-$cssBody=replaceOnce(
-    $cssBody,
-    '  .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}\n}',
-    '  .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}\n  .ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}\n}',
-    'Botones responsive'
-);
+$cssSearch='.ticket-activity-actions details.ticket-activity-complete-details[open]{flex:1 0 100%;width:100%}'.$cssEol.'.ticket-activity-transition--complete{width:100%;min-width:0}';
+$cssReplace='.ticket-activity-actions details.ticket-activity-transition-details[open]{flex:1 0 100%;width:100%}'.$cssEol
+    .'.ticket-activity-transition--reschedule,.ticket-activity-transition--cancel{width:100%;min-width:0}'.$cssEol
+    .'.ticket-activity-transition-actions{display:flex;justify-content:flex-end;align-items:center}'.$cssEol
+    .'.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn{min-width:180px}'.$cssEol
+    .'.ticket-activity-transition--complete{width:100%;min-width:0}';
+$cssBody=replaceOnce($cssBody,$cssSearch,$cssReplace,'Transiciones amplias');
+$mobileSearch='  .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}'.$cssEol.'}';
+$mobileReplace='  .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}'.$cssEol
+    .'  .ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}'.$cssEol.'}';
+$cssBody=replaceOnce($cssBody,$mobileSearch,$mobileReplace,'Botones responsive');
 writeStrict($css,$cssBody);
 
 echo "=== GREEN esperado: anchos de Actividades alineados ===".PHP_EOL;
