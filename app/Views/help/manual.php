@@ -31,7 +31,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
 
   <nav class="manual-index" aria-label="Índice del manual">
-    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
   </nav>
 
   <section class="manual-section" id="inicio" data-manual-section>
@@ -50,6 +50,29 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <?php else: ?><div><b>1</b><strong>Elige la ayuda</strong><span>Selecciona la opción del catálogo que más se parezca a lo que necesitas. El catálogo se mantiene actualizado y la ayuda cambia según tu selección, por lo que no necesitas memorizar categorías.</span></div><div><b>2</b><strong>Cuéntanos qué pasa</strong><span>Describe los hechos con tus propias palabras. Si iniciaste sesión, tus datos se usan automáticamente y tu ubicación asignada se propone cuando es inequívoca; puedes cambiarla si reportas otro lugar.</span></div><div><b>3</b><strong>Da seguimiento</strong><span>Consulta respuestas, archivos, cambios relevantes y la solución desde Mis solicitudes.</span></div><?php endif; ?>
     </div>
   </section>
+
+  <?php if($isSupport): ?>
+  <section class="manual-section" id="actividades" data-manual-section>
+    <div class="manual-section-head"><span>A</span><div><h2>Actividades y visitas</h2><p>Programa y documenta trabajo operativo ligado al caso sin confundir la actividad con el estado del ticket.</p></div></div>
+    <div class="manual-cards">
+      <article><strong>Programar</strong><p>Dentro del caso usa <b>+ Programar actividad</b>. Elige visita en sitio, soporte remoto, seguimiento, intervención de proveedor u otra atención; define responsable, fecha de inicio, fin estimado y objetivo.</p></article>
+      <article><strong>Responsable y participantes</strong><p>La actividad tiene un responsable principal y puede incluir participantes internos. Una intervención de proveedor usa únicamente colaboradores con acceso vigente al caso.</p></article>
+      <article><strong>Reprogramar</strong><p>Si cambia la fecha, usa <b>Reprogramar</b> y registra el motivo. La actividad se conserva y el cambio queda trazado; no crees otra actividad para ocultar una reprogramación.</p></article>
+      <article><strong>Iniciar y Finalizar</strong><p>Usa <b>Iniciar</b> cuando comience el trabajo y <b>Finalizar</b> para registrar resultado, trabajo realizado y pendientes. Finalizar una actividad no resuelve ni cierra el ticket: el caso continúa con su propio flujo.</p></article>
+      <article><strong>Cancelar</strong><p>Cancela únicamente cuando la atención ya no corresponda y deja un motivo claro. La cancelación queda registrada para trazabilidad.</p></article>
+      <article><strong>Información para el solicitante</strong><p>Activa la visibilidad solo cuando quieras publicar una actualización. Escribe un resumen claro para el usuario; preparación, responsable interno, proveedor, trabajo técnico y otros detalles privados permanecen dentro de soporte.</p></article>
+    </div>
+  </section>
+  <?php elseif(!$isExternal): ?>
+  <section class="manual-section" id="actividades" data-manual-section>
+    <div class="manual-section-head"><span>A</span><div><h2>Actividades y visitas</h2><p>Cuando soporte publique una atención programada para tu solicitud, aparecerá dentro del caso como <b>Próxima atención</b>.</p></div></div>
+    <div class="manual-cards">
+      <article><strong>Próxima atención</strong><p>Puede indicar el tipo de atención, estado, fecha programada, fin estimado, ubicación y el resumen que soporte preparó para ti.</p></article>
+      <article><strong>Información segura</strong><p>Solo verás la información que el equipo de soporte decidió publicar. La preparación interna, responsables técnicos y detalles privados de trabajo no se muestran en tu solicitud.</p></article>
+      <article><strong>Actividad y solicitud son diferentes</strong><p>Una visita o seguimiento puede finalizar y tu solicitud continuar abierta mientras el equipo completa la solución, validaciones o pasos pendientes.</p></article>
+    </div>
+  </section>
+  <?php endif; ?>
 
   <?php if($isSupport): ?><section class="manual-section" id="soporte" data-manual-section><div class="manual-section-head"><span>03</span><div><h2>Centro de soporte</h2><p>Prioriza por alcance y tiempo, continúa la conversación y documenta correctamente esperas y solución.</p></div></div><div class="manual-cards"><article><strong>Cola de trabajo</strong><p><b>Todos</b> reúne los casos activos que puedes consultar según tu alcance. Usa <b>Míos</b>, <b>Sin asignar</b>, <b>Por vencer</b>, <b>Vencidos</b>, <b>En espera</b>, <b>Reabiertos</b> o <b>Críticos</b> para concentrarte.</p></article><article><strong>Clasificación ITSM</strong><p>El Helpdesk propone automáticamente Incidente o Solicitud de servicio, Impacto y Urgencia a partir de la categoría y lo descrito por el usuario. Impacto + Urgencia producen la prioridad inicial. Soporte debe validar la clasificación y, si ajusta manualmente la prioridad, dejar motivo y auditoría.</p></article><article><strong>Resolución objetivo</strong><p>El SLA muestra el tiempo restante, cuánto del objetivo ya se utilizó y una lectura operativa: Dentro de objetivo, Atención requerida, Próximo a vencer o Vencido.</p></article><article><strong>Tomar un caso</strong><p>Usa <b>Tomar</b> cuando realmente puedas iniciar trabajo. Solo puedes tomar casos disponibles dentro de tu alcance.</p></article><article><strong>En espera</strong><p>Selecciona la razón real: usuario, proveedor, compra, visita, aprobación u otra dependencia. Los informes conservan cuánto tiempo se acumuló en cada motivo aunque cambie durante el mismo caso.</p></article><article><strong>Respuesta y conversación interna</strong><p><b>Respuesta al usuario</b> es visible para el solicitante. <b>Conversación interna</b> es solo para el equipo de soporte.</p></article><article><strong>Resolver</strong><p>Registra qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Al resolver, el cierre final queda pendiente de confirmación del solicitante; IT puede reabrir si detecta que aún falta trabajo.</p></article></div></section><?php endif; ?>
 

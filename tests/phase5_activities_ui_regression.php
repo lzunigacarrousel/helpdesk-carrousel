@@ -20,6 +20,10 @@ $ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
 $ticketView=body($root.'/app/Views/tickets/show.php');
 $activityCss=body($root.'/public/assets/css/ticket-activities.css');
 $activityJs=body($root.'/public/assets/js/ticket-activities.js');
+$manual=body($root.'/app/Views/help/manual.php');
+$readme=body($root.'/README.md');
+$changelog=body($root.'/CHANGELOG.md');
+$roadmap=body($root.'/docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md');
 
 ok($controller!=='','Existe TicketActivityController');
 ok(str_contains($routes,'TicketActivityController'),'Router conoce TicketActivityController');
@@ -155,6 +159,18 @@ foreach([
 ] as $needle=>$label){
     ok($requesterBlock!==''&&!str_contains($requesterBlock,$needle),$label);
 }
+
+// Task 9: documentación funcional y roadmap de Fase 5.
+ok(str_contains($manual,'Actividades y visitas'),'Manual documenta Actividades y visitas');
+ok(str_contains($manual,'Programar'),'Manual explica Programar actividades');
+ok(str_contains($manual,'Reprogramar'),'Manual explica Reprogramar actividades');
+ok(str_contains($manual,'Finalizar'),'Manual explica Finalizar actividades');
+ok(str_contains($manual,'Finalizar una actividad no resuelve ni cierra el ticket'),'Manual aclara independencia entre actividad y estado del ticket');
+ok(str_contains($manual,'Próxima atención')||str_contains($manual,'Proxima atención'),'Manual explica Próxima atención al solicitante');
+ok(str_contains($readme,'Implementada — pendiente validación integral Fase 12'),'README marca Fase 5 implementada');
+ok(str_contains($readme,'| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |'),'README marca Agenda como siguiente fase');
+ok(str_contains($changelog,'Fase 5 · Actividades / visitas'),'CHANGELOG registra cierre funcional de Fase 5');
+ok(str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.'),'Roadmap maestro marca Fase 5 implementada');
 
 if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);

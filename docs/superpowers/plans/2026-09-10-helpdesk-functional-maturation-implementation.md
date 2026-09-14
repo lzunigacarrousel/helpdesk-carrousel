@@ -111,17 +111,22 @@ Objetivo inicial de BD: **0 cambios**.
 
 ## Fase 5 — Actividades / visitas
 
-Estado: **PENDIENTE / HARD GATE DE BD**.
+Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.
 
-- [ ] Evaluar formalmente si `ticket_events` resuelve el caso.
-- [ ] Si no, presentar diseño completo de `ticket_activities` antes de modificar BD.
-- [ ] Cubrir programación, técnico, parque, inicio/fin estimados, motivo, reprogramación, inicio, finalización y resultado.
-- [ ] Reutilizar comentarios, adjuntos, eventos, auditoría, notificaciones, resolución y motivos de espera.
-- [ ] No crear tablas separadas para visitas/remoto/proveedor/follow-up.
+- [x] Evaluar formalmente `ticket_events`: se conserva como historial inmutable y no sustituye el estado operativo consultable.
+- [x] Diseñar e implementar `ticket_activities` y `ticket_activity_participants` con migración incremental, esquema canónico y verificadores.
+- [x] Cubrir programación, responsable, participantes, parque, inicio/fin estimados, objetivo, reprogramación, inicio, finalización, cancelación y resultado.
+- [x] Reutilizar `ticket_attachments` mediante `activity_id` opcional y conservar `ticket_events`, auditoría y notificaciones como trazabilidad.
+- [x] Implementar permisos `activities.view/create/manage/cancel`, validación de scope y CSRF.
+- [x] Implementar UI interna con visita en sitio, soporte remoto, seguimiento, intervención de proveedor y otra atención.
+- [x] Mantener independencia entre actividad y ticket: ninguna transición de actividad cambia automáticamente el estado del caso.
+- [x] Implementar resumen seguro **Próxima atención** para solicitante, limitado a información publicada por soporte.
+- [x] No crear tablas separadas por tipo de actividad.
+- [ ] Validación responsive acumulada y cierre transversal se consolidan en Fase 12.
 
 ## Fase 6 — Agenda
 
-Estado: **PENDIENTE Y DEPENDE DE FASE 5**.
+Estado: **SIGUIENTE FASE / PENDIENTE; REUTILIZA `ticket_activities`**.
 
 - [ ] Usar la misma entidad de actividades si se aprueba.
 - [ ] No crear tabla de calendario adicional.

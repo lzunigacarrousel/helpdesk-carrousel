@@ -4,6 +4,16 @@
 >
 > La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
 
+## Fase 5 · Actividades / visitas · 2026-09-14
+- Nueva entidad operativa `ticket_activities` ligada obligatoriamente a tickets, con tipos visita en sitio, soporte remoto, seguimiento, intervención de proveedor y otra atención.
+- Nueva tabla `ticket_activity_participants` para participantes; `ticket_attachments.activity_id` permite asociar evidencia reutilizando el almacenamiento existente.
+- Permisos `activities.view`, `activities.create`, `activities.manage` y `activities.cancel` integrados a los perfiles operativos y de consulta correspondientes.
+- `TicketActivityService` centraliza reglas, scope y transiciones; `TicketActivityController` expone operaciones POST con CSRF para programar, reprogramar, iniciar, finalizar, cancelar y gestionar participantes.
+- Reprogramaciones, inicio, finalización y cancelación conservan trazabilidad mediante `ticket_events` y auditoría; no se crean tablas paralelas de historial.
+- Crear, reprogramar, iniciar, finalizar o cancelar una actividad no cambia automáticamente el estado ni cierra el ticket.
+- Workspace de soporte incorpora Actividades del caso, próximas/activas, historial, formulario progresivo y acciones según estado.
+- Solicitante incorpora **Próxima atención** y recibe únicamente tipo/estado/fechas/ubicación y `requester_summary` cuando soporte publica la actividad; no se exponen responsable, proveedor ni detalle técnico interno.
+- Manual, README y roadmap documentan el flujo de actividades y dejan Fase 6 — Agenda como siguiente fase, todavía no implementada y dependiente de `ticket_activities`.
 ## v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN · Pulido operativo + comunicación simple · 2026-09-09
 - El formulario público elimina la captura duplicada `Resumen breve`: el usuario describe el problema una sola vez y el `subject` se genera automáticamente para mantener compatibilidad con tickets, listados y reportes existentes sin borrar columnas.
 - Jerarquía visual transversal reforzada con superficies suaves reutilizables, secciones mejor diferenciadas, botones secundarios menos dominantes y reducción de microtexto sin perder controles táctiles ni responsive.

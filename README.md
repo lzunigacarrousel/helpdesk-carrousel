@@ -45,11 +45,13 @@ Migraciones incrementales actualmente conservadas para instalaciones existentes:
 
 - `MIGRAR_TICKET_WORK_REPORTS_20260912.sql`
 - `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`
+- `MIGRAR_FASE5_ACTIVIDADES_20260913.sql`
 
 Verificadores asociados:
 
 - `VERIFICAR_TICKET_WORK_REPORTS_20260912.sql`
 - `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`
+- `VERIFICAR_FASE5_ACTIVIDADES_20260913.sql`
 
 Una instalación nueva debe construirse desde `database/INSTALAR.sql`. Las migraciones incrementales existen para actualizar una instalación previa sin reconstruirla.
 
@@ -116,6 +118,7 @@ La base estable incluye, entre otras funciones:
 - problemas conocidos y conocimiento;
 - proveedores/colaboradores externos y control de acceso por caso;
 - documentación estructurada de trabajo externo por tipo de servicio;
+- actividades operativas ligadas a tickets: visitas, soporte remoto, seguimientos e intervenciones de proveedor;
 - manual y ayuda integrada.
 
 Perfiles principales:
@@ -140,8 +143,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 2 | UX del solicitante | Cerrada funcionalmente |
 | 3 | Operación IT y SLA | Cerrada funcionalmente |
 | 4 | Feedback del solicitante | Cerrada |
-| 5 | Actividades / visitas | **Actual — en diseño** |
-| 6 | Agenda | Pendiente; depende de Fase 5 |
+| 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |
+| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |
 | 7 | Proveedores | Parcialmente adelantada; falta cierre formal |
 | 8 | Calidad IT → proveedor | Pendiente |
 | 9 | Conocimiento | Parcialmente adelantada; falta cierre formal |
@@ -153,17 +156,19 @@ La validación responsive acumulada, revisión claro/oscuro y cierre transversal
 
 ### Fase 5 — Actividades / visitas
 
-La Fase 5 tiene hard gate de base de datos. No debe modificarse el esquema hasta aprobar el diseño completo de la entidad de actividades.
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
 
-Acuerdos de diseño ya aprobados:
+La Fase 5 incorpora una entidad operativa reutilizable para trabajo ligado obligatoriamente a tickets:
 
-- una actividad pertenece a un ticket;
-- un ticket puede tener varias actividades simultáneas;
-- tipos iniciales: visita en sitio, soporte remoto, seguimiento, intervención de proveedor y otra;
-- estados iniciales: programada, en curso, finalizada y cancelada;
-- una reprogramación mantiene la actividad y deja historial de fecha anterior, nueva fecha, motivo y actor;
-- no se crearán tablas distintas por tipo de actividad;
-- `ticket_events` seguirá siendo bitácora/auditoría, no sustituto de la entidad operativa.
+- `ticket_activities` mantiene el estado actual de visitas, soporte remoto, seguimientos, intervenciones de proveedor y otras atenciones;
+- `ticket_activity_participants` registra participantes y `ticket_attachments.activity_id` permite asociar evidencia sin crear almacenamiento paralelo;
+- estados: programada, en curso, finalizada y cancelada;
+- resultados: resuelta, parcial, sin resolver y requiere seguimiento;
+- una reprogramación conserva la actividad y registra fecha anterior, nueva fecha, motivo y actor;
+- las operaciones respetan permisos, scope, CSRF, auditoría y trazabilidad mediante `ticket_events`;
+- crear, reprogramar, iniciar, finalizar o cancelar una actividad **no cambia automáticamente el estado del ticket**;
+- el solicitante solo recibe el resumen publicado explícitamente por soporte mediante **Próxima atención**;
+- Fase 6 reutilizará `ticket_activities` para Agenda y no debe crear otra entidad de calendario.
 
 ## Flujo Git oficial
 
