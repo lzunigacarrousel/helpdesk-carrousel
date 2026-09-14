@@ -100,6 +100,55 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <?php if($canChangeStatus&&in_array($status,['IN_PROGRESS','PENDING','REOPENED'],true)): ?><div class="resolution-capture case-resolution-capture"><div class="case-section-head"><div><span class="ticket-kicker">Documentar solución</span><h2>Qué resolvió el caso</h2></div></div><form method="post" action="<?= APP_BASE_URL ?>/tickets/resolve" data-single-submit class="resolution-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><div class="resolution-grid"><label>Tipo de solución<select class="form-control" name="resolution_type" required><option value="">Selecciona</option><option value="CONFIGURATION">Configuración</option><option value="RESTART">Reinicio / restablecimiento</option><option value="REPLACEMENT">Cambio o reemplazo</option><option value="PROVIDER">Gestión con proveedor</option><option value="USER_GUIDANCE">Orientación al usuario</option><option value="SOFTWARE">Software / aplicación</option><option value="NETWORK">Red / conectividad</option><option value="HARDWARE">Hardware / equipo</option><option value="PERMISSION">Acceso / permisos</option><option value="MAINTENANCE">Mantenimiento</option><option value="OTHER">Otro</option></select></label><label>Qué encontramos<input class="form-control" name="root_cause" required placeholder="Causa o condición encontrada"></label><label class="resolution-full">Qué hicimos<textarea class="form-control" name="solution_applied" rows="3" required placeholder="Describe la acción o los pasos que resolvieron el problema"></textarea></label><label class="resolution-full">Cómo evitarlo <span class="subtle">(opcional)</span><textarea class="form-control" name="preventive_action" rows="2" placeholder="Recomendación, mantenimiento o seguimiento"></textarea></label></div><button class="btn btn-primary" type="submit">Guardar solución y resolver</button></form></div><?php endif; ?>
   </div></section><?php endif; ?>
 
+  <?php if($isRequester&&!empty($requesterActivities)):
+    $requesterActivityTypeLabels=[
+      'VISITA_EN_SITIO'=>'Visita en sitio',
+      'SOPORTE_REMOTO'=>'Soporte remoto',
+      'SEGUIMIENTO'=>'Seguimiento',
+      'INTERVENCION_PROVEEDOR'=>'Intervención programada',
+      'OTRA'=>'Atención programada',
+    ];
+    $requesterActivityStatusLabels=[
+      'PROGRAMADA'=>'Programada',
+      'EN_CURSO'=>'En curso',
+      'FINALIZADA'=>'Finalizada',
+      'CANCELADA'=>'Cancelada',
+    ];
+  ?>
+  <section class="card ticket-activities-card ticket-requester-activities">
+    <div class="card-body">
+      <div class="case-section-head ticket-activities-head">
+        <div>
+          <span class="ticket-kicker">Seguimiento</span>
+          <h2>Próxima atención</h2>
+          <p class="ticket-activities-intro">Aquí verás únicamente la información de atención que el equipo de soporte publicó para ti.</p>
+        </div>
+      </div>
+      <div class="ticket-activity-grid <?= count($requesterActivities)===1?'is-single':'' ?>">
+        <?php foreach($requesterActivities as $activity):
+          $requesterType=(string)($activity['activity_type']??'OTRA');
+          $requesterStatus=(string)($activity['status']??'PROGRAMADA');
+        ?>
+          <article class="ticket-activity-item <?= in_array($requesterStatus,['PROGRAMADA','EN_CURSO'],true)?'is-active':'' ?>">
+            <div class="ticket-activity-item-head">
+              <div class="ticket-activity-kind">
+                <strong><?= htmlspecialchars($requesterActivityTypeLabels[$requesterType]??'Atención programada') ?></strong>
+                <small>Actualización publicada por soporte</small>
+              </div>
+              <span class="ticket-activity-status status-<?= strtolower($requesterStatus) ?>"><?= htmlspecialchars($requesterActivityStatusLabels[$requesterStatus]??$requesterStatus) ?></span>
+            </div>
+            <div class="ticket-activity-meta">
+              <div><span>Fecha programada</span><strong><?= !empty($activity['scheduled_start_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_start_at']))):'Por confirmar' ?></strong></div>
+              <?php if(!empty($activity['scheduled_end_at'])): ?><div><span>Fin estimado</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_end_at']))) ?></strong></div><?php endif; ?>
+              <?php if(!empty($activity['park_name'])): ?><div><span>Ubicación</span><strong><?= htmlspecialchars((string)$activity['park_name']) ?></strong></div><?php endif; ?>
+            </div>
+            <p class="ticket-activity-objective"><?= nl2br(htmlspecialchars((string)$activity['requester_summary'])) ?></p>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </section>
+  <?php endif; ?>
   <?php if($isSupport):
     $activityTypeLabels=[
       'VISITA_EN_SITIO'=>'Visita en sitio',
