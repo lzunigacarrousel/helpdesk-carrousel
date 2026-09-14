@@ -49,6 +49,7 @@ ok(str_contains($activityCss,'.ticket-activity-transition-actions{display:flex;j
 ok(str_contains($activityCss,'.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}'),'Botones de transición se adaptan en móvil');
 
 PHP;
+$checks=str_replace(["\r\n","\r"],"\n",$checks);
 $checks=str_replace("\n",$testEol,$checks);
 $anchor='// Hardening final Fase 5: privacidad integral del solicitante.';
 $testBody=replaceOnce($testBody,$anchor,$checks.$anchor,'Inserción de gates de anchos');
