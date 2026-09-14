@@ -322,8 +322,12 @@ final class TicketActivityService
         return $result;
     }
 
-    public function complete(int $activityId,array $input): array
-    {
+    public function complete(
+        int $activityId,
+        array $input,
+        ?TicketAttachmentService $attachmentService=null,
+        ?array $evidence=null
+    ): array {
         $resultCode=strtoupper(trim((string)($input['result_code']??'')));
         $workPerformed=trim((string)($input['work_performed']??''));
         $resultSummary=trim((string)($input['result_summary']??''));
@@ -338,12 +342,15 @@ final class TicketActivityService
         if($resultSummary===''){
             throw new InvalidArgumentException('result_summary es obligatorio al finalizar.');
         }
+        if($evidence!==null && $attachmentService===null){
+            throw new InvalidArgumentException('No fue posible preparar la evidencia de la actividad.');
+        }
 
         $actorId=(int)Auth::id();
         if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para finalizar la actividad.');
 
         $result=Database::transaction(function(PDO $pdo) use(
-            $activityId,$resultCode,$workPerformed,$resultSummary,$pendingItems
+            $activityId,$resultCode,$workPerformed,$resultSummary,$pendingItems,$attachmentService,$evidence
         ): array {
             $activity=$this->requireActivity($activityId,true);
             if((string)$activity['status']!=='EN_CURSO'){
@@ -363,6 +370,18 @@ final class TicketActivityService
                 $resultCode,$workPerformed,$resultSummary,$pendingItems!==''?$pendingItems:null,$activityId,
             ]);
 
+            $attachmentId=null;
+            if($evidence!==null && $attachmentService!==null){
+                $attachmentId=$attachmentService->storeUploadedFile(
+                    $pdo,
+                    (int)$activity['ticket_id'],
+                    null,
+                    $activityId,
+                    'INTERNAL',
+                    $evidence
+                );
+            }
+
             $refresh=$pdo->prepare(
                 'SELECT id,ticket_id,status,result_code,started_at,finished_at,work_performed,result_summary,pending_items
                  FROM ticket_activities WHERE id=? LIMIT 1'
@@ -380,6 +399,7 @@ final class TicketActivityService
                 'work_performed'=>$workPerformed,
                 'result_summary'=>$resultSummary,
                 'pending_items'=>$pendingItems!==''?$pendingItems:null,
+                'evidence_attachment_id'=>$attachmentId,
             ]);
 
             return[
@@ -392,6 +412,7 @@ final class TicketActivityService
                 'work_performed'=>$workPerformed,
                 'result_summary'=>$resultSummary,
                 'pending_items'=>$pendingItems!==''?$pendingItems:null,
+                'evidence_attachment_id'=>$attachmentId,
             ];
         });
 
