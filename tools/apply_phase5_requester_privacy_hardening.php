@@ -51,20 +51,22 @@ $privacyChecks=<<<'PHP'
 // Hardening final Fase 5: privacidad integral del solicitante.
 ok(str_contains($activityService,"a.status IN('PROGRAMADA','EN_CURSO')"),'Próxima atención solo recibe actividades próximas o activas');
 ok(str_contains($ticketIndex,'Seguimiento por equipo de soporte'),'Lista del solicitante no expone responsable interno');
-ok(str_contains($ticketView,"$isSupport?'Responsable':'Atención'"),'Detalle del solicitante reemplaza Responsable por Atención');
-ok(str_contains($ticketView,"$isSupport?htmlspecialchars($ticket['assigned_name']??'Aún sin asignar'):'Equipo de soporte'"),'Detalle del solicitante no imprime assigned_name interno');
-ok(str_contains($ticketController,"$requesterEventTypes=['CREATED','STATUS_CHANGED','RESOLVED','CLOSED','REOPENED'];"),'Solicitante usa whitelist segura de eventos');
-ok(str_contains($ticketController,"$event['actor_name']=null"),'Historial del solicitante oculta nombres de actores internos');
-ok(str_contains($ticketController,"'events'=>$events"),'Vista recibe historial filtrado según perfil');
+ok(str_contains($ticketView,'$isSupport?\'Responsable\':\'Atención\''),'Detalle del solicitante reemplaza Responsable por Atención');
+ok(str_contains($ticketView,'$isSupport?htmlspecialchars($ticket[\'assigned_name\']??\'Aún sin asignar\'):\'Equipo de soporte\''),'Detalle del solicitante no imprime assigned_name interno');
+ok(str_contains($ticketController,'$requesterEventTypes=[\'CREATED\',\'STATUS_CHANGED\',\'RESOLVED\',\'CLOSED\',\'REOPENED\'];'),'Solicitante usa whitelist segura de eventos');
+ok(str_contains($ticketController,'$event[\'actor_name\']=null'),'Historial del solicitante oculta nombres de actores internos');
+ok(str_contains($ticketController,'\'events\'=>$events'),'Vista recibe historial filtrado según perfil');
 
 PHP;
 $testBody=replaceOnce($testBody,"// Task 8: resumen seguro para solicitante.",$privacyChecks."// Task 8: resumen seguro para solicitante.",'Inserción gates privacidad');
 writeFileStrict($test,$testBody);
 
+if(run('"'.$php.'" -l "'.$test.'"')!==0) fail('El gate RED generado tiene error de sintaxis; no se acepta como fallo funcional.');
+
 echo "=== RED esperado: la vista del solicitante aún expone contexto interno ===".PHP_EOL;
 $red=run('"'.$php.'" tests\\phase5_activities_ui_regression.php');
 if($red===0) fail('El RED no falló; los gates nuevos no están comprobando el problema observado.');
-echo '[OK] RED confirmado: los nuevos gates detectan el problema real.'.PHP_EOL.PHP_EOL;
+echo '[OK] RED confirmado: los nuevos gates detectan el problema real sin errores de sintaxis.'.PHP_EOL.PHP_EOL;
 
 // GREEN 1: solo actividades visibles y todavía activas bajo "Próxima atención".
 $serviceBody=readFileStrict($service);
