@@ -9,8 +9,7 @@ if (-not (Test-Path $installPath)) {
 
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $raw = [System.IO.File]::ReadAllText($installPath)
-$newline = if ($raw.Contains("`r`n")) { "`r`n" } else { "`n" }
-$text = $raw.Replace("`r`n", "`n")
+$text = $raw.Replace("`r`n", "`n").Replace("`r", "")
 
 $marker = "INSERT INTO support_teams(code,name,description)"
 $signature = "-- FASE 5 - BASELINE CANONICA Y ACTIVIDADES"
@@ -172,23 +171,21 @@ JOIN permissions p ON p.code='activities.view'
 WHERE r.code IN('MANAGEMENT','SUPERVISOR');
 
 INSERT IGNORE INTO schema_migrations(version,name,applied_at) VALUES
-('2026-09-12-ticket-work-reports','Informes técnicos estructurados de proveedores',NOW()),
-('2026-09-12-external-report-templates','Plantillas de documentación externa por tipo de servicio',NOW()),
+('2026-09-12-ticket-work-reports','Informes tecnicos estructurados de proveedores',NOW()),
+('2026-09-12-external-report-templates','Plantillas de documentacion externa por tipo de servicio',NOW()),
 ('2026-09-13-fase5-actividades','Fase 5 - Actividades y visitas',NOW());
 
 '@
 
+$block = $block.Replace("`r`n", "`n").Replace("`r", "")
 $updated = $text.Replace($marker, $block + $marker)
 if ($updated -eq $text) {
     throw 'No se pudo insertar la baseline canonica de Fase 5.'
 }
 
-if ($newline -eq "`r`n") {
-    $updated = $updated.Replace("`n", "`r`n")
-}
-
+# Escribe UTF-8 sin BOM y LF puro para evitar CR residual/trailing whitespace en Git.
 [System.IO.File]::WriteAllText($installPath, $updated, $utf8NoBom)
 
-Write-Host '[OK] Actualizado database/INSTALAR.sql'
+Write-Host '[OK] Actualizado database/INSTALAR.sql con LF puro'
 Write-Host '[OK] Ruta del repositorio:' $root
 Write-Host '[OK] No se ejecuto ninguna migracion contra MariaDB.'
