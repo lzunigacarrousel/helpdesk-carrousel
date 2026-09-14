@@ -12,9 +12,16 @@ $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $content = [System.IO.File]::ReadAllText($viewPath, $utf8NoBom)
 
 $activeFrom = '<?php if($activeActivities): ?><div class="ticket-activity-grid">'
-$activeTo = '<?php if($activeActivities): ?><div class="ticket-activity-grid <?= count($activeActivities)===1?''is-single'':'' ?>">'
+$activeTo = @'
+<?php if($activeActivities): ?><div class="ticket-activity-grid <?= count($activeActivities)===1?'is-single':'' ?>">
+'@
+$activeTo = $activeTo.TrimEnd("`r","`n")
+
 $historyFrom = '<?php if($historyActivities): ?><div class="ticket-activity-grid">'
-$historyTo = '<?php if($historyActivities): ?><div class="ticket-activity-grid <?= count($historyActivities)===1?''is-single'':'' ?>">'
+$historyTo = @'
+<?php if($historyActivities): ?><div class="ticket-activity-grid <?= count($historyActivities)===1?'is-single':'' ?>">
+'@
+$historyTo = $historyTo.TrimEnd("`r","`n")
 
 $content = $content.Replace($activeFrom, $activeTo)
 $content = $content.Replace($historyFrom, $historyTo)
