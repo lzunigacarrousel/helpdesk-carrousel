@@ -20,7 +20,10 @@ okUtf8($source!=='','Existe aplicador Task 7');
 okUtf8(str_contains($source,'Próximas / activas'),'Aplicador conserva texto UTF-8 real');
 okUtf8($runner!=='','Existe runner UTF-8 seguro para Windows PowerShell 5.1');
 okUtf8(str_contains($runner,'UTF8Encoding'),'Runner fuerza lectura UTF-8 del aplicador');
-okUtf8(str_contains($runner,'ScriptBlock')||str_contains($runner,'scriptblock'),'Runner ejecuta el contenido ya decodificado');
+okUtf8(!str_contains($runner,'ScriptBlock::Create'),'Runner no ejecuta el aplicador como ScriptBlock sin PSScriptRoot');
+okUtf8(str_contains($runner,'WriteAllText'),'Runner materializa una copia fisica UTF-8 del aplicador');
+okUtf8(str_contains($runner,'UTF8Encoding($true)'),'Runner genera copia con BOM para Windows PowerShell 5.1');
+okUtf8(str_contains($runner,'& $tempPath'),'Runner ejecuta archivo fisico y conserva PSScriptRoot');
 okUtf8(str_contains($runner,'0x00C3'),'Runner detecta mojibake U+00C3');
 okUtf8(str_contains($runner,'show.php'),'Runner valida la vista generada');
 
@@ -28,5 +31,4 @@ if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) UTF-8 fallaron.".PHP_EOL);
     exit(1);
 }
-
 echo PHP_EOL."[OK] Regresión UTF-8 Task 7 completada.".PHP_EOL;
