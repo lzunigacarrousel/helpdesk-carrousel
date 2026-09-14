@@ -19,11 +19,21 @@ function readFileStrict(string $path): string {
 function writeFileStrict(string $path,string $content): void {
     if(@file_put_contents($path,$content)===false) fail("No se pudo escribir {$path}");
 }
+function eolOf(string $content): string {
+    return str_contains($content,"\r\n")?"\r\n":"\n";
+}
+function adaptEol(string $text,string $target): string {
+    $text=str_replace("\r\n","\n",$text);
+    return str_replace("\n",eolOf($target),$text);
+}
 function replaceOnce(string $content,string $search,string $replace,string $label): string {
     $count=substr_count($content,$search);
     if($count===0) fail("No se encontro el ancla: {$label}");
     if($count>1) fail("El ancla no es unica: {$label} ({$count} coincidencias)");
     return str_replace($search,$replace,$content);
+}
+function replaceOnceBlock(string $content,string $search,string $replace,string $label): string {
+    return replaceOnce($content,adaptEol($search,$content),adaptEol($replace,$content),$label);
 }
 function runPhpTest(string $php,string $testPath): int {
     $command=escapeshellarg($php).' '.escapeshellarg($testPath);
@@ -43,21 +53,31 @@ $readme=readFileStrict($readmePath);
 $changelog=readFileStrict($changelogPath);
 $roadmap=readFileStrict($roadmapPath);
 
+$alreadyApplied=
+    str_contains($manual,'<h2>Actividades y visitas</h2>')&&
+    str_contains($readme,'Implementada — pendiente validación integral Fase 12')&&
+    str_contains($changelog,'## Fase 5 · Actividades / visitas · 2026-09-14')&&
+    str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.');
+
 // -----------------------------------------------------------------------------
 // STEP 1 — RED documental
 // -----------------------------------------------------------------------------
-if(!str_contains($test,"$manual=body($root.'/app/Views/help/manual.php');")){
-    $anchor="$activityJs=body($root.'/public/assets/js/ticket-activities.js');";
-    $replacement=$anchor."\n".
-        "$manual=body($root.'/app/Views/help/manual.php');\n".
-        "$readme=body($root.'/README.md');\n".
-        "$changelog=body($root.'/CHANGELOG.md');\n".
-        "$roadmap=body($root.'/docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md');";
-    $test=replaceOnce($test,$anchor,$replacement,'carga de archivos documentales en test');
+$manualLoadNeedle="\$manual=body(\$root.'/app/Views/help/manual.php');";
+if(!str_contains($test,$manualLoadNeedle)){
+    $activityLoadAnchor=<<<'PHP'
+$activityJs=body($root.'/public/assets/js/ticket-activities.js');
+PHP;
+    $docLoads=<<<'PHP'
+$activityJs=body($root.'/public/assets/js/ticket-activities.js');
+$manual=body($root.'/app/Views/help/manual.php');
+$readme=body($root.'/README.md');
+$changelog=body($root.'/CHANGELOG.md');
+$roadmap=body($root.'/docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md');
+PHP;
+    $test=replaceOnceBlock($test,$activityLoadAnchor,$docLoads,'carga de archivos documentales en test');
 }
 
 $docChecks=<<<'PHP'
-
 // Task 9: documentación funcional y roadmap de Fase 5.
 ok(str_contains($manual,'Actividades y visitas'),'Manual documenta Actividades y visitas');
 ok(str_contains($manual,'Programar'),'Manual explica Programar actividades');
@@ -72,27 +92,35 @@ ok(str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRA
 PHP;
 
 if(!str_contains($test,'// Task 9: documentación funcional y roadmap de Fase 5.')){
-    $test=replaceOnce($test,"\nif($fails){",$docChecks."\n\nif($fails){",'checks Task 9 antes del cierre del test');
+    $closeAnchor=eolOf($test).'if($fails){';
+    $insert=adaptEol($docChecks,$test).eolOf($test).eolOf($test).'if($fails){';
+    $test=replaceOnce($test,$closeAnchor,eolOf($test).$insert,'checks Task 9 antes del cierre del test');
 }
 writeFileStrict($testPath,$test);
 ok('Gate documental Task 9 agregado al test.');
 
-echo PHP_EOL."=== RED esperado: la documentación todavía no fue actualizada ===".PHP_EOL;
-$redExit=runPhpTest($php,$testPath);
-if($redExit===0){
-    fail('El gate documental no entro en RED; revisa si Task 9 ya estaba aplicada.');
+if(!$alreadyApplied){
+    echo PHP_EOL."=== RED esperado: la documentación todavía no fue actualizada ===".PHP_EOL;
+    $redExit=runPhpTest($php,$testPath);
+    if($redExit===0) fail('El gate documental no entro en RED; revisa si Task 9 ya estaba aplicada.');
+    ok('RED confirmado: el test detecta documentación pendiente.');
+}else{
+    ok('Task 9 ya estaba aplicada parcialmente; se omite RED y se verificara GREEN al final.');
 }
-ok('RED confirmado: el test detecta documentación pendiente.');
 
 // -----------------------------------------------------------------------------
 // STEP 2 — Manual por perfil
 // -----------------------------------------------------------------------------
 $manual=readFileStrict($manualPath);
 
-$oldNav='    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>';
-$newNav='    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>';
+$oldNav=<<<'PHP'
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+PHP;
+$newNav=<<<'PHP'
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+PHP;
 if(!str_contains($manual,'href="#actividades">Actividades</a>')){
-    $manual=replaceOnce($manual,$oldNav,$newNav,'indice del Manual');
+    $manual=replaceOnceBlock($manual,$oldNav,$newNav,'indice del Manual');
 }
 
 $solicitudesEnd=<<<'PHP'
@@ -129,7 +157,7 @@ $activitiesSection=<<<'PHP'
   <?php if($isSupport): ?><section class="manual-section" id="soporte"
 PHP;
 if(!str_contains($manual,'<h2>Actividades y visitas</h2>')){
-    $manual=replaceOnce($manual,$solicitudesEnd,$activitiesSection,'seccion Actividades y visitas del Manual');
+    $manual=replaceOnceBlock($manual,$solicitudesEnd,$activitiesSection,'seccion Actividades y visitas del Manual');
 }
 writeFileStrict($manualPath,$manual);
 ok('Manual actualizado por perfil con Actividades y Próxima atención.');
@@ -139,39 +167,21 @@ ok('Manual actualizado por perfil con Actividades y Próxima atención.');
 // -----------------------------------------------------------------------------
 $readme=readFileStrict($readmePath);
 if(!str_contains($readme,'MIGRAR_FASE5_ACTIVIDADES_20260913.sql')){
-    $readme=replaceOnce(
-        $readme,
-        "- `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`",
-        "- `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`\n- `MIGRAR_FASE5_ACTIVIDADES_20260913.sql`",
-        'migración Fase 5 en README'
-    );
+    $readme=replaceOnce($readme,"- `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`","- `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`".eolOf($readme)."- `MIGRAR_FASE5_ACTIVIDADES_20260913.sql`",'migración Fase 5 en README');
 }
 if(!str_contains($readme,'VERIFICAR_FASE5_ACTIVIDADES_20260913.sql')){
-    $readme=replaceOnce(
-        $readme,
-        "- `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`",
-        "- `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`\n- `VERIFICAR_FASE5_ACTIVIDADES_20260913.sql`",
-        'verificador Fase 5 en README'
-    );
+    $readme=replaceOnce($readme,"- `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`","- `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`".eolOf($readme)."- `VERIFICAR_FASE5_ACTIVIDADES_20260913.sql`",'verificador Fase 5 en README');
 }
 if(!str_contains($readme,'actividades operativas ligadas a tickets')){
-    $readme=replaceOnce(
+    $readme=replaceOnceBlock(
         $readme,
         "- documentación estructurada de trabajo externo por tipo de servicio;\n- manual y ayuda integrada.",
         "- documentación estructurada de trabajo externo por tipo de servicio;\n- actividades operativas ligadas a tickets: visitas, soporte remoto, seguimientos e intervenciones de proveedor;\n- manual y ayuda integrada.",
         'capacidad de actividades en README'
     );
 }
-$readme=str_replace(
-    '| 5 | Actividades / visitas | **Actual — en diseño** |',
-    '| 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |',
-    $readme
-);
-$readme=str_replace(
-    '| 6 | Agenda | Pendiente; depende de Fase 5 |',
-    '| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |',
-    $readme
-);
+$readme=str_replace('| 5 | Actividades / visitas | **Actual — en diseño** |','| 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |',$readme);
+$readme=str_replace('| 6 | Agenda | Pendiente; depende de Fase 5 |','| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |',$readme);
 $oldPhase5=<<<'MD'
 ### Fase 5 — Actividades / visitas
 
@@ -204,8 +214,8 @@ La Fase 5 incorpora una entidad operativa reutilizable para trabajo ligado oblig
 - el solicitante solo recibe el resumen publicado explícitamente por soporte mediante **Próxima atención**;
 - Fase 6 reutilizará `ticket_activities` para Agenda y no debe crear otra entidad de calendario.
 MD;
-if(str_contains($readme,$oldPhase5)){
-    $readme=replaceOnce($readme,$oldPhase5,$newPhase5,'bloque Fase 5 del README');
+if(str_contains($readme,adaptEol($oldPhase5,$readme))){
+    $readme=replaceOnceBlock($readme,$oldPhase5,$newPhase5,'bloque Fase 5 del README');
 }elseif(!str_contains($readme,'Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.')){
     fail('No se pudo reconocer el bloque Fase 5 del README.');
 }
@@ -243,16 +253,24 @@ Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.
 - [x] No crear tablas separadas por tipo de actividad.
 - [ ] Validación responsive acumulada y cierre transversal se consolidan en Fase 12.
 MD;
-if(str_contains($roadmap,$oldRoadmapPhase5)){
-    $roadmap=replaceOnce($roadmap,$oldRoadmapPhase5,$newRoadmapPhase5,'Fase 5 del roadmap maestro');
+if(str_contains($roadmap,adaptEol($oldRoadmapPhase5,$roadmap))){
+    $roadmap=replaceOnceBlock($roadmap,$oldRoadmapPhase5,$newRoadmapPhase5,'Fase 5 del roadmap maestro');
 }elseif(!str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.')){
     fail('No se pudo reconocer el bloque Fase 5 del roadmap maestro.');
 }
-$roadmap=str_replace(
-    '## Fase 6 — Agenda\n\nEstado: **PENDIENTE Y DEPENDE DE FASE 5**.',
-    '## Fase 6 — Agenda\n\nEstado: **SIGUIENTE FASE / PENDIENTE; REUTILIZA `ticket_activities`**.',
-    $roadmap
-);
+$oldFase6=<<<'MD'
+## Fase 6 — Agenda
+
+Estado: **PENDIENTE Y DEPENDE DE FASE 5**.
+MD;
+$newFase6=<<<'MD'
+## Fase 6 — Agenda
+
+Estado: **SIGUIENTE FASE / PENDIENTE; REUTILIZA `ticket_activities`**.
+MD;
+if(str_contains($roadmap,adaptEol($oldFase6,$roadmap))){
+    $roadmap=replaceOnceBlock($roadmap,$oldFase6,$newFase6,'estado Fase 6 del roadmap maestro');
+}
 writeFileStrict($roadmapPath,$roadmap);
 ok('Roadmap maestro actualizado: Fase 5 cumplida y Fase 6 pendiente.');
 
@@ -275,7 +293,7 @@ if(!str_contains($changelog,'## Fase 5 · Actividades / visitas · 2026-09-14'))
 - Manual, README y roadmap documentan el flujo de actividades y dejan Fase 6 — Agenda como siguiente fase, todavía no implementada y dependiente de `ticket_activities`.
 
 MD;
-    $changelog=replaceOnce($changelog,$anchor,$entry.$anchor,'entrada archivada v2.4.0-dev en CHANGELOG');
+    $changelog=replaceOnce($changelog,$anchor,adaptEol($entry,$changelog).$anchor,'entrada archivada v2.4.0-dev en CHANGELOG');
 }
 writeFileStrict($changelogPath,$changelog);
 ok('CHANGELOG actualizado sin alterar la advertencia histórica de v2.4.0-dev.');
