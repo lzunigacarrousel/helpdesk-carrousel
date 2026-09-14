@@ -1,0 +1,276 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Core\Database;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use PDO;
+use RuntimeException;
+
+final class TicketActivityService
+{
+    private const TYPES=[
+        'VISITA_EN_SITIO',
+        'SOPORTE_REMOTO',
+        'SEGUIMIENTO',
+        'INTERVENCION_PROVEEDOR',
+        'OTRA',
+    ];
+
+    private const STATUSES=[
+        'PROGRAMADA',
+        'EN_CURSO',
+        'FINALIZADA',
+        'CANCELADA',
+    ];
+
+    private const RESULTS=[
+        'RESUELTA',
+        'PARCIAL',
+        'SIN_RESOLVER',
+        'REQUIERE_SEGUIMIENTO',
+    ];
+
+    public static function types(): array
+    {
+        return self::TYPES;
+    }
+
+    public static function results(): array
+    {
+        return self::RESULTS;
+    }
+
+    public function listForTicket(int $ticketId): array
+    {
+        if($ticketId<=0)return[];
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare(
+            "SELECT a.*,
+                    responsible.full_name responsible_name,
+                    responsible.email responsible_email,
+                    provider.full_name provider_name,
+                    provider.email provider_email,
+                    ep.organization_name provider_organization,
+                    p.name park_name
+             FROM ticket_activities a
+             JOIN users responsible ON responsible.id=a.responsible_user_id
+             LEFT JOIN users provider ON provider.id=a.provider_user_id
+             LEFT JOIN external_profiles ep ON ep.user_id=a.provider_user_id
+             LEFT JOIN parks p ON p.id=a.park_id
+             WHERE a.ticket_id=?
+             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA','FINALIZADA','CANCELADA'),
+                      a.scheduled_start_at,a.id"
+        );
+        $q->execute([$ticketId]);
+        $rows=$q->fetchAll();
+        if(!$rows)return[];
+
+        $ids=array_map(static fn(array $row):int=>(int)$row['id'],$rows);
+        $participants=$this->participantsByActivity($pdo,$ids);
+        foreach($rows as &$row){
+            $row['participants']=$participants[(int)$row['id']]??[];
+        }
+        unset($row);
+        return $rows;
+    }
+
+    public function requesterVisibleForTicket(int $ticketId): array
+    {
+        if($ticketId<=0)return[];
+
+        $q=Database::pdo()->prepare(
+            "SELECT a.id,a.activity_type,a.status,a.park_id,
+                    a.scheduled_start_at,a.scheduled_end_at,a.requester_summary,
+                    p.name park_name
+             FROM ticket_activities a
+             LEFT JOIN parks p ON p.id=a.park_id
+             WHERE a.ticket_id=? AND a.requester_visible=1
+             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA','FINALIZADA','CANCELADA'),
+                      a.scheduled_start_at,a.id"
+        );
+        $q->execute([$ticketId]);
+        return $q->fetchAll();
+    }
+
+    public function responsibleOptionsForTicket(int $ticketId): array
+    {
+        if($ticketId<=0)return[];
+
+        $q=Database::pdo()->query(
+            "SELECT u.id,u.full_name,u.email,r.code role_code
+             FROM users u
+             JOIN roles r ON r.id=u.role_id
+             WHERE u.access_type='INTERNAL'
+               AND u.status='ACTIVE'
+               AND u.deleted_at IS NULL
+               AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN')
+             ORDER BY u.full_name,u.id"
+        );
+        $scope=new ScopeService();
+        $rows=[];
+        foreach($q->fetchAll() as $user){
+            $userId=(int)$user['id'];
+            if($scope->userCanAccessTicket($userId,$ticketId))$rows[]=$user;
+        }
+        return $rows;
+    }
+
+    public function providerOptionsForTicket(int $ticketId): array
+    {
+        if($ticketId<=0)return[];
+
+        $q=Database::pdo()->prepare(
+            "SELECT u.id,u.full_name,u.email,ep.organization_name,ep.external_type
+             FROM external_ticket_access eta
+             JOIN users u ON u.id=eta.user_id
+             LEFT JOIN external_profiles ep ON ep.user_id=u.id
+             WHERE eta.ticket_id=?
+               AND eta.revoked_at IS NULL
+               AND u.access_type='EXTERNAL'
+               AND u.status='ACTIVE'
+               AND u.deleted_at IS NULL
+             ORDER BY ep.organization_name,u.full_name,u.id"
+        );
+        $q->execute([$ticketId]);
+        return $q->fetchAll();
+    }
+
+    private function requireScheduledWindow(string $start,string $end): array
+    {
+        $start=trim($start);
+        $end=trim($end);
+        if($start===''||$end===''){
+            throw new InvalidArgumentException('Inicio y fin estimado son obligatorios.');
+        }
+
+        try{
+            $startAt=new DateTimeImmutable($start);
+            $endAt=new DateTimeImmutable($end);
+        }catch(\Throwable){
+            throw new InvalidArgumentException('La fecha u hora programada no es válida.');
+        }
+
+        if($startAt >= $endAt){
+            throw new InvalidArgumentException('scheduled_start_at debe ser menor que scheduled_end_at.');
+        }
+
+        return[$startAt->format('Y-m-d H:i:s'),$endAt->format('Y-m-d H:i:s')];
+    }
+
+    private function normalizeVisibleSummary(bool $visible,string $summary): ?string
+    {
+        $summary=trim($summary);
+        if(!$visible)return null;
+        if($summary===''){
+            throw new InvalidArgumentException('requester_visible requiere requester_summary.');
+        }
+        if(mb_strlen($summary)>500){
+            throw new InvalidArgumentException('El resumen visible no puede superar 500 caracteres.');
+        }
+        return $summary;
+    }
+
+    private function requireOperationalUser(int $userId,int $ticketId): array
+    {
+        if($userId<=0||$ticketId<=0){
+            throw new InvalidArgumentException('Responsable o ticket inválido.');
+        }
+
+        $q=Database::pdo()->prepare(
+            "SELECT u.id,u.full_name,u.email,u.access_type,u.status,r.code role_code
+             FROM users u
+             JOIN roles r ON r.id=u.role_id
+             WHERE u.id=? AND u.deleted_at IS NULL LIMIT 1"
+        );
+        $q->execute([$userId]);
+        $user=$q->fetch();
+        if(!$user||$user['access_type']!=='INTERNAL'||$user['status']!=='ACTIVE'){
+            throw new InvalidArgumentException('El responsable debe ser un usuario interno activo.');
+        }
+        if(!in_array((string)$user['role_code'],['ADMIN','SEMIADMIN','TECHNICIAN'],true)){
+            throw new InvalidArgumentException('El usuario seleccionado no tiene un rol operativo válido.');
+        }
+        if(!(new ScopeService())->userCanAccessTicket($userId,$ticketId)){
+            throw new InvalidArgumentException('El responsable no tiene alcance operativo sobre este ticket.');
+        }
+        return $user;
+    }
+
+    private function requireProvider(int $userId,int $ticketId): array
+    {
+        if($userId<=0||$ticketId<=0){
+            throw new InvalidArgumentException('INTERVENCION_PROVEEDOR requiere provider_user_id válido.');
+        }
+
+        $q=Database::pdo()->prepare(
+            "SELECT u.id,u.full_name,u.email,u.access_type,u.status,
+                    ep.organization_name,eta.ticket_id
+             FROM users u
+             JOIN external_ticket_access eta
+               ON eta.user_id=u.id AND eta.ticket_id=? AND eta.revoked_at IS NULL
+             LEFT JOIN external_profiles ep ON ep.user_id=u.id
+             WHERE u.id=? AND u.deleted_at IS NULL LIMIT 1"
+        );
+        $q->execute([$ticketId,$userId]);
+        $provider=$q->fetch();
+        if(!$provider||$provider['access_type']!=='EXTERNAL'||$provider['status']!=='ACTIVE'){
+            throw new InvalidArgumentException('El proveedor debe ser externo, activo y tener acceso vigente al ticket.');
+        }
+        return $provider;
+    }
+
+    private function requireActivity(int $activityId,bool $forUpdate=false): array
+    {
+        if($activityId<=0)throw new InvalidArgumentException('Actividad inválida.');
+        $sql='SELECT * FROM ticket_activities WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
+        $q=Database::pdo()->prepare($sql);
+        $q->execute([$activityId]);
+        $activity=$q->fetch();
+        if(!$activity)throw new RuntimeException('La actividad no existe.');
+        return $activity;
+    }
+
+    private function validateTypeSpecific(
+        string $type,
+        int $ticketId,
+        ?int $providerUserId,
+        ?int $parkId,
+        bool $isRemote
+    ): void {
+        if(!in_array($type,self::TYPES,true)){
+            throw new InvalidArgumentException('Tipo de actividad inválido.');
+        }
+        if($type==='VISITA_EN_SITIO'&&($parkId??0)<=0){
+            throw new InvalidArgumentException('VISITA_EN_SITIO requiere park_id.');
+        }
+        if($type==='SOPORTE_REMOTO'&&!$isRemote){
+            throw new InvalidArgumentException('SOPORTE_REMOTO requiere is_remote=1.');
+        }
+        if($type==='INTERVENCION_PROVEEDOR'){
+            $this->requireProvider((int)$providerUserId,$ticketId);
+        }
+    }
+
+    private function participantsByActivity(PDO $pdo,array $activityIds): array
+    {
+        if(!$activityIds)return[];
+        $placeholders=implode(',',array_fill(0,count($activityIds),'?'));
+        $q=$pdo->prepare(
+            "SELECT ap.activity_id,u.id,u.full_name,u.email
+             FROM ticket_activity_participants ap
+             JOIN users u ON u.id=ap.user_id
+             WHERE ap.activity_id IN ({$placeholders})
+             ORDER BY u.full_name,u.id"
+        );
+        $q->execute($activityIds);
+        $grouped=[];
+        foreach($q->fetchAll() as $row){
+            $grouped[(int)$row['activity_id']][]=$row;
+        }
+        return $grouped;
+    }
+}
