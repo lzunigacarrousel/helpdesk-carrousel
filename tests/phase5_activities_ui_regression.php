@@ -142,6 +142,15 @@ ok(str_contains($ticketView,'ticket-activity-complete-grid'),'Formulario Finaliz
 ok(str_contains($activityCss,'.ticket-activity-complete-details[open]'),'Finalizar abierto ocupa el ancho disponible');
 ok(str_contains($activityCss,'.ticket-activity-complete-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'),'Finalizar aprovecha dos columnas en escritorio');
 ok(str_contains($activityCss,'.ticket-activity-complete-grid{grid-template-columns:1fr}'),'Finalizar vuelve a una columna en tablet/móvil');
+foreach([
+    'ACTIVITY_CREATED'=>'Actividad programada',
+    'ACTIVITY_RESCHEDULED'=>'Actividad reprogramada',
+    'ACTIVITY_STARTED'=>'Actividad iniciada',
+    'ACTIVITY_COMPLETED'=>'Actividad finalizada',
+    'ACTIVITY_CANCELLED'=>'Actividad cancelada',
+] as $eventCode=>$eventLabel){
+    ok(str_contains($ticketView,"'{$eventCode}'=>'{$eventLabel}'"),'Historial traduce '.$eventCode.' al español');
+}
 
 // Task 8: resumen seguro para solicitante.
 ok(str_contains($ticketView,'ticket-requester-activities'),'Vista define bloque seguro de actividades para solicitante');
