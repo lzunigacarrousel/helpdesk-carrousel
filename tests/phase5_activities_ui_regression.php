@@ -20,6 +20,8 @@ $ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
 $ticketView=body($root.'/app/Views/tickets/show.php');
 $activityCss=body($root.'/public/assets/css/ticket-activities.css');
 $activityJs=body($root.'/public/assets/js/ticket-activities.js');
+$activityService=body($root.'/app/Services/TicketActivityService.php');
+$ticketIndex=body($root.'/app/Views/tickets/index.php');
 $manual=body($root.'/app/Views/help/manual.php');
 $readme=body($root.'/README.md');
 $changelog=body($root.'/CHANGELOG.md');
@@ -152,6 +154,14 @@ foreach([
     ok(str_contains($ticketView,"'{$eventCode}'=>'{$eventLabel}'"),'Historial traduce '.$eventCode.' al español');
 }
 
+// Hardening final Fase 5: privacidad integral del solicitante.
+ok(str_contains($activityService,"a.status IN('PROGRAMADA','EN_CURSO')"),'Próxima atención solo recibe actividades próximas o activas');
+ok(str_contains($ticketIndex,'Seguimiento por equipo de soporte'),'Lista del solicitante no expone responsable interno');
+ok(str_contains($ticketView,'$isSupport?\'Responsable\':\'Atención\''),'Detalle del solicitante reemplaza Responsable por Atención');
+ok(str_contains($ticketView,'$isSupport?htmlspecialchars($ticket[\'assigned_name\']??\'Aún sin asignar\'):\'Equipo de soporte\''),'Detalle del solicitante no imprime assigned_name interno');
+ok(str_contains($ticketController,'$requesterEventTypes=[\'CREATED\',\'STATUS_CHANGED\',\'RESOLVED\',\'CLOSED\',\'REOPENED\'];'),'Solicitante usa whitelist segura de eventos');
+ok(str_contains($ticketController,'$event[\'actor_name\']=null'),'Historial del solicitante oculta nombres de actores internos');
+ok(str_contains($ticketController,'\'events\'=>$events'),'Vista recibe historial filtrado según perfil');
 // Task 8: resumen seguro para solicitante.
 ok(str_contains($ticketView,'ticket-requester-activities'),'Vista define bloque seguro de actividades para solicitante');
 ok(str_contains($ticketView,'Próxima atención')||str_contains($ticketView,'Proxima atención'),'Solicitante ve Próxima atención');

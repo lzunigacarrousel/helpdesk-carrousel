@@ -89,7 +89,8 @@ final class TicketActivityService
              FROM ticket_activities a
              LEFT JOIN parks p ON p.id=a.park_id
              WHERE a.ticket_id=? AND a.requester_visible=1
-             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA','FINALIZADA','CANCELADA'),
+               AND a.status IN('PROGRAMADA','EN_CURSO')
+             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA'),
                       a.scheduled_start_at,a.id"
         );
         $q->execute([$ticketId]);

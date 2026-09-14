@@ -180,6 +180,13 @@ final class TicketController
         $locationAreas=$canEditLocation?$pdo->query("SELECT id,name FROM areas WHERE is_active=1 ORDER BY name")->fetchAll():[];
         $isSupport=Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.reassign')||Auth::can('tickets.view_all');$supportUsers=[];if(Auth::can('tickets.reassign'))$supportUsers=$pdo->query("SELECT u.id,u.full_name,u.email,r.name role_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll();
 
+        $events=$e->fetchAll();
+        if(!$isSupport){
+            $requesterEventTypes=['CREATED','STATUS_CHANGED','RESOLVED','CLOSED','REOPENED'];
+            $events=array_values(array_filter($events,static fn(array $event):bool=>in_array((string)$event['event_type'],$requesterEventTypes,true)));
+            foreach($events as &$event)$event['actor_name']=null;
+            unset($event);
+        }
         $activityService=new TicketActivityService();
         $activities=$isSupport?$activityService->listForTicket($id):[];
         $requesterActivities=!$isSupport?$activityService->requesterVisibleForTicket($id):[];
@@ -195,7 +202,7 @@ final class TicketController
         View::render('tickets/show',[
             'user'=>Auth::user(),
             'ticket'=>$ticket,
-            'events'=>$e->fetchAll(),
+            'events'=>$events,
             'flash'=>Flash::pull(),
             'isSupport'=>$isSupport,
             'supportUsers'=>$supportUsers,
