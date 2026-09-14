@@ -44,6 +44,47 @@ final class ScopeService
         return["({$alias}.requester_user_id=? OR LOWER({$alias}.requester_email)=?)",[$userId,$email]];
     }
 
+    public function userCanAccessTicket(int $userId,int $ticketId): bool
+    {
+        if($userId<=0||$ticketId<=0)return false;
+
+        $pdo=Database::pdo();
+        $u=$pdo->prepare(
+            "SELECT u.id,u.email,u.access_type,r.code role_code
+             FROM users u
+             JOIN roles r ON r.id=u.role_id
+             WHERE u.id=? AND u.status='ACTIVE' AND u.deleted_at IS NULL
+             LIMIT 1"
+        );
+        $u->execute([$userId]);
+        $user=$u->fetch();
+        if(!$user||($user['access_type']??'')!=='INTERNAL')return false;
+
+        $role=(string)($user['role_code']??'');
+        if(in_array($role,['ADMIN','SEMIADMIN','MANAGEMENT'],true))return true;
+
+        $ticket=$pdo->prepare('SELECT park_id,area_id FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');
+        $ticket->execute([$ticketId]);
+        $t=$ticket->fetch();
+        if(!$t)return false;
+
+        if($role==='TECHNICIAN'){
+            $scopes=$this->supportScopes($userId);
+            if(!$scopes)return true;
+            foreach($scopes as $scope){
+                $type=(string)($scope['scope_type']??'');
+                if($type==='GLOBAL')return true;
+                if($type==='PARK'&&(int)($scope['park_id']??0)===(int)($t['park_id']??0))return true;
+                if($type==='AREA'&&(int)($scope['area_id']??0)===(int)($t['area_id']??0))return true;
+                if($type==='PARK_AREA'
+                    &&(int)($scope['park_id']??0)===(int)($t['park_id']??0)
+                    &&(int)($scope['area_id']??0)===(int)($t['area_id']??0))return true;
+            }
+        }
+
+        return false;
+    }
+
     public function canAccessOrganization(?int $regionId,?int $parkId,?int $areaId): bool
     {
         $role=(string)Auth::role();
