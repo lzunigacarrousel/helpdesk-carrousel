@@ -38,12 +38,15 @@ if($status) fail('El working tree debe estar limpio antes de aplicar este ajuste
 
 // RED: agregamos primero los gates de privacidad solicitante.
 $testBody=readFileStrict($test);
-$testBody=replaceOnce(
-    $testBody,
-    "$activityJs=body($root.'/public/assets/js/ticket-activities.js');",
-    "$activityJs=body($root.'/public/assets/js/ticket-activities.js');\n$activityService=body($root.'/app/Services/TicketActivityService.php');\n$ticketIndex=body($root.'/app/Views/tickets/index.php');",
-    'Carga de fuentes para privacidad'
-);
+$testSource=<<<'PHP'
+$activityJs=body($root.'/public/assets/js/ticket-activities.js');
+PHP;
+$testReplacement=<<<'PHP'
+$activityJs=body($root.'/public/assets/js/ticket-activities.js');
+$activityService=body($root.'/app/Services/TicketActivityService.php');
+$ticketIndex=body($root.'/app/Views/tickets/index.php');
+PHP;
+$testBody=replaceOnce($testBody,$testSource,$testReplacement,'Carga de fuentes para privacidad');
 $privacyChecks=<<<'PHP'
 // Hardening final Fase 5: privacidad integral del solicitante.
 ok(str_contains($activityService,"a.status IN('PROGRAMADA','EN_CURSO')"),'Próxima atención solo recibe actividades próximas o activas');
@@ -65,37 +68,45 @@ echo '[OK] RED confirmado: los nuevos gates detectan el problema real.'.PHP_EOL.
 
 // GREEN 1: solo actividades visibles y todavía activas bajo "Próxima atención".
 $serviceBody=readFileStrict($service);
-$serviceBody=replaceOnce(
-    $serviceBody,
-    "WHERE a.ticket_id=? AND a.requester_visible=1\n             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA','FINALIZADA','CANCELADA'),",
-    "WHERE a.ticket_id=? AND a.requester_visible=1\n               AND a.status IN('PROGRAMADA','EN_CURSO')\n             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA'),",
-    'Filtro requesterVisibleForTicket'
-);
+$serviceSearch=<<<'PHP'
+WHERE a.ticket_id=? AND a.requester_visible=1
+             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA','FINALIZADA','CANCELADA'),
+PHP;
+$serviceReplacement=<<<'PHP'
+WHERE a.ticket_id=? AND a.requester_visible=1
+               AND a.status IN('PROGRAMADA','EN_CURSO')
+             ORDER BY FIELD(a.status,'EN_CURSO','PROGRAMADA'),
+PHP;
+$serviceBody=replaceOnce($serviceBody,$serviceSearch,$serviceReplacement,'Filtro requesterVisibleForTicket');
 writeFileStrict($service,$serviceBody);
 
 // GREEN 2: listado del solicitante sin nombre del responsable interno.
 $indexBody=readFileStrict($index);
-$indexBody=replaceOnce(
-    $indexBody,
-    '<div class="ticket-list-bottom"><span><?= !empty($t[\'assigned_name\'])?\'Responsable: \'.htmlspecialchars($t[\'assigned_name\']):\'Sin asignar\' ?></span><span class="ticket-open-text"><?= $openText ?></span></div>',
-    '<div class="ticket-list-bottom"><span><?= $isExternal?(!empty($t[\'assigned_name\'])?\'Responsable: \'.htmlspecialchars($t[\'assigned_name\']):\'Sin asignar\'):\'Seguimiento por equipo de soporte\' ?></span><span class="ticket-open-text"><?= $openText ?></span></div>',
-    'Listado seguro del solicitante'
-);
+$indexSearch=<<<'PHP'
+<div class="ticket-list-bottom"><span><?= !empty($t['assigned_name'])?'Responsable: '.htmlspecialchars($t['assigned_name']):'Sin asignar' ?></span><span class="ticket-open-text"><?= $openText ?></span></div>
+PHP;
+$indexReplacement=<<<'PHP'
+<div class="ticket-list-bottom"><span><?= $isExternal?(!empty($t['assigned_name'])?'Responsable: '.htmlspecialchars($t['assigned_name']):'Sin asignar'):'Seguimiento por equipo de soporte' ?></span><span class="ticket-open-text"><?= $openText ?></span></div>
+PHP;
+$indexBody=replaceOnce($indexBody,$indexSearch,$indexReplacement,'Listado seguro del solicitante');
 writeFileStrict($index,$indexBody);
 
 // GREEN 3: contexto del caso sin nombre del técnico para solicitante.
 $showBody=readFileStrict($show);
-$showBody=replaceOnce(
-    $showBody,
-    '<div><dt>Responsable</dt><dd><?= htmlspecialchars($ticket[\'assigned_name\']??\'Aún sin asignar\') ?></dd></div>',
-    '<div><dt><?= $isSupport?\'Responsable\':\'Atención\' ?></dt><dd><?= $isSupport?htmlspecialchars($ticket[\'assigned_name\']??\'Aún sin asignar\'):\'Equipo de soporte\' ?></dd></div>',
-    'Contexto seguro del solicitante'
-);
+$showSearch=<<<'PHP'
+<div><dt>Responsable</dt><dd><?= htmlspecialchars($ticket['assigned_name']??'Aún sin asignar') ?></dd></div>
+PHP;
+$showReplacement=<<<'PHP'
+<div><dt><?= $isSupport?'Responsable':'Atención' ?></dt><dd><?= $isSupport?htmlspecialchars($ticket['assigned_name']??'Aún sin asignar'):'Equipo de soporte' ?></dd></div>
+PHP;
+$showBody=replaceOnce($showBody,$showSearch,$showReplacement,'Contexto seguro del solicitante');
 writeFileStrict($show,$showBody);
 
 // GREEN 4: timeline del solicitante con whitelist pública y sin actor interno.
 $controllerBody=readFileStrict($controller);
-$marker="        $activityService=new TicketActivityService();";
+$marker=<<<'PHP'
+        $activityService=new TicketActivityService();
+PHP;
 $eventFilter=<<<'PHP'
         $events=$e->fetchAll();
         if(!$isSupport){
@@ -107,7 +118,13 @@ $eventFilter=<<<'PHP'
 
 PHP;
 $controllerBody=replaceOnce($controllerBody,$marker,$eventFilter.$marker,'Filtro de eventos del solicitante');
-$controllerBody=replaceOnce($controllerBody,"            'events'=>$e->fetchAll(),","            'events'=>$events,",'Entrega de eventos filtrados');
+$renderSearch=<<<'PHP'
+            'events'=>$e->fetchAll(),
+PHP;
+$renderReplacement=<<<'PHP'
+            'events'=>$events,
+PHP;
+$controllerBody=replaceOnce($controllerBody,$renderSearch,$renderReplacement,'Entrega de eventos filtrados');
 writeFileStrict($controller,$controllerBody);
 
 echo "=== GREEN esperado: privacidad integral del solicitante ===".PHP_EOL;
@@ -115,7 +132,7 @@ $green=run('"'.$php.'" tests\\phase5_activities_ui_regression.php');
 if($green!==0) fail('La regresión de Fase 5 no quedó en verde.');
 
 foreach([$service,$controller,$index,$show,$test] as $file){
-    if(run('"'.$php.'" -l '.escapeshellarg($file))!==0) fail('Falló PHP lint en '.$file);
+    if(run('"'.$php.'" -l "'.$file.'"')!==0) fail('Falló PHP lint en '.$file);
 }
 
 echo '[OK] Hardening de privacidad del solicitante aplicado.'.PHP_EOL;
