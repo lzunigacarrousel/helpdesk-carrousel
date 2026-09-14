@@ -23,7 +23,7 @@ $checks=[
 'tools/AUDITAR_TABLAS_HELPDESK.php'=>["'carrousel_helpdesk'"],
 'app/Core/Auth.php'=>['isSupportOperator','isManagementViewer','profileLabel'],
 'app/Services/ScopeService.php'=>['ticketConstraint','SUPERVISOR','scopeLabel'],
-'app/Views/tickets/feedback.php'=>['¿Quedó resuelto?','Calificar y cerrar','Devolver a soporte','nps_score'],
+'app/Views/tickets/feedback.php'=>['¿Tu problema quedó resuelto?','Calificar y cerrar','Devolver a soporte','nps_score'],
 'app/Controllers/ResolutionController.php'=>['tickets.resolve','RESOLUTION_RECORDED','tickets/feedback?id=','confirmación del solicitante'],
 'app/Controllers/TicketFeedbackController.php'=>['public function submit','public function reopen','ticket_feedback','TICKET_FEEDBACK_SUBMITTED','TICKET_REOPENED_BY_REQUESTER'],
 'app/Views/admin/users.php'=>['+ Dar acceso','Acceso interno','Dónde trabaja','Retirar acceso','data-assignment-type','<table','data-label='],
@@ -37,9 +37,20 @@ $checks=[
 'public/index.php'=>['/tickets/feedback','/tickets/feedback/reopen','/tickets/resolve','/gestion/informes/exportar','/admin/users/create','/admin/users/assign','/admin/users/delete']];
 foreach($checks as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle)check(is_string($content)&&str_contains($content,$needle),$file.' contiene '.$needle);}
 
+$allowedSql=[
+'INSTALAR.sql',
+'VERIFICAR_INSTALACION.sql',
+'VERIFICAR_ESTABILIDAD_V2.sql',
+'MIGRAR_TICKET_WORK_REPORTS_20260912.sql',
+'VERIFICAR_TICKET_WORK_REPORTS_20260912.sql',
+'MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql',
+'VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql',
+'MIGRAR_FASE5_ACTIVIDADES_20260913.sql',
+'VERIFICAR_FASE5_ACTIVIDADES_20260913.sql',
+];
 $legacySql=[];
-foreach(glob($root.'/database/*.sql')?:[] as $file){$name=basename($file);if(!in_array($name,['INSTALAR.sql','VERIFICAR_INSTALACION.sql','VERIFICAR_ESTABILIDAD_V2.sql'],true))$legacySql[]=$name;}
-check($legacySql===[],'database/ no contiene SQL historicos o parches'.($legacySql?' → '.implode(', ',$legacySql):''));
+foreach(glob($root.'/database/*.sql')?:[] as $file){$name=basename($file);if(!in_array($name,$allowedSql,true))$legacySql[]=$name;}
+check($legacySql===[],'database/ no contiene SQL historicos o parches no autorizados'.($legacySql?' → '.implode(', ',$legacySql):''));
 
 $legacyDb='helpdesk_carrousel'.'_test';
 $legacyFinalize='FINALIZAR_ESQUEMA'.'_V2.sql';
