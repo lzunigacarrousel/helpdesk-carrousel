@@ -16,6 +16,13 @@
 .ticket-activity-form-grid .form-label,.ticket-activity-transition .form-label{margin:0;font-size:13px;font-weight:800;color:var(--ink)}
 .ticket-activity-form-grid textarea{min-height:92px;resize:vertical}
 .ticket-activity-form-grid [data-activity-panel][hidden],.ticket-activity-requester-summary[hidden]{display:none!important}
+.ticket-activity-more-options{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;background:var(--card);overflow:hidden}
+.ticket-activity-more-options>summary{list-style:none;cursor:pointer;padding:12px 14px;font-size:13px;font-weight:800;color:var(--brand);user-select:none}
+.ticket-activity-more-options>summary::-webkit-details-marker{display:none}
+.ticket-activity-more-options>summary:after{content:"+";float:right;font-size:18px;line-height:1}
+.ticket-activity-more-options[open]>summary:after{content:"−"}
+.ticket-activity-more-options-body{display:grid;grid-template-columns:1fr;gap:12px;padding:0 14px 14px}
+.ticket-activity-more-options-body>.activity-span-2{grid-column:auto}
 .ticket-activity-visibility{display:flex!important;align-items:center;gap:9px!important;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--card)}
 .ticket-activity-visibility input{width:18px;height:18px;margin:0;accent-color:var(--brand)}
 .ticket-activity-visibility span{font-size:13px;font-weight:700}
@@ -26,6 +33,8 @@
 .ticket-activity-section-head h3{margin:0;font-size:15px}
 .ticket-activity-section-head span{font-size:12px;color:var(--muted)}
 .ticket-activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ticket-activity-grid.is-single{grid-template-columns:minmax(0,1fr)}
+.ticket-activity-grid.is-single .ticket-activity-item{width:100%}
 .ticket-activity-item{border:1px solid var(--border);border-radius:14px;background:var(--card);padding:16px;display:grid;gap:13px;box-shadow:var(--shadow-xs)}
 .ticket-activity-item.is-active{border-color:color-mix(in srgb,var(--brand) 22%,var(--border) 78%);background:color-mix(in srgb,var(--brand) 3%,var(--card) 97%)}
 .ticket-activity-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -63,6 +72,7 @@ html[data-theme="dark"] .ticket-activity-status.status-cancelada{color:#ff9b9b}
 @media(max-width:900px){
   .ticket-activity-grid,.ticket-activity-form-grid{grid-template-columns:1fr}
   .ticket-activity-form-grid .activity-span-2{grid-column:auto}
+  .ticket-activity-more-options{grid-column:auto}
   .ticket-activity-transition.two-columns{grid-template-columns:1fr}
   .ticket-activity-transition .activity-span-2{grid-column:auto}
   .ticket-activities-head{align-items:flex-start}
