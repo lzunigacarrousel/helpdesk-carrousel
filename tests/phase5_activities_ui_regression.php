@@ -159,7 +159,8 @@ ok(substr_count($ticketView,'ticket-activity-transition-details')>=3,'Reprograma
 ok(str_contains($ticketView,'ticket-activity-transition--reschedule'),'Reprogramar usa variante amplia');
 ok(str_contains($ticketView,'ticket-activity-transition--cancel'),'Cancelar usa variante amplia');
 ok(str_contains($activityCss,'.ticket-activity-create{')&&str_contains($activityCss,'overflow:hidden;width:100%'),'Programar actividad ocupa el ancho del contenedor');
-ok(str_contains($activityCss,'.ticket-activity-actions details.ticket-activity-transition-details[open]{flex:1 0 100%;width:100%}'),'Toda transición abierta ocupa ancho completo');
+ok(str_contains($activityCss,'.ticket-activity-actions details.ticket-activity-transition-details[open]{display:contents}'),'Transición abierta conserva botones en la fila de acciones');
+ok(str_contains($activityCss,'.ticket-activity-actions details.ticket-activity-transition-details[open]>.ticket-activity-transition{order:20;flex:1 0 100%;width:100%}'),'Panel abierto usa ancho completo debajo de las acciones');
 ok(str_contains($activityCss,'.ticket-activity-transition--reschedule,.ticket-activity-transition--cancel{width:100%;min-width:0}'),'Reprogramar y Cancelar eliminan ancho compacto');
 ok(str_contains($activityCss,'.ticket-activity-transition-actions{display:flex;justify-content:flex-end;align-items:center}'),'Acciones de transición quedan alineadas');
 ok(str_contains($activityCss,'.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}'),'Botones de transición se adaptan en móvil');
