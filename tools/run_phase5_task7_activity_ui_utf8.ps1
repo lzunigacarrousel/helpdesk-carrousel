@@ -3,11 +3,15 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repo = Split-Path -Parent $scriptDir
 $sourcePath = Join-Path $scriptDir 'apply_phase5_task7_activity_ui.ps1'
+$polishPath = Join-Path $scriptDir 'apply_phase5_task7_visual_polish.ps1'
 $viewPath = Join-Path $repo 'app\Views\tickets\show.php'
 $tempPath = Join-Path $scriptDir ('._task7_utf8_' + [Guid]::NewGuid().ToString('N') + '.ps1')
 
 if (-not (Test-Path $sourcePath)) {
     throw "No existe $sourcePath"
+}
+if (-not (Test-Path $polishPath)) {
+    throw "No existe $polishPath"
 }
 if (-not (Test-Path $viewPath)) {
     throw "No existe $viewPath"
@@ -25,6 +29,8 @@ try {
         Remove-Item -LiteralPath $tempPath -Force
     }
 }
+
+& $polishPath
 
 $generated = [System.IO.File]::ReadAllText($viewPath, $utf8NoBom)
 $badC3 = [string][char]0x00C3
