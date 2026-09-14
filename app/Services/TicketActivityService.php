@@ -227,6 +227,105 @@ final class TicketActivityService
         return $activityId;
     }
 
+    public function reschedule(int $activityId,array $input): array
+    {
+        $reason=trim((string)($input['reason']??''));
+        if(mb_strlen($reason)<5){
+            throw new InvalidArgumentException('El motivo de reprogramación es obligatorio.');
+        }
+        [$scheduledStart,$scheduledEnd]=$this->requireScheduledWindow(
+            (string)($input['scheduled_start_at']??''),
+            (string)($input['scheduled_end_at']??'')
+        );
+
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para reprogramar.');
+
+        $result=Database::transaction(function(PDO $pdo) use($activityId,$scheduledStart,$scheduledEnd,$reason): array {
+            $activity=$this->requireActivity($activityId,true);
+            if((string)$activity['status']!=='PROGRAMADA'){
+                throw new InvalidArgumentException('Solo una actividad PROGRAMADA puede reprogramarse.');
+            }
+
+            $q=$pdo->prepare(
+                'UPDATE ticket_activities
+                 SET scheduled_start_at=?,scheduled_end_at=?,updated_at=NOW()
+                 WHERE id=?'
+            );
+            $q->execute([$scheduledStart,$scheduledEnd,$activityId]);
+
+            $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_RESCHEDULED',[
+                'activity_id'=>$activityId,
+                'status'=>'PROGRAMADA',
+                'scheduled_start_at'=>$scheduledStart,
+                'scheduled_end_at'=>$scheduledEnd,
+            ],[
+                'reason'=>$reason,
+                'old_start'=>(string)$activity['scheduled_start_at'],
+                'old_end'=>(string)$activity['scheduled_end_at'],
+                'new_start'=>$scheduledStart,
+                'new_end'=>$scheduledEnd,
+            ]);
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>'PROGRAMADA',
+                'scheduled_start_at'=>$scheduledStart,
+                'scheduled_end_at'=>$scheduledEnd,
+                'reason'=>$reason,
+            ];
+        });
+
+        Audit::log('ACTIVITY_RESCHEDULED','ticket_activity',$activityId,[
+            'scheduled_start_at'=>$result['scheduled_start_at']??null,
+            'scheduled_end_at'=>$result['scheduled_end_at']??null,
+        ],$result,['reason'=>$reason]);
+
+        return $result;
+    }
+
+    public function start(int $activityId): array
+    {
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para iniciar la actividad.');
+
+        $result=Database::transaction(function(PDO $pdo) use($activityId): array {
+            $activity=$this->requireActivity($activityId,true);
+            if((string)$activity['status']!=='PROGRAMADA'){
+                throw new InvalidArgumentException('Solo una actividad PROGRAMADA puede iniciarse.');
+            }
+
+            $q=$pdo->prepare(
+                "UPDATE ticket_activities
+                 SET status='EN_CURSO',started_at=NOW(),updated_at=NOW()
+                 WHERE id=?"
+            );
+            $q->execute([$activityId]);
+
+            $refresh=$pdo->prepare('SELECT id,ticket_id,status,started_at FROM ticket_activities WHERE id=? LIMIT 1');
+            $refresh->execute([$activityId]);
+            $current=$refresh->fetch();
+            if(!$current)throw new RuntimeException('No se pudo releer la actividad iniciada.');
+
+            $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_STARTED',[
+                'activity_id'=>$activityId,
+                'status'=>'EN_CURSO',
+                'started_at'=>(string)$current['started_at'],
+            ]);
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>'EN_CURSO',
+                'started_at'=>(string)$current['started_at'],
+            ];
+        });
+
+        Audit::log('ACTIVITY_STARTED','ticket_activity',$activityId,null,$result);
+        return $result;
+    }
+
     private function requireScheduledWindow(string $start,string $end): array
     {
         $start=trim($start);
