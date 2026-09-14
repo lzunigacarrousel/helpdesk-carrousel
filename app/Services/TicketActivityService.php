@@ -277,11 +277,7 @@ final class TicketActivityService
             ];
         });
 
-        Audit::log('ACTIVITY_RESCHEDULED','ticket_activity',$activityId,[
-            'scheduled_start_at'=>$result['scheduled_start_at']??null,
-            'scheduled_end_at'=>$result['scheduled_end_at']??null,
-        ],$result,['reason'=>$reason]);
-
+        Audit::log('ACTIVITY_RESCHEDULED','ticket_activity',$activityId,null,$result,['reason'=>$reason]);
         return $result;
     }
 
@@ -323,6 +319,138 @@ final class TicketActivityService
         });
 
         Audit::log('ACTIVITY_STARTED','ticket_activity',$activityId,null,$result);
+        return $result;
+    }
+
+    public function complete(int $activityId,array $input): array
+    {
+        $resultCode=strtoupper(trim((string)($input['result_code']??'')));
+        $workPerformed=trim((string)($input['work_performed']??''));
+        $resultSummary=trim((string)($input['result_summary']??''));
+        $pendingItems=trim((string)($input['pending_items']??''));
+
+        if(!in_array($resultCode,self::RESULTS,true)){
+            throw new InvalidArgumentException('result_code inválido para FINALIZADA.');
+        }
+        if($workPerformed===''){
+            throw new InvalidArgumentException('work_performed es obligatorio al finalizar.');
+        }
+        if($resultSummary===''){
+            throw new InvalidArgumentException('result_summary es obligatorio al finalizar.');
+        }
+
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para finalizar la actividad.');
+
+        $result=Database::transaction(function(PDO $pdo) use(
+            $activityId,$resultCode,$workPerformed,$resultSummary,$pendingItems
+        ): array {
+            $activity=$this->requireActivity($activityId,true);
+            if((string)$activity['status']!=='EN_CURSO'){
+                throw new InvalidArgumentException('Solo una actividad EN_CURSO puede finalizarse.');
+            }
+            if(empty($activity['started_at'])){
+                throw new InvalidArgumentException('La actividad EN_CURSO debe conservar started_at antes de finalizar.');
+            }
+
+            $q=$pdo->prepare(
+                "UPDATE ticket_activities
+                 SET status='FINALIZADA',result_code=?,work_performed=?,result_summary=?,pending_items=?,
+                     finished_at=NOW(),updated_at=NOW()
+                 WHERE id=?"
+            );
+            $q->execute([
+                $resultCode,$workPerformed,$resultSummary,$pendingItems!==''?$pendingItems:null,$activityId,
+            ]);
+
+            $refresh=$pdo->prepare(
+                'SELECT id,ticket_id,status,result_code,started_at,finished_at,work_performed,result_summary,pending_items
+                 FROM ticket_activities WHERE id=? LIMIT 1'
+            );
+            $refresh->execute([$activityId]);
+            $current=$refresh->fetch();
+            if(!$current)throw new RuntimeException('No se pudo releer la actividad finalizada.');
+
+            $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_COMPLETED',[
+                'activity_id'=>$activityId,
+                'status'=>'FINALIZADA',
+                'result_code'=>$resultCode,
+                'started_at'=>(string)$current['started_at'],
+                'finished_at'=>(string)$current['finished_at'],
+                'work_performed'=>$workPerformed,
+                'result_summary'=>$resultSummary,
+                'pending_items'=>$pendingItems!==''?$pendingItems:null,
+            ]);
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>'FINALIZADA',
+                'result_code'=>$resultCode,
+                'started_at'=>(string)$current['started_at'],
+                'finished_at'=>(string)$current['finished_at'],
+                'work_performed'=>$workPerformed,
+                'result_summary'=>$resultSummary,
+                'pending_items'=>$pendingItems!==''?$pendingItems:null,
+            ];
+        });
+
+        Audit::log('ACTIVITY_COMPLETED','ticket_activity',$activityId,null,$result);
+        return $result;
+    }
+
+    public function cancel(int $activityId,string $reason): array
+    {
+        $reason=trim($reason);
+        if(mb_strlen($reason)<5){
+            throw new InvalidArgumentException('cancel_reason es obligatorio y debe explicar la cancelación.');
+        }
+
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para cancelar la actividad.');
+
+        $result=Database::transaction(function(PDO $pdo) use($activityId,$reason,$actorId): array {
+            $activity=$this->requireActivity($activityId,true);
+            if(!in_array((string)$activity['status'],['PROGRAMADA','EN_CURSO'],true)){
+                throw new InvalidArgumentException('Solo una actividad PROGRAMADA o EN_CURSO puede cancelarse.');
+            }
+
+            $q=$pdo->prepare(
+                "UPDATE ticket_activities
+                 SET status='CANCELADA',cancel_reason=?,cancelled_at=NOW(),cancelled_by=?,updated_at=NOW()
+                 WHERE id=?"
+            );
+            $q->execute([$reason,$actorId,$activityId]);
+
+            $refresh=$pdo->prepare(
+                'SELECT id,ticket_id,status,cancel_reason,cancelled_at,cancelled_by,started_at,finished_at
+                 FROM ticket_activities WHERE id=? LIMIT 1'
+            );
+            $refresh->execute([$activityId]);
+            $current=$refresh->fetch();
+            if(!$current)throw new RuntimeException('No se pudo releer la actividad cancelada.');
+
+            $this->insertEvent($pdo,(int)$activity['ticket_id'],'ACTIVITY_CANCELLED',[
+                'activity_id'=>$activityId,
+                'status'=>'CANCELADA',
+                'cancel_reason'=>$reason,
+                'cancelled_at'=>(string)$current['cancelled_at'],
+                'cancelled_by'=>$actorId,
+                'started_at'=>$current['started_at']?:null,
+                'finished_at'=>$current['finished_at']?:null,
+            ]);
+
+            return[
+                'id'=>$activityId,
+                'ticket_id'=>(int)$activity['ticket_id'],
+                'status'=>'CANCELADA',
+                'cancel_reason'=>$reason,
+                'cancelled_at'=>(string)$current['cancelled_at'],
+                'cancelled_by'=>$actorId,
+            ];
+        });
+
+        Audit::log('ACTIVITY_CANCELLED','ticket_activity',$activityId,null,$result,['reason'=>$reason]);
         return $result;
     }
 
