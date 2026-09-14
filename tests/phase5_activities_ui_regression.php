@@ -126,6 +126,13 @@ ok(str_contains($activityJs,'data-requester-visible'),'JS controla resumen visib
 ok(str_contains($activityJs,'data-activity-panel'),'JS controla panel progresivo');
 ok(!str_contains($activityJs,'UPDATE tickets SET status'),'JS no crea transiciones de estado del ticket');
 
+// Pulido visual aprobado: una sola actividad aprovecha el ancho y el formulario es progresivo.
+ok(str_contains($ticketView,'is-single'),'Vista identifica grid con una sola actividad');
+ok(str_contains($activityCss,'.ticket-activity-grid.is-single'),'Una sola actividad usa ancho completo');
+ok(str_contains($ticketView,'ticket-activity-more-options'),'Formulario agrupa opciones secundarias');
+ok(str_contains($ticketView,'Más opciones')||str_contains($ticketView,'Mas opciones'),'Formulario ofrece Más opciones');
+ok(str_contains($activityCss,'.ticket-activity-more-options'),'CSS contempla bloque de opciones secundarias');
+
 if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
     exit(1);
