@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
+use App\Core\{Audit,Auth,Database};
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PDO;
@@ -139,6 +139,94 @@ final class TicketActivityService
         return $q->fetchAll();
     }
 
+    public function create(array $input): int
+    {
+        $ticketId=(int)($input['ticket_id']??0);
+        $type=strtoupper(trim((string)($input['activity_type']??'')));
+        $responsibleUserId=(int)($input['responsible_user_id']??0);
+        $providerUserId=(int)($input['provider_user_id']??0)?:null;
+        $parkId=(int)($input['park_id']??0)?:null;
+        $isRemote=(bool)($input['is_remote']??false);
+        $objective=trim((string)($input['objective']??''));
+        $notes=trim((string)($input['internal_preparation_notes']??''));
+        $visible=(bool)($input['requester_visible']??false);
+        $summary=$this->normalizeVisibleSummary($visible,(string)($input['requester_summary']??''));
+        [$scheduledStart,$scheduledEnd]=$this->requireScheduledWindow(
+            (string)($input['scheduled_start_at']??''),
+            (string)($input['scheduled_end_at']??'')
+        );
+
+        if($ticketId<=0)throw new InvalidArgumentException('ticket_id es obligatorio.');
+        if($objective==='')throw new InvalidArgumentException('El objetivo de la actividad es obligatorio.');
+        $this->requireTicket($ticketId);
+        $this->requireOperationalUser($responsibleUserId,$ticketId);
+        $this->validateTypeSpecific($type,$ticketId,$providerUserId,$parkId,$isRemote);
+
+        $actorId=(int)Auth::id();
+        if($actorId<=0)throw new RuntimeException('Se requiere un usuario autenticado para crear la actividad.');
+
+        $participantIds=[];
+        foreach((array)($input['participant_user_ids']??[]) as $participantId){
+            $participantId=(int)$participantId;
+            if($participantId<=0||$participantId===$responsibleUserId)continue;
+            $this->requireInternalActiveUser($participantId);
+            $participantIds[$participantId]=$participantId;
+        }
+
+        $activityId=Database::transaction(function(PDO $pdo) use(
+            $ticketId,$type,$responsibleUserId,$providerUserId,$parkId,$isRemote,$objective,$notes,
+            $scheduledStart,$scheduledEnd,$visible,$summary,$actorId,$participantIds
+        ): int {
+            $q=$pdo->prepare(
+                "INSERT INTO ticket_activities(
+                    ticket_id,activity_type,status,responsible_user_id,provider_user_id,park_id,is_remote,
+                    objective,internal_preparation_notes,scheduled_start_at,scheduled_end_at,
+                    requester_visible,requester_summary,created_by,created_at,updated_at
+                 ) VALUES(?,?,'PROGRAMADA',?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())"
+            );
+            $q->execute([
+                $ticketId,$type,$responsibleUserId,$providerUserId,$parkId,$isRemote?1:0,
+                $objective,$notes!==''?$notes:null,$scheduledStart,$scheduledEnd,$visible?1:0,$summary,$actorId,
+            ]);
+            $activityId=(int)$pdo->lastInsertId();
+
+            if($participantIds){
+                $insert=$pdo->prepare(
+                    'INSERT IGNORE INTO ticket_activity_participants(activity_id,user_id,created_by,created_at) VALUES(?,?,?,NOW())'
+                );
+                foreach($participantIds as $participantId){
+                    $insert->execute([$activityId,$participantId,$actorId]);
+                }
+            }
+
+            $this->insertEvent($pdo,$ticketId,'ACTIVITY_CREATED',[
+                'activity_id'=>$activityId,
+                'activity_type'=>$type,
+                'status'=>'PROGRAMADA',
+                'responsible_user_id'=>$responsibleUserId,
+                'provider_user_id'=>$providerUserId,
+                'park_id'=>$parkId,
+                'is_remote'=>$isRemote,
+                'scheduled_start_at'=>$scheduledStart,
+                'scheduled_end_at'=>$scheduledEnd,
+                'requester_visible'=>$visible,
+            ],[
+                'participant_user_ids'=>array_values($participantIds),
+            ]);
+
+            return $activityId;
+        });
+
+        Audit::log('ACTIVITY_CREATED','ticket_activity',$activityId,null,[
+            'ticket_id'=>$ticketId,
+            'activity_type'=>$type,
+            'status'=>'PROGRAMADA',
+            'responsible_user_id'=>$responsibleUserId,
+        ]);
+
+        return $activityId;
+    }
+
     private function requireScheduledWindow(string $start,string $end): array
     {
         $start=trim($start);
@@ -234,6 +322,27 @@ final class TicketActivityService
         return $activity;
     }
 
+    private function requireTicket(int $ticketId): array
+    {
+        $q=Database::pdo()->prepare('SELECT id,park_id,area_id,status FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');
+        $q->execute([$ticketId]);
+        $ticket=$q->fetch();
+        if(!$ticket)throw new RuntimeException('El ticket no existe.');
+        return $ticket;
+    }
+
+    private function requireInternalActiveUser(int $userId): array
+    {
+        $q=Database::pdo()->prepare(
+            "SELECT id,full_name,email FROM users
+             WHERE id=? AND access_type='INTERNAL' AND status='ACTIVE' AND deleted_at IS NULL LIMIT 1"
+        );
+        $q->execute([$userId]);
+        $user=$q->fetch();
+        if(!$user)throw new InvalidArgumentException('El participante debe ser un usuario interno activo.');
+        return $user;
+    }
+
     private function validateTypeSpecific(
         string $type,
         int $ticketId,
@@ -253,6 +362,21 @@ final class TicketActivityService
         if($type==='INTERVENCION_PROVEEDOR'){
             $this->requireProvider((int)$providerUserId,$ticketId);
         }
+    }
+
+    private function insertEvent(PDO $pdo,int $ticketId,string $eventType,array $newValue,array $metadata=[]): void
+    {
+        $q=$pdo->prepare(
+            'INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,old_value,new_value,metadata_json,created_at)
+             VALUES(?,?,?,\'USER\',NULL,?,?,NOW())'
+        );
+        $q->execute([
+            $ticketId,
+            $eventType,
+            Auth::id(),
+            json_encode($newValue,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+            $metadata?json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES):null,
+        ]);
     }
 
     private function participantsByActivity(PDO $pdo,array $activityIds): array
