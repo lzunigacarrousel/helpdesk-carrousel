@@ -155,10 +155,11 @@ to=YYYY-MM-DD
 responsible_user_id={id}
 park_id={id}
 activity_type={enum}
-status={enum|active|history}
+status=active|all|PROGRAMADA|EN_CURSO|FINALIZADA|CANCELADA
 scope_mode=mine|all
 history=0|1
-q={texto para localizar ticket al programar}
+program=0|1
+ticket_q={texto para localizar ticket al programar}
 ```
 
 Todos los parámetros son opcionales y se normalizan en servidor.
@@ -170,7 +171,10 @@ Reglas:
 - fechas inválidas usan el rango por defecto correspondiente;
 - `from > to` no se acepta y vuelve al rango por defecto con aviso visible;
 - rango personalizado máximo: **90 días**;
-- consultas SQL siempre parametrizadas.
+- consultas SQL siempre parametrizadas;
+- con `history=0`, el dominio efectivo queda limitado a `PROGRAMADA` y `EN_CURSO` aunque llegue un estado histórico por URL;
+- con `history=1`, se permiten los cuatro estados;
+- el acceso rápido **Historial** usa `history=1&status=all`.
 
 ## 6. Rangos temporales
 
@@ -212,12 +216,12 @@ Por defecto Agenda muestra únicamente:
 - `PROGRAMADA`;
 - `EN_CURSO`.
 
-Al activar Historial se agregan:
+Al activar Historial se habilitan además:
 
 - `FINALIZADA`;
 - `CANCELADA`.
 
-No se crea ningún estado adicional en BD.
+`history=1&status=all` muestra los cuatro estados dentro del rango. No se crea ningún estado adicional en BD.
 
 ## 8. Actividades atrasadas
 
@@ -260,6 +264,7 @@ Reglas:
 - se evalúan actividades activas visibles (`PROGRAMADA` / `EN_CURSO`);
 - el conflicto se marca en ambas actividades;
 - no se evalúan participantes secundarios para Fase 6;
+- dos intervalos que solo se tocan en el límite (`end_A = start_B`) no son conflicto;
 - no se bloquea programación;
 - no se crea tabla ni columna adicional.
 
@@ -353,12 +358,15 @@ Luis Fernando Zuniga
 
 El bloque completo es enlazable al ticket.
 
-La cuadrícula usa un rango horario dinámico para evitar grandes áreas vacías:
+### Rango horario de la cuadrícula
 
-- si existen actividades, empieza cerca de la primera hora y termina cerca de la última;
-- si no existen actividades, usa un rango base razonable de jornada;
-- si existe una actividad fuera de ese rango base, la cuadrícula se amplía para incluirla;
-- no se ocultan actividades por ocurrir temprano o tarde.
+Para evitar grandes áreas vacías y a la vez no ocultar actividades:
+
+- rango base sin actividades: **08:00–18:00**;
+- con actividades, inicio visible = mínimo entre `08:00` y una hora antes del inicio más temprano, redondeado a hora completa;
+- fin visible = máximo entre `18:00` y una hora después del fin más tardío, redondeado a hora completa;
+- límites absolutos: `00:00–24:00`;
+- ninguna actividad queda oculta por ocurrir temprano o tarde.
 
 No se pretende replicar toda la complejidad de Google Calendar u Outlook.
 
@@ -451,7 +459,7 @@ Para ADMIN, SEMIADMIN y TECHNICIAN se muestra:
 Programar actividad
 ```
 
-El control abre un buscador/selector de tickets visibles para el usuario.
+El control activa `program=1` y abre un buscador/selector de tickets visibles para el usuario. La búsqueda utiliza `ticket_q`.
 
 Reglas:
 
@@ -504,7 +512,7 @@ La Agenda no introduce nuevas acciones POST ni necesita CSRF para su lectura. El
 
 ## 19. Error handling
 
-- perfil no autorizado: respuesta 403 o vista amigable equivalente según patrones actuales;
+- perfil no autorizado: **HTTP 403** y vista amigable siguiendo el patrón de errores existente;
 - rango inválido: volver al rango por defecto y mostrar aviso no técnico;
 - filtro fuera de scope: ignorarlo/rechazarlo sin ampliar resultados;
 - ticket desaparecido o sin acceso al abrirlo: usar el manejo existente del ticket;
