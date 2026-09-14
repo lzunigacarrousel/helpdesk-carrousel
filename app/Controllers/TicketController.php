@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService};
 use PDO;
 
 final class TicketController
@@ -179,7 +179,47 @@ final class TicketController
         $locationParks=$canEditLocation?$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll():[];
         $locationAreas=$canEditLocation?$pdo->query("SELECT id,name FROM areas WHERE is_active=1 ORDER BY name")->fetchAll():[];
         $isSupport=Auth::can('tickets.view_queue')||Auth::can('tickets.change_status')||Auth::can('tickets.reassign')||Auth::can('tickets.view_all');$supportUsers=[];if(Auth::can('tickets.reassign'))$supportUsers=$pdo->query("SELECT u.id,u.full_name,u.email,r.name role_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll();
-        View::render('tickets/show',['user'=>Auth::user(),'ticket'=>$ticket,'events'=>$e->fetchAll(),'flash'=>Flash::pull(),'isSupport'=>$isSupport,'supportUsers'=>$supportUsers,'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),'canReassign'=>Auth::can('tickets.reassign'),'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),'canClassify'=>Auth::can('tickets.classify')&&!in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),'statusLabels'=>self::STATUS_LABELS,'priorityLabels'=>self::PRIORITY_LABELS,'canEditLocation'=>$canEditLocation,'locationParks'=>$locationParks,'locationAreas'=>$locationAreas]);
+
+        $activityService=new TicketActivityService();
+        $activities=$isSupport?$activityService->listForTicket($id):[];
+        $requesterActivities=!$isSupport?$activityService->requesterVisibleForTicket($id):[];
+        $canCreateActivities=$isSupport&&Auth::can('activities.create');
+        $canManageActivities=$isSupport&&Auth::can('activities.manage');
+        $canCancelActivities=$isSupport&&Auth::can('activities.cancel');
+        $activityTypes=$isSupport?TicketActivityService::types():[];
+        $activityResults=$isSupport?TicketActivityService::results():[];
+        $activityResponsibleUsers=$canCreateActivities?$activityService->responsibleOptionsForTicket($id):[];
+        $activityProviderUsers=$canCreateActivities?$activityService->providerOptionsForTicket($id):[];
+        $activityParks=$isSupport?$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll():[];
+
+        View::render('tickets/show',[
+            'user'=>Auth::user(),
+            'ticket'=>$ticket,
+            'events'=>$e->fetchAll(),
+            'flash'=>Flash::pull(),
+            'isSupport'=>$isSupport,
+            'supportUsers'=>$supportUsers,
+            'canClaim'=>Auth::can('tickets.claim')&&empty($ticket['assigned_to'])&&in_array($ticket['status'],['NEW','AVAILABLE','REOPENED'],true),
+            'canReassign'=>Auth::can('tickets.reassign'),
+            'canRelease'=>!empty($ticket['assigned_to'])&&((int)$ticket['assigned_to']===(int)Auth::id()||Auth::can('tickets.reassign'))&&!in_array($ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),
+            'canChangeStatus'=>Auth::can('tickets.change_status')&&((int)($ticket['assigned_to']??0)===(int)Auth::id()||Auth::can('tickets.reassign')),
+            'canClassify'=>Auth::can('tickets.classify')&&!in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true),
+            'statusLabels'=>self::STATUS_LABELS,
+            'priorityLabels'=>self::PRIORITY_LABELS,
+            'canEditLocation'=>$canEditLocation,
+            'locationParks'=>$locationParks,
+            'locationAreas'=>$locationAreas,
+            'activities'=>$activities,
+            'requesterActivities'=>$requesterActivities,
+            'activityTypes'=>$activityTypes,
+            'activityResults'=>$activityResults,
+            'activityResponsibleUsers'=>$activityResponsibleUsers,
+            'activityProviderUsers'=>$activityProviderUsers,
+            'activityParks'=>$activityParks,
+            'canCreateActivities'=>$canCreateActivities,
+            'canManageActivities'=>$canManageActivities,
+            'canCancelActivities'=>$canCancelActivities,
+        ]);
     }
 
     private function visible(array $t):void{
