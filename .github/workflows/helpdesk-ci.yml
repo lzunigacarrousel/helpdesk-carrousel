@@ -2,9 +2,9 @@ name: Helpdesk Carrousel CI
 
 on:
   push:
-    branches: [v2-rebuild, ui-normalization-working]
+    branches: [main, 'fase*']
   pull_request:
-    branches: [v2-rebuild]
+    branches: [main]
 
 permissions:
   contents: read
@@ -91,6 +91,9 @@ jobs:
 
       - name: Pre Phase 4 integral gate definition
         run: php tests/pre_phase4_gate_smoke.php
+
+      - name: Phase 5 activities schema regression
+        run: php tests/phase5_activities_schema_regression.php
 
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
