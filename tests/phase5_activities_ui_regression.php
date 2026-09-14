@@ -136,6 +136,12 @@ ok(str_contains($activityCss,'.ticket-activity-grid.is-single'),'Una sola activi
 ok(str_contains($ticketView,'ticket-activity-more-options'),'Formulario agrupa opciones secundarias');
 ok(str_contains($ticketView,'Más opciones')||str_contains($ticketView,'Mas opciones'),'Formulario ofrece Más opciones');
 ok(str_contains($activityCss,'.ticket-activity-more-options'),'CSS contempla bloque de opciones secundarias');
+ok(str_contains($ticketView,'ticket-activity-complete-details'),'Vista identifica transición amplia de Finalizar');
+ok(str_contains($ticketView,'ticket-activity-transition--complete'),'Formulario Finalizar usa variante de ancho completo');
+ok(str_contains($ticketView,'ticket-activity-complete-grid'),'Formulario Finalizar define grid propio');
+ok(str_contains($activityCss,'.ticket-activity-complete-details[open]'),'Finalizar abierto ocupa el ancho disponible');
+ok(str_contains($activityCss,'.ticket-activity-complete-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'),'Finalizar aprovecha dos columnas en escritorio');
+ok(str_contains($activityCss,'.ticket-activity-complete-grid{grid-template-columns:1fr}'),'Finalizar vuelve a una columna en tablet/móvil');
 
 // Task 8: resumen seguro para solicitante.
 ok(str_contains($ticketView,'ticket-requester-activities'),'Vista define bloque seguro de actividades para solicitante');
