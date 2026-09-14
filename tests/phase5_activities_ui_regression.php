@@ -17,6 +17,9 @@ $routes=body($root.'/public/index.php');
 $controller=body($root.'/app/Controllers/TicketActivityController.php');
 $ticketController=body($root.'/app/Controllers/TicketController.php');
 $ticketViewController=body($root.'/app/Controllers/TicketViewController.php');
+$ticketView=body($root.'/app/Views/tickets/show.php');
+$activityCss=body($root.'/public/assets/css/ticket-activities.css');
+$activityJs=body($root.'/public/assets/js/ticket-activities.js');
 
 ok($controller!=='','Existe TicketActivityController');
 ok(str_contains($routes,'TicketActivityController'),'Router conoce TicketActivityController');
@@ -87,6 +90,41 @@ ok(
     'Carga distingue soporte de solicitante'
 );
 ok(!str_contains($ticketViewController,'TicketActivityService'),'Vista de proveedor externo no recibe dominio interno de actividades');
+
+// Task 7: UI interna de actividades.
+ok(str_contains($ticketView,'id="actividades"')||str_contains($ticketView,"id='actividades'"),'Vista contiene anchor estable de actividades');
+ok(str_contains($ticketView,'Actividades del caso'),'Vista muestra título Actividades del caso');
+ok(str_contains($ticketView,'Programar actividad'),'Vista ofrece programar actividad');
+ok(str_contains($ticketView,'Próximas / activas')||str_contains($ticketView,'Proximas / activas'),'Vista separa próximas / activas');
+ok(str_contains($ticketView,'Historial'),'Vista muestra historial de actividades');
+
+foreach([
+    'activity_type'=>'Formulario captura tipo de actividad',
+    'responsible_user_id'=>'Formulario captura responsable',
+    'scheduled_start_at'=>'Formulario captura inicio programado',
+    'scheduled_end_at'=>'Formulario captura fin programado',
+    'objective'=>'Formulario captura objetivo',
+    'requester_visible'=>'Formulario controla visibilidad al solicitante',
+    'requester_summary'=>'Formulario captura resumen visible',
+] as $name=>$label){
+    ok(str_contains($ticketView,'name="'.$name.'"')||str_contains($ticketView,"name='{$name}'"),$label);
+}
+
+foreach(['Reprogramar','Iniciar','Finalizar','Cancelar'] as $action){
+    ok(str_contains($ticketView,$action),'Vista contempla acción '.$action);
+}
+
+ok($activityCss!=='','Existe CSS específico de actividades');
+ok($activityJs!=='','Existe JS específico de actividades');
+ok(str_contains($ticketView,'ticket-activities.css'),'Vista carga CSS de actividades');
+ok(str_contains($ticketView,'ticket-activities.js'),'Vista carga JS de actividades');
+ok(str_contains($ticketView,'data-activity-type'),'Vista expone control por tipo de actividad');
+ok(str_contains($ticketView,'data-requester-visible'),'Vista expone control de resumen visible');
+ok(str_contains($ticketView,'data-activity-panel'),'Vista define panel progresivo de actividad');
+ok(str_contains($activityJs,'data-activity-type'),'JS controla campos según tipo');
+ok(str_contains($activityJs,'data-requester-visible'),'JS controla resumen visible al solicitante');
+ok(str_contains($activityJs,'data-activity-panel'),'JS controla panel progresivo');
+ok(!str_contains($activityJs,'UPDATE tickets SET status'),'JS no crea transiciones de estado del ticket');
 
 if($fails){
     fwrite(STDERR,PHP_EOL."[ERROR] {$fails} validación(es) fallaron.".PHP_EOL);
