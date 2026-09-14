@@ -3,18 +3,11 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger};
-use App\Services\NotificationService;
+use App\Services\{NotificationService,TicketAttachmentService};
 use PDO;
 
 final class ConversationController
 {
-    private const MAX_FILE_SIZE = 10485760;
-    private const ALLOWED_MIME = [
-        'application/pdf'=>'pdf','image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','text/plain'=>'txt','text/csv'=>'csv',
-        'application/msword'=>'doc','application/vnd.openxmlformats-officedocument.wordprocessingml.document'=>'docx',
-        'application/vnd.ms-excel'=>'xls','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'=>'xlsx',
-    ];
-
     public function respond(): void
     {
         Auth::requireLogin();Csrf::verify($_POST['_csrf'] ?? null);
@@ -44,7 +37,11 @@ final class ConversationController
                 $u=Auth::user();$q=$pdo->prepare("INSERT INTO ticket_comments(ticket_id,author_user_id,author_name,author_email,visibility,body,created_at) VALUES(?,?,?,?,?,?,NOW())");
                 $q->execute([$ticketId,Auth::id(),$u['full_name']??null,$u['email']??null,$visibility,$body]);$commentId=(int)$pdo->lastInsertId();
             }
-            if($hasFile)$attachmentId=$this->storeUpload($pdo,$ticketId,$commentId,$visibility,$_FILES['attachment']);
+            if($hasFile){
+                $attachmentId=(new TicketAttachmentService())->storeUploadedFile(
+                    $pdo,$ticketId,$commentId,null,$visibility,$_FILES['attachment']
+                );
+            }
             $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at) VALUES(?,'COMMENTED',?,'USER',?,?,NOW())")
                 ->execute([$ticketId,Auth::id(),json_encode(['visibility'=>$visibility],JSON_UNESCAPED_UNICODE),json_encode(['comment_id'=>$commentId,'attachment_id'=>$attachmentId],JSON_UNESCAPED_UNICODE)]);
             if($isSupport&&$visibility==='PUBLIC'){
@@ -82,17 +79,6 @@ final class ConversationController
             $canComment=(bool)$access['can_comment'];$canUpload=(bool)$access['can_upload'];$isSupport=false;$isRequester=false;
         }elseif(!$isRequester&&!$isSupport){Flash::set('No tienes acceso a ese caso.','info');header('Location: '.APP_BASE_URL.'/dashboard');exit;}
         return[$ticket,['is_external'=>$isExternal,'is_support'=>$isSupport,'is_requester'=>$isRequester,'can_comment'=>$canComment,'can_upload'=>$canUpload]];
-    }
-
-    private function storeUpload(PDO $pdo,int $ticketId,?int $commentId,string $visibility,array $file): int
-    {
-        $error=(int)($file['error']??UPLOAD_ERR_NO_FILE);if($error!==UPLOAD_ERR_OK)throw new \RuntimeException('No pudimos recibir el archivo. Intenta nuevamente.');
-        $size=(int)($file['size']??0);if($size<=0||$size>self::MAX_FILE_SIZE)throw new \RuntimeException('El archivo debe pesar máximo 10 MB.');
-        $tmp=(string)($file['tmp_name']??'');if($tmp===''||!is_uploaded_file($tmp))throw new \RuntimeException('No pudimos validar el archivo.');
-        $finfo=new \finfo(FILEINFO_MIME_TYPE);$mime=(string)$finfo->file($tmp);if(!isset(self::ALLOWED_MIME[$mime]))throw new \RuntimeException('Ese tipo de archivo no está permitido.');
-        $ext=self::ALLOWED_MIME[$mime];$dir='storage/ticket_uploads/'.date('Y').'/'.date('m');$absolute=APP_ROOT.'/'.$dir;if(!is_dir($absolute)&&!mkdir($absolute,0775,true)&&!is_dir($absolute))throw new \RuntimeException('No pudimos preparar el almacenamiento del archivo.');
-        $stored=bin2hex(random_bytes(18)).'.'.$ext;$target=$absolute.'/'.$stored;if(!move_uploaded_file($tmp,$target))throw new \RuntimeException('No pudimos guardar el archivo.');$sha=hash_file('sha256',$target)?:null;$original=trim((string)($file['name']??'archivo.'.$ext));
-        $q=$pdo->prepare("INSERT INTO ticket_attachments(ticket_id,comment_id,uploaded_by_user_id,visibility,original_name,stored_name,storage_path,mime_type,size_bytes,sha256,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,NOW())");$q->execute([$ticketId,$commentId,Auth::id(),$visibility,$original,$stored,$dir.'/'.$stored,$mime,$size,$sha]);return(int)$pdo->lastInsertId();
     }
 
     private function notifyConversation(int $ticketId,array $ticket,array $context,string $visibility,string $body,bool $hasFile): void
