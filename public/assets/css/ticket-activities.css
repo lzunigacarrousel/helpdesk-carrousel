@@ -4,7 +4,7 @@
 .ticket-activities-head{align-items:center}
 .ticket-activities-head .ticket-activities-intro{margin:5px 0 0;max-width:760px;color:var(--muted);font-size:13px;line-height:1.5}
 .ticket-activities-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ticket-activity-create{border:1px solid color-mix(in srgb,var(--brand) 16%,var(--border) 84%);border-radius:14px;background:var(--vs-brand-soft);overflow:hidden}
+.ticket-activity-create{border:1px solid color-mix(in srgb,var(--brand) 16%,var(--border) 84%);border-radius:14px;background:var(--vs-brand-soft);overflow:hidden;width:100%}
 .ticket-activity-create[hidden]{display:none!important}
 .ticket-activity-form{display:grid;gap:16px;padding:18px}
 .ticket-activity-form-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
@@ -63,7 +63,10 @@
 .ticket-activity-transition.two-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ticket-activity-transition .activity-span-2{grid-column:1/-1}
 .ticket-activity-transition textarea{min-height:84px;resize:vertical}
-.ticket-activity-actions details.ticket-activity-complete-details[open]{flex:1 0 100%;width:100%}
+.ticket-activity-actions details.ticket-activity-transition-details[open]{flex:1 0 100%;width:100%}
+.ticket-activity-transition--reschedule,.ticket-activity-transition--cancel{width:100%;min-width:0}
+.ticket-activity-transition-actions{display:flex;justify-content:flex-end;align-items:center}
+.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn{min-width:180px}
 .ticket-activity-transition--complete{width:100%;min-width:0}
 .ticket-activity-complete-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%}
 .ticket-activity-complete-grid>.activity-span-2{grid-column:1/-1}
@@ -95,4 +98,5 @@ html[data-theme="dark"] .ticket-activity-status.status-cancelada{color:#ff9b9b}
   .ticket-activity-transition{min-width:0;width:100%}
   .ticket-activity-actions details{width:100%}
   .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}
+  .ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}
 }

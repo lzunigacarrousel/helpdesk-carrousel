@@ -141,7 +141,7 @@ ok(str_contains($activityCss,'.ticket-activity-more-options'),'CSS contempla blo
 ok(str_contains($ticketView,'ticket-activity-complete-details'),'Vista identifica transición amplia de Finalizar');
 ok(str_contains($ticketView,'ticket-activity-transition--complete'),'Formulario Finalizar usa variante de ancho completo');
 ok(str_contains($ticketView,'ticket-activity-complete-grid'),'Formulario Finalizar define grid propio');
-ok(str_contains($activityCss,'.ticket-activity-complete-details[open]'),'Finalizar abierto ocupa el ancho disponible');
+ok(str_contains($activityCss,'.ticket-activity-complete-details[open]')||str_contains($activityCss,'.ticket-activity-transition-details[open]'),'Finalizar abierto ocupa el ancho disponible');
 ok(str_contains($activityCss,'.ticket-activity-complete-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'),'Finalizar aprovecha dos columnas en escritorio');
 ok(str_contains($activityCss,'.ticket-activity-complete-grid{grid-template-columns:1fr}'),'Finalizar vuelve a una columna en tablet/móvil');
 foreach([
@@ -154,6 +154,15 @@ foreach([
     ok(str_contains($ticketView,"'{$eventCode}'=>'{$eventLabel}'"),'Historial traduce '.$eventCode.' al español');
 }
 
+// Pulido final Fase 5: todas las transiciones aprovechan el ancho disponible.
+ok(substr_count($ticketView,'ticket-activity-transition-details')>=3,'Reprogramar, Finalizar y Cancelar comparten contenedor de ancho completo');
+ok(str_contains($ticketView,'ticket-activity-transition--reschedule'),'Reprogramar usa variante amplia');
+ok(str_contains($ticketView,'ticket-activity-transition--cancel'),'Cancelar usa variante amplia');
+ok(str_contains($activityCss,'.ticket-activity-create{')&&str_contains($activityCss,'overflow:hidden;width:100%'),'Programar actividad ocupa el ancho del contenedor');
+ok(str_contains($activityCss,'.ticket-activity-actions details.ticket-activity-transition-details[open]{flex:1 0 100%;width:100%}'),'Toda transición abierta ocupa ancho completo');
+ok(str_contains($activityCss,'.ticket-activity-transition--reschedule,.ticket-activity-transition--cancel{width:100%;min-width:0}'),'Reprogramar y Cancelar eliminan ancho compacto');
+ok(str_contains($activityCss,'.ticket-activity-transition-actions{display:flex;justify-content:flex-end;align-items:center}'),'Acciones de transición quedan alineadas');
+ok(str_contains($activityCss,'.ticket-activity-transition-actions .btn,.ticket-activity-transition--cancel>.btn,.ticket-activity-complete-actions .btn{width:100%}'),'Botones de transición se adaptan en móvil');
 // Hardening final Fase 5: privacidad integral del solicitante.
 ok(str_contains($activityService,"a.status IN('PROGRAMADA','EN_CURSO')"),'Próxima atención solo recibe actividades próximas o activas');
 ok(str_contains($ticketIndex,'Seguimiento por equipo de soporte'),'Lista del solicitante no expone responsable interno');
