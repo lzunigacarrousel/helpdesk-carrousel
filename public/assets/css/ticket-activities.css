@@ -1,0 +1,80 @@
+/* Fase 5 · Actividades del caso */
+.ticket-activities-card{overflow:hidden}
+.ticket-activities-card>.card-body{display:grid;gap:18px}
+.ticket-activities-head{align-items:center}
+.ticket-activities-head .ticket-activities-intro{margin:5px 0 0;max-width:760px;color:var(--muted);font-size:13px;line-height:1.5}
+.ticket-activities-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ticket-activity-create{border:1px solid color-mix(in srgb,var(--brand) 16%,var(--border) 84%);border-radius:14px;background:var(--vs-brand-soft);overflow:hidden}
+.ticket-activity-create[hidden]{display:none!important}
+.ticket-activity-form{display:grid;gap:16px;padding:18px}
+.ticket-activity-form-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.ticket-activity-form-head h3{margin:2px 0 0;font-size:18px}
+.ticket-activity-form-head p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+.ticket-activity-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.ticket-activity-form-grid label,.ticket-activity-transition label{display:grid;gap:6px;min-width:0}
+.ticket-activity-form-grid .activity-span-2{grid-column:1/-1}
+.ticket-activity-form-grid .form-label,.ticket-activity-transition .form-label{margin:0;font-size:13px;font-weight:800;color:var(--ink)}
+.ticket-activity-form-grid textarea{min-height:92px;resize:vertical}
+.ticket-activity-form-grid [data-activity-panel][hidden],.ticket-activity-requester-summary[hidden]{display:none!important}
+.ticket-activity-visibility{display:flex!important;align-items:center;gap:9px!important;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--card)}
+.ticket-activity-visibility input{width:18px;height:18px;margin:0;accent-color:var(--brand)}
+.ticket-activity-visibility span{font-size:13px;font-weight:700}
+.ticket-activity-submit{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.ticket-activity-sections{display:grid;gap:20px}
+.ticket-activity-section{display:grid;gap:11px}
+.ticket-activity-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ticket-activity-section-head h3{margin:0;font-size:15px}
+.ticket-activity-section-head span{font-size:12px;color:var(--muted)}
+.ticket-activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ticket-activity-item{border:1px solid var(--border);border-radius:14px;background:var(--card);padding:16px;display:grid;gap:13px;box-shadow:var(--shadow-xs)}
+.ticket-activity-item.is-active{border-color:color-mix(in srgb,var(--brand) 22%,var(--border) 78%);background:color-mix(in srgb,var(--brand) 3%,var(--card) 97%)}
+.ticket-activity-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ticket-activity-kind{display:grid;gap:4px;min-width:0}
+.ticket-activity-kind strong{font-size:15px;line-height:1.3}
+.ticket-activity-kind small{font-size:12px;color:var(--muted)}
+.ticket-activity-status{display:inline-flex;align-items:center;justify-content:center;min-height:27px;padding:4px 9px;border-radius:999px;border:1px solid var(--border);font-size:11px;font-weight:900;letter-spacing:.02em;white-space:nowrap;background:var(--vs-soft)}
+.ticket-activity-status.status-programada{color:var(--brand);border-color:color-mix(in srgb,var(--brand) 24%,var(--border) 76%);background:var(--vs-brand-soft)}
+.ticket-activity-status.status-en_curso{color:#12643d;border-color:color-mix(in srgb,#168a52 28%,var(--border) 72%);background:color-mix(in srgb,#168a52 7%,var(--card) 93%)}
+.ticket-activity-status.status-finalizada{color:#36556f}
+.ticket-activity-status.status-cancelada{color:#9b2c2c;border-color:color-mix(in srgb,#c62828 24%,var(--border) 76%);background:color-mix(in srgb,#c62828 5%,var(--card) 95%)}
+.ticket-activity-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}
+.ticket-activity-meta>div{display:grid;gap:2px;min-width:0}
+.ticket-activity-meta span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:800}
+.ticket-activity-meta strong{font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.ticket-activity-objective{margin:0;padding:10px 12px;border-radius:10px;background:var(--vs-soft);font-size:13px;line-height:1.5;color:var(--ink)}
+.ticket-activity-participants{display:flex;gap:6px;flex-wrap:wrap}
+.ticket-activity-person{display:inline-flex;align-items:center;min-height:26px;padding:4px 8px;border-radius:999px;background:var(--vs-soft);border:1px solid var(--border);font-size:11.5px;color:var(--muted)}
+.ticket-activity-result{display:grid;gap:5px;padding:11px 12px;border-left:3px solid var(--brand);background:var(--vs-brand-soft);border-radius:0 10px 10px 0}
+.ticket-activity-result strong{font-size:12px}.ticket-activity-result p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.ticket-activity-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:2px}
+.ticket-activity-actions details{position:relative}
+.ticket-activity-actions summary{list-style:none;cursor:pointer}
+.ticket-activity-actions summary::-webkit-details-marker{display:none}
+.ticket-activity-transition{display:grid;gap:10px;margin-top:8px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--vs-soft);min-width:min(420px,80vw)}
+.ticket-activity-transition.two-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ticket-activity-transition .activity-span-2{grid-column:1/-1}
+.ticket-activity-transition textarea{min-height:84px;resize:vertical}
+.ticket-activity-empty{padding:20px;border:1px dashed var(--border);border-radius:12px;background:var(--vs-soft);text-align:center;color:var(--muted);font-size:13px}
+.ticket-activity-empty strong{display:block;color:var(--ink);margin-bottom:4px}
+
+html[data-theme="dark"] .ticket-activity-status.status-en_curso{color:#8de1b3}
+html[data-theme="dark"] .ticket-activity-status.status-cancelada{color:#ff9b9b}
+
+@media(max-width:900px){
+  .ticket-activity-grid,.ticket-activity-form-grid{grid-template-columns:1fr}
+  .ticket-activity-form-grid .activity-span-2{grid-column:auto}
+  .ticket-activity-transition.two-columns{grid-template-columns:1fr}
+  .ticket-activity-transition .activity-span-2{grid-column:auto}
+  .ticket-activities-head{align-items:flex-start}
+}
+@media(max-width:760px){
+  .ticket-activity-form{padding:14px}
+  .ticket-activity-item{padding:14px}
+  .ticket-activity-meta{grid-template-columns:1fr}
+  .ticket-activity-toolbar,.ticket-activity-submit,.ticket-activity-actions{width:100%}
+  .ticket-activity-toolbar .btn,.ticket-activity-submit .btn,.ticket-activity-actions .btn,.ticket-activity-actions button,.ticket-activity-actions summary{min-height:44px}
+  .ticket-activity-toolbar .btn{width:100%}
+  .ticket-activity-transition{min-width:0;width:100%}
+  .ticket-activity-actions details{width:100%}
+  .ticket-activity-actions details>summary{display:flex;align-items:center;justify-content:center;width:100%}
+}
