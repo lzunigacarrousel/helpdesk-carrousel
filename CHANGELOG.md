@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## v2.4.0-dev · Pulido operativo + comunicación simple · 2026-09-09
+> **Estado canónico · 2026-09-13**
+>
+> La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
+
+## v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN · Pulido operativo + comunicación simple · 2026-09-09
 - El formulario público elimina la captura duplicada `Resumen breve`: el usuario describe el problema una sola vez y el `subject` se genera automáticamente para mantener compatibilidad con tickets, listados y reportes existentes sin borrar columnas.
 - Jerarquía visual transversal reforzada con superficies suaves reutilizables, secciones mejor diferenciadas, botones secundarios menos dominantes y reducción de microtexto sin perder controles táctiles ni responsive.
 - Dashboard de soporte incorpora un resumen compacto de colaboración externa: casos activos, casos esperando proveedor, proveedores participando y respuestas del día; el Dashboard de gestión muestra el mismo contexto respetando el alcance del perfil.
