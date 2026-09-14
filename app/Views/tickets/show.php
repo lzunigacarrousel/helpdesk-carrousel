@@ -25,6 +25,8 @@ try{
 $pageTitle=$ticket['ticket_number'];$pageSection=$isSupport?'Centro de soporte':'Mis solicitudes';$activeNav=$isSupport?'support':'mine';$helpContext='ticket';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
+<?php $ticketActivitiesAsset=(string)(@filemtime(APP_ROOT.'/public/assets/css/ticket-activities.css')?:'20260914-F5'); ?>
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ticket-activities.css?v=<?= htmlspecialchars($ticketActivitiesAsset) ?>">
 <div class="ticket-workspace case-focus-workspace">
   <div class="case-focus-head"><div><div class="ticket-kicker">Caso <?= htmlspecialchars($ticket['ticket_number']) ?></div><h1 class="page-title"><?= htmlspecialchars($ticket['subject']) ?></h1><div class="case-head-meta"><?php if($isSupport): ?><span class="case-kind-chip"><?= htmlspecialchars(TicketClassificationService::requestTypeLabel($ticket['request_type']??null)) ?></span><?php endif; ?><span class="ticket-status-pill status-<?= strtolower($status) ?>"><?= htmlspecialchars($statusLabels[$status]??str_replace('_',' ',$status)) ?></span><span class="priority-chip priority-<?= strtolower((string)$ticket['priority']) ?>"><?= htmlspecialchars($priorityLabels[$ticket['priority']]??$ticket['priority']) ?></span><span><?= htmlspecialchars($ticket['park_name']??'Ubicación no especificada') ?></span><span><?= htmlspecialchars($ticket['category_name']??'Sin categoría') ?></span></div></div><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?><?= $isSupport?'/tickets/queue':'/mis-tickets' ?>">Volver</a></div>
   <?php if(!empty($flash)): ?><div class="alert alert-success"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
@@ -98,6 +100,119 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <?php if($canChangeStatus&&in_array($status,['IN_PROGRESS','PENDING','REOPENED'],true)): ?><div class="resolution-capture case-resolution-capture"><div class="case-section-head"><div><span class="ticket-kicker">Documentar solución</span><h2>Qué resolvió el caso</h2></div></div><form method="post" action="<?= APP_BASE_URL ?>/tickets/resolve" data-single-submit class="resolution-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><div class="resolution-grid"><label>Tipo de solución<select class="form-control" name="resolution_type" required><option value="">Selecciona</option><option value="CONFIGURATION">Configuración</option><option value="RESTART">Reinicio / restablecimiento</option><option value="REPLACEMENT">Cambio o reemplazo</option><option value="PROVIDER">Gestión con proveedor</option><option value="USER_GUIDANCE">Orientación al usuario</option><option value="SOFTWARE">Software / aplicación</option><option value="NETWORK">Red / conectividad</option><option value="HARDWARE">Hardware / equipo</option><option value="PERMISSION">Acceso / permisos</option><option value="MAINTENANCE">Mantenimiento</option><option value="OTHER">Otro</option></select></label><label>Qué encontramos<input class="form-control" name="root_cause" required placeholder="Causa o condición encontrada"></label><label class="resolution-full">Qué hicimos<textarea class="form-control" name="solution_applied" rows="3" required placeholder="Describe la acción o los pasos que resolvieron el problema"></textarea></label><label class="resolution-full">Cómo evitarlo <span class="subtle">(opcional)</span><textarea class="form-control" name="preventive_action" rows="2" placeholder="Recomendación, mantenimiento o seguimiento"></textarea></label></div><button class="btn btn-primary" type="submit">Guardar solución y resolver</button></form></div><?php endif; ?>
   </div></section><?php endif; ?>
 
+  <?php if($isSupport):
+    $activityTypeLabels=[
+      'VISITA_EN_SITIO'=>'Visita en sitio',
+      'SOPORTE_REMOTO'=>'Soporte remoto',
+      'SEGUIMIENTO'=>'Seguimiento',
+      'INTERVENCION_PROVEEDOR'=>'Intervención de proveedor',
+      'OTRA'=>'Otra actividad',
+    ];
+    $activityStatusLabels=['PROGRAMADA'=>'Programada','EN_CURSO'=>'En curso','FINALIZADA'=>'Finalizada','CANCELADA'=>'Cancelada'];
+    $activityResultLabels=['RESUELTA'=>'Resuelta','PARCIAL'=>'Parcial','SIN_RESOLVER'=>'Sin resolver','REQUIERE_SEGUIMIENTO'=>'Requiere seguimiento'];
+    $activeActivities=array_values(array_filter($activities??[],static fn(array $a):bool=>in_array((string)($a['status']??''),['PROGRAMADA','EN_CURSO'],true)));
+    $historyActivities=array_values(array_filter($activities??[],static fn(array $a):bool=>in_array((string)($a['status']??''),['FINALIZADA','CANCELADA'],true)));
+  ?>
+  <section class="card ticket-activities-card" id="actividades">
+    <div class="card-body">
+      <div class="case-section-head ticket-activities-head">
+        <div>
+          <span class="ticket-kicker">Trabajo programado</span>
+          <h2>Actividades del caso</h2>
+          <p class="ticket-activities-intro">Programa visitas, soporte remoto, seguimientos o intervenciones sin cambiar automáticamente el estado del ticket.</p>
+        </div>
+        <?php if(!empty($canCreateActivities)): ?>
+          <div class="ticket-activities-toolbar"><button type="button" class="btn btn-primary" data-activity-open>+ Programar actividad</button></div>
+        <?php endif; ?>
+      </div>
+
+      <?php if(!empty($canCreateActivities)): ?>
+      <div class="ticket-activity-create" data-activity-create-panel hidden>
+        <form class="ticket-activity-form" method="post" action="<?= APP_BASE_URL ?>/tickets/activities/create" data-activity-create-form data-single-submit>
+          <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+          <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
+          <input type="hidden" name="is_remote" value="0">
+          <div class="ticket-activity-form-head">
+            <div><span class="ticket-kicker">Nueva actividad</span><h3>Programar trabajo</h3><p>Define qué se hará, quién será responsable y cuándo está previsto atenderlo.</p></div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-activity-close>Cerrar</button>
+          </div>
+          <div class="ticket-activity-form-grid">
+            <label><span class="form-label">Tipo de actividad</span><select class="form-control" name="activity_type" data-activity-type required><option value="">Selecciona</option><?php foreach(($activityTypes??[]) as $type): ?><option value="<?= htmlspecialchars((string)$type) ?>"><?= htmlspecialchars($activityTypeLabels[$type]??str_replace('_',' ',(string)$type)) ?></option><?php endforeach; ?></select></label>
+            <label><span class="form-label">Responsable</span><select class="form-control" name="responsible_user_id" required><option value="">Selecciona responsable</option><?php foreach(($activityResponsibleUsers??[]) as $person): ?><option value="<?= (int)$person['id'] ?>"><?= htmlspecialchars((string)$person['full_name']) ?> · <?= htmlspecialchars((string)$person['email']) ?></option><?php endforeach; ?></select></label>
+            <label><span class="form-label">Inicio programado</span><input class="form-control" type="datetime-local" name="scheduled_start_at" required></label>
+            <label><span class="form-label">Fin estimado</span><input class="form-control" type="datetime-local" name="scheduled_end_at" required></label>
+
+            <label data-activity-panel="VISITA_EN_SITIO" hidden><span class="form-label">Parque de la visita</span><select class="form-control" name="park_id" data-activity-required><option value="">Selecciona parque</option><?php foreach(($activityParks??[]) as $park): ?><option value="<?= (int)$park['id'] ?>" <?= (int)($ticket['park_id']??0)===(int)$park['id']?'selected':'' ?>><?= htmlspecialchars((string)$park['name']) ?></option><?php endforeach; ?></select></label>
+            <label data-activity-panel="INTERVENCION_PROVEEDOR" hidden><span class="form-label">Proveedor que intervendrá</span><select class="form-control" name="provider_user_id" data-activity-required><option value="">Selecciona proveedor</option><?php foreach(($activityProviderUsers??[]) as $provider): ?><option value="<?= (int)$provider['id'] ?>"><?= htmlspecialchars((string)($provider['organization_name']?:$provider['full_name'])) ?> · <?= htmlspecialchars((string)$provider['email']) ?></option><?php endforeach; ?></select></label>
+            <div data-activity-panel="SOPORTE_REMOTO" hidden class="activity-span-2 ticket-activity-visibility"><span>Esta actividad se registrará como soporte remoto.</span></div>
+
+            <label class="activity-span-2"><span class="form-label">Objetivo</span><textarea class="form-control" name="objective" rows="3" required placeholder="Ej. Revisar comunicación del kiosco con el servidor y validar impresión."></textarea></label>
+            <details class="ticket-activity-more-options activity-span-2"><summary>Más opciones</summary><div class="ticket-activity-more-options-body">
+<label class="activity-span-2"><span class="form-label">Preparación interna <span class="optional">Opcional</span></span><textarea class="form-control" name="internal_preparation_notes" rows="2" placeholder="Accesos, herramientas o puntos que el equipo debe preparar antes de atender."></textarea></label>
+            <label class="activity-span-2"><span class="form-label">Participantes adicionales <span class="optional">Opcional</span></span><select class="form-control" name="participant_user_ids[]" multiple size="3"><?php foreach(($activityResponsibleUsers??[]) as $person): ?><option value="<?= (int)$person['id'] ?>"><?= htmlspecialchars((string)$person['full_name']) ?></option><?php endforeach; ?></select><span class="field-help">El responsable principal no necesita seleccionarse nuevamente.</span></label>
+            <label class="activity-span-2 ticket-activity-visibility"><input type="checkbox" name="requester_visible" value="1" data-requester-visible><span>Mostrar esta actividad al solicitante</span></label>
+            <label class="activity-span-2 ticket-activity-requester-summary" hidden><span class="form-label">Resumen visible al solicitante</span><textarea class="form-control" name="requester_summary" rows="2" maxlength="500" placeholder="Ej. Se programó una visita para revisar el equipo reportado."></textarea><span class="field-help">No incluyas notas internas, accesos ni información técnica sensible.</span></label>
+</div></details>
+          </div>
+          <div class="ticket-activity-submit"><button type="button" class="btn btn-outline-secondary" data-activity-close>Cancelar</button><button class="btn btn-primary" type="submit">Programar actividad</button></div>
+        </form>
+      </div>
+      <?php endif; ?>
+
+      <div class="ticket-activity-sections">
+        <div class="ticket-activity-section">
+          <div class="ticket-activity-section-head"><h3>Próximas / activas</h3><span><?= count($activeActivities) ?> actividad(es)</span></div>
+          <?php if($activeActivities): ?><div class="ticket-activity-grid <?= count($activeActivities)===1?'is-single':'' ?>">
+          <?php foreach($activeActivities as $activity):
+            $activityId=(int)$activity['id'];$activityStatus=(string)$activity['status'];$activityType=(string)$activity['activity_type'];
+          ?>
+            <article class="ticket-activity-item is-active">
+              <div class="ticket-activity-item-head"><div class="ticket-activity-kind"><strong><?= htmlspecialchars($activityTypeLabels[$activityType]??str_replace('_',' ',$activityType)) ?></strong><small>#<?= $activityId ?> · <?= htmlspecialchars((string)($activity['responsible_name']??'Sin responsable')) ?></small></div><span class="ticket-activity-status status-<?= strtolower($activityStatus) ?>"><?= htmlspecialchars($activityStatusLabels[$activityStatus]??$activityStatus) ?></span></div>
+              <div class="ticket-activity-meta">
+                <div><span>Inicio</span><strong><?= !empty($activity['scheduled_start_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_start_at']))):'Sin fecha' ?></strong></div>
+                <div><span>Fin estimado</span><strong><?= !empty($activity['scheduled_end_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_end_at']))):'Sin fecha' ?></strong></div>
+                <?php if(!empty($activity['park_name'])): ?><div><span>Parque</span><strong><?= htmlspecialchars((string)$activity['park_name']) ?></strong></div><?php endif; ?>
+                <?php if(!empty($activity['provider_organization'])||!empty($activity['provider_name'])): ?><div><span>Proveedor</span><strong><?= htmlspecialchars((string)($activity['provider_organization']?:$activity['provider_name'])) ?></strong></div><?php endif; ?>
+              </div>
+              <p class="ticket-activity-objective"><?= nl2br(htmlspecialchars((string)$activity['objective'])) ?></p>
+              <?php if(!empty($activity['participants'])): ?><div class="ticket-activity-participants"><?php foreach($activity['participants'] as $participant): ?><span class="ticket-activity-person"><?= htmlspecialchars((string)$participant['full_name']) ?></span><?php endforeach; ?></div><?php endif; ?>
+
+              <div class="ticket-activity-actions">
+                <?php if(!empty($canManageActivities)&&$activityStatus==='PROGRAMADA'): ?>
+                  <details><summary class="btn btn-outline-secondary btn-sm">Reprogramar</summary><form class="ticket-activity-transition two-columns" method="post" action="<?= APP_BASE_URL ?>/tickets/activities/reschedule" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="activity_id" value="<?= $activityId ?>"><label><span class="form-label">Nuevo inicio</span><input class="form-control" type="datetime-local" name="scheduled_start_at" required></label><label><span class="form-label">Nuevo fin</span><input class="form-control" type="datetime-local" name="scheduled_end_at" required></label><label class="activity-span-2"><span class="form-label">Motivo</span><input class="form-control" type="text" name="reason" minlength="5" required placeholder="Motivo de la reprogramación"></label><div class="activity-span-2"><button class="btn btn-primary btn-sm" type="submit">Guardar nueva fecha</button></div></form></details>
+                  <form method="post" action="<?= APP_BASE_URL ?>/tickets/activities/start" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="activity_id" value="<?= $activityId ?>"><button class="btn btn-primary btn-sm" type="submit">Iniciar</button></form>
+                <?php endif; ?>
+
+                <?php if(!empty($canManageActivities)&&$activityStatus==='EN_CURSO'): ?>
+                  <details><summary class="btn btn-primary btn-sm">Finalizar</summary><form class="ticket-activity-transition" method="post" action="<?= APP_BASE_URL ?>/tickets/activities/complete" enctype="multipart/form-data" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="activity_id" value="<?= $activityId ?>"><label><span class="form-label">Resultado</span><select class="form-control" name="result_code" required><option value="">Selecciona</option><?php foreach(($activityResults??[]) as $result): ?><option value="<?= htmlspecialchars((string)$result) ?>"><?= htmlspecialchars($activityResultLabels[$result]??str_replace('_',' ',(string)$result)) ?></option><?php endforeach; ?></select></label><label><span class="form-label">Trabajo realizado</span><textarea class="form-control" name="work_performed" required placeholder="Qué se hizo durante la actividad"></textarea></label><label><span class="form-label">Resultado obtenido</span><textarea class="form-control" name="result_summary" required placeholder="Qué se comprobó o resolvió"></textarea></label><label><span class="form-label">Pendientes <span class="optional">Opcional</span></span><textarea class="form-control" name="pending_items" placeholder="Qué queda pendiente o requiere seguimiento"></textarea></label><label><span class="form-label">Evidencia <span class="optional">Opcional · máximo 10 MB</span></span><input class="form-control" type="file" name="evidence" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx"></label><button class="btn btn-primary btn-sm" type="submit">Finalizar actividad</button></form></details>
+                <?php endif; ?>
+
+                <?php if(!empty($canCancelActivities)&&in_array($activityStatus,['PROGRAMADA','EN_CURSO'],true)): ?>
+                  <details><summary class="btn btn-outline-secondary btn-sm">Cancelar</summary><form class="ticket-activity-transition" method="post" action="<?= APP_BASE_URL ?>/tickets/activities/cancel" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="activity_id" value="<?= $activityId ?>"><label><span class="form-label">Motivo de cancelación</span><textarea class="form-control" name="cancel_reason" minlength="5" required placeholder="Explica por qué se cancela esta actividad"></textarea></label><button class="btn btn-outline-secondary btn-sm" type="submit" data-activity-confirm="¿Cancelar esta actividad?">Confirmar cancelación</button></form></details>
+                <?php endif; ?>
+              </div>
+            </article>
+          <?php endforeach; ?>
+          </div><?php else: ?><div class="ticket-activity-empty"><strong>No hay actividades activas.</strong>Programa una actividad cuando el caso requiera una visita, soporte remoto, seguimiento o intervención.</div><?php endif; ?>
+        </div>
+
+        <div class="ticket-activity-section">
+          <div class="ticket-activity-section-head"><h3>Historial</h3><span><?= count($historyActivities) ?> actividad(es)</span></div>
+          <?php if($historyActivities): ?><div class="ticket-activity-grid <?= count($historyActivities)===1?'is-single':'' ?>">
+          <?php foreach($historyActivities as $activity): $activityStatus=(string)$activity['status'];$activityType=(string)$activity['activity_type']; ?>
+            <article class="ticket-activity-item">
+              <div class="ticket-activity-item-head"><div class="ticket-activity-kind"><strong><?= htmlspecialchars($activityTypeLabels[$activityType]??str_replace('_',' ',$activityType)) ?></strong><small>#<?= (int)$activity['id'] ?> · <?= htmlspecialchars((string)($activity['responsible_name']??'Sin responsable')) ?></small></div><span class="ticket-activity-status status-<?= strtolower($activityStatus) ?>"><?= htmlspecialchars($activityStatusLabels[$activityStatus]??$activityStatus) ?></span></div>
+              <div class="ticket-activity-meta"><div><span>Programada</span><strong><?= !empty($activity['scheduled_start_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_start_at']))):'Sin fecha' ?></strong></div><?php if(!empty($activity['finished_at'])): ?><div><span>Finalizada</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['finished_at']))) ?></strong></div><?php elseif(!empty($activity['cancelled_at'])): ?><div><span>Cancelada</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['cancelled_at']))) ?></strong></div><?php endif; ?></div>
+              <p class="ticket-activity-objective"><?= nl2br(htmlspecialchars((string)$activity['objective'])) ?></p>
+              <?php if($activityStatus==='FINALIZADA'): ?><div class="ticket-activity-result"><strong><?= htmlspecialchars($activityResultLabels[$activity['result_code']??'']??str_replace('_',' ',(string)($activity['result_code']??'Resultado'))) ?></strong><p><?= nl2br(htmlspecialchars((string)($activity['result_summary']??''))) ?></p></div><?php elseif($activityStatus==='CANCELADA'&&!empty($activity['cancel_reason'])): ?><div class="ticket-activity-result"><strong>Motivo de cancelación</strong><p><?= nl2br(htmlspecialchars((string)$activity['cancel_reason'])) ?></p></div><?php endif; ?>
+            </article>
+          <?php endforeach; ?>
+          </div><?php else: ?><div class="ticket-activity-empty"><strong>Aún no hay historial.</strong>Las actividades finalizadas o canceladas aparecerán aquí.</div><?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </section>
+  <?php endif; ?>
   <section class="card conversation-card case-conversation-card" id="conversacion"><div class="card-body"><div class="case-section-head"><div><span class="ticket-kicker">Comunicación</span><h2><?= $isSupport?'Conversaciones':'Seguimiento' ?></h2></div><?php if($isSupport&&$externalParticipants): ?><div class="dashboard-scope-note"><strong>Proveedor participando</strong><span><?= htmlspecialchars(implode(', ',array_map(static fn(array $x):string=>(string)($x['organization_name']?:$x['full_name']),$externalParticipants))) ?></span></div><?php endif; ?></div><div class="conversation-list"><?php foreach($comments as $c): $mine=(int)($c['author_user_id']??0)===(int)Auth::id();$internal=$c['visibility']==='INTERNAL';$externalChannel=$c['visibility']==='EXTERNAL';$fromExternal=(($c['author_access_type']??'')==='EXTERNAL');$fromSupport=in_array((string)($c['author_role']??''),['ADMIN','SEMIADMIN','TECHNICIAN'],true);$author=$c['author_name']?:'Usuario';$channel=$internal?'Solo equipo de soporte':($externalChannel?'Colaboración con proveedor':($fromSupport?'Equipo de soporte':'Solicitante'));$class=$internal?'is-internal':($externalChannel?'is-external':($fromSupport?'is-mine':'is-requester')); ?><article class="conversation-message <?= $mine?'is-mine ':'' ?><?= $class ?>"><div class="conversation-channel-label <?= $internal?'internal':($externalChannel?'external':($fromSupport?'support':'')) ?>"><?= $internal?'🔒 ':'' ?><?= htmlspecialchars($channel) ?></div><div class="conversation-meta"><strong><?= htmlspecialchars($author) ?></strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($c['created_at']))) ?></span></div><p><?= nl2br(htmlspecialchars($c['body'])) ?></p><?php foreach($attachmentsByComment[(int)$c['id']]??[] as $f): ?><a class="conversation-file" href="<?= APP_BASE_URL ?>/tickets/attachment?id=<?= (int)$f['id'] ?>"><span>📎</span><span><strong><?= htmlspecialchars($f['original_name']) ?></strong><small><?= number_format(((int)$f['size_bytes'])/1024,0) ?> KB · Descargar</small></span></a><?php endforeach; ?></article><?php endforeach; ?><?php foreach($looseAttachments as $f): ?><article class="conversation-message"><div class="conversation-meta"><strong>Archivo adjunto</strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($f['created_at']))) ?></span></div><a class="conversation-file" href="<?= APP_BASE_URL ?>/tickets/attachment?id=<?= (int)$f['id'] ?>"><span>📎</span><span><strong><?= htmlspecialchars($f['original_name']) ?></strong><small><?= number_format(((int)$f['size_bytes'])/1024,0) ?> KB · Descargar</small></span></a></article><?php endforeach; ?><?php if(!$comments&&!$looseAttachments): ?><div class="empty-state conversation-empty"><strong>Aún no hay mensajes.</strong></div><?php endif; ?></div>
   <?php if(!in_array($status,['CLOSED','CANCELLED'],true)): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/respond" enctype="multipart/form-data" class="conversation-form" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><?php if($isSupport): ?><div class="conversation-mode" role="radiogroup" aria-label="Tipo de mensaje"><label><input type="radio" name="visibility" value="PUBLIC" checked><span>Respuesta al usuario</span></label><?php if($externalParticipants): ?><label class="external-mode"><input type="radio" name="visibility" value="EXTERNAL"><span>Colaboración con proveedor</span></label><?php endif; ?><label class="internal-mode"><input type="radio" name="visibility" value="INTERNAL"><span>🔒 Conversación interna</span></label></div><div class="conversation-mode-help">Usuario: visible para el solicitante. Proveedor: solo soporte y colaboradores del caso. Interna: solo equipo de soporte.</div><?php endif; ?><label>Mensaje<textarea class="form-control" name="body" rows="4" placeholder="<?= $isSupport?'Escribe el avance, consulta o coordinación necesaria...':'Agrega información o responde al equipo de soporte...' ?>"></textarea></label><label>Archivo <span class="subtle">(opcional · máximo 10 MB)</span><input class="form-control" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx"></label><button class="btn btn-primary" type="submit"><?= $isSupport?'Enviar mensaje':'Enviar actualización' ?></button></form><?php endif; ?></div></section>
 
@@ -106,4 +221,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   <?php if($isSupport&&$similar): ?><section class="card similar-solutions"><div class="card-body"><div class="case-section-head"><div><span class="ticket-kicker">Experiencia previa</span><h2>Casos similares resueltos</h2></div></div><div class="similar-list"><?php foreach($similar as $s): ?><a href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$s['id'] ?>" class="similar-item"><div><strong><?= htmlspecialchars($s['ticket_number'].' · '.$s['subject']) ?></strong><small><?= htmlspecialchars($s['park_name']??'Sin ubicación') ?><?= !empty($s['resolved_at'])?' · '.htmlspecialchars(date('d/m/Y',strtotime($s['resolved_at']))):'' ?> · <?= htmlspecialchars(str_replace('_',' ',ucfirst(strtolower((string)$s['resolution_type'])))) ?></small></div><p><?= htmlspecialchars(mb_strimwidth((string)$s['solution_applied'],0,180,'…')) ?></p><span class="similar-open">Ver solución →</span></a><?php endforeach; ?></div></div></section><?php endif; ?>
 </div>
+<?php $ticketActivitiesJsVersion=(string)(@filemtime(APP_ROOT.'/public/assets/js/ticket-activities.js')?:'20260914-F5'); ?>
+<script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/ticket-activities.js?v=<?= htmlspecialchars($ticketActivitiesJsVersion) ?>"></script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
