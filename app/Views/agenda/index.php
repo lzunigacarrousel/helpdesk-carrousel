@@ -7,6 +7,12 @@ $statusLabels=['PROGRAMADA'=>'Programada','EN_CURSO'=>'En curso','FINALIZADA'=>'
 $h=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');
 $dateLabel=static function(string $date):string{$ts=strtotime($date);return $ts?strtoupper(date('d M Y',$ts)):$date;};
 $timeRange=static function(array $row):string{$s=strtotime((string)($row['scheduled_start_at']??''));$e=strtotime((string)($row['scheduled_end_at']??''));return($s?date('H:i',$s):'--:--').'–'.($e?date('H:i',$e):'--:--');};
+$multiDayRange=static function(array $row):string{
+    $s=strtotime((string)($row['scheduled_start_at']??''));
+    $e=strtotime((string)($row['scheduled_end_at']??''));
+    if(!$s||!$e)return'Sin rango';
+    return date('d/m H:i',$s).' → '.date('d/m H:i',$e);
+};
 $withFilter=static function(array $changes)use($filters):string{$query=array_merge($filters,$changes);foreach($query as $k=>$v){if($v===false||$v===null||$v==='')unset($query[$k]);elseif($v===true)$query[$k]='1';}return APP_BASE_URL.'/agenda?'.http_build_query($query);};
 $renderItem=static function(array $item)use($h,$timeRange,$typeLabels,$statusLabels):void{
     $status=(string)($item['status']??'');$statusClass=strtolower(str_replace('_','-',$status));
@@ -21,6 +27,13 @@ $renderItem=static function(array $item)use($h,$timeRange,$typeLabels,$statusLab
 };
 $days=[];foreach($activities as $activity){$day=substr((string)($activity['scheduled_start_at']??''),0,10);if($day==='')$day='Sin fecha';$days[$day][]=$activity;}
 ksort($days);
+$calendarActivities=[];$multiDayActivities=[];
+foreach($activities as $activity){
+    $startDate=substr((string)($activity['scheduled_start_at']??''),0,10);
+    $endDate=substr((string)($activity['scheduled_end_at']??''),0,10);
+    if($startDate!==''&&$endDate!==''&&$startDate!==$endDate)$multiDayActivities[]=$activity;
+    else $calendarActivities[]=$activity;
+}
 $hourWindow=$hourWindow??['start_hour'=>8,'end_hour'=>18];
 $calendarStart=DateTimeImmutable::createFromFormat('!Y-m-d',(string)($filters['from']??''));
 if(!$calendarStart)$calendarStart=new DateTimeImmutable('monday this week');
@@ -30,7 +43,7 @@ for($offset=0;$offset<7;$offset++){
     $key=$calendarStart->modify('+'.$offset.' days')->format('Y-m-d');
     $calendarDays[$key]=[];
 }
-foreach($activities as $activity){
+foreach($calendarActivities as $activity){
     $key=substr((string)($activity['scheduled_start_at']??''),0,10);
     if(isset($calendarDays[$key]))$calendarDays[$key][]=$activity;
 }
@@ -131,22 +144,41 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </form>
 
-  <?php if($overdue): ?>
+  <?php if(count($overdue)>0): ?>
   <section class="agenda-list agenda-overdue" aria-labelledby="agenda-overdue-title">
     <h2 id="agenda-overdue-title">Pendientes atrasadas</h2>
-    <?php foreach($overdue as $item): $renderItem($item); endforeach; ?>
+    <div class="agenda-overdue-items">
+      <?php foreach($overdue as $item): $renderItem($item); endforeach; ?>
+    </div>
   </section>
   <?php endif; ?>
 
   <?php if(($filters['view']??'calendar')==='calendar'): ?>
   <section class="agenda-calendar" aria-label="Calendario semanal">
-    <nav class="agenda-calendar-nav" aria-label="Navegacion semanal">
-      <a class="btn btn-outline-secondary" href="<?= $h($withFilter(['view'=>'calendar','from'=>$calendarStart->modify('-7 days')->format('Y-m-d'),'to'=>$calendarStart->modify('-1 day')->format('Y-m-d')])) ?>">Semana anterior</a>
-      <a class="btn btn-outline-secondary" href="<?= $h($withFilter(['view'=>'calendar','from'=>(new DateTimeImmutable('monday this week'))->format('Y-m-d'),'to'=>(new DateTimeImmutable('monday this week'))->modify('+6 days')->format('Y-m-d')])) ?>">Hoy</a>
-      <a class="btn btn-outline-secondary" href="<?= $h($withFilter(['view'=>'calendar','from'=>$calendarStart->modify('+7 days')->format('Y-m-d'),'to'=>$calendarStart->modify('+13 days')->format('Y-m-d')])) ?>">Semana siguiente</a>
-    </nav>
-    <?php if(!$activities): ?>
-    <div class="empty-state">No hay actividades visibles en esta semana.</div>
+    <?php if($multiDayActivities): ?>
+    <section class="agenda-multiday-strip" aria-labelledby="agenda-multiday-title">
+      <div class="agenda-multiday-head">
+        <span class="ticket-kicker">Rango extendido</span>
+        <h2 id="agenda-multiday-title">Actividades de varios días</h2>
+      </div>
+      <div class="agenda-multiday-items">
+        <?php foreach($multiDayActivities as $item):
+          $status=(string)($item['status']??'');
+          $statusClass=strtolower(str_replace('_','-',$status));
+          $ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades'));
+        ?>
+        <a class="agenda-multiday-item is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>">
+          <time><?= $h($multiDayRange($item)) ?></time>
+          <span class="agenda-multiday-main"><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?> · <?= $h($item['ticket_subject']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> · <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])): ?><em>Conflicto de horario</em><?php endif; ?></span>
+          <span class="agenda-status"><?= $h($statusLabels[$status]??$status) ?></span>
+        </a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+    <?php endif; ?>
+
+    <?php if(!$calendarActivities): ?>
+      <?php if(!$multiDayActivities): ?><div class="empty-state">No hay actividades visibles en esta semana.</div><?php endif; ?>
     <?php else: ?>
     <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= (int)$slotCount ?>">
       <div class="agenda-calendar-time-heading">Hora</div>
