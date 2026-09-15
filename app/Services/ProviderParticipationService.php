@@ -288,6 +288,23 @@ final class ProviderParticipationService
         return $summary;
     }
 
+    public function registeredProviders(): array
+    {
+        $providers=[];
+        $rows=$this->pdo()->query(
+            "SELECT u.id,COALESCE(NULLIF(ep.organization_name,''),u.full_name) organization_name
+             FROM users u
+             LEFT JOIN external_profiles ep ON ep.user_id=u.id
+             WHERE u.deleted_at IS NULL AND u.access_type='EXTERNAL'
+             ORDER BY COALESCE(NULLIF(ep.organization_name,''),u.full_name),u.full_name"
+        )->fetchAll();
+        foreach($rows as $row){
+            $userId=(int)($row['id']??0);
+            if($userId<=0)continue;
+            $providers[$userId]=(string)($row['organization_name']??'');
+        }
+        return $providers;
+    }
     public static function providers(array $rows): array
     {
         $providers=[];

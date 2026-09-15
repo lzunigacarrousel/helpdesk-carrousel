@@ -20,7 +20,7 @@ final class ExternalReportController
             'rows'=>$rows,
             'summary'=>ProviderParticipationService::summary($rows),
             'filters'=>$filters,
-            'providers'=>ProviderParticipationService::providers($allRows),
+            'providers'=>$service->registeredProviders(),
             'activityOptions'=>ProviderParticipationService::activityOptions(),
         ]);
     }
