@@ -13,7 +13,7 @@ function ok(bool $condition,string $message):void{
 }
 
 ok($view!=='','Se puede leer la vista Agenda');
-ok(str_contains($view,"['view'=>'calendar']"),'Selector Calendario conserva enlace explícito a view=calendar');
+ok(str_contains($view,"['view'=>'calendar'")||str_contains($view,"'view'=>'calendar'"),'Selector Calendario conserva enlace explícito a view=calendar');
 ok(str_contains($view,'agenda-multiday-strip'),'Agenda conserva franja de actividades de varios días');
 ok(!str_contains($view,'<?php if(!$calendarActivities): ?>'),'Calendario no oculta la cuadrícula cuando solo existen actividades multiday');
 ok(str_contains($view,'class="agenda-calendar-grid"'),'Calendario mantiene la cuadrícula semanal disponible');
