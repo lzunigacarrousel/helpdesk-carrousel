@@ -12,6 +12,18 @@ ok(str_contains($body,'function markConflicts('),'Expone markConflicts');
 ok(str_contains($body,'function hourWindow('),'Expone hourWindow');
 ok(!str_contains($body,'INSERT INTO ticket_activities'),'Agenda no crea actividades');
 ok(!str_contains($body,'UPDATE ticket_activities'),'Agenda no modifica actividades');
+ok(str_contains($body,'new ScopeService'),'Usa ScopeService');
+ok(str_contains($body,'JOIN tickets t ON t.id=a.ticket_id'),'Une actividades con tickets');
+ok(str_contains($body,'t.deleted_at IS NULL'),'Excluye tickets eliminados');
+ok(str_contains($body,'a.responsible_user_id'),'Filtra responsable');
+ok(str_contains($body,'a.park_id'),'Filtra parque');
+ok(str_contains($body,'a.activity_type'),'Filtra tipo');
+ok(str_contains($body,'PROGRAMADA'),'Contempla estado PROGRAMADA');
+ok(str_contains($body,'EN_CURSO'),'Contempla estado EN_CURSO');
+ok(str_contains($body,'FINALIZADA'),'Contempla historial FINALIZADA');
+ok(str_contains($body,'CANCELADA'),'Contempla historial CANCELADA');
+ok(str_contains($body,'#actividades'),'Construye URL al bloque de actividades');
+ok(str_contains($body,'LIMIT')&&str_contains($body,'searchTickets'),'Búsqueda de tickets es limitada');
 if($body!==''){
     require_once $path;
     $rows=[
