@@ -50,14 +50,14 @@ final class AgendaController
 
     private function filters(string $role): array
     {
-        $view=in_array($_GET['view']??'', ['calendar','list'],true)?$_GET['view']:'calendar';
+        $view=in_array($_GET['view']??'', ['month','calendar','list'],true)?$_GET['view']:'month';
         $today=new DateTimeImmutable('today');
-        $defaultFrom=$view==='calendar'
-            ?$today->modify('monday this week')
-            :$today;
-        $defaultTo=$view==='calendar'
-            ?$defaultFrom->modify('+6 days')
-            :$today->modify('+6 days');
+        $defaultFrom=$view==='month'
+            ?$today->modify('first day of this month')
+            :($view==='calendar'?$today->modify('monday this week'):$today);
+        $defaultTo=$view==='month'
+            ?$today->modify('last day of this month')
+            :($view==='calendar'?$defaultFrom->modify('+6 days'):$today->modify('+6 days'));
         $from=$defaultFrom;
         $to=$defaultTo;
         $notice=null;

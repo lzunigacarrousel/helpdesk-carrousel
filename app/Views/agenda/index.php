@@ -65,6 +65,29 @@ foreach($multiDayActivities as $item){
     $spanDays=((int)$visibleStart->diff($visibleEnd)->days)+1;
     $calendarMultiDayItems[]=['item'=>$item,'start_column'=>$startColumn,'span_days'=>$spanDays,'lane'=>$calendarMultiDayLane++];
 }
+$activeView=(string)($filters['view']??'month');
+$anchorDate=DateTimeImmutable::createFromFormat('!Y-m-d',(string)($filters['from']??''));
+if(!$anchorDate)$anchorDate=new DateTimeImmutable('today');
+$anchorWeekStart=$anchorDate->modify('-'.((int)$anchorDate->format('N')-1).' days');
+$monthStart=$anchorDate->modify('first day of this month');
+$monthEnd=$anchorDate->modify('last day of this month');
+$monthGridStart=$monthStart->modify('-'.((int)$monthStart->format('N')-1).' days');
+$monthGridEnd=$monthEnd->modify('+'.(7-(int)$monthEnd->format('N')).' days');
+$monthNames=[1=>'Enero',2=>'Febrero',3=>'Marzo',4=>'Abril',5=>'Mayo',6=>'Junio',7=>'Julio',8=>'Agosto',9=>'Septiembre',10=>'Octubre',11=>'Noviembre',12=>'Diciembre'];
+$weekdayLabels=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+$monthDays=[];
+for($cursor=$monthGridStart;$cursor<=$monthGridEnd;$cursor=$cursor->modify('+1 day')){
+    $monthDays[$cursor->format('Y-m-d')]=[];
+}
+foreach($activities as $activity){
+    $activityStart=DateTimeImmutable::createFromFormat('!Y-m-d',substr((string)($activity['scheduled_start_at']??''),0,10));
+    $activityEnd=DateTimeImmutable::createFromFormat('!Y-m-d',substr((string)($activity['scheduled_end_at']??''),0,10));
+    if(!$activityStart||!$activityEnd)continue;
+    foreach($monthDays as $day=>$unused){
+        $dayDate=DateTimeImmutable::createFromFormat('!Y-m-d',$day);
+        if($dayDate&&$dayDate>=$activityStart&&$dayDate<=$activityEnd)$monthDays[$day][]=$activity;
+    }
+}
 $startHour=max(0,min(23,(int)($hourWindow['start_hour']??8)));
 $endHour=max($startHour+1,min(24,(int)($hourWindow['end_hour']??18)));
 $slotCount=max(1,($endHour-$startHour)*2);
@@ -88,11 +111,12 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div>
       <div class="ticket-kicker"><?= $h($scopeLabel) ?></div>
       <h1 class="page-title">Agenda</h1>
-      <p class="page-subtitle">Calendario y Lista comparten las mismas actividades visibles de tu alcance.</p>
+      <p class="page-subtitle">Mes, Semana y Lista comparten las mismas actividades visibles de tu alcance.</p>
     </div>
     <nav class="agenda-view-switch" aria-label="Vista de agenda">
-      <a class="btn <?= ($filters['view']??'calendar')==='calendar'?'btn-primary':'btn-outline-secondary' ?>" href="<?= $h($withFilter(['view'=>'calendar'])) ?>">Calendario</a>
-      <a class="btn <?= ($filters['view']??'calendar')==='list'?'btn-primary':'btn-outline-secondary' ?>" href="<?= $h($withFilter(['view'=>'list'])) ?>">Lista</a>
+      <a class="btn <?= $activeView==='month'?'btn-primary':'btn-outline-secondary' ?>" href="<?= $h($withFilter(['view'=>'month','from'=>$monthStart->format('Y-m-d'),'to'=>$monthEnd->format('Y-m-d')])) ?>">Mes</a>
+      <a class="btn <?= $activeView==='calendar'?'btn-primary':'btn-outline-secondary' ?>" href="<?= $h($withFilter(['view'=>'calendar','from'=>$anchorWeekStart->format('Y-m-d'),'to'=>$anchorWeekStart->modify('+6 days')->format('Y-m-d')])) ?>">Semana</a>
+      <a class="btn <?= $activeView==='list'?'btn-primary':'btn-outline-secondary' ?>" href="<?= $h($withFilter(['view'=>'list'])) ?>">Lista</a>
     </nav>
   </header>
 
@@ -139,12 +163,23 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <?php endif; ?>
 
   <div class="agenda-quick-links" aria-label="Rangos rápidos">
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$weekStart->modify('-7 days')->format('Y-m-d'),'to'=>$weekStart->modify('-1 day')->format('Y-m-d')])) ?>">Semana anterior</a>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>date('Y-m-d'),'to'=>date('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Hoy</a>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$weekStart->modify('+7 days')->format('Y-m-d'),'to'=>$weekStart->modify('+13 days')->format('Y-m-d')])) ?>">Semana siguiente</a>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>(new DateTimeImmutable('monday this week'))->format('Y-m-d'),'to'=>(new DateTimeImmutable('monday this week'))->modify('+6 days')->format('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Esta semana</a>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>date('Y-m-d'),'to'=>(new DateTimeImmutable('today'))->modify('+29 days')->format('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Próximos 30 días</a>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['history'=>'1','status'=>'all'])) ?>">Historial</a>
+    <?php if($activeView==='month'):
+      $previousMonth=$monthStart->modify('-1 month');
+      $nextMonth=$monthStart->modify('+1 month');
+      $todayMonth=new DateTimeImmutable('first day of this month'); ?>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$previousMonth->format('Y-m-d'),'to'=>$previousMonth->modify('last day of this month')->format('Y-m-d')])) ?>">Mes anterior</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$todayMonth->format('Y-m-d'),'to'=>$todayMonth->modify('last day of this month')->format('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Hoy</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$nextMonth->format('Y-m-d'),'to'=>$nextMonth->modify('last day of this month')->format('Y-m-d')])) ?>">Mes siguiente</a>
+    <?php elseif($activeView==='calendar'): ?>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$weekStart->modify('-7 days')->format('Y-m-d'),'to'=>$weekStart->modify('-1 day')->format('Y-m-d')])) ?>">Semana anterior</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>date('Y-m-d'),'to'=>date('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Hoy</a>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$weekStart->modify('+7 days')->format('Y-m-d'),'to'=>$weekStart->modify('+13 days')->format('Y-m-d')])) ?>">Semana siguiente</a>
+    <?php else: ?>
+      <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>date('Y-m-d'),'to'=>date('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Hoy</a>
+    <?php endif; ?>
+    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['view'=>'calendar','from'=>(new DateTimeImmutable('monday this week'))->format('Y-m-d'),'to'=>(new DateTimeImmutable('monday this week'))->modify('+6 days')->format('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Esta semana</a>
+    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['view'=>'list','from'=>date('Y-m-d'),'to'=>(new DateTimeImmutable('today'))->modify('+29 days')->format('Y-m-d'),'history'=>false,'status'=>'active'])) ?>">Próximos 30 días</a>
+    <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['view'=>'list','history'=>'1','status'=>'all'])) ?>">Historial</a>
   </div>
 
   <form class="card agenda-filter-card" method="get" action="<?= APP_BASE_URL ?>/agenda">
@@ -171,6 +206,47 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
 
+  <?php if($activeView==='month'): ?>
+  <section class="agenda-month" aria-label="Calendario mensual">
+    <header class="agenda-month-head">
+      <div><span class="ticket-kicker">Mes</span><h2><?= $h(($monthNames[(int)$monthStart->format('n')]??$monthStart->format('m')).' '.$monthStart->format('Y')) ?></h2></div>
+      <span class="agenda-month-summary"><?= count($activities) ?> actividad(es) en el rango</span>
+    </header>
+    <div class="agenda-month-scroll">
+      <div class="agenda-month-grid">
+        <?php foreach($weekdayLabels as $weekday): ?><div class="agenda-month-weekday"><?= $h($weekday) ?></div><?php endforeach; ?>
+        <?php foreach($monthDays as $day=>$items):
+          $dayDate=DateTimeImmutable::createFromFormat('!Y-m-d',$day);
+          $outside=$dayDate?$dayDate->format('m')!==$monthStart->format('m'):false;
+          $today=$day===date('Y-m-d');
+          $visibleItems=array_slice($items,0,4);
+        ?>
+        <article class="agenda-month-day <?= $outside?'is-outside':'' ?> <?= $today?'is-today':'' ?>" data-date="<?= $h($day) ?>">
+          <header class="agenda-month-date"><span><?= $h($dayDate?$dayDate->format('j'):$day) ?></span></header>
+          <div class="agenda-month-events">
+            <?php foreach($visibleItems as $item):
+              $status=(string)($item['status']??'');
+              $statusClass=strtolower(str_replace('_','-', $status));
+              $ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades'));
+              $startTs=strtotime((string)($item['scheduled_start_at']??''));
+              $endTs=strtotime((string)($item['scheduled_end_at']??''));
+              $startDay=$startTs?date('Y-m-d',$startTs):'';
+              $endDay=$endTs?date('Y-m-d',$endTs):'';
+              if($startDay===$endDay)$monthEventTime=$startTs?date('H:i',$startTs):'';
+              elseif($day===$startDay)$monthEventTime=($startTs?date('H:i',$startTs):'').' →';
+              elseif($day===$endDay)$monthEventTime='→ '.($endTs?date('H:i',$endTs):'');
+              else $monthEventTime='↔';
+            ?>
+            <a class="agenda-month-event is-<?= $h($statusClass) ?> <?= !empty($item['has_conflict'])?'has-conflict':'' ?>" href="<?= $h($ticketUrl) ?>" title="<?= $h(($item['ticket_code']??'').' · '.($item['ticket_subject']??'')) ?>"><time><?= $h($monthEventTime) ?></time><span><?= $h($typeLabels[(string)($item['activity_type']??'')]??'Actividad') ?></span></a>
+            <?php endforeach; ?>
+            <?php if(count($items)>4): ?><span class="agenda-month-more">+<?= count($items)-4 ?> más</span><?php endif; ?>
+          </div>
+        </article>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </section>
+  <?php endif; ?>
   <?php if(($filters['view']??'calendar')==='calendar'): ?>
   <section class="agenda-calendar" aria-label="Calendario semanal">
     <?php if($calendarMultiDayItems): ?>
