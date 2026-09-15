@@ -29,6 +29,8 @@ final class AgendaService
 
     public function overdueBefore(string $from,array $filters): array
     {
+        $status=(string)($filters['status']??'active');
+        if(in_array($status,self::ALL_STATUSES,true)&&$status!=='PROGRAMADA')return[];
         if(!in_array('PROGRAMADA',$this->effectiveStates($filters),true))return[];
 
         [$where,$params]=$this->scopedWhere($filters);

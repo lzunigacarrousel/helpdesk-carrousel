@@ -3,6 +3,28 @@ declare(strict_types=1);
 $root=dirname(__DIR__);$path=$root.'/app/Services/AgendaService.php';
 $body=is_file($path)?file_get_contents($path):'';$errors=0;
 function ok(bool $c,string $m):void{global $errors;echo($c?'[OK] ':'[FALLO] ').$m.PHP_EOL;if(!$c)$errors++;}
+final class AgendaRegressionStatement
+{
+    public function execute(array $params): void{}
+    public function fetchAll(): array
+    {
+        return [[
+            'activity_id'=>99,'ticket_id'=>7,'ticket_code'=>'T-7','ticket_subject'=>'Vencida',
+            'activity_type'=>'OTRA','status'=>'PROGRAMADA','scheduled_start_at'=>'2026-09-01 09:00:00',
+            'scheduled_end_at'=>'2026-09-01 10:00:00','responsible_user_id'=>1,'responsible_name'=>'Soporte',
+            'park_id'=>1,'park_name'=>'Parque',
+        ]];
+    }
+}
+final class AgendaRegressionPdo
+{
+    public function prepare(string $sql): AgendaRegressionStatement{return new AgendaRegressionStatement;}
+}
+if(!class_exists('App\\Core\\Auth',false)){
+    eval('namespace App\\Core; final class Auth { public static function role(): ?string{return "ADMIN";} public static function id(): ?int{return 1;} } final class Database { public static function pdo(): object{return new \\AgendaRegressionPdo;} }');
+    eval('namespace App\\Services; final class ScopeService { public function ticketConstraint(string $alias="t", ?int $userId=null): array{return["1=1",[]];} }');
+}
+if(!defined('APP_BASE_URL'))define('APP_BASE_URL','');
 ok($body!=='','Existe AgendaService');
 ok(str_contains($body,'function activities('),'Expone activities');
 ok(str_contains($body,'function overdueBefore('),'Expone overdueBefore');
@@ -40,5 +62,7 @@ if($body!==''){
     ok(\App\Services\AgendaService::hourWindow([])===['start_hour'=>8,'end_hour'=>18],'Ventana vacía 08–18');
     $w=\App\Services\AgendaService::hourWindow([['scheduled_start_at'=>'2026-09-14 06:20:00','scheduled_end_at'=>'2026-09-14 19:15:00']]);
     ok($w===['start_hour'=>5,'end_hour'=>21],'Ventana se expande y redondea');
+    $overdue=(new \App\Services\AgendaService())->overdueBefore('2026-09-14',['status'=>'FINALIZADA','history'=>0]);
+    ok($overdue===[],'Estado histórico explícito sin historial excluye atrasadas');
 }
 if($errors){fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);exit(1);}echo '[OK] Contrato base AgendaService.'.PHP_EOL;
