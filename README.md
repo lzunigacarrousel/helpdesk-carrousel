@@ -119,6 +119,7 @@ La base estable incluye, entre otras funciones:
 - proveedores/colaboradores externos y control de acceso por caso;
 - documentación estructurada de trabajo externo por tipo de servicio;
 - actividades operativas ligadas a tickets: visitas, soporte remoto, seguimientos e intervenciones de proveedor;
+- Agenda con vistas Calendario y Lista sobre `ticket_activities`, respetando scope backend por perfil;
 - manual y ayuda integrada.
 
 Perfiles principales:
@@ -144,8 +145,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 3 | Operación IT y SLA | Cerrada funcionalmente |
 | 4 | Feedback del solicitante | Cerrada |
 | 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |
-| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |
-| 7 | Proveedores | Parcialmente adelantada; falta cierre formal |
+| 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
+| 7 | Proveedores | **Siguiente fase** |
 | 8 | Calidad IT → proveedor | Pendiente |
 | 9 | Conocimiento | Parcialmente adelantada; falta cierre formal |
 | 10 | Reportes | Parcialmente adelantada; falta consolidación final |
@@ -168,8 +169,21 @@ La Fase 5 incorpora una entidad operativa reutilizable para trabajo ligado oblig
 - las operaciones respetan permisos, scope, CSRF, auditoría y trazabilidad mediante `ticket_events`;
 - crear, reprogramar, iniciar, finalizar o cancelar una actividad **no cambia automáticamente el estado del ticket**;
 - el solicitante solo recibe el resumen publicado explícitamente por soporte mediante **Próxima atención**;
-- Fase 6 reutilizará `ticket_activities` para Agenda y no debe crear otra entidad de calendario.
+- La Agenda de Fase 6 reutiliza `ticket_activities` y no crea otra entidad de calendario.
 
+### Fase 6 — Agenda
+
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+
+La Fase 6 incorpora una Agenda operativa sin crear tablas nuevas ni mover la operación fuera del ticket:
+
+- vistas **Calendario** y **Lista** para consultar actividades programadas;
+- backend filtrado por `ScopeService`, conservando alcance por perfil y evitando accesos REQUESTER/EXTERNAL;
+- lectura de actividades activas e historial desde `ticket_activities`;
+- atrasadas y conflictos derivados de fechas existentes, sin estados ni tablas paralelas;
+- filtros por responsable, parque, tipo, estado y rango de fechas;
+- MANAGEMENT y SUPERVISOR tienen consulta sin operar;
+- el ticket sigue siendo el workspace operativo para programar, reprogramar, iniciar, finalizar o cancelar actividades.
 ## Flujo Git oficial
 
 Regla general:

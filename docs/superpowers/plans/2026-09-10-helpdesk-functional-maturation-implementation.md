@@ -126,17 +126,24 @@ Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.
 
 ## Fase 6 — Agenda
 
-Estado: **SIGUIENTE FASE / PENDIENTE; REUTILIZA `ticket_activities`**.
+Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.
 
-- [ ] Usar la misma entidad de actividades si se aprueba.
-- [ ] No crear tabla de calendario adicional.
-- [ ] Filtrar por técnico, parque, tipo y estado.
-- [ ] Enlazar cada actividad a su ticket.
-- [ ] Validar escritorio, laptop, iPad y móvil.
+Objetivo de BD: **0 cambios — cumplido**.
 
+- [x] Usar la misma entidad de actividades aprobada en Fase 5: `ticket_activities`.
+- [x] No crear tabla de calendario adicional.
+- [x] Implementar vistas Calendario y Lista.
+- [x] Filtrar por técnico/responsable, parque, tipo, estado y rango de fechas.
+- [x] Enlazar cada actividad a su ticket y conservar el ticket como workspace operativo.
+- [x] Aplicar `ScopeService` en backend para toda consulta de Agenda.
+- [x] Separar actividades activas e historial sin duplicar datos.
+- [x] Derivar atrasadas y conflictos desde fechas existentes, sin estados paralelos.
+- [x] Mantener REQUESTER y EXTERNAL sin acceso a Agenda.
+- [x] Mantener MANAGEMENT y SUPERVISOR como consulta sin operar.
+- [ ] Validación responsive acumulada y cierre transversal se consolidan en Fase 12.
 ## Fase 7 — Proveedores
 
-Estado: **PENDIENTE**.
+Estado: **SIGUIENTE FASE / PENDIENTE**.
 
 Objetivo de BD: **0 cambios**.
 

@@ -4,6 +4,14 @@
 >
 > La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
 
+## Fase 6 · Agenda · 2026-09-14
+- Nueva Agenda interna con vistas **Calendario** y **Lista** para consultar actividades programadas.
+- La consulta reutiliza `ticket_activities` y aplica alcance backend mediante `ScopeService`; REQUESTER y EXTERNAL no acceden a Agenda.
+- ADMIN, SEMIADMIN y TECHNICIAN conservan operación desde el ticket; MANAGEMENT y SUPERVISOR tienen consulta sin operar.
+- Se incorporan filtros por responsable, parque, tipo, estado y rango, además de lectura de actividades activas e historial.
+- Atrasadas y conflictos se derivan de fechas existentes, sin estados paralelos.
+- El ticket permanece como workspace operativo para programar, reprogramar, iniciar, finalizar o cancelar actividades.
+- BD: sin cambios; no se crea tabla de calendario ni migración para Agenda.
 ## Fase 5 · Actividades / visitas · 2026-09-14
 - Nueva entidad operativa `ticket_activities` ligada obligatoriamente a tickets, con tipos visita en sitio, soporte remoto, seguimiento, intervención de proveedor y otra atención.
 - Nueva tabla `ticket_activity_participants` para participantes; `ticket_attachments.activity_id` permite asociar evidencia reutilizando el almacenamiento existente.

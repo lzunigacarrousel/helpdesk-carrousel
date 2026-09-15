@@ -101,6 +101,11 @@ jobs:
       - name: Phase 5 activities UI regression
         run: php tests/phase5_activities_ui_regression.php
 
+      - name: Phase 6 agenda service regression
+        run: php tests/phase6_agenda_service_regression.php
+
+      - name: Phase 6 agenda UI regression
+        run: php tests/phase6_agenda_ui_regression.php
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 

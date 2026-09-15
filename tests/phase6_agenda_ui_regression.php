@@ -6,7 +6,12 @@ $viewPath=$root.'/app/Views/agenda/index.php';$view=is_file($viewPath)?file_get_
 $appStartPath=$root.'/app/Views/shared/app_start.php';$appStart=is_file($appStartPath)?file_get_contents($appStartPath):'';
 $appEndPath=$root.'/app/Views/shared/app_end.php';$appEnd=is_file($appEndPath)?file_get_contents($appEndPath):'';
 $cssPath=$root.'/public/assets/css/agenda.css';$css=is_file($cssPath)?file_get_contents($cssPath):'';
-$jsPath=$root.'/public/assets/js/agenda.js';$js=is_file($jsPath)?file_get_contents($jsPath):'';$errors=0;
+$jsPath=$root.'/public/assets/js/agenda.js';$js=is_file($jsPath)?file_get_contents($jsPath):'';
+$manualPath=$root.'/app/Views/help/manual.php';$manual=is_file($manualPath)?file_get_contents($manualPath):'';
+$ciPath=$root.'/.github/workflows/helpdesk-ci.yml';$ci=is_file($ciPath)?file_get_contents($ciPath):'';
+$readmePath=$root.'/README.md';$readme=is_file($readmePath)?file_get_contents($readmePath):'';
+$changelogPath=$root.'/CHANGELOG.md';$changelog=is_file($changelogPath)?file_get_contents($changelogPath):'';
+$roadmapPath=$root.'/docs/superpowers/plans/2026-09-10-helpdesk-functional-maturation-implementation.md';$roadmap=is_file($roadmapPath)?file_get_contents($roadmapPath):'';$errors=0;
 function ok(bool $c,string $m):void{global $errors;echo($c?'[OK] ':'[FALLO] ').$m.PHP_EOL;if(!$c)$errors++;}
 ok(str_contains($router,'AgendaController'),'Router conoce AgendaController');
 ok(str_contains($router,"['GET','/agenda'"),'Existe GET /agenda');
@@ -54,4 +59,9 @@ ok(str_contains($view,'name="ticket_q"')&&str_contains($view,'maxlength="100"'),
 ok(str_contains($view,'$ticketMatches')&&str_contains($view,'ticket_url')&&str_contains($view,'#actividades'),'Programar actividad lista coincidencias con enlaces a actividades');
 ok(str_contains($view,'hidden" name="program" value="1"'),'Programar actividad preserva modo program');
 ok(str_contains($view,'hidden" name="view"')&&str_contains($view,"\$filters['view']??'calendar'"),'Programar actividad preserva vista actual');
+ok(strlen($manual)>0&&str_contains($manual,'Agenda')&&str_contains($manual,'Calendario')&&str_contains($manual,'Lista'),'Manual documenta Agenda/Calendario/Lista');
+ok(str_contains($readme,'| 6 | Agenda | **Implementada')&&str_contains($readme,'Calendario')&&str_contains($readme,'Lista'),'README documenta estado y vistas de Agenda');
+ok(str_contains($changelog,'Agenda')&&str_contains($changelog,'BD: sin cambios'),'CHANGELOG documenta Agenda sin cambios de BD');
+ok(str_contains($roadmap,'Fase 6')&&str_contains($roadmap,'IMPLEMENTADA')&&str_contains($roadmap,'Fase 7'),'Roadmap marca Fase 6 implementada y Fase 7 siguiente');
+ok(str_contains($ci,'php tests/phase6_agenda_service_regression.php')&&str_contains($ci,'php tests/phase6_agenda_ui_regression.php'),'CI ejecuta regresiones Phase 6 service y UI');
 if($errors)exit(1);

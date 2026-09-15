@@ -203,7 +203,7 @@ ok(str_contains($manual,'Finalizar'),'Manual explica Finalizar actividades');
 ok(str_contains($manual,'Finalizar una actividad no resuelve ni cierra el ticket'),'Manual aclara independencia entre actividad y estado del ticket');
 ok(str_contains($manual,'Próxima atención')||str_contains($manual,'Proxima atención'),'Manual explica Próxima atención al solicitante');
 ok(str_contains($readme,'Implementada — pendiente validación integral Fase 12'),'README marca Fase 5 implementada');
-ok(str_contains($readme,'| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |'),'README marca Agenda como siguiente fase');
+ok(str_contains($readme,'| 6 | Agenda | **Siguiente fase**; depende de `ticket_activities` |')||str_contains($readme,'| 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |'),'README marca Agenda como siguiente fase o implementada');
 ok(str_contains($changelog,'Fase 5 · Actividades / visitas'),'CHANGELOG registra cierre funcional de Fase 5');
 ok(str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.'),'Roadmap maestro marca Fase 5 implementada');
 

@@ -31,7 +31,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
 
   <nav class="manual-index" aria-label="Índice del manual">
-    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
   </nav>
 
   <section class="manual-section" id="inicio" data-manual-section>
@@ -74,6 +74,22 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
 
+  <?php if($isSupport||$canManagement): ?>
+  <section class="manual-section" id="agenda" data-manual-section>
+    <div class="manual-section-head"><span>AG</span><div><h2>Agenda</h2><p>Consulta actividades programadas desde Calendario o Lista, siempre con el alcance que autoriza el sistema.</p></div></div>
+    <div class="manual-cards">
+      <?php if($isSupport): ?>
+      <article><strong>Técnico</strong><p>Usa <b>Mis actividades</b> para tu carga directa y <b>Todo mi alcance</b> para revisar actividades visibles según parque, región, área o equipo. Filtra por responsable, parque, tipo, estado y rango de fechas.</p></article>
+      <article><strong>Atrasadas y conflictos</strong><p>Las actividades atrasadas y los conflictos de horario se calculan a partir de <b>ticket_activities</b>; son señales para priorizar, no estados nuevos ni una agenda separada.</p></article>
+      <article><strong>Abrir ticket y programar</strong><p>Cada elemento abre el ticket en <b>Actividades</b>. La programación operativa se hace vía ticket con <b>+ Programar actividad</b>; el ticket sigue siendo el espacio de trabajo.</p></article>
+      <article><strong>Admin/Semiadmin</strong><p>Agenda muestra una consulta global visible dentro del alcance autorizado y conserva los mismos filtros para responsable, parque, tipo, estado, Calendario y Lista.</p></article>
+      <?php endif; ?>
+      <?php if($canManagement): ?>
+      <article><strong>Gerencia/Supervisión</strong><p>Agenda es de consulta sin operar: puedes revisar carga, atrasos y conflictos dentro de tu alcance, pero no programar, iniciar, finalizar, cancelar ni reprogramar actividades.</p></article>
+      <?php endif; ?>
+    </div>
+  </section>
+  <?php endif; ?>
   <?php if($isSupport): ?><section class="manual-section" id="soporte" data-manual-section><div class="manual-section-head"><span>03</span><div><h2>Centro de soporte</h2><p>Prioriza por alcance y tiempo, continúa la conversación y documenta correctamente esperas y solución.</p></div></div><div class="manual-cards"><article><strong>Cola de trabajo</strong><p><b>Todos</b> reúne los casos activos que puedes consultar según tu alcance. Usa <b>Míos</b>, <b>Sin asignar</b>, <b>Por vencer</b>, <b>Vencidos</b>, <b>En espera</b>, <b>Reabiertos</b> o <b>Críticos</b> para concentrarte.</p></article><article><strong>Clasificación ITSM</strong><p>El Helpdesk propone automáticamente Incidente o Solicitud de servicio, Impacto y Urgencia a partir de la categoría y lo descrito por el usuario. Impacto + Urgencia producen la prioridad inicial. Soporte debe validar la clasificación y, si ajusta manualmente la prioridad, dejar motivo y auditoría.</p></article><article><strong>Resolución objetivo</strong><p>El SLA muestra el tiempo restante, cuánto del objetivo ya se utilizó y una lectura operativa: Dentro de objetivo, Atención requerida, Próximo a vencer o Vencido.</p></article><article><strong>Tomar un caso</strong><p>Usa <b>Tomar</b> cuando realmente puedas iniciar trabajo. Solo puedes tomar casos disponibles dentro de tu alcance.</p></article><article><strong>En espera</strong><p>Selecciona la razón real: usuario, proveedor, compra, visita, aprobación u otra dependencia. Los informes conservan cuánto tiempo se acumuló en cada motivo aunque cambie durante el mismo caso.</p></article><article><strong>Respuesta y conversación interna</strong><p><b>Respuesta al usuario</b> es visible para el solicitante. <b>Conversación interna</b> es solo para el equipo de soporte.</p></article><article><strong>Resolver</strong><p>Registra qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Al resolver, el cierre final queda pendiente de confirmación del solicitante; IT puede reabrir si detecta que aún falta trabajo.</p></article></div></section><?php endif; ?>
 
   <?php if($canProblems||$canKnowledge): ?><section class="manual-section" id="conocimiento" data-manual-section><div class="manual-section-head"><span><?= $isSupport?'04':'03' ?></span><div><h2>Problemas y conocimiento</h2><p>Convierte recurrencias y buenas resoluciones en información útil para futuros casos.</p></div></div><div class="manual-cards"><?php if($canProblems): ?><article><strong>Problemas conocidos</strong><p>Relaciona tickets recurrentes y documenta causa, solución temporal y solución permanente.</p><a href="<?= APP_BASE_URL ?>/problems">Abrir problemas →</a></article><?php endif; ?><?php if($canKnowledge): ?><article><strong>Base de conocimiento</strong><p>Crea artículos en borrador, revísalos y publícalos cuando estén listos.</p><a href="<?= APP_BASE_URL ?>/knowledge">Abrir conocimiento →</a></article><?php endif; ?><article><strong>Posibles soluciones</strong><p>El ticket puede sugerir conocimiento, problemas conocidos y casos anteriores para evitar empezar desde cero.</p></article></div></section><?php endif; ?>
