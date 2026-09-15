@@ -140,13 +140,10 @@ final class AgendaService
 
     private function effectiveStates(array $filters): array
     {
-        $history=!empty($filters['history']);
         $status=(string)($filters['status']??'active');
-
-        if($status==='active')return $history?self::ALL_STATUSES:self::ACTIVE_STATUSES;
-        if($status==='all')return $history?self::ALL_STATUSES:self::ACTIVE_STATUSES;
+        if($status==='active')return self::ACTIVE_STATUSES;
+        if($status==='all')return self::ALL_STATUSES;
         if(!in_array($status,self::ALL_STATUSES,true))return self::ACTIVE_STATUSES;
-        if(in_array($status,['FINALIZADA','CANCELADA'],true)&&!$history)return self::ACTIVE_STATUSES;
         return[$status];
     }
 
