@@ -13,13 +13,18 @@ $multiDayRange=static function(array $row):string{
     if(!$s||!$e)return'Sin rango';
     return date('d/m H:i',$s).' → '.date('d/m H:i',$e);
 };
+$listRange=static function(array $row)use($timeRange,$multiDayRange):string{
+    $startDate=substr((string)($row['scheduled_start_at']??''),0,10);
+    $endDate=substr((string)($row['scheduled_end_at']??''),0,10);
+    return $startDate!==''&&$endDate!==''&&$startDate!==$endDate?$multiDayRange($row):$timeRange($row);
+};
 $withFilter=static function(array $changes)use($filters):string{$query=array_merge($filters,$changes);foreach($query as $k=>$v){if($v===false||$v===null||$v==='')unset($query[$k]);elseif($v===true)$query[$k]='1';}return APP_BASE_URL.'/agenda?'.http_build_query($query);};
-$renderItem=static function(array $item)use($h,$timeRange,$typeLabels,$statusLabels):void{
+$renderItem=static function(array $item)use($h,$listRange,$typeLabels,$statusLabels):void{
     $status=(string)($item['status']??'');$statusClass=strtolower(str_replace('_','-',$status));
     $ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades'));
     ?>
     <a class="agenda-item is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>">
-      <time><?= $h($timeRange($item)) ?></time>
+      <time><?= $h($listRange($item)) ?></time>
       <span class="agenda-item-main"><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?> · <?= $h($item['ticket_subject']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> · <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])): ?><em>Conflicto de horario</em><?php endif; ?></span>
       <span class="agenda-status"><?= $h($statusLabels[$status]??$status) ?></span>
     </a>
