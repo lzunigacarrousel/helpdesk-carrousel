@@ -20,12 +20,35 @@ $renderItem=static function(array $item)use($h,$timeRange,$typeLabels,$statusLab
 };
 $days=[];foreach($activities as $activity){$day=substr((string)($activity['scheduled_start_at']??''),0,10);if($day==='')$day='Sin fecha';$days[$day][]=$activity;}
 ksort($days);
-$hourWindow=$hourWindow??['start_hour'=>8,'end_hour'=>18];$calendarStart=DateTimeImmutable::createFromFormat('!Y-m-d',(string)($filters['from']??''));if(!$calendarStart)$calendarStart=new DateTimeImmutable('monday this week');$calendarDays=[];for($offset=0;$offset<7;$offset++){$key=$calendarStart->modify('+'.$offset.' days')->format('Y-m-d');$calendarDays[$key]=[];}foreach($activities as $activity){$key=substr((string)($activity['scheduled_start_at']??''),0,10);if(isset($calendarDays[$key]))$calendarDays[$key][]=$activity;}$startHour=max(0,min(23,(int)($hourWindow['start_hour']??8)));$endHour=max($startHour+1,min(24,(int)($hourWindow['end_hour']??18)));$slotCount=($endHour-$startHour)*2;
-$weekStart=DateTimeImmutable::createFromFormat('!Y-m-d',(string)($filters['from']??date('Y-m-d')))?:new DateTimeImmutable('monday this week');
-$weekDays=[];for($i=0;$i<7;$i++){$day=$weekStart->modify('+'.$i.' days');$weekDays[$day->format('Y-m-d')]=$day;}
-$startHour=max(0,min(23,(int)($hourWindow['start_hour']??8)));$endHour=max($startHour+1,min(24,(int)($hourWindow['end_hour']??18)));$slotCount=max(1,($endHour-$startHour)*2);
-$slotFor=static function(string $value)use($startHour):int{$ts=strtotime($value);if(!$ts)return 0;$hour=(int)date('G',$ts);$minute=(int)date('i',$ts);return max(0,(($hour-$startHour)*2)+(int)floor($minute/30));};
-$spanFor=static function(array $row):int{$s=strtotime((string)($row['scheduled_start_at']??''));$e=strtotime((string)($row['scheduled_end_at']??''));if(!$s||!$e||$e<=$s)return 1;return max(1,(int)ceil(($e-$s)/1800));};
+$hourWindow=$hourWindow??['start_hour'=>8,'end_hour'=>18];
+$calendarStart=DateTimeImmutable::createFromFormat('!Y-m-d',(string)($filters['from']??''));
+if(!$calendarStart)$calendarStart=new DateTimeImmutable('monday this week');
+$weekStart=$calendarStart;
+$calendarDays=[];
+for($offset=0;$offset<7;$offset++){
+    $key=$calendarStart->modify('+'.$offset.' days')->format('Y-m-d');
+    $calendarDays[$key]=[];
+}
+foreach($activities as $activity){
+    $key=substr((string)($activity['scheduled_start_at']??''),0,10);
+    if(isset($calendarDays[$key]))$calendarDays[$key][]=$activity;
+}
+$startHour=max(0,min(23,(int)($hourWindow['start_hour']??8)));
+$endHour=max($startHour+1,min(24,(int)($hourWindow['end_hour']??18)));
+$slotCount=max(1,($endHour-$startHour)*2);
+$slotFor=static function(string $value)use($startHour,$slotCount):int{
+    $ts=strtotime($value);
+    if(!$ts)return 0;
+    $hour=(int)date('G',$ts);
+    $minute=(int)date('i',$ts);
+    return min(max(0,(($hour-$startHour)*2)+(int)floor($minute/30)),max(0,$slotCount-1));
+};
+$spanFor=static function(array $row):int{
+    $s=strtotime((string)($row['scheduled_start_at']??''));
+    $e=strtotime((string)($row['scheduled_end_at']??''));
+    if(!$s||!$e||$e<=$s)return 1;
+    return max(1,(int)ceil(($e-$s)/1800));
+};
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <section class="agenda-shell agenda-view-<?= $h($filters['view']??'calendar') ?>">
@@ -74,14 +97,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
 
-  <section class="agenda-calendar" aria-label="Calendario semanal">
-    <div class="agenda-calendar-days"><?php foreach($weekDays as $day): ?><div><strong><?= $h($dateLabel($day->format('Y-m-d'))) ?></strong></div><?php endforeach; ?></div>
-    <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= (int)$slotCount ?>">
-      <div class="agenda-hours"><?php for($hour=$startHour;$hour<=$endHour;$hour++): ?><span><?= str_pad((string)$hour,2,'0',STR_PAD_LEFT) ?>:00</span><?php endfor; ?></div>
-      <?php foreach($weekDays as $dayKey=>$day): ?><div class="agenda-calendar-day" data-day="<?= $h($dayKey) ?>"><?php foreach($days[$dayKey]??[] as $event): $startSlot=$slotFor((string)($event['scheduled_start_at']??''));$span=$spanFor($event);$status=(string)($event['status']??'');$class=strtolower(str_replace('_','-',$status));$url=(string)($event['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($event['ticket_id']??0).'#actividades')); ?><a class="agenda-event is-<?= $h($class) ?> <?= !empty($event['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($url) ?>" data-start-slot="<?= (int)$startSlot ?>" data-span-slots="<?= (int)$span ?>"><strong><?= $h($timeRange($event)) ?></strong><span><?= $h($typeLabels[(string)($event['activity_type']??'')]??($event['activity_type']??'Actividad')) ?></span><small><?= $h($event['ticket_code']??'') ?> · <?= $h($event['park_name']??'') ?></small><?php if(!empty($event['has_conflict'])): ?><em>Conflicto de horario</em><?php endif; ?></a><?php endforeach; ?></div><?php endforeach; ?>
-    </div>
-  </section>
-
   <?php if(($filters['view']??'calendar')==='calendar'): ?>
   <section class="agenda-calendar" aria-label="Calendario semanal">
     <nav class="agenda-calendar-nav" aria-label="Navegacion semanal">
@@ -89,16 +104,23 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <a class="btn btn-outline-secondary" href="<?= $h($withFilter(['view'=>'calendar','from'=>(new DateTimeImmutable('monday this week'))->format('Y-m-d'),'to'=>(new DateTimeImmutable('monday this week'))->modify('+6 days')->format('Y-m-d')])) ?>">Hoy</a>
       <a class="btn btn-outline-secondary" href="<?= $h($withFilter(['view'=>'calendar','from'=>$calendarStart->modify('+7 days')->format('Y-m-d'),'to'=>$calendarStart->modify('+13 days')->format('Y-m-d')])) ?>">Semana siguiente</a>
     </nav>
-    <?php if(!$activities): ?><div class="empty-state">No hay actividades visibles en esta semana.</div><?php else: ?>
-    <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= $slotCount ?>">
+    <?php if(!$activities): ?>
+    <div class="empty-state">No hay actividades visibles en esta semana.</div>
+    <?php else: ?>
+    <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= (int)$slotCount ?>">
       <div class="agenda-calendar-time-heading">Hora</div>
       <?php foreach($calendarDays as $day=>$items): ?><div class="agenda-calendar-day-heading"><?= $h($dateLabel($day)) ?></div><?php endforeach; ?>
-      <?php for($slot=0;$slot<$slotCount;$slot++):$minutes=($startHour*60)+($slot*30); ?><time class="agenda-calendar-time" style="grid-row:<?= $slot+2 ?>"><?= sprintf('%02d:%02d',intdiv($minutes,60),$minutes%60) ?></time><?php foreach($calendarDays as $day=>$items): ?><div class="agenda-calendar-slot" style="grid-row:<?= $slot+2 ?>"></div><?php endforeach; ?><?php endfor; ?>
-      <?php foreach($calendarDays as $dayIndex=>$items):foreach($items as $item):$start=strtotime((string)($item['scheduled_start_at']??''));$end=strtotime((string)($item['scheduled_end_at']??''));$minutes=$start?((int)date('G',$start)*60+(int)date('i',$start)):($startHour*60);$startSlot=max(0,(int)floor(($minutes-$startHour*60)/30));$span=max(1,(int)ceil(max(30,(($end?:$start)-($start?:$end))/60)/30));$statusClass=strtolower(str_replace('_','-',(string)($item['status']??'')));$ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades')); ?>
-      <a class="agenda-event is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>" data-start-slot="<?= $startSlot ?>" data-span-slots="<?= $span ?>" style="grid-column:<?= $dayIndex+2 ?>;grid-row:<?= $startSlot+2 ?>/span <?= $span ?>"><time><?= $h($timeRange($item)) ?></time><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> · <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])):?><em>Conflicto de horario</em><?php endif; ?></a>
-      <?php endforeach;endforeach; ?>
+      <?php for($slot=0;$slot<$slotCount;$slot++):$minutes=($startHour*60)+($slot*30); ?>
+      <time class="agenda-calendar-time" style="grid-row:<?= $slot+2 ?>"><?= sprintf('%02d:%02d',intdiv($minutes,60),$minutes%60) ?></time>
+      <?php $dayColumn=0;foreach($calendarDays as $day=>$items): ?><div class="agenda-calendar-slot" style="grid-column:<?= $dayColumn+2 ?>;grid-row:<?= $slot+2 ?>"></div><?php $dayColumn++;endforeach; ?>
+      <?php endfor; ?>
+      <?php $dayColumn=0;foreach($calendarDays as $day=>$items):foreach($items as $item):$startSlot=$slotFor((string)($item['scheduled_start_at']??''));$span=max(1,min($spanFor($item),$slotCount-$startSlot));$statusClass=strtolower(str_replace('_','-',(string)($item['status']??'')));$ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades')); ?>
+      <a class="agenda-event is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>" data-start-slot="<?= (int)$startSlot ?>" data-span-slots="<?= (int)$span ?>" style="grid-column:<?= $dayColumn+2 ?>;grid-row:<?= $startSlot+2 ?>/span <?= $span ?>"><time><?= $h($timeRange($item)) ?></time><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> Â· <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])):?><em>Conflicto de horario</em><?php endif; ?></a>
+      <?php endforeach;$dayColumn++;endforeach; ?>
     </div>
-    <div class="agenda-calendar-days"><?php foreach($calendarDays as $day=>$items):?><section class="agenda-calendar-day-card"><h2><?= $h($dateLabel($day)) ?></h2><?php if(!$items):?><p class="agenda-calendar-empty">Sin actividades.</p><?php endif;?><?php foreach($items as $item):$renderItem($item);endforeach;?></section><?php endforeach;?></div>
+    <div class="agenda-calendar-days">
+      <?php foreach($calendarDays as $day=>$items):?><section class="agenda-calendar-day-card"><h2><?= $h($dateLabel($day)) ?></h2><?php if(!$items):?><p class="agenda-calendar-empty">Sin actividades.</p><?php endif;?><?php foreach($items as $item):$renderItem($item);endforeach;?></section><?php endforeach;?>
+    </div>
     <?php endif; ?>
   </section>
   <?php endif; ?>

@@ -35,4 +35,11 @@ ok(str_contains($css,'@media(max-width:1023px)'),'Responsive para iPad vertical'
 ok(str_contains($css,'@media(max-width:760px)'),'Responsive para móvil');
 ok($js!=='','Existe JavaScript progresivo de Agenda');
 ok(str_contains($js,".agenda-event[data-start-slot][data-span-slots]"),'JavaScript posiciona eventos de calendario');
+ok(substr_count($view,'<section class="agenda-calendar"')===1,'Vista renderiza un solo calendario semanal');
+ok(substr_count($view,'class="agenda-calendar-grid"')===1,'Vista renderiza una sola cuadrícula de calendario');
+ok(substr_count($view,'class="agenda-calendar-days"')===1,'Vista renderiza un solo contenedor responsive de días');
+$baseCalendarGrids=preg_match_all('/\.agenda-calendar-grid\{[^}]*grid-template-columns/s',$css);
+ok($baseCalendarGrids===1,'CSS conserva una sola definicion estructural de agenda-calendar-grid');
+ok(!str_contains($css,'.agenda-hours'),'CSS no conserva implementación anterior de agenda-hours');
+ok(!str_contains($css,'.agenda-calendar-day{'),'CSS no conserva implementación anterior de agenda-calendar-day');
 if($errors)exit(1);
