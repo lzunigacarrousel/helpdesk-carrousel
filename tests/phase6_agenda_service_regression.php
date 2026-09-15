@@ -65,13 +65,15 @@ if($body!==''){
     $service=new \App\Services\AgendaService();
     $reflection=new \ReflectionClass($service);
     $statesMethod=$reflection->getMethod('effectiveStates');
-    $states=$statesMethod->invoke($service,['status'=>'active','history'=>0]);
-    ok($states===\App\Services\AgendaService::ACTIVE_STATUSES,'Activas sin historial conserva solo estados activos');
-    $states=$statesMethod->invoke($service,['status'=>'active','history'=>1]);
-    ok($states===\App\Services\AgendaService::ALL_STATUSES,'Incluir historial amplía Activas a todos los estados');
-    $states=$statesMethod->invoke($service,['status'=>'FINALIZADA','history'=>1]);
-    ok($states===['FINALIZADA'],'Finalizada con historial filtra solo finalizadas');
-    $overdue=$service->overdueBefore('2026-09-14',['status'=>'FINALIZADA','history'=>0]);
-    ok($overdue===[],'Estado histórico explícito sin historial excluye atrasadas');
+    $states=$statesMethod->invoke($service,['status'=>'active']);
+    ok($states===\App\Services\AgendaService::ACTIVE_STATUSES,'Activas conserva solo estados activos');
+    $states=$statesMethod->invoke($service,['status'=>'all']);
+    ok($states===\App\Services\AgendaService::ALL_STATUSES,'Todas incluye todos los estados sin checkbox adicional');
+    $states=$statesMethod->invoke($service,['status'=>'FINALIZADA']);
+    ok($states===['FINALIZADA'],'Finalizada filtra solo finalizadas');
+    $states=$statesMethod->invoke($service,['status'=>'CANCELADA']);
+    ok($states===['CANCELADA'],'Cancelada filtra solo canceladas');
+    $overdue=$service->overdueBefore('2026-09-14',['status'=>'FINALIZADA']);
+    ok($overdue===[],'Estado histórico explícito excluye atrasadas');
 }
 if($errors){fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);exit(1);}echo '[OK] Contrato base AgendaService.'.PHP_EOL;
