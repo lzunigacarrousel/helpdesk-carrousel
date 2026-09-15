@@ -57,7 +57,7 @@ final class AgendaController
             :($view==='calendar'?$today->modify('monday this week'):$today);
         $defaultTo=$view==='month'
             ?$today->modify('last day of this month')
-            :($view==='calendar'?$defaultFrom->modify('+6 days'):$today->modify('+6 days'));
+            :($view==='calendar'?$defaultFrom->modify('+6 days'):$today->modify('+29 days'));
         $from=$defaultFrom;
         $to=$defaultTo;
         $notice=null;
@@ -71,14 +71,13 @@ final class AgendaController
                 $from=$customFrom;
                 $to=$customTo;
             }else{
-                $notice='El rango solicitado no es valido. Se mostro el rango predeterminado.';
+                $notice='El rango solicitado no es válido. Se mostró el rango predeterminado.';
             }
         }
 
         $status=(string)($_GET['status']??'active');
-        $allowedStatuses=['active','all','PROGRAMADA','EN_CURSO','FINALIZADA','CANCELADA'];
+        $allowedStatuses=['active','PROGRAMADA','EN_CURSO','FINALIZADA','CANCELADA','all'];
         if(!in_array($status,$allowedStatuses,true))$status='active';
-        $history=($_GET['history']??'')==='1'||in_array($status,['all','FINALIZADA','CANCELADA'],true);
 
         $scopeMode=$role==='TECHNICIAN'&&($_GET['scope_mode']??'')==='all'?'all':'mine';
         if($role!=='TECHNICIAN')$scopeMode='all';
@@ -94,7 +93,6 @@ final class AgendaController
             'activity_type'=>$activityType,
             'status'=>$status,
             'scope_mode'=>$scopeMode,
-            'history'=>$history,
             'program'=>($_GET['program']??'')==='1'&&in_array($role,['ADMIN','SEMIADMIN','TECHNICIAN'],true),
             'ticket_q'=>mb_substr(trim((string)($_GET['ticket_q']??'')),0,100),
         ],$notice];
