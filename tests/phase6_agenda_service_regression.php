@@ -62,7 +62,16 @@ if($body!==''){
     ok(\App\Services\AgendaService::hourWindow([])===['start_hour'=>8,'end_hour'=>18],'Ventana vacía 08–18');
     $w=\App\Services\AgendaService::hourWindow([['scheduled_start_at'=>'2026-09-14 06:20:00','scheduled_end_at'=>'2026-09-14 19:15:00']]);
     ok($w===['start_hour'=>5,'end_hour'=>21],'Ventana se expande y redondea');
-    $overdue=(new \App\Services\AgendaService())->overdueBefore('2026-09-14',['status'=>'FINALIZADA','history'=>0]);
+    $service=new \App\Services\AgendaService();
+    $reflection=new \ReflectionClass($service);
+    $statesMethod=$reflection->getMethod('effectiveStates');
+    $states=$statesMethod->invoke($service,['status'=>'active','history'=>0]);
+    ok($states===\App\Services\AgendaService::ACTIVE_STATUSES,'Activas sin historial conserva solo estados activos');
+    $states=$statesMethod->invoke($service,['status'=>'active','history'=>1]);
+    ok($states===\App\Services\AgendaService::ALL_STATUSES,'Incluir historial amplía Activas a todos los estados');
+    $states=$statesMethod->invoke($service,['status'=>'FINALIZADA','history'=>1]);
+    ok($states===['FINALIZADA'],'Finalizada con historial filtra solo finalizadas');
+    $overdue=$service->overdueBefore('2026-09-14',['status'=>'FINALIZADA','history'=>0]);
     ok($overdue===[],'Estado histórico explícito sin historial excluye atrasadas');
 }
 if($errors){fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);exit(1);}echo '[OK] Contrato base AgendaService.'.PHP_EOL;
