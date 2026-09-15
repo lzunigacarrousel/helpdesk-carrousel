@@ -80,6 +80,7 @@ $events=[
 
 $serviceBody=is_file($servicePath)?(string)file_get_contents($servicePath):'';
 $controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPath):'';
+$viewBody=is_file($viewPath)?(string)file_get_contents($viewPath):'';
 
 ok($serviceBody!=='','Existe ProviderParticipationService');
 ok(str_contains($serviceBody,'function buildCycles('),'Expone buildCycles');
@@ -167,6 +168,15 @@ ok(str_contains($controllerBody,"'Actividad actual'")&&str_contains($controllerB
 ok(str_contains($controllerBody,"'Informes'")&&str_contains($controllerBody,"'Entregas listas'")&&str_contains($controllerBody,"'Devoluciones'"),'XLSX exporta métricas técnicas');
 ok(str_contains($controllerBody,"'Estado ciclo'"),'XLSX exporta estado del ciclo');
 ok(str_contains($controllerBody,"['Sin respuesta'")&&str_contains($controllerBody,"['Promedio primera respuesta (min)'")&&str_contains($controllerBody,"['Devoluciones'"),'Resumen XLSX usa métricas Fase 7');
+
+ok($viewBody!=='','Existe vista de informe de proveedores');
+ok(str_contains($viewBody,'Sin respuesta'),'Resumen muestra Sin respuesta');
+ok(str_contains($viewBody,'Primera respuesta'),'Tabla muestra Primera respuesta');
+ok(str_contains($viewBody,'Actividad actual'),'Tabla muestra Actividad actual');
+ok(str_contains($viewBody,'Devoluciones'),'Tabla muestra devoluciones');
+ok(str_contains($viewBody,'name="activity"'),'Existe filtro Actividad actual');
+ok(!str_contains($viewBody,'Permisos</th>'),'Permisos deja de ser columna principal');
+ok(str_contains($viewBody,'Proveedor / Ticket')&&str_contains($viewBody,'Asignación')&&str_contains($viewBody,'Participación')&&str_contains($viewBody,'Trabajo')&&str_contains($viewBody,'Resultado'),'Tabla usa siete columnas operativas');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
