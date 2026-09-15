@@ -28,7 +28,7 @@ try{
     }elseif($isSupport){
         $q=$pdo->prepare("SELECT COUNT(*) FROM tickets WHERE assigned_to=? AND deleted_at IS NULL AND status IN('IN_PROGRESS','PENDING','REOPENED')");$q->execute([$uid]);$mine=(int)$q->fetchColumn();if($mine>0)$attentionItems[]=['label'=>'Mis casos activos','detail'=>'Casos que están bajo tu responsabilidad.','count'=>$mine,'href'=>APP_BASE_URL.'/tickets/queue?view=mine'];
         $available=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE assigned_to IS NULL AND deleted_at IS NULL AND status IN('NEW','AVAILABLE','REOPENED')")->fetchColumn();if($available>0)$attentionItems[]=['label'=>'Casos disponibles','detail'=>'Solicitudes pendientes de responsable.','count'=>$available,'href'=>APP_BASE_URL.'/tickets/queue?view=available'];
-        if($canManagement){$overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();if($overdue>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$overdue,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];}
+        if($canManagement){$slaOverdueCount=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();if($slaOverdueCount>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$slaOverdueCount,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];}
     }elseif(Auth::isManagementViewer()){
         $attentionItems=[];
     }else{
