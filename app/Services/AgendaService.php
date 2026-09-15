@@ -142,10 +142,12 @@ final class AgendaService
     {
         $history=!empty($filters['history']);
         $status=(string)($filters['status']??'active');
-        $allowed=$history?self::ALL_STATUSES:self::ACTIVE_STATUSES;
-        return $status==='all'&&$history
-            ?self::ALL_STATUSES
-            :($status==='active'||!in_array($status,$allowed,true)?self::ACTIVE_STATUSES:[$status]);
+
+        if($status==='active')return $history?self::ALL_STATUSES:self::ACTIVE_STATUSES;
+        if($status==='all')return $history?self::ALL_STATUSES:self::ACTIVE_STATUSES;
+        if(!in_array($status,self::ALL_STATUSES,true))return self::ACTIVE_STATUSES;
+        if(in_array($status,['FINALIZADA','CANCELADA'],true)&&!$history)return self::ACTIVE_STATUSES;
+        return[$status];
     }
 
     private function scopedWhere(array $filters,bool $includeNarrowing=true): array
