@@ -32,9 +32,10 @@ ok(str_contains($view,"if(\$activeView==='month')")&&str_contains($view,'>Mes an
 ok(str_contains($view,"elseif(\$activeView==='calendar')")&&str_contains($view,'>Semana anterior</a>')&&str_contains($view,'>Semana siguiente</a>'),'Semana conserva navegación temporal propia');
 ok(str_contains($view,"if(\$activeView==='list')")&&str_contains($view,'name="from"')&&str_contains($view,'name="to"'),'Desde y Hasta quedan como filtros de Lista');
 
-foreach(['active','PROGRAMADA','EN_CURSO','FINALIZADA','CANCELADA','all'] as $status){
-    ok(str_contains($view,'value="'.$status.'"'),'Estado ofrece '.$status);
-}
+ok(str_contains($view,'value="active"'),'Estado ofrece active');
+ok(str_contains($view,"['PROGRAMADA','EN_CURSO','FINALIZADA','CANCELADA']"),'Estado ofrece Programada, En curso, Finalizada y Cancelada');
+ok(str_contains($view,'value="<?= $code ?>"'),'Estados explícitos se renderizan dinámicamente');
+ok(str_contains($view,'value="all"'),'Estado ofrece all');
 
 ok(!str_contains($controller,"\$_GET['history']"),'Controller deja de depender del checkbox history');
 ok(!str_contains($controller,"'history'=>"),'Controller ya no expone history como filtro de Agenda');
