@@ -33,8 +33,6 @@ $weekSwitchStart=$activeView==='month'&&$monthStart->format('Y-m')===date('Y-m')
     if (($content.Split($oldWeek).Count - 1) -ne 1) { throw 'No se encontró exactamente una vez el enlace Semana.' }
     $content = $content.Replace($oldWeek, $newWeek)
 
-    $content = $content.Replace("`$filters['view']??'calendar'", "`$filters['view']??'month'")
-
     [System.IO.File]::WriteAllText($viewPath, $content, [System.Text.UTF8Encoding]::new($false))
 
     & 'C:\xampp\php\php.exe' -l $viewPath
@@ -49,7 +47,6 @@ $weekSwitchStart=$activeView==='month'&&$monthStart->format('Y-m')===date('Y-m')
     if ($LASTEXITCODE -ne 0) { throw 'git diff --check reportó problemas.' }
 
     Write-Host '[OK] Cambio Mes -> Semana usa la semana actual cuando se consulta el mes actual.'
-    Write-Host '[OK] Defaults visuales de Agenda quedaron alineados con Mes.'
 }
 catch {
     if ($original) { [System.IO.File]::WriteAllText($viewPath, $original, [System.Text.UTF8Encoding]::new($false)) }
