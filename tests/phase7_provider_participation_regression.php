@@ -7,6 +7,9 @@ $controllerPath=$root.'/app/Controllers/ExternalReportController.php';
 $viewPath=$root.'/app/Views/management/external_report.php';
 $workReportPath=$root.'/app/Controllers/WorkReportController.php';
 $ciPath=$root.'/.github/workflows/helpdesk-ci.yml';
+$readmePath=$root.'/README.md';
+$changelogPath=$root.'/CHANGELOG.md';
+$manualPath=$root.'/app/Views/help/manual.php';
 $errors=0;
 
 function ok(bool $condition,string $message):void
@@ -81,6 +84,11 @@ $events=[
 $serviceBody=is_file($servicePath)?(string)file_get_contents($servicePath):'';
 $controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPath):'';
 $viewBody=is_file($viewPath)?(string)file_get_contents($viewPath):'';
+$workBody=is_file($workReportPath)?(string)file_get_contents($workReportPath):'';
+$ciBody=is_file($ciPath)?(string)file_get_contents($ciPath):'';
+$readmeBody=is_file($readmePath)?(string)file_get_contents($readmePath):'';
+$changelogBody=is_file($changelogPath)?(string)file_get_contents($changelogPath):'';
+$manualBody=is_file($manualPath)?(string)file_get_contents($manualPath):'';
 
 ok($serviceBody!=='','Existe ProviderParticipationService');
 ok(str_contains($serviceBody,'function buildCycles('),'Expone buildCycles');
@@ -177,6 +185,26 @@ ok(str_contains($viewBody,'Devoluciones'),'Tabla muestra devoluciones');
 ok(str_contains($viewBody,'name="activity"'),'Existe filtro Actividad actual');
 ok(!str_contains($viewBody,'Permisos</th>'),'Permisos deja de ser columna principal');
 ok(str_contains($viewBody,'Proveedor / Ticket')&&str_contains($viewBody,'Asignación')&&str_contains($viewBody,'Participación')&&str_contains($viewBody,'Trabajo')&&str_contains($viewBody,'Resultado'),'Tabla usa siete columnas operativas');
+
+ok($workBody!=='','Existe WorkReportController');
+ok(str_contains($workBody,"\$readyForReview=\$workStatus==='READY_FOR_REVIEW';"),'Work report conserva READY_FOR_REVIEW como señal');
+ok(!str_contains($workBody,'UPDATE tickets SET status'),'READY_FOR_REVIEW no cambia estado del ticket');
+ok(!str_contains($workBody,'WorkflowController'),'Informe externo no invoca WorkflowController');
+
+ok(str_contains($ciBody,'Phase 7 provider participation regression'),'CI incluye regresión de Fase 7');
+ok(str_contains($ciBody,'php tests/phase7_provider_participation_regression.php'),'CI ejecuta gate principal de Fase 7');
+
+ok(str_contains($readmeBody,'| 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |'),'README marca Fase 7 implementada');
+ok(str_contains($readmeBody,'| 8 | Calidad IT → proveedor | **Siguiente fase** |'),'README marca Fase 8 como siguiente');
+ok(str_contains($readmeBody,'### Fase 7 — Proveedores'),'README documenta alcance de Fase 7');
+ok(str_contains($readmeBody,'BD: sin cambios'),'README documenta cero cambios de BD en Fase 7');
+
+ok(str_contains($changelogBody,'## Fase 7 · Proveedores · 2026-09-15'),'CHANGELOG registra cierre de Fase 7');
+ok(str_contains($changelogBody,'READY_FOR_REVIEW')&&str_contains($changelogBody,'devoluciones'),'CHANGELOG documenta entrega y devoluciones');
+ok(str_contains($changelogBody,'BD: sin cambios'),'CHANGELOG documenta cero cambios de BD');
+
+ok(str_contains($manualBody,'Informe de proveedores'),'Manual documenta informe de proveedores');
+ok(str_contains($manualBody,'Listo para revisión')&&str_contains($manualBody,'Devoluciones'),'Manual explica READY_FOR_REVIEW y devoluciones');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
