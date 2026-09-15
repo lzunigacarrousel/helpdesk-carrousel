@@ -179,6 +179,81 @@ final class ProviderParticipationService
         return $rows;
     }
 
+    public static function applyFilters(array $rows,array $filters): array
+    {
+        $q=mb_strtolower(trim((string)($filters['q']??'')));
+        $provider=(int)($filters['provider']??0);
+        $state=(string)($filters['state']??'');
+        $activity=(string)($filters['activity']??'');
+        $from=(string)($filters['from']??'');
+        $to=(string)($filters['to']??'');
+
+        return array_values(array_filter($rows,static function(array $row)use($q,$provider,$state,$activity,$from,$to):bool{
+            if($provider>0&&(int)($row['user_id']??0)!==$provider)return false;
+            if($state==='active'&&($row['revoked_at']??null)!==null)return false;
+            if($state==='closed'&&($row['revoked_at']??null)===null)return false;
+            if($activity==='NONE'&&($row['work_status']??null)!==null)return false;
+            if($activity!==''&&$activity!=='NONE'&&(string)($row['work_status']??'')!==$activity)return false;
+
+            $day=substr((string)($row['granted_at']??''),0,10);
+            if($from!==''&&$day<$from)return false;
+            if($to!==''&&$day>$to)return false;
+
+            if($q!==''){
+                $haystack=mb_strtolower(implode(' ',[
+                    (string)($row['organization']??''),
+                    (string)($row['contact']??''),
+                    (string)($row['email']??''),
+                    (string)($row['ticket_number']??''),
+                    (string)($row['subject']??''),
+                ]));
+                if(!str_contains($haystack,$q))return false;
+            }
+            return true;
+        }));
+    }
+
+    public static function summary(array $rows): array
+    {
+        $summary=[
+            'participations'=>count($rows),
+            'active'=>0,
+            'no_response'=>0,
+            'avg_first_response_minutes'=>null,
+            'returns'=>0,
+        ];
+        $responseMinutes=[];
+        foreach($rows as $row){
+            if(($row['revoked_at']??null)===null)$summary['active']++;
+            if(($row['first_response_minutes']??null)===null){
+                $summary['no_response']++;
+            }else{
+                $responseMinutes[]=(int)$row['first_response_minutes'];
+            }
+            $summary['returns']+=(int)($row['returns']??0);
+        }
+        if($responseMinutes!==[]){
+            $summary['avg_first_response_minutes']=(int)round(array_sum($responseMinutes)/count($responseMinutes));
+        }
+        return $summary;
+    }
+
+    public static function providers(array $rows): array
+    {
+        $providers=[];
+        foreach($rows as $row){
+            $userId=(int)($row['user_id']??0);
+            if($userId<=0)continue;
+            $providers[$userId]=(string)($row['organization']??$row['contact']??'');
+        }
+        asort($providers,SORT_NATURAL|SORT_FLAG_CASE);
+        return $providers;
+    }
+
+    public static function activityOptions(): array
+    {
+        return ['NONE'=>'Sin actualización']+self::WORK_STATUS_LABELS;
+    }
     private static function rowIndexFor(array $rows,int $ticketId,int $userId,string $createdAt): ?int
     {
         $at=strtotime($createdAt);
