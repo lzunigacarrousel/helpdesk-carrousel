@@ -20,7 +20,45 @@ final class ProviderParticipationService
 
     private function pdo(): object{return $this->pdo ?? Database::pdo();}
 
-    public function rows(?int $nowTs = null): array{return [];}
+    public function rows(?int $nowTs = null): array
+    {
+        $pdo=$this->pdo();
+        $users=[];
+        foreach($pdo->query("SELECT u.id,u.full_name,u.email,COALESCE(ep.organization_name,u.full_name) organization_name FROM users u LEFT JOIN external_profiles ep ON ep.user_id=u.id WHERE u.access_type='EXTERNAL'")->fetchAll() as $user){
+            $users[(int)$user['id']]=$user;
+        }
+
+        $events=$pdo->query("SELECT te.id,te.ticket_id,te.event_type,te.old_value,te.new_value,te.metadata_json,te.created_at,
+                t.ticket_number,t.subject,t.status ticket_status,actor.full_name actor_name
+            FROM ticket_events te
+            JOIN tickets t ON t.id=te.ticket_id
+            LEFT JOIN users actor ON actor.id=te.actor_user_id
+            WHERE te.event_type IN('EXTERNAL_GRANTED','EXTERNAL_REVOKED','STATUS_CHANGED')
+              AND t.deleted_at IS NULL
+            ORDER BY te.created_at,te.id")->fetchAll();
+
+        $comments=$pdo->query("SELECT tc.id,tc.ticket_id,tc.author_user_id,tc.visibility,tc.created_at
+            FROM ticket_comments tc
+            JOIN users u ON u.id=tc.author_user_id
+            WHERE tc.deleted_at IS NULL AND tc.visibility='EXTERNAL' AND u.access_type='EXTERNAL'
+            ORDER BY tc.created_at,tc.id")->fetchAll();
+
+        $attachments=$pdo->query("SELECT ta.id,ta.ticket_id,ta.uploaded_by_user_id,ta.visibility,ta.created_at
+            FROM ticket_attachments ta
+            JOIN users u ON u.id=ta.uploaded_by_user_id
+            WHERE ta.visibility='EXTERNAL' AND u.access_type='EXTERNAL'
+            ORDER BY ta.created_at,ta.id")->fetchAll();
+
+        $reports=$pdo->query("SELECT twr.id,twr.ticket_id,twr.author_user_id,twr.comment_id,twr.work_status,
+                twr.time_spent_minutes,twr.ready_for_review,twr.created_at
+            FROM ticket_work_reports twr
+            WHERE twr.author_access_type='EXTERNAL'
+            ORDER BY twr.created_at,twr.id")->fetchAll();
+
+        $rows=self::buildCycles($users,$events,$comments,$attachments,$reports,$nowTs);
+        usort($rows,static fn(array $a,array $b):int=>strcmp((string)$b['granted_at'],(string)$a['granted_at']));
+        return $rows;
+    }
 
     public static function buildCycles(array $users,array $events,array $comments,array $attachments,array $reports,?int $nowTs = null): array
     {
@@ -49,6 +87,8 @@ final class ProviderParticipationService
                     $rows[$i]['revoked_by']='Nueva asignación';
                 }
                 $u=$users[$uid];
+                $meta=json_decode((string)($event['metadata_json']??''),true);
+                if(!is_array($meta))$meta=[];
                 $rows[]=[
                     'ticket_id'=>$ticketId,'user_id'=>$uid,
                     'organization'=>(string)($u['organization_name']??$u['full_name']??''),
@@ -56,6 +96,7 @@ final class ProviderParticipationService
                     'ticket_number'=>(string)($event['ticket_number']??''),'subject'=>(string)($event['subject']??''),
                     'ticket_status'=>(string)($event['ticket_status']??''),'granted_at'=>(string)($event['created_at']??''),
                     'granted_by'=>(string)(($event['actor_name']??'')?:'Sistema'),'revoked_at'=>null,'revoked_by'=>null,
+                    'can_comment'=>(bool)($meta['can_comment']??true),'can_upload'=>(bool)($meta['can_upload']??true),
                     'duration_minutes'=>0,'responses'=>0,'attachments'=>0,'reports'=>0,'declared_minutes'=>0,
                     'first_response_at'=>null,'first_response_minutes'=>null,'first_response_origin'=>null,
                     'last_activity_at'=>null,'work_status'=>null,'activity_label'=>'Sin actualización','deliveries'=>0,
@@ -221,17 +262,26 @@ final class ProviderParticipationService
             'no_response'=>0,
             'avg_first_response_minutes'=>null,
             'returns'=>0,
+            'closed'=>0,
+            'providers'=>0,
+            'responses'=>0,
+            'attachments'=>0,
         ];
-        $responseMinutes=[];
+        $responseMinutes=[];$providerIds=[];
         foreach($rows as $row){
-            if(($row['revoked_at']??null)===null)$summary['active']++;
+            if(($row['revoked_at']??null)===null)$summary['active']++;else $summary['closed']++;
             if(($row['first_response_minutes']??null)===null){
                 $summary['no_response']++;
             }else{
                 $responseMinutes[]=(int)$row['first_response_minutes'];
             }
             $summary['returns']+=(int)($row['returns']??0);
+            $summary['responses']+=(int)($row['responses']??0);
+            $summary['attachments']+=(int)($row['attachments']??0);
+            $userId=(int)($row['user_id']??0);
+            if($userId>0)$providerIds[$userId]=true;
         }
+        $summary['providers']=count($providerIds);
         if($responseMinutes!==[]){
             $summary['avg_first_response_minutes']=(int)round(array_sum($responseMinutes)/count($responseMinutes));
         }
@@ -254,6 +304,7 @@ final class ProviderParticipationService
     {
         return ['NONE'=>'Sin actualización']+self::WORK_STATUS_LABELS;
     }
+
     private static function rowIndexFor(array $rows,int $ticketId,int $userId,string $createdAt): ?int
     {
         $at=strtotime($createdAt);
