@@ -1,9 +1,9 @@
 # Fase 6 — Agenda — Diseño aprobado
 
-**Fecha:** 2026-09-14  
-**Rama:** `fase6-agenda`  
-**Baseline:** `main @ c9a6f41`  
-**Estado:** Diseño funcional y técnico aprobado; pendiente plan de implementación.  
+**Fecha:** 2026-09-14
+**Rama:** `fase6-agenda`
+**Baseline:** `main @ c9a6f41`
+**Estado:** Diseño funcional y técnico aprobado; pendiente plan de implementación.
 **Roadmap:** Fase 6 de 12. Reutiliza obligatoriamente `ticket_activities` de Fase 5.
 
 ## 1. Objetivo
