@@ -66,7 +66,7 @@ ok(str_contains($view,'Programar actividad'),'Vista muestra Programar actividad'
 ok(str_contains($view,'name="ticket_q"')&&str_contains($view,'maxlength="100"'),'Programar actividad usa busqueda ticket_q limitada');
 ok(str_contains($view,'$ticketMatches')&&str_contains($view,'ticket_url')&&str_contains($view,'#actividades'),'Programar actividad lista coincidencias con enlaces a actividades');
 ok(str_contains($view,'hidden" name="program" value="1"'),'Programar actividad preserva modo program');
-ok(str_contains($view,'hidden" name="view"')&&str_contains($view,"\$filters['view']??'calendar'"),'Programar actividad preserva vista actual');
+ok(str_contains($view,'hidden" name="view"')&&str_contains($view,'value="<?= $h($activeView) ?>"'),'Programar actividad preserva vista actual');
 ok(strlen($manual)>0&&str_contains($manual,'Agenda')&&str_contains($manual,'Calendario')&&str_contains($manual,'Lista'),'Manual documenta Agenda/Calendario/Lista');
 ok(str_contains($readme,'| 6 | Agenda | **Implementada')&&str_contains($readme,'Calendario')&&str_contains($readme,'Lista'),'README documenta estado y vistas de Agenda');
 ok(str_contains($changelog,'Agenda')&&str_contains($changelog,'BD: sin cambios'),'CHANGELOG documenta Agenda sin cambios de BD');
