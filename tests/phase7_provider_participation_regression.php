@@ -79,6 +79,7 @@ $events=[
 ];
 
 $serviceBody=is_file($servicePath)?(string)file_get_contents($servicePath):'';
+$controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPath):'';
 
 ok($serviceBody!=='','Existe ProviderParticipationService');
 ok(str_contains($serviceBody,'function buildCycles('),'Expone buildCycles');
@@ -153,6 +154,19 @@ if($serviceBody!==''){
         ok(false,'Clase ProviderParticipationService disponible');
     }
 }
+
+ok($controllerBody!=='','Existe ExternalReportController');
+ok(str_contains($controllerBody,'ProviderParticipationService'),'Controller usa ProviderParticipationService');
+ok(!str_contains($controllerBody,'private function history('),'Controller ya no reconstruye ciclos');
+ok(str_contains($controllerBody,"'activity'"),'Controller normaliza filtro de actividad');
+ok(str_contains($controllerBody,"'activityOptions'"),'Controller expone opciones de actividad');
+ok(str_contains($controllerBody,"'ADMIN'")&&str_contains($controllerBody,"'SEMIADMIN'"),'Controller conserva roles administrativos');
+ok(str_contains($controllerBody,"external.manage")&&str_contains($controllerBody,"reports.view"),'Controller conserva permisos de informe');
+ok(str_contains($controllerBody,"'Primera respuesta'")&&str_contains($controllerBody,"'T. primera respuesta (min)'"),'XLSX exporta primera respuesta');
+ok(str_contains($controllerBody,"'Actividad actual'")&&str_contains($controllerBody,"'Trabajo declarado (min)'"),'XLSX exporta actividad y trabajo declarado');
+ok(str_contains($controllerBody,"'Informes'")&&str_contains($controllerBody,"'Entregas listas'")&&str_contains($controllerBody,"'Devoluciones'"),'XLSX exporta métricas técnicas');
+ok(str_contains($controllerBody,"'Estado ciclo'"),'XLSX exporta estado del ciclo');
+ok(str_contains($controllerBody,"['Sin respuesta'")&&str_contains($controllerBody,"['Promedio primera respuesta (min)'")&&str_contains($controllerBody,"['Devoluciones'"),'Resumen XLSX usa métricas Fase 7');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
