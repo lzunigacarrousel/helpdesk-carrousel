@@ -57,6 +57,8 @@ final class ProviderParticipationService
                     'ticket_status'=>(string)($event['ticket_status']??''),'granted_at'=>(string)($event['created_at']??''),
                     'granted_by'=>(string)(($event['actor_name']??'')?:'Sistema'),'revoked_at'=>null,'revoked_by'=>null,
                     'duration_minutes'=>0,'responses'=>0,'attachments'=>0,'reports'=>0,'declared_minutes'=>0,
+                    'first_response_at'=>null,'first_response_minutes'=>null,'first_response_origin'=>null,
+                    'last_activity_at'=>null,'work_status'=>null,'activity_label'=>'Sin actualización','deliveries'=>0,
                 ];
                 $open[$key]=array_key_last($rows);
             }elseif(isset($open[$key])){
@@ -75,6 +77,92 @@ final class ProviderParticipationService
             $row['duration_minutes']=max(0,(int)round(($end-$start)/60));
         }
         unset($row);
+
+        $reportCommentIds=[];
+        foreach($reports as $report){
+            $commentId=(int)($report['comment_id']??0);
+            if($commentId>0)$reportCommentIds[$commentId]=true;
+        }
+
+        usort($reports,static function(array $a,array $b):int{
+            $cmp=strcmp((string)($a['created_at']??''),(string)($b['created_at']??''));
+            return $cmp!==0?$cmp:((int)($a['id']??0)<=> (int)($b['id']??0));
+        });
+        foreach($reports as $report){
+            $ticketId=(int)($report['ticket_id']??0);
+            $userId=(int)($report['author_user_id']??0);
+            $createdAt=(string)($report['created_at']??'');
+            $index=self::rowIndexFor($rows,$ticketId,$userId,$createdAt);
+            if($index===null)continue;
+
+            $rows[$index]['reports']++;
+            $rows[$index]['declared_minutes']+=max(0,(int)($report['time_spent_minutes']??0));
+            $status=(string)($report['work_status']??'');
+            $rows[$index]['work_status']=$status!==''?$status:null;
+            $rows[$index]['activity_label']=$status!==''?(self::WORK_STATUS_LABELS[$status]??$status):'Sin actualización';
+            $rows[$index]['last_activity_at']=$createdAt!==''?$createdAt:null;
+            if($status==='READY_FOR_REVIEW'||(int)($report['ready_for_review']??0)===1)$rows[$index]['deliveries']++;
+            self::considerFirstResponse($rows[$index],$createdAt,'Informe técnico');
+        }
+
+        foreach($comments as $comment){
+            if((string)($comment['visibility']??'')!=='EXTERNAL')continue;
+            $commentId=(int)($comment['id']??0);
+            if($commentId>0&&isset($reportCommentIds[$commentId]))continue;
+            $ticketId=(int)($comment['ticket_id']??0);
+            $userId=(int)($comment['author_user_id']??0);
+            $createdAt=(string)($comment['created_at']??'');
+            $index=self::rowIndexFor($rows,$ticketId,$userId,$createdAt);
+            if($index===null)continue;
+            $rows[$index]['responses']++;
+            self::considerFirstResponse($rows[$index],$createdAt,'Mensaje');
+        }
+
+        foreach($attachments as $attachment){
+            if((string)($attachment['visibility']??'')!=='EXTERNAL')continue;
+            $ticketId=(int)($attachment['ticket_id']??0);
+            $userId=(int)($attachment['uploaded_by_user_id']??0);
+            $createdAt=(string)($attachment['created_at']??'');
+            $index=self::rowIndexFor($rows,$ticketId,$userId,$createdAt);
+            if($index!==null)$rows[$index]['attachments']++;
+        }
+
+        foreach($rows as &$row){
+            if($row['first_response_at']===null)continue;
+            $start=strtotime((string)$row['granted_at']);
+            $response=strtotime((string)$row['first_response_at']);
+            if($start!==false&&$response!==false)$row['first_response_minutes']=max(0,(int)round(($response-$start)/60));
+        }
+        unset($row);
+
         return $rows;
+    }
+
+    private static function rowIndexFor(array $rows,int $ticketId,int $userId,string $createdAt): ?int
+    {
+        $at=strtotime($createdAt);
+        if($at===false)return null;
+        $best=null;$bestStart=PHP_INT_MIN;
+        foreach($rows as $index=>$row){
+            if((int)($row['ticket_id']??0)!==$ticketId||(int)($row['user_id']??0)!==$userId)continue;
+            $from=strtotime((string)($row['granted_at']??''));
+            if($from===false||$at<$from)continue;
+            $revokedAt=$row['revoked_at']??null;
+            $to=$revokedAt!==null?strtotime((string)$revokedAt):null;
+            if($to!==null&&$to!==false&&$at>$to)continue;
+            if($from>=$bestStart){$best=(int)$index;$bestStart=$from;}
+        }
+        return $best;
+    }
+
+    private static function considerFirstResponse(array &$row,string $createdAt,string $origin): void
+    {
+        $candidate=strtotime($createdAt);
+        if($candidate===false)return;
+        $current=$row['first_response_at']!==null?strtotime((string)$row['first_response_at']):false;
+        if($current===false||$candidate<$current||($candidate===$current&&$origin==='Informe técnico')){
+            $row['first_response_at']=$createdAt;
+            $row['first_response_origin']=$origin;
+        }
     }
 }
