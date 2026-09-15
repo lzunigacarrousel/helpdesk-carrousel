@@ -59,6 +59,7 @@ final class ProviderParticipationService
                     'duration_minutes'=>0,'responses'=>0,'attachments'=>0,'reports'=>0,'declared_minutes'=>0,
                     'first_response_at'=>null,'first_response_minutes'=>null,'first_response_origin'=>null,
                     'last_activity_at'=>null,'work_status'=>null,'activity_label'=>'Sin actualización','deliveries'=>0,
+                    'returns'=>0,
                 ];
                 $open[$key]=array_key_last($rows);
             }elseif(isset($open[$key])){
@@ -88,6 +89,7 @@ final class ProviderParticipationService
             $cmp=strcmp((string)($a['created_at']??''),(string)($b['created_at']??''));
             return $cmp!==0?$cmp:((int)($a['id']??0)<=> (int)($b['id']??0));
         });
+        $deliveryTimes=[];
         foreach($reports as $report){
             $ticketId=(int)($report['ticket_id']??0);
             $userId=(int)($report['author_user_id']??0);
@@ -101,7 +103,11 @@ final class ProviderParticipationService
             $rows[$index]['work_status']=$status!==''?$status:null;
             $rows[$index]['activity_label']=$status!==''?(self::WORK_STATUS_LABELS[$status]??$status):'Sin actualización';
             $rows[$index]['last_activity_at']=$createdAt!==''?$createdAt:null;
-            if($status==='READY_FOR_REVIEW'||(int)($report['ready_for_review']??0)===1)$rows[$index]['deliveries']++;
+            if($status==='READY_FOR_REVIEW'||(int)($report['ready_for_review']??0)===1){
+                $rows[$index]['deliveries']++;
+                $at=strtotime($createdAt);
+                if($at!==false)$deliveryTimes[$index][]=$at;
+            }
             self::considerFirstResponse($rows[$index],$createdAt,'Informe técnico');
         }
 
@@ -126,6 +132,41 @@ final class ProviderParticipationService
             $index=self::rowIndexFor($rows,$ticketId,$userId,$createdAt);
             if($index!==null)$rows[$index]['attachments']++;
         }
+
+        $returnTimes=[];
+        foreach($events as $event){
+            if((string)($event['event_type']??'')!=='STATUS_CHANGED')continue;
+            $payload=json_decode((string)($event['new_value']??''),true);
+            if(!is_array($payload))continue;
+            $status=(string)($payload['status']??'');
+            if(!in_array($status,['REOPENED','IN_PROGRESS'],true))continue;
+            $ticketId=(int)($event['ticket_id']??0);
+            $createdAt=(string)($event['created_at']??'');
+            $at=strtotime($createdAt);
+            if($at===false)continue;
+            foreach($rows as $index=>$row){
+                if((int)$row['ticket_id']!==$ticketId)continue;
+                if(!self::timestampWithinRow($row,$at))continue;
+                $returnTimes[$index][]=$at;
+            }
+        }
+
+        foreach($rows as $index=>&$row){
+            $deliveriesForRow=$deliveryTimes[$index]??[];
+            $returnsForRow=$returnTimes[$index]??[];
+            sort($deliveriesForRow,SORT_NUMERIC);
+            sort($returnsForRow,SORT_NUMERIC);
+            $returns=0;$lastReturnAt=0;
+            foreach($returnsForRow as $returnAt){
+                $hasDelivery=false;
+                foreach($deliveriesForRow as $deliveryAt){
+                    if($deliveryAt>$lastReturnAt&&$deliveryAt<$returnAt){$hasDelivery=true;break;}
+                }
+                if($hasDelivery){$returns++;$lastReturnAt=$returnAt;}
+            }
+            $row['returns']=$returns;
+        }
+        unset($row);
 
         foreach($rows as &$row){
             if($row['first_response_at']===null)continue;
@@ -153,6 +194,16 @@ final class ProviderParticipationService
             if($from>=$bestStart){$best=(int)$index;$bestStart=$from;}
         }
         return $best;
+    }
+
+    private static function timestampWithinRow(array $row,int $at): bool
+    {
+        $from=strtotime((string)($row['granted_at']??''));
+        if($from===false||$at<$from)return false;
+        $revokedAt=$row['revoked_at']??null;
+        if($revokedAt===null)return true;
+        $to=strtotime((string)$revokedAt);
+        return $to===false||$at<=$to;
     }
 
     private static function considerFirstResponse(array &$row,string $createdAt,string $origin): void
