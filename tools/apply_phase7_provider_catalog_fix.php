@@ -5,19 +5,24 @@ $root=dirname(__DIR__);
 $servicePath=$root.'/app/Services/ProviderParticipationService.php';
 $controllerPath=$root.'/app/Controllers/ExternalReportController.php';
 
-function replaceExactlyOnce(string $body,string $search,string $replace,string $label): string
+function readNormalized(string $path): string
 {
-    $count=substr_count($body,$search);
-    if($count!==1){
-        fwrite(STDERR,"[ERROR] {$label}: esperaba 1 coincidencia y encontro {$count}.".PHP_EOL);
+    if(!is_file($path)){
+        fwrite(STDERR,"[ERROR] No existe {$path}.".PHP_EOL);
         exit(1);
     }
-    return str_replace($search,$replace,$body);
+    return str_replace("\r\n","\n",(string)file_get_contents($path));
 }
 
-$service=(string)file_get_contents($servicePath);
+$service=readNormalized($servicePath);
 if(!str_contains($service,'function registeredProviders(')){
-    $anchor="    public static function providers(array \$rows): array\n    {";
+    $anchor='    public static function providers(array $rows): array';
+    $position=strpos($service,$anchor);
+    if($position===false){
+        fwrite(STDERR,'[ERROR] No se encontro el metodo providers() donde insertar registeredProviders().'.PHP_EOL);
+        exit(1);
+    }
+
     $method=<<<'PHP'
     public function registeredProviders(): array
     {
@@ -38,18 +43,35 @@ if(!str_contains($service,'function registeredProviders(')){
     }
 
 PHP;
-    $service=replaceExactlyOnce($service,$anchor,$method.$anchor,'ProviderParticipationService::providers');
-    file_put_contents($servicePath,$service);
+
+    $service=substr($service,0,$position).$method.substr($service,$position);
+    if(file_put_contents($servicePath,$service)===false){
+        fwrite(STDERR,'[ERROR] No se pudo escribir ProviderParticipationService.php'.PHP_EOL);
+        exit(1);
+    }
+    echo '[OK] Agregado registeredProviders() al servicio.'.PHP_EOL;
+}else{
+    echo '[OK] registeredProviders() ya existe en el servicio.'.PHP_EOL;
 }
 
-$controller=(string)file_get_contents($controllerPath);
-$controller=replaceExactlyOnce(
-    $controller,
-    "            'providers'=>ProviderParticipationService::providers(\$allRows),",
-    "            'providers'=>\$service->registeredProviders(),",
-    'catalogo de proveedores del controller'
-);
-file_put_contents($controllerPath,$controller);
+$controller=readNormalized($controllerPath);
+$new="            'providers'=>\$service->registeredProviders(),";
+if(!str_contains($controller,$new)){
+    $old="            'providers'=>ProviderParticipationService::providers(\$allRows),";
+    $count=substr_count($controller,$old);
+    if($count!==1){
+        fwrite(STDERR,"[ERROR] Controller: esperaba 1 referencia al catalogo derivado y encontro {$count}.".PHP_EOL);
+        exit(1);
+    }
+    $controller=str_replace($old,$new,$controller);
+    if(file_put_contents($controllerPath,$controller)===false){
+        fwrite(STDERR,'[ERROR] No se pudo escribir ExternalReportController.php'.PHP_EOL);
+        exit(1);
+    }
+    echo '[OK] Controller usa catalogo de proveedores registrados.'.PHP_EOL;
+}else{
+    echo '[OK] Controller ya usa catalogo de proveedores registrados.'.PHP_EOL;
+}
 
 passthru('"'.PHP_BINARY.'" -l "'.$servicePath.'"',$serviceLint);
 if($serviceLint!==0)exit($serviceLint);
