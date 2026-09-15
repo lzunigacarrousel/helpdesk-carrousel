@@ -47,6 +47,19 @@ foreach($calendarActivities as $activity){
     $key=substr((string)($activity['scheduled_start_at']??''),0,10);
     if(isset($calendarDays[$key]))$calendarDays[$key][]=$activity;
 }
+$calendarEnd=$calendarStart->modify('+6 days');
+$calendarMultiDayItems=[];
+$calendarMultiDayLane=1;
+foreach($multiDayActivities as $item){
+    $itemStart=DateTimeImmutable::createFromFormat('!Y-m-d',substr((string)($item['scheduled_start_at']??''),0,10));
+    $itemEnd=DateTimeImmutable::createFromFormat('!Y-m-d',substr((string)($item['scheduled_end_at']??''),0,10));
+    if(!$itemStart||!$itemEnd||$itemEnd<$calendarStart||$itemStart>$calendarEnd)continue;
+    $visibleStart=$itemStart<$calendarStart?$calendarStart:$itemStart;
+    $visibleEnd=$itemEnd>$calendarEnd?$calendarEnd:$itemEnd;
+    $startColumn=((int)$calendarStart->diff($visibleStart)->days)+2;
+    $spanDays=((int)$visibleStart->diff($visibleEnd)->days)+1;
+    $calendarMultiDayItems[]=['item'=>$item,'start_column'=>$startColumn,'span_days'=>$spanDays,'lane'=>$calendarMultiDayLane++];
+}
 $startHour=max(0,min(23,(int)($hourWindow['start_hour']??8)));
 $endHour=max($startHour+1,min(24,(int)($hourWindow['end_hour']??18)));
 $slotCount=max(1,($endHour-$startHour)*2);
@@ -155,28 +168,29 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   <?php if(($filters['view']??'calendar')==='calendar'): ?>
   <section class="agenda-calendar" aria-label="Calendario semanal">
-    <?php if($multiDayActivities): ?>
-    <section class="agenda-multiday-strip" aria-labelledby="agenda-multiday-title">
-      <div class="agenda-multiday-head">
-        <span class="ticket-kicker">Rango extendido</span>
-        <h2 id="agenda-multiday-title">Actividades de varios días</h2>
-      </div>
-      <div class="agenda-multiday-items">
-        <?php foreach($multiDayActivities as $item):
-          $status=(string)($item['status']??'');
-          $statusClass=strtolower(str_replace('_','-',$status));
-          $ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades'));
-        ?>
-        <a class="agenda-multiday-item is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>">
-          <time><?= $h($multiDayRange($item)) ?></time>
-          <span class="agenda-multiday-main"><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?> · <?= $h($item['ticket_subject']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> · <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])): ?><em>Conflicto de horario</em><?php endif; ?></span>
-          <span class="agenda-status"><?= $h($statusLabels[$status]??$status) ?></span>
-        </a>
-        <?php endforeach; ?>
-      </div>
-    </section>
-    <?php endif; ?>
-
+    <?php if($calendarMultiDayItems): ?>
+    <section class="agenda-multiday-strip" aria-labelledby="agenda-multiday-title">
+      <div class="agenda-multiday-head">
+        <span class="ticket-kicker">Rango extendido</span>
+        <h2 id="agenda-multiday-title">Actividades de varios días</h2>
+      </div>
+      <div class="agenda-calendar-multiday-grid">
+        <div class="agenda-calendar-multiday-label" style="grid-row:1 / span <?= max(1,count($calendarMultiDayItems)) ?>">Varios días</div>
+        <?php foreach($calendarMultiDayItems as $entry):
+          $item=$entry['item'];
+          $status=(string)($item['status']??'');
+          $statusClass=strtolower(str_replace('_','-',$status));
+          $ticketUrl=(string)($item['ticket_url']??(APP_BASE_URL.'/tickets/view?id='.(int)($item['ticket_id']??0).'#actividades'));
+        ?>
+        <a class="agenda-multiday-item agenda-calendar-multiday-event is-<?= $h($statusClass) ?> <?= !empty($item['is_overdue'])?'is-overdue':'' ?>" href="<?= $h($ticketUrl) ?>" style="grid-column:<?= (int)$entry['start_column'] ?>/span <?= (int)$entry['span_days'] ?>;grid-row:<?= (int)$entry['lane'] ?>">
+          <time><?= $h($multiDayRange($item)) ?></time>
+          <span class="agenda-multiday-main"><strong><?= $h($typeLabels[(string)($item['activity_type']??'')]??($item['activity_type']??'Actividad')) ?></strong><span><?= $h($item['ticket_code']??'') ?> · <?= $h($item['ticket_subject']??'') ?></span><small><?= $h($item['park_name']??'Sin parque') ?> · <?= $h($item['responsible_name']??'Sin responsable') ?></small><?php if(!empty($item['has_conflict'])): ?><em>Conflicto de horario</em><?php endif; ?></span>
+          <span class="agenda-status"><?= $h($statusLabels[$status]??$status) ?></span>
+        </a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+    <?php endif; ?>
     <?php if(!$calendarActivities&&!$multiDayActivities): ?><div class="empty-state">No hay actividades visibles en esta semana.</div><?php endif; ?>
     <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= (int)$slotCount ?>">
       <div class="agenda-calendar-time-heading">Hora</div>
