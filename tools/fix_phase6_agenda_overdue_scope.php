@@ -23,13 +23,15 @@ if (!is_string($body)) {
     fail('No se pudo leer app/Views/shared/app_start.php');
 }
 
-$old = <<<'PHP'
+$old = rtrim(<<<'PHP'
 if($canManagement){$overdue=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();if($overdue>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$overdue,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];}
-PHP;
+PHP
+, "\r\n");
 
-$new = <<<'PHP'
+$new = rtrim(<<<'PHP'
 if($canManagement){$slaOverdueCount=(int)$pdo->query("SELECT COUNT(*) FROM tickets WHERE deleted_at IS NULL AND resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')")->fetchColumn();if($slaOverdueCount>0)$attentionItems[]=['label'=>'SLA vencidos','detail'=>'Casos fuera del tiempo objetivo.','count'=>$slaOverdueCount,'href'=>APP_BASE_URL.'/tickets/queue?view=overdue'];}
-PHP;
+PHP
+, "\r\n");
 
 $count = substr_count($body, $old);
 if ($count !== 1) {
