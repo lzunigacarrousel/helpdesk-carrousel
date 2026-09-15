@@ -19,7 +19,12 @@ function readStrict(string $path): string {
 function writeStrict(string $path,string $content): void {
     if(file_put_contents($path,$content)===false) fail('No se pudo escribir '.$path);
 }
+function lf(string $content): string {
+    return str_replace(["\r\n","\r"],"\n",$content);
+}
 function replaceOnce(string $content,string $search,string $replace,string $label): string {
+    $search=lf($search);
+    $replace=lf($replace);
     $count=substr_count($content,$search);
     if($count!==1) fail($label.' esperaba exactamente 1 coincidencia y encontró '.$count.'.');
     return str_replace($search,$replace,$content);
@@ -33,7 +38,7 @@ chdir($root) || fail('No se pudo entrar al repositorio.');
 
 $body=readStrict($view);
 $eol=str_contains($body,"\r\n")?"\r\n":"\n";
-$normalized=str_replace(["\r\n","\r"],"\n",$body);
+$normalized=lf($body);
 
 $oldOpen=<<<'PHP'
     <?php if(!$calendarActivities): ?>
