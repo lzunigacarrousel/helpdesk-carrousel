@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/data-tables.css?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>">
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/navigation-guards.js?v=<?= htmlspecialchars($navigationGuardVersion) ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
+<?php if($activeNav==='agenda'): ?><script defer src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/agenda.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script><?php endif; ?>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/ticket-workspace.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/table-normalization.js?v=1"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/notifications.js?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>"></script>

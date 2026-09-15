@@ -3,6 +3,8 @@ declare(strict_types=1);
 $root=dirname(__DIR__);$router=file_get_contents($root.'/public/index.php');
 $cp=$root.'/app/Controllers/AgendaController.php';$controller=is_file($cp)?file_get_contents($cp):'';
 $viewPath=$root.'/app/Views/agenda/index.php';$view=is_file($viewPath)?file_get_contents($viewPath):'';
+$appStartPath=$root.'/app/Views/shared/app_start.php';$appStart=is_file($appStartPath)?file_get_contents($appStartPath):'';
+$appEndPath=$root.'/app/Views/shared/app_end.php';$appEnd=is_file($appEndPath)?file_get_contents($appEndPath):'';
 $cssPath=$root.'/public/assets/css/agenda.css';$css=is_file($cssPath)?file_get_contents($cssPath):'';
 $jsPath=$root.'/public/assets/js/agenda.js';$js=is_file($jsPath)?file_get_contents($jsPath):'';$errors=0;
 function ok(bool $c,string $m):void{global $errors;echo($c?'[OK] ':'[FALLO] ').$m.PHP_EOL;if(!$c)$errors++;}
@@ -42,4 +44,14 @@ $baseCalendarGrids=preg_match_all('/\.agenda-calendar-grid\{[^}]*grid-template-c
 ok($baseCalendarGrids===1,'CSS conserva una sola definicion estructural de agenda-calendar-grid');
 ok(!str_contains($css,'.agenda-hours'),'CSS no conserva implementación anterior de agenda-hours');
 ok(!str_contains($css,'.agenda-calendar-day{'),'CSS no conserva implementación anterior de agenda-calendar-day');
+ok(str_contains($appStart,"\$canAgenda=!\$isExternal&&in_array((string)Auth::role(),['ADMIN','SEMIADMIN','TECHNICIAN','MANAGEMENT','SUPERVISOR'],true);"),'Shell define elegibilidad explicita de Agenda');
+ok(str_contains($appStart,"activeNav==='agenda'"),'Shell marca Agenda como navegacion activa');
+ok(str_contains($appStart,"/agenda"),'Shell enlaza Agenda');
+ok(str_contains($appStart,'agenda.css')&&str_contains($appStart,"activeNav==='agenda'"),'Shell carga agenda.css solo en Agenda');
+ok(str_contains($appEnd,'agenda.js')&&str_contains($appEnd,"activeNav==='agenda'")&&str_contains($appEnd,'defer'),'Shell carga agenda.js diferido solo en Agenda');
+ok(str_contains($view,'Programar actividad'),'Vista muestra Programar actividad');
+ok(str_contains($view,'name="ticket_q"')&&str_contains($view,'maxlength="100"'),'Programar actividad usa busqueda ticket_q limitada');
+ok(str_contains($view,'$ticketMatches')&&str_contains($view,'ticket_url')&&str_contains($view,'#actividades'),'Programar actividad lista coincidencias con enlaces a actividades');
+ok(str_contains($view,'hidden" name="program" value="1"'),'Programar actividad preserva modo program');
+ok(str_contains($view,'hidden" name="view"')&&str_contains($view,"\$filters['view']??'calendar'"),'Programar actividad preserva vista actual');
 if($errors)exit(1);

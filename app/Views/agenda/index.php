@@ -1,6 +1,7 @@
 <?php
 $pageTitle='Agenda';$pageSection='Agenda';$activeNav='agenda';$helpContext='agenda';
 $filters=$filters??[];$activities=$activities??[];$overdue=$overdue??[];$options=$options??['responsibles'=>[],'parks'=>[]];$ticketMatches=$ticketMatches??[];$hourWindow=$hourWindow??['start_hour'=>8,'end_hour'=>18];$canProgram=(bool)($canProgram??false);$notice=$notice??null;$scopeLabel=$scopeLabel??'';
+$ticketQuery=trim((string)($filters['ticket_q']??''));
 $typeLabels=['VISITA_EN_SITIO'=>'Visita en sitio','SOPORTE_REMOTO'=>'Soporte remoto','SEGUIMIENTO'=>'Seguimiento','INTERVENCION_PROVEEDOR'=>'Intervención de proveedor','OTRA'=>'Otra atención'];
 $statusLabels=['PROGRAMADA'=>'Programada','EN_CURSO'=>'En curso','FINALIZADA'=>'Finalizada','CANCELADA'=>'Cancelada','active'=>'Activas','all'=>'Todas'];
 $h=static fn(mixed $v):string=>htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');
@@ -65,6 +66,46 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </header>
 
   <?php if($notice): ?><div class="alert alert-info"><?= $h($notice) ?></div><?php endif; ?>
+
+  <?php if($canProgram===true): ?>
+  <section class="card agenda-program-card" aria-labelledby="agenda-program-title">
+    <div class="card-body">
+      <div class="agenda-program-head">
+        <div>
+          <div class="ticket-kicker">Programacion</div>
+          <h2 id="agenda-program-title">Programar actividad</h2>
+        </div>
+      </div>
+      <form class="agenda-program-search" method="get" action="<?= APP_BASE_URL ?>/agenda">
+        <input type="hidden" name="program" value="1">
+        <input type="hidden" name="view" value="<?= $h($filters['view']??'calendar') ?>">
+        <label class="form-label">Ticket<input class="form-control" type="search" name="ticket_q" value="<?= $h($ticketQuery) ?>" maxlength="100" placeholder="Buscar por codigo, asunto o solicitante" autocomplete="off"></label>
+        <button class="btn btn-primary" type="submit">Buscar ticket</button>
+      </form>
+      <?php if($ticketMatches): ?>
+      <div class="agenda-ticket-matches">
+        <?php foreach(array_slice($ticketMatches,0,10) as $match):
+          $matchId=(int)($match['ticket_id']??($match['id']??0));
+          $ticketUrl=(string)($match['ticket_url']??'');
+          if($ticketUrl==='')$ticketUrl=APP_BASE_URL.'/tickets/view?id='.$matchId;
+          $ticketUrl=(string)preg_replace('/#.*$/','',$ticketUrl).'#actividades';
+          $ticketCode=(string)($match['ticket_code']??($match['code']??('Ticket #'.$matchId)));
+          $ticketSubject=(string)($match['ticket_subject']??($match['subject']??''));
+          $ticketMeta=trim((string)($match['park_name']??($match['requester_name']??'')));
+        ?>
+        <a class="agenda-ticket-match" href="<?= $h($ticketUrl) ?>">
+          <strong><?= $h($ticketCode) ?></strong>
+          <?php if($ticketSubject!==''): ?><span><?= $h($ticketSubject) ?></span><?php endif; ?>
+          <?php if($ticketMeta!==''): ?><small><?= $h($ticketMeta) ?></small><?php endif; ?>
+        </a>
+        <?php endforeach; ?>
+      </div>
+      <?php elseif($ticketQuery!==''): ?>
+      <div class="empty-state">No se encontraron tickets visibles.</div>
+      <?php endif; ?>
+    </div>
+  </section>
+  <?php endif; ?>
 
   <div class="agenda-quick-links" aria-label="Rangos rápidos">
     <a class="btn btn-outline-secondary btn-sm" href="<?= $h($withFilter(['from'=>$weekStart->modify('-7 days')->format('Y-m-d'),'to'=>$weekStart->modify('-1 day')->format('Y-m-d')])) ?>">Semana anterior</a>
