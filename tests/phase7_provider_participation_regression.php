@@ -106,7 +106,7 @@ if($serviceBody!==''){
         ok((int)($closed['duration_minutes']??-1)===2880,'Ciclo cerrado dura 48 horas');
         ok(($closed['revoked_by']??null)==='Luis','Ciclo cerrado conserva actor de revocación');
         ok(($active['granted_at']??null)==='2026-09-04 08:00:00','Segundo ciclo conserva nueva asignación');
-        ok(($active['revoked_at']??'sentinel')===null,'Segundo ciclo permanece activo');
+        ok(array_key_exists('revoked_at',$active)&&$active['revoked_at']===null,'Segundo ciclo permanece activo');
         ok((int)($active['duration_minutes']??-1)===1440,'Ciclo activo usa ahora como fin');
 
         $duplicateGrantEvents=[
