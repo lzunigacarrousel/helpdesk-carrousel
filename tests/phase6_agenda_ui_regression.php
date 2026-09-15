@@ -49,6 +49,14 @@ $baseCalendarGrids=preg_match_all('/\.agenda-calendar-grid\{[^}]*grid-template-c
 ok($baseCalendarGrids===1,'CSS conserva una sola definicion estructural de agenda-calendar-grid');
 ok(!str_contains($css,'.agenda-hours'),'CSS no conserva implementación anterior de agenda-hours');
 ok(!str_contains($css,'.agenda-calendar-day{'),'CSS no conserva implementación anterior de agenda-calendar-day');
+// Pulido visual detectado en validación PC TEST: multiday, navegación única, atrasadas y programación compacta.
+ok(str_contains($view,'$calendarActivities')&&str_contains($view,'$multiDayActivities'),'Calendario separa actividades horarias de actividades de varios días');
+ok(str_contains($view,'agenda-multiday-strip')&&str_contains($view,'agenda-multiday-item'),'Calendario muestra franja compacta para actividades de varios días');
+ok(str_contains($view,'multiDayRange'),'Actividad de varios días muestra rango con fecha y hora');
+ok(substr_count($view,'>Semana anterior</a>')===1&&substr_count($view,'>Semana siguiente</a>')===1,'Navegación semanal no se duplica');
+ok(str_contains($view,'count($overdue)>0')&&str_contains($view,'agenda-overdue-items'),'Atrasadas solo muestran bloque cuando hay filas renderizables');
+ok(str_contains($css,'.agenda-program-search{')&&str_contains($css,'grid-template-columns:minmax(0,1fr) auto'),'Programar actividad usa buscador compacto en escritorio');
+ok(str_contains($css,'.agenda-multiday-strip{')&&str_contains($css,'.agenda-multiday-item{'),'CSS define presentación de actividades multiday');
 ok(str_contains($appStart,"\$canAgenda=!\$isExternal&&in_array((string)Auth::role(),['ADMIN','SEMIADMIN','TECHNICIAN','MANAGEMENT','SUPERVISOR'],true);"),'Shell define elegibilidad explicita de Agenda');
 ok(str_contains($appStart,"activeNav==='agenda'"),'Shell marca Agenda como navegacion activa');
 ok(str_contains($appStart,"/agenda"),'Shell enlaza Agenda');
