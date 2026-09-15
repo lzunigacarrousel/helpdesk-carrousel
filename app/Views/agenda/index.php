@@ -177,9 +177,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </section>
     <?php endif; ?>
 
-    <?php if(!$calendarActivities): ?>
-      <?php if(!$multiDayActivities): ?><div class="empty-state">No hay actividades visibles en esta semana.</div><?php endif; ?>
-    <?php else: ?>
+    <?php if(!$calendarActivities&&!$multiDayActivities): ?><div class="empty-state">No hay actividades visibles en esta semana.</div><?php endif; ?>
     <div class="agenda-calendar-grid" style="--agenda-slot-count:<?= (int)$slotCount ?>">
       <div class="agenda-calendar-time-heading">Hora</div>
       <?php foreach($calendarDays as $day=>$items): ?><div class="agenda-calendar-day-heading"><?= $h($dateLabel($day)) ?></div><?php endforeach; ?>
@@ -194,7 +192,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div class="agenda-calendar-days">
       <?php foreach($calendarDays as $day=>$items):?><section class="agenda-calendar-day-card"><h2><?= $h($dateLabel($day)) ?></h2><?php if(!$items):?><p class="agenda-calendar-empty">Sin actividades.</p><?php endif;?><?php foreach($items as $item):$renderItem($item);endforeach;?></section><?php endforeach;?>
     </div>
-    <?php endif; ?>
   </section>
   <?php endif; ?>
   <section class="agenda-list" aria-label="Actividades por día">
