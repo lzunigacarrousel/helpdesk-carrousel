@@ -75,12 +75,10 @@ final class AgendaController
             }
         }
 
-        $history=($_GET['history']??'')==='1';
         $status=(string)($_GET['status']??'active');
         $allowedStatuses=['active','all','PROGRAMADA','EN_CURSO','FINALIZADA','CANCELADA'];
-        if(!in_array($status,$allowedStatuses,true)||(!$history&&in_array($status,['all','FINALIZADA','CANCELADA'],true))){
-            $status='active';
-        }
+        if(!in_array($status,$allowedStatuses,true))$status='active';
+        $history=($_GET['history']??'')==='1'||in_array($status,['all','FINALIZADA','CANCELADA'],true);
 
         $scopeMode=$role==='TECHNICIAN'&&($_GET['scope_mode']??'')==='all'?'all':'mine';
         if($role!=='TECHNICIAN')$scopeMode='all';
