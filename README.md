@@ -146,8 +146,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 4 | Feedback del solicitante | Cerrada |
 | 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |
 | 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
-| 7 | Proveedores | **Siguiente fase** |
-| 8 | Calidad IT → proveedor | Pendiente |
+| 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
+| 8 | Calidad IT → proveedor | **Siguiente fase** |
 | 9 | Conocimiento | Parcialmente adelantada; falta cierre formal |
 | 10 | Reportes | Parcialmente adelantada; falta consolidación final |
 | 11 | Manual | Parcialmente adelantada; consolidación final pendiente |
@@ -184,6 +184,22 @@ La Fase 6 incorpora una Agenda operativa sin crear tablas nuevas ni mover la ope
 - filtros por responsable, parque, tipo, estado y rango de fechas;
 - MANAGEMENT y SUPERVISOR tienen consulta sin operar;
 - el ticket sigue siendo el workspace operativo para programar, reprogramar, iniciar, finalizar o cancelar actividades.
+### Fase 7 — Proveedores
+
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+
+La Fase 7 consolida la medición operativa de proveedores externos sobre la información que ya genera el Helpdesk:
+
+- cada asignación `EXTERNAL_GRANTED → EXTERNAL_REVOKED` se trata como un ciclo independiente, incluso si el mismo proveedor vuelve a participar en el mismo ticket;
+- la primera respuesta se calcula con el primer mensaje externo independiente o el primer informe técnico del proveedor dentro del ciclo;
+- duración de participación y tiempo de trabajo declarado (`time_spent_minutes`) se mantienen como métricas separadas;
+- la actividad actual proviene del último `work_status` del informe técnico y, si no existe informe, se muestra **Sin actualización**;
+- `READY_FOR_REVIEW` / **Listo para revisión** es una señal del proveedor y no modifica automáticamente el estado del ticket;
+- las devoluciones se cuentan únicamente cuando, después de una entrega lista para revisión, el ticket vuelve a `REOPENED` o `IN_PROGRESS` dentro del mismo ciclo;
+- el **Informe de proveedores** y su exportación XLSX consumen el mismo dataset filtrado, con proveedor, estado del ciclo, actividad y rango de fechas;
+- la administración de colaboradores y sus accesos permanece separada del informe operativo.
+
+**BD: sin cambios.** La fase reutiliza `ticket_events`, `ticket_comments`, `ticket_attachments`, `ticket_work_reports` y el control de acceso externo existente; no crea tablas, columnas ni migraciones.
 ## Flujo Git oficial
 
 Regla general:

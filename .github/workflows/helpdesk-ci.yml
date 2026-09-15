@@ -110,6 +110,9 @@ jobs:
       - name: Phase 6 agenda filter UX regression
         run: php tests/phase6_agenda_filter_ux_regression.php
 
+      - name: Phase 7 provider participation regression
+        run: php tests/phase7_provider_participation_regression.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 

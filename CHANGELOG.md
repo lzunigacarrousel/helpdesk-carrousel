@@ -4,6 +4,15 @@
 >
 > La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
 
+## Fase 7 · Proveedores · 2026-09-15
+- `ProviderParticipationService` se convierte en la fuente única para reconstruir ciclos independientes de participación externa y calcular métricas sin duplicar lógica en controller o XLSX.
+- El informe de proveedores incorpora primera respuesta por mensaje o informe técnico, duración de participación, tiempo de trabajo declarado, actividad actual, respuestas, archivos, informes y entregas listas para revisión.
+- `READY_FOR_REVIEW` permanece como señal **Listo para revisión** del proveedor; no cambia automáticamente el estado técnico del ticket ni invoca el workflow de cierre.
+- Las **devoluciones** se cuentan únicamente cuando existe una entrega previa `READY_FOR_REVIEW` y el ticket retorna después a `REOPENED` o `IN_PROGRESS` dentro del mismo ciclo; una misma reapertura no duplica varias entregas previas.
+- El informe administrativo añade filtros por proveedor, estado del ciclo, actividad y fechas, resumen operativo y una tabla compacta de siete columnas.
+- La exportación XLSX utiliza exactamente las mismas filas filtradas que la pantalla e incluye primera respuesta, actividad, trabajo declarado, informes, entregas, devoluciones y estado del ciclo.
+- Se conservan permisos y aislamiento INTERNAL / EXTERNAL; las notas internas no participan en las métricas del proveedor.
+- **BD: sin cambios.** Se reutilizan eventos, comentarios, adjuntos, informes técnicos y accesos externos existentes; no se agrega migración.
 ## Fase 6 · Agenda · 2026-09-14
 - Nueva Agenda interna con vistas **Calendario** y **Lista** para consultar actividades programadas.
 - La consulta reutiliza `ticket_activities` y aplica alcance backend mediante `ScopeService`; REQUESTER y EXTERNAL no acceden a Agenda.
