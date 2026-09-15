@@ -20,7 +20,6 @@ ok($controller!=='','Se puede leer AgendaController');
 ok($view!=='','Se puede leer la vista Agenda');
 ok($css!=='','Se puede leer agenda.css');
 ok(str_contains($controller,"['month','calendar','list']"),'Controller acepta Mes, Semana y Lista');
-ok(str_contains($controller,"$view==='month'")===false,'Gate no depende de interpolación accidental');
 ok(str_contains($controller,"'first day of this month'")&&str_contains($controller,"'last day of this month'"),'Controller define rango mensual predeterminado');
 ok(str_contains($view,"['view'=>'month']"),'Agenda ofrece selector Mes');
 ok(str_contains($view,'>Semana</a>'),'Agenda renombra Calendario a Semana');
