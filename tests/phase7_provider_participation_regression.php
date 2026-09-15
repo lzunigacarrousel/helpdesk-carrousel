@@ -96,7 +96,59 @@ if($serviceBody!==''){
             [],
             strtotime('2026-09-05 08:00:00')
         );
+
         ok(count($rows)===2,'Dos asignaciones del mismo proveedor/ticket forman ciclos independientes');
+
+        $closed=$rows[0]??[];
+        $active=$rows[1]??[];
+        ok(($closed['granted_at']??null)==='2026-09-01 08:00:00','Primer ciclo conserva fecha de asignación');
+        ok(($closed['revoked_at']??null)==='2026-09-03 08:00:00','Primer ciclo conserva fecha de revocación');
+        ok((int)($closed['duration_minutes']??-1)===2880,'Ciclo cerrado dura 48 horas');
+        ok(($closed['revoked_by']??null)==='Luis','Ciclo cerrado conserva actor de revocación');
+        ok(($active['granted_at']??null)==='2026-09-04 08:00:00','Segundo ciclo conserva nueva asignación');
+        ok(($active['revoked_at']??'sentinel')===null,'Segundo ciclo permanece activo');
+        ok((int)($active['duration_minutes']??-1)===1440,'Ciclo activo usa ahora como fin');
+
+        $duplicateGrantEvents=[
+            [
+                'id'=>10,
+                'ticket_id'=>200,
+                'event_type'=>'EXTERNAL_GRANTED',
+                'old_value'=>null,
+                'new_value'=>j(['external_user_id'=>11]),
+                'metadata_json'=>'{}',
+                'created_at'=>'2026-09-01 10:00:00',
+                'ticket_number'=>'HD-200',
+                'subject'=>'Caso B',
+                'ticket_status'=>'IN_PROGRESS',
+                'actor_name'=>'Admin Uno',
+            ],
+            [
+                'id'=>11,
+                'ticket_id'=>200,
+                'event_type'=>'EXTERNAL_GRANTED',
+                'old_value'=>null,
+                'new_value'=>j(['external_user_id'=>11]),
+                'metadata_json'=>'{}',
+                'created_at'=>'2026-09-02 10:00:00',
+                'ticket_number'=>'HD-200',
+                'subject'=>'Caso B',
+                'ticket_status'=>'IN_PROGRESS',
+                'actor_name'=>'Admin Dos',
+            ],
+        ];
+        $duplicateRows=\App\Services\ProviderParticipationService::buildCycles(
+            $users,
+            $duplicateGrantEvents,
+            [],
+            [],
+            [],
+            strtotime('2026-09-03 10:00:00')
+        );
+        $implicitClosed=$duplicateRows[0]??[];
+        ok(count($duplicateRows)===2,'Grant duplicado abre un ciclo nuevo');
+        ok(($implicitClosed['revoked_at']??null)==='2026-09-02 10:00:00','Grant duplicado cierra el ciclo anterior en la nueva asignación');
+        ok(($implicitClosed['revoked_by']??null)==='Nueva asignación','Cierre implícito identifica nueva asignación');
     }else{
         ok(false,'Clase ProviderParticipationService disponible');
     }
