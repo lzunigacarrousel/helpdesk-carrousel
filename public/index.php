@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ExternalTemplateController,ResolutionController,ConversationController,WorkReportController,SearchController,AgendaController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController,TicketActivityController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ExternalTemplateController,ResolutionController,ConversationController,WorkReportController,SearchController,AgendaController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController,TicketActivityController,ProviderRatingController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -42,6 +42,8 @@ $routes=[
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
     ['POST','/tickets/work-report',[WorkReportController::class,'store']],
+    ['POST','/tickets/provider-rating',[ProviderRatingController::class,'rate']],
+    ['POST','/tickets/provider-rating/correct',[ProviderRatingController::class,'correct']],
     ['GET','/tickets/attachment',[ConversationController::class,'download']],
     ['POST','/tickets/activities/create',[TicketActivityController::class,'create']],
     ['POST','/tickets/activities/reschedule',[TicketActivityController::class,'reschedule']],
