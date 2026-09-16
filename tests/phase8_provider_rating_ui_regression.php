@@ -5,6 +5,7 @@ $root=dirname(__DIR__);
 $controllerPath=$root.'/app/Controllers/TicketController.php';
 $showPath=$root.'/app/Views/tickets/show.php';
 $externalPath=$root.'/app/Views/tickets/show_external.php';
+$servicePath=$root.'/app/Services/ProviderRatingService.php';
 $errors=0;
 
 function ok(bool $condition,string $message):void
@@ -17,6 +18,7 @@ function ok(bool $condition,string $message):void
 $controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPath):'';
 $showBody=is_file($showPath)?(string)file_get_contents($showPath):'';
 $externalBody=is_file($externalPath)?(string)file_get_contents($externalPath):'';
+$serviceBody=is_file($servicePath)?(string)file_get_contents($servicePath):'';
 
 ok($controllerBody!=='','Existe TicketController');
 ok($showBody!=='','Existe vista interna del ticket');
@@ -34,6 +36,7 @@ ok(str_contains($showBody,'Calidad del proveedor'),'Bloque usa título operativo
 ok(str_contains($showBody,'Evaluar proveedor'),'Ciclo finalizado sin rating permite evaluar');
 ok(str_contains($showBody,'Registrar corrección'),'Ciclo evaluado permite corrección');
 ok(str_contains($showBody,'Podrás evaluar cuando finalice la participación.'),'Ciclo activo explica por qué no se evalúa');
+ok(str_contains($showBody,'ProviderRatingService::isCycleEvaluable'),'Vista reutiliza criterio central de ciclo evaluable');
 
 ok(str_contains($showBody,'/tickets/provider-rating"'),'Formulario usa endpoint de primera valoración');
 ok(str_contains($showBody,'/tickets/provider-rating/correct"'),'Formulario usa endpoint de corrección');
@@ -50,9 +53,16 @@ ok(str_contains($showBody,'provider_rating_actor'),'Vista interna muestra quién
 ok(str_contains($showBody,'provider_rating_at'),'Vista interna muestra fecha de valoración');
 
 ok(!str_contains($externalBody,'PROVIDER_RATED'),'Vista externa no expone evento de valoración');
-ok(!str_contains($externalBody,'provider_rating_score'),'Vista externa no expone score interno');
-ok(!str_contains($externalBody,'provider_rating_comment'),'Vista externa no expone comentario interno');
+ok(!str_contains($externalBody,'provider_rating_score'),'Proveedor no recibe score interno');
+ok(!str_contains($externalBody,'provider_rating_comment'),'Proveedor no recibe comentario interno');
 ok(!str_contains($externalBody,'provider-quality'),'Vista externa no renderiza bloque de calidad');
+
+ok(str_contains($showBody,'if($isSupport&&!empty($providerCycles))')
+    ||str_contains($showBody,'if ($isSupport && !empty($providerCycles))'),
+    'Solicitante queda fuera del bloque de calidad interna');
+ok(str_contains($controllerBody,'if($isSupport)')||str_contains($controllerBody,'if ($isSupport)'),
+    'Controller carga calidad solo para soporte interno');
+ok($serviceBody!==''&&str_contains($serviceBody,'function isCycleEvaluable('),'UI depende de servicio con criterio evaluable central');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
