@@ -160,15 +160,25 @@ Primer intento con `tools/apply_phase8_external_case_history.php`:
 
 Causa del blocker:
 - el aplicador hacía una normalización EOL frágil y sus anclas heredaban el EOL del propio script;
-- en Windows, una diferencia LF/CRLF entre `TicketController.php`, `tickets/index.php` y el aplicador hace que `substr_count()` no encuentre una ancla aunque el contenido lógico sea igual;
-- se corregirá únicamente el aplicador, normalizando realmente archivos **y anclas** antes de comparar.
+- en Windows, una diferencia LF/CRLF entre `TicketController.php`, `tickets/index.php` y el aplicador hace que `substr_count()` no encuentre una ancla aunque el contenido lógico sea igual.
+
+### Fix del aplicador EOL ✅ PREPARADO
+
+Commit del aplicador corregido:
+- `1800ff9 fix: tolerar EOL mixto en historial externo`.
+
+Cambio técnico:
+- normaliza CRLF y CR reales a LF en archivos objetivo;
+- normaliza también cada ancla y reemplazo heredoc antes de `substr_count()`;
+- mantiene escritura al final, por lo que un fallo intermedio no deja cambios funcionales parciales;
+- no modifica BD.
 
 ### Siguiente paso exacto
 
-1. corregir `tools/apply_phase8_external_case_history.php` para EOL mixto;
-2. sincronizar PC TEST;
-3. volver a ejecutar el aplicador;
-4. ejecutar sintaxis, historial externo y regresión UI/privacidad;
+1. sincronizar PC TEST;
+2. volver a ejecutar `tools/apply_phase8_external_case_history.php`;
+3. ejecutar sintaxis de `TicketController.php` y `tickets/index.php`;
+4. ejecutar `phase8_external_case_history_regression.php` y `phase8_provider_rating_ui_regression.php`;
 5. `git diff --check` y `git status`;
 6. registrar GREEN antes de cualquier commit funcional.
 
@@ -178,7 +188,7 @@ Causa del blocker:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: RED ✅ confirmado; primer GREEN bloqueado por EOL del aplicador; archivos funcionales intactos.
+- Historial para el propio proveedor: RED ✅ confirmado; aplicador EOL corregido y listo para reintento.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
