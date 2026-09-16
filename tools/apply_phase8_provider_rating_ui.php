@@ -5,32 +5,58 @@ $root=dirname(__DIR__);
 $controllerPath=$root.'/app/Controllers/TicketController.php';
 $viewPath=$root.'/app/Views/tickets/show.php';
 
-function replaceOnce(string $path,string $old,string $new,string $label): void
+function replaceOnceNormalized(string $path,string $old,string $new,string $present,string $label): void
 {
-    $body=(string)file_get_contents($path);
+    $raw=(string)file_get_contents($path);
+    $eol=str_contains($raw,"\r\n")?"\r\n":"\n";
+    $body=str_replace("\r\n","\n",$raw);
+
+    if($present!==''&&str_contains($body,$present)){
+        echo "[OK] {$label}: ya aplicado.".PHP_EOL;
+        return;
+    }
+
     $count=substr_count($body,$old);
     if($count!==1){
         fwrite(STDERR,"[ERROR] {$label}: esperaba 1 coincidencia y encontro {$count}.".PHP_EOL);
         exit(1);
     }
-    file_put_contents($path,str_replace($old,$new,$body));
+
+    $body=str_replace($old,$new,$body);
+    if($eol==="\r\n")$body=str_replace("\n","\r\n",$body);
+    file_put_contents($path,$body);
     echo "[OK] {$label}.".PHP_EOL;
 }
 
-replaceOnce(
+$oldImport="use App\\Services\\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService};";
+$newImport="use App\\Services\\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService};";
+replaceOnceNormalized(
     $controllerPath,
-    "use App\\Services\\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService};",
-    "use App\\Services\\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService};",
+    $oldImport,
+    $newImport,
+    'ProviderParticipationService,ProviderRatingService',
     'TicketController importa servicios de calidad'
 );
 
 $controllerAnchor="        \$activityParks=\$isSupport?\$pdo->query(\"SELECT id,name FROM parks WHERE is_active=1 ORDER BY name\")->fetchAll():[];\n\n        View::render('tickets/show',[";
 $controllerInsert="        \$activityParks=\$isSupport?\$pdo->query(\"SELECT id,name FROM parks WHERE is_active=1 ORDER BY name\")->fetchAll():[];\n\n        \$providerCycles=[];\n        \$providerRatingLabels=ProviderRatingService::SCORE_LABELS;\n        \$canRateProviders=\$isSupport\n            &&in_array((string)Auth::role(),['ADMIN','SEMIADMIN','TECHNICIAN'],true)\n            &&(new ScopeService())->userCanAccessTicket((int)Auth::id(),\$id);\n        if(\$isSupport){\n            \$participationService=new ProviderParticipationService(\$pdo);\n            \$ratingService=new ProviderRatingService(\$pdo);\n            \$providerCycles=\$ratingService->enrichRows(\$participationService->rowsForTicket(\$id));\n        }\n\n        View::render('tickets/show',[";
-replaceOnce($controllerPath,$controllerAnchor,$controllerInsert,'TicketController carga ciclos y valoraciones');
+replaceOnceNormalized(
+    $controllerPath,
+    $controllerAnchor,
+    $controllerInsert,
+    '$providerCycles=$ratingService->enrichRows($participationService->rowsForTicket($id));',
+    'TicketController carga ciclos y valoraciones'
+);
 
 $renderAnchor="            'canCancelActivities'=>\$canCancelActivities,\n        ]);";
 $renderInsert="            'canCancelActivities'=>\$canCancelActivities,\n            'providerCycles'=>\$providerCycles,\n            'providerRatingLabels'=>\$providerRatingLabels,\n            'canRateProviders'=>\$canRateProviders,\n        ]);";
-replaceOnce($controllerPath,$renderAnchor,$renderInsert,'TicketController expone calidad a la vista');
+replaceOnceNormalized(
+    $controllerPath,
+    $renderAnchor,
+    $renderInsert,
+    "'providerCycles'=>\$providerCycles",
+    'TicketController expone calidad a la vista'
+);
 
 $viewAnchor='  <section class="card conversation-card case-conversation-card" id="conversacion">';
 $viewBlock=<<<'PHP'
@@ -95,7 +121,13 @@ $viewBlock=<<<'PHP'
   <?php endif; ?>
 
 PHP;
-replaceOnce($viewPath,$viewAnchor,$viewBlock.$viewAnchor,'Vista interna incorpora calidad del proveedor');
+replaceOnceNormalized(
+    $viewPath,
+    $viewAnchor,
+    $viewBlock.$viewAnchor,
+    'id="provider-quality"',
+    'Vista interna incorpora calidad del proveedor'
+);
 
 foreach([$controllerPath,$viewPath] as $path){
     $cmd='"'.PHP_BINARY.'" -l '.escapeshellarg($path);
