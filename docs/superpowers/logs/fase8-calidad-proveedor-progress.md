@@ -124,53 +124,17 @@ Cierre y limpieza:
 - eliminado `tools/normalize_phase8_task4_eol.php` en `e302a49`;
 - no quedan herramientas temporales de Task 4 versionadas.
 
-### Task 5 — Informe de proveedores + valoración + XLSX ✅ GREEN, PENDIENTE DE COMMIT FUNCIONAL
+### Task 5 — Informe de proveedores + valoración + XLSX ✅ CERRADA
 
 Inicio TDD:
 - creado `tests/phase8_provider_rating_report_regression.php`;
 - commit RED: `8b74bfb test: definir informe de calidad de proveedores fase 8`.
 
-RED confirmado en PC TEST:
-- rama sincronizada y `working tree clean` antes de ejecutar;
-- 21 validaciones fallaron, todas correspondientes a integración aún no implementada;
-- 4 validaciones de `ProviderRatingService::providerSummary()` ya pasaban por venir de Task 2.
+RED confirmado:
+- 21 fallos de integración antes de implementar;
+- `ProviderRatingService::providerSummary()` ya estaba GREEN por Task 2.
 
-GREEN preparado:
-- creado `tools/apply_phase8_provider_rating_report.php`;
-- commit del aplicador: `b144e23 tool: aplicar informe de calidad proveedores fase 8`;
-- el aplicador es tolerante a CRLF y escribe LF para evitar repetir el blocker de Task 4;
-- modifica solo código de servicio/controller/vista; no toca BD.
-
-GREEN ejecutado en PC TEST:
-- aplicador completó todos sus pasos en `[OK]`;
-- sintaxis PHP de `ProviderParticipationService.php`, `ExternalReportController.php` y `external_report.php`: GREEN;
-- `phase8_provider_rating_ui_regression.php`: GREEN;
-- `phase8_provider_rating_controller_regression.php`: GREEN;
-- `phase8_provider_rating_service_regression.php`: GREEN;
-- `phase8_provider_cycle_identity_regression.php`: GREEN;
-- `phase7_provider_filters_regression.php`: GREEN;
-- `phase7_provider_participation_regression.php`: GREEN;
-- `project_quality.php`: GREEN;
-- `git diff --check` no reportó errores; solo advertencias LF/CRLF de Windows.
-
-Blocker menor del test resuelto:
-- `phase8_provider_rating_report_regression.php` tuvo una única aserción inválida para `null` por uso de `??`;
-- corregida en `4ad3f8c test: corregir asercion de ciclo sin evaluar`;
-- no se modificó código funcional ni BD para resolverlo.
-
-Verificación GREEN final en PC TEST:
-- `phase8_provider_rating_report_regression.php`: completamente GREEN;
-- filtro `UNRATED`: GREEN;
-- filtro exacto por estrellas: GREEN;
-- resumen por proveedor: GREEN;
-- controller + vista + XLSX: GREEN;
-- todas las regresiones Fase 8 ejecutadas: GREEN;
-- `phase7_provider_filters_regression.php`: GREEN;
-- `phase7_provider_participation_regression.php`: GREEN;
-- `git diff --check`: limpio; únicamente advertencias `LF will be replaced by CRLF` de Windows;
-- working tree contiene solo los 3 archivos funcionales esperados sin commit.
-
-Implementado funcionalmente:
+Implementado:
 - `ProviderParticipationService::applyFilters()` soporta `rating=UNRATED|1|2|3|4|5`;
 - `ExternalReportController` enriquece filas con `ProviderRatingService::enrichRows()` antes de filtrar;
 - GET `rating` normalizado;
@@ -179,25 +143,41 @@ Implementado funcionalmente:
 - XLSX agrega valoración vigente, comentario interno y hoja de calidad por proveedor;
 - 0 cambios de BD.
 
-Siguiente acción exacta:
-1. traer esta actualización del log con `git pull --ff-only origin fase8-calidad-proveedor`;
-2. stage de `ProviderParticipationService.php`, `ExternalReportController.php` y `external_report.php`;
-3. `git diff --cached --check`;
-4. commit funcional de Task 5;
-5. push y `git status` limpio;
-6. actualizar este log con el commit funcional;
-7. eliminar `tools/apply_phase8_provider_rating_report.php`;
-8. registrar la limpieza en este log;
-9. iniciar Task 6.
+Blocker de test resuelto:
+- una aserción de `null` usaba `??` y era inválida;
+- corregida en `4ad3f8c test: corregir asercion de ciclo sin evaluar`;
+- no se cambió lógica funcional ni BD.
+
+GREEN final:
+- `phase8_provider_rating_report_regression.php`: GREEN completo;
+- `phase8_provider_rating_ui_regression.php`: GREEN;
+- `phase8_provider_rating_controller_regression.php`: GREEN;
+- `phase8_provider_rating_service_regression.php`: GREEN;
+- `phase8_provider_cycle_identity_regression.php`: GREEN;
+- `phase7_provider_filters_regression.php`: GREEN;
+- `phase7_provider_participation_regression.php`: GREEN;
+- `project_quality.php`: GREEN en verificación previa;
+- `git diff --check`: limpio; solo advertencias LF/CRLF de Windows.
+
+Commit funcional:
+- `a8811c6 feat: integrar calidad de proveedores en informes`.
+
+Estado después del commit:
+- push exitoso a `origin/fase8-calidad-proveedor`;
+- `git status`: `nothing to commit, working tree clean`.
+
+Limpieza pendiente inmediata:
+- eliminar `tools/apply_phase8_provider_rating_report.php`;
+- registrar esa limpieza en este log;
+- iniciar Task 6.
 
 ## Estado actual para retomar
 
-- Tasks 1–4: cerradas.
-- Task 5: GREEN completo; pendiente únicamente consolidación del commit funcional y limpieza del aplicador temporal.
-- Cambios funcionales locales pendientes de commit en PC TEST: `ProviderParticipationService.php`, `ExternalReportController.php`, `external_report.php`.
+- Tasks 1–5: cerradas funcionalmente.
+- Task 5: pendiente solo limpieza del aplicador temporal remoto.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 
 ## Próximas tareas del plan
 
-- Task 5: consolidar commit funcional y limpiar aplicador temporal.
-- Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
+- Task 6: consolidar seguridad, historial y casos límite.
+- Task 7+: CI/cierre documental y gate integral según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
