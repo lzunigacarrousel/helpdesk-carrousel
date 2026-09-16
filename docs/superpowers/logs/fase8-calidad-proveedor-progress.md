@@ -237,14 +237,31 @@ Resultado:
 - working tree local limpio y sincronizado con `origin/fase8-calidad-proveedor`.
 
 Interpretación:
-- ✅ RED correcto: la prueba falla exclusivamente porque la UI por fila todavía no implementa las acciones aprobadas;
-- siguiente paso: GREEN mínimo en `app/Views/admin/externals.php`, sin tocar BD ni lógica de reporte.
+- ✅ RED correcto: la prueba falla exclusivamente porque la UI por fila todavía no implementa las acciones aprobadas.
+
+#### GREEN preparado — acciones por proveedor ⏳ pendiente de ejecutar
+
+Aplicador temporal creado:
+- `tools/apply_phase8_provider_row_actions.php`;
+- commit remoto: `b6637d6 tool: aplicar historial y excel por proveedor`.
+
+El aplicador hará únicamente:
+- agregar `Historial` por fila hacia `/admin/externos/informe?provider=<id>`;
+- agregar `Excel` por fila hacia `/admin/externos/informe/exportar?provider=<id>`;
+- conservar `Editar` en la misma celda de acciones;
+- agregar un contenedor flex con wrap para evitar desbordes visuales;
+- validar sintaxis PHP al terminar;
+- 0 cambios de BD.
 
 Siguiente paso manual/técnico exacto:
-1. aplicar el GREEN mínimo que agregue `Historial`, `Excel` y conserve `Editar` en cada fila de proveedor;
-2. repetir `phase8_provider_rating_report_regression.php` y validar GREEN;
-3. continuar la validación de corrección sin comentario y demás checks funcionales;
-4. corregir el detalle visual actor/fecha antes del cierre final.
+1. sincronizar la rama;
+2. ejecutar `tools/apply_phase8_provider_row_actions.php`;
+3. correr sintaxis de `app/Views/admin/externals.php`;
+4. repetir `phase8_provider_rating_report_regression.php` y validar GREEN;
+5. revisar `git diff --check` y `git status`;
+6. no hacer commit funcional hasta registrar el GREEN en este log;
+7. después continuar la validación de corrección sin comentario y demás checks funcionales;
+8. corregir el detalle visual actor/fecha antes del cierre final.
 
 ## Estado exacto para retomar
 
@@ -253,6 +270,7 @@ Siguiente paso manual/técnico exacto:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Validación manual confirmada hasta primera valoración persistida.
 - RED de acciones Historial/Excel por proveedor: ✅ confirmado.
+- GREEN de acciones Historial/Excel: ⏳ preparado, pendiente de ejecutar en PC TEST.
 - Hay un hallazgo visual menor actor/fecha pendiente de corrección.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
