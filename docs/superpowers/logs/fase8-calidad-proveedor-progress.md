@@ -112,7 +112,7 @@ Consolidación:
 - `a060825 ui: agregar historial y excel por proveedor`.
 - herramienta temporal retirada.
 
-## Historial visible para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE
+## Historial visible para el propio proveedor ✅ CONSOLIDADO Y LIMPIO
 
 ### Hallazgo real
 
@@ -126,7 +126,7 @@ Causa:
 - la fila histórica permanecía en `external_ticket_access`, pero desaparecía del listado;
 - `TicketViewController` exige acceso vigente, por lo que el detalle revocado permanece correctamente bloqueado.
 
-### Diseño seguro aprobado
+### Diseño seguro implementado
 
 - `Mis casos` incluye accesos vigentes e históricos revocados.
 - Métricas: `Activos`, `En espera`, `Finalizados`, `Total`.
@@ -138,56 +138,42 @@ Causa:
 - Acceso vigente conserva comportamiento actual.
 - 0 cambios de BD; se reutiliza `external_ticket_access`.
 
-### RED TDD ✅ CONFIRMADO
+### TDD y verificación ✅
 
-Test: `tests/phase8_external_case_history_regression.php`.
-
-Resultado inicial:
-- 2 comprobaciones base `[OK]`;
-- 10 fallos esperados de historial externo;
-- privacidad de valoración interna `[OK]`;
-- working tree limpio.
-
-### Blocker EOL ✅ RESUELTO
-
-Primer aplicador abortó por anclas LF/CRLF mixtas sin dejar cambios parciales. Se corrigió en:
-- `1800ff9 fix: tolerar EOL mixto en historial externo`.
-
-### GREEN TDD ✅ CONFIRMADO
-
-Después del fix EOL:
-- aplicador: `[OK] Historial seguro para proveedor externo aplicado. Casos revocados quedan visibles sin reabrir el detalle. No se modifico la BD.`;
-- sintaxis `TicketController.php` y `tickets/index.php`: `[OK]`;
-- `tests/phase8_external_case_history_regression.php`: GREEN completo;
-- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
-- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows;
-- privacidad de score/comentario interno preservada;
+- RED: 10 fallos esperados aislados al historial externo; privacidad de valoración interna ya estaba `[OK]`.
+- Blocker EOL del aplicador resuelto en `1800ff9 fix: tolerar EOL mixto en historial externo`.
+- GREEN: `tests/phase8_external_case_history_regression.php` completo.
+- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo.
+- sintaxis de `TicketController.php` y `tickets/index.php`: `[OK]`.
+- `git diff --check`: sin errores.
 - sin cambios de BD.
 
 ### Consolidación funcional ✅
 
-Commit funcional confirmado y pusheado:
+Commit funcional:
 - `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-Archivos funcionales del commit:
+Archivos funcionales:
 - `app/Controllers/TicketController.php`;
 - `app/Views/tickets/index.php`.
 
-Estado después del push:
-- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
-- working tree limpio.
+### Limpieza ✅
 
-### Siguiente paso exacto
+- registro de consolidación: `2e48e8e docs: registrar consolidacion historial externo proveedor`;
+- aplicador temporal retirado: `b3d103a chore: retirar aplicador historial externo proveedor`;
+- `tools/apply_phase8_external_case_history.php` ya no debe permanecer en la rama.
 
-1. retirar `tools/apply_phase8_external_case_history.php`;
-2. registrar limpieza en este log;
-3. sincronizar PC TEST;
-4. validar visualmente con cuenta `Pruebas Comunicacion`:
-   - métricas `Activos`, `En espera`, `Finalizados`, `Total`;
-   - tarjeta histórica con `Participación finalizada`;
+### Siguiente validación manual
+
+1. sincronizar PC TEST con la rama;
+2. iniciar sesión como `Pruebas Comunicacion`;
+3. abrir `Mis casos`;
+4. confirmar visualmente:
+   - `Activos`, `En espera`, `Finalizados`, `Total`;
+   - historial con `Participación finalizada`;
    - fechas de asignación/finalización;
-   - tarjeta histórica sin enlace al detalle;
-   - ninguna valoración interna visible.
+   - tarjeta histórica sin posibilidad de abrir el detalle;
+   - ninguna valoración, score o comentario interno visible.
 
 ## Estado exacto actual
 
@@ -195,7 +181,7 @@ Estado después del push:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: ✅ consolidado técnicamente en `2ad58d5`; ⏳ validación visual real pendiente.
+- Historial para el propio proveedor: ✅ consolidado y herramienta temporal retirada; ⏳ validación visual real pendiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
