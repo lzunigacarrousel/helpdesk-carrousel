@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
-use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ExternalTemplateController,ResolutionController,ConversationController,WorkReportController,SearchController,AgendaController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController,TicketActivityController,ProviderRatingController};
+use App\Controllers\{AuthController,DashboardController,AdminController,AuditController,TicketController,TicketViewController,TicketFeedbackController,ManagementController,XlsxExportController,ExternalController,ExternalTemplateController,ResolutionController,ConversationController,WorkReportController,SearchController,AgendaController,WorkflowController,ProblemController,KnowledgeController,HelpController,NotificationController,MailAdminController,SupportTeamController,ExternalReportController,TicketClassificationController,TicketLocationController,TicketActivityController,ProviderRatingController,ExternalCaseHistoryController};
 $path=parse_url($_SERVER['REQUEST_URI']??'/',PHP_URL_PATH)?:'/';
 $base=rtrim(APP_PUBLIC_PATH,'/');
 if(str_starts_with($path,$base))$path=substr($path,strlen($base))?:'/';
@@ -13,6 +13,7 @@ $routes=[
     ['POST','/crear-ticket',[TicketController::class,'publicStore']],
     ['GET','/ticket-enviado',[TicketController::class,'publicDone']],
     ['GET','/mis-tickets',[TicketController::class,'index']],
+    ['GET','/mis-tickets/exportar',[ExternalCaseHistoryController::class,'export']],
     ['GET','/login',[AuthController::class,'home']],
     ['POST','/auth/request',[AuthController::class,'requestOtp']],
     ['GET','/register',[AuthController::class,'legacyRegister']],
