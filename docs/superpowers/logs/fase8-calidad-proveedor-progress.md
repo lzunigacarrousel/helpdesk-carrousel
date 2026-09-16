@@ -116,15 +116,20 @@ Blocker CRLF/LF resuelto:
 - `git diff --check` quedó limpio;
 - advertencias `LF will be replaced by CRLF` son configuración local de Git, no fallos.
 
-Estado después del commit:
+Cierre y limpieza:
 - push de `67160ba` exitoso;
-- rama local quedó sincronizada con `origin/fase8-calidad-proveedor`;
-- `git status`: `nothing to commit, working tree clean`.
+- rama local quedó sincronizada y limpia después del commit funcional;
+- log de cierre registrado en `2fcf54d`;
+- eliminado `tools/apply_phase8_provider_rating_ui.php` en `1bf5d8e`;
+- eliminado `tools/normalize_phase8_task4_eol.php` en `e302a49`;
+- no quedan herramientas temporales de Task 4 versionadas.
 
-Limpieza pendiente inmediata antes de Task 5:
-- eliminar `tools/apply_phase8_provider_rating_ui.php`;
-- eliminar `tools/normalize_phase8_task4_eol.php`;
-- registrar esa limpieza en este log.
+## Estado actual para retomar
+
+- Tasks 1–4: cerradas.
+- Rama de trabajo: `fase8-calidad-proveedor`.
+- Siguiente trabajo funcional: Task 5.
+- Antes de iniciar Task 5 en PC TEST: `git pull --ff-only origin fase8-calidad-proveedor` y confirmar `git status` limpio.
 
 ## Próximas tareas del plan
 
