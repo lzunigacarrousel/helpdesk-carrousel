@@ -96,45 +96,46 @@ Pendiente aún:
 
 En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
 
-## Historial y Excel por proveedor — TDD ✅
+## Historial y Excel por proveedor — TDD ✅ CERRADO TÉCNICAMENTE
 
-Hallazgo: en `Proveedores registrados` cada fila solo tenía `Editar`; el informe global ya soportaba `provider=<id>` y la exportación XLSX reutiliza esos filtros.
+Hallazgo inicial: en `Proveedores registrados` cada fila solo tenía `Editar`; el informe global ya soportaba `provider=<id>` y la exportación XLSX reutiliza esos filtros.
 
-Diseño aprobado:
+Diseño aprobado e implementado:
 - `Historial` → `/admin/externos/informe?provider=<id>`;
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
 - conservar `Editar`;
 - sin BD nueva ni controller nuevo.
 
-RED confirmado en `tests/phase8_provider_rating_report_regression.php`: fallaron únicamente las 4 expectativas nuevas de Historial/Excel.
+RED:
+- `tests/phase8_provider_rating_report_regression.php` falló únicamente en las 4 expectativas nuevas de Historial/Excel.
 
-GREEN confirmado en PC TEST:
+GREEN:
 - sintaxis de `app/Views/admin/externals.php`: OK;
 - test de informe Fase 8: GREEN completo;
-- `git diff --check`: sin errores;
-- único archivo funcional modificado: `app/Views/admin/externals.php`.
+- `git diff --check`: sin errores.
 
-### Consolidación funcional ✅
+Consolidación funcional:
+- commit `a060825 ui: agregar historial y excel por proveedor`.
 
-Commit realizado y subido:
-- `a060825 ui: agregar historial y excel por proveedor`.
+Limpieza:
+- log del commit funcional: `aa9a03a docs: registrar commit historial y excel por proveedor`;
+- herramienta temporal eliminada: `6e5d691 chore: retirar aplicador temporal historial proveedor`;
+- `tools/apply_phase8_provider_row_actions.php` ya no debe permanecer en la rama.
 
-Estado reportado por PC TEST después del push:
-- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
-- working tree limpio.
-
-Pendiente inmediato de este subcambio:
-- retirar `tools/apply_phase8_provider_row_actions.php` del repositorio;
-- registrar la limpieza;
-- sincronizar PC TEST;
-- validar visualmente que cada proveedor muestre `Historial · Excel · Editar` y que ambos enlaces funcionen.
+Siguiente validación manual de este subcambio:
+1. sincronizar PC TEST con la rama;
+2. abrir `Administración → Proveedores externos`;
+3. confirmar visualmente `Historial · Excel · Editar` en cada fila;
+4. abrir `Historial` y confirmar que el filtro deja seleccionado el proveedor correcto y solo muestra sus ciclos;
+5. usar `Excel` y confirmar descarga individual del mismo proveedor;
+6. enviar captura de la fila y del informe filtrado.
 
 ## Estado exacto actual
 
 - Tasks 1–7: ✅ cerradas.
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
-- Historial/Excel por proveedor: ✅ funcionalmente consolidado en `a060825`, pendiente limpieza de herramienta y validación visual.
+- Historial/Excel por proveedor: ✅ código consolidado y herramienta temporal retirada; ⏳ validación visual/funcional real pendiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
