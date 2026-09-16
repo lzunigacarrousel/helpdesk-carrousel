@@ -115,7 +115,7 @@ Consolidación y limpieza:
 - limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI, Manual y cierre documental 🚧 RED CONFIRMADO
+### Task 7 — CI, Manual y cierre documental 🚧 RED CONFIRMADO / GREEN PREPARADO
 
 Objetivo:
 - incorporar todos los gates de Fase 8 al CI;
@@ -144,22 +144,32 @@ Comprobaciones que ya estaban GREEN antes del cambio documental:
 - README ya contiene `BD: sin cambios` por fases anteriores;
 - CHANGELOG ya contiene referencias generales de BD sin cambios.
 
-GREEN mínimo pendiente:
-1. agregar seis pasos de CI para Fase 8, sin retirar gates Fase 7;
-2. cambiar roadmap README: Fase 8 implementada, Fase 9 siguiente;
-3. agregar sección formal Fase 8 al README con eventos inmutables y `BD: sin cambios`;
-4. agregar entrada Fase 8 al CHANGELOG incluyendo separación de `ticket_feedback.nps_score`;
-5. agregar sección interna al Manual con escala, comentario obligatorio, corrección, `Sin evaluar` y privacidad;
-6. ejecutar closeout regression y gates acumulados antes de commit.
+GREEN preparado:
+- creado `tools/apply_phase8_closeout.php`;
+- commit del aplicador: `d527dd1 tool: aplicar cierre documental fase 8`;
+- aplicador tolerante a CRLF y sin cambios de BD;
+- CI agregará los seis gates Fase 8 manteniendo Fase 7;
+- README marcará Fase 8 implementada, Fase 9 siguiente y documentará escala, eventos inmutables, scope, privacidad, reporte/XLSX y `BD: sin cambios`;
+- CHANGELOG agregará Fase 8 con ambos eventos y separación explícita de `ticket_feedback.nps_score`;
+- Manual agregará sección interna `Calidad del proveedor` con escala 1–5, comentario obligatorio, correcciones, `Sin evaluar`, privacidad e informe.
+
+Siguiente acción exacta en PC TEST:
+1. `git pull --ff-only origin fase8-calidad-proveedor`;
+2. ejecutar `tools/apply_phase8_closeout.php`;
+3. validar sintaxis de `app/Views/help/manual.php`;
+4. ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
+5. ejecutar regresiones acumuladas Fase 8 + Fase 7 + quality gates relevantes;
+6. `git diff --check` y `git status`;
+7. si GREEN, registrar resultado antes del commit documental.
 
 ## Estado actual para retomar
 
 - Tasks 1–6: cerradas y limpias.
-- Task 7: RED confirmado; GREEN documental/CI pendiente.
+- Task 7: RED confirmado; GREEN preparado y pendiente ejecutar en PC TEST.
 - Rama: `fase8-calidad-proveedor`.
 - PC TEST quedó `working tree clean` tras ejecutar el RED.
 
 ## Próximas tareas del plan
 
-- Task 7: aplicar CI/README/CHANGELOG/Manual, llevar closeout a GREEN y consolidar.
+- Task 7: ejecutar GREEN, consolidar CI/documentación y limpiar aplicador temporal.
 - Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
