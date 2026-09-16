@@ -76,7 +76,7 @@ Limpieza:
 - limpieza registrada en `f0503aa`;
 - no quedan herramientas temporales de Task 5.
 
-### Task 6 — Seguridad, historial y casos límite 🚧 RED PREPARADO
+### Task 6 — Seguridad, historial y casos límite 🚧 RED CONFIRMADO
 
 Objetivo:
 - centralizar el criterio de ciclo evaluable en `ProviderRatingService::isCycleEvaluable()`;
@@ -86,38 +86,46 @@ Objetivo:
 - reutilizar el criterio en persistencia y UI;
 - reforzar no fuga a proveedor/solicitante.
 
-Cambios de test preparados, sin tocar aún código funcional:
-- `02e7252 test: exigir criterio central de ciclo evaluable` actualiza `tests/phase8_provider_rating_service_regression.php`;
-- `ad55f02 test: exigir criterio evaluable en persistencia` actualiza `tests/phase8_provider_rating_controller_regression.php`;
-- `3915dba test: endurecer no fuga y criterio visual` actualiza `tests/phase8_provider_rating_ui_regression.php`.
+Tests RED preparados previamente:
+- `02e7252 test: exigir criterio central de ciclo evaluable`;
+- `ad55f02 test: exigir criterio evaluable en persistencia`;
+- `3915dba test: endurecer no fuga y criterio visual`.
 
-Nuevas expectativas RED:
-- existe `isCycleEvaluable()`;
-- cierre explícito con `grant_event_id + revoke_event_id + revoked_at` sí es evaluable;
-- cierre implícito por nuevo grant no es evaluable;
-- ciclo activo no es evaluable;
-- persistencia reutiliza el criterio central;
-- corrección obsoleta no desplaza vigente;
+RED confirmado en PC TEST:
+- rama sincronizada y `working tree clean` antes de ejecutar;
+- `phase8_provider_rating_service_regression.php`: 4 fallos esperados;
+- `phase8_provider_rating_controller_regression.php`: 2 fallos esperados;
+- `phase8_provider_rating_ui_regression.php`: 2 fallos esperados.
+
+Fallos exactos confirmados:
+- falta `ProviderRatingService::isCycleEvaluable()`;
+- no existe aún una única regla reutilizable para distinguir cierre explícito, cierre implícito y ciclo activo;
+- persistencia todavía no reutiliza ese criterio central;
+- vista interna todavía no llama `ProviderRatingService::isCycleEvaluable()`.
+
+Defensas que ya permanecen GREEN durante el RED:
+- corrección obsoleta no desplaza la valoración vigente;
 - rating de otro proveedor no se aplica al ciclo;
-- la vista interna reutiliza `ProviderRatingService::isCycleEvaluable()`;
-- proveedor externo no recibe score/comentario;
-- solicitante queda fuera del bloque interno de calidad.
+- proveedor externo no recibe score ni comentario interno;
+- solicitante queda fuera del bloque de calidad;
+- controller carga calidad solo para soporte interno;
+- roles, CSRF, scope, auditoría, rutas e inmutabilidad siguen verdes.
 
-Siguiente acción exacta en PC TEST:
-1. `git pull --ff-only origin fase8-calidad-proveedor`;
-2. confirmar `git status` limpio;
-3. ejecutar `tests/phase8_provider_rating_service_regression.php`;
-4. ejecutar `tests/phase8_provider_rating_controller_regression.php`;
-5. ejecutar `tests/phase8_provider_rating_ui_regression.php`;
-6. confirmar RED esperado únicamente en `isCycleEvaluable`/reutilización central antes de implementar GREEN.
+GREEN mínimo a implementar:
+1. agregar `public static function isCycleEvaluable(array $cycle): bool`;
+2. exigir `grant_event_id>0`, `revoke_event_id>0` y `revoked_at` no vacío;
+3. reutilizar `isCycleEvaluable()` dentro de `requireEvaluableCycle()` para `rateCycle()` y `correctCycle()`;
+4. reutilizar `ProviderRatingService::isCycleEvaluable($cycle)` en `tickets/show.php` para decidir si aparecen formularios;
+5. no modificar BD ni visibilidad externa.
 
 ## Estado actual para retomar
 
 - Tasks 1–5: cerradas y limpias.
-- Task 6: RED preparado remotamente; pendiente ejecutar en PC TEST.
+- Task 6: RED confirmado; GREEN pendiente.
 - Rama: `fase8-calidad-proveedor`.
+- PC TEST estaba limpio al iniciar Task 6.
 
 ## Próximas tareas del plan
 
-- Task 6: ejecutar RED, implementar `isCycleEvaluable()` y defensas, correr GREEN acumulado.
+- Task 6: implementar GREEN mínimo, correr acumulado Fase 8 y regresiones, consolidar y limpiar herramienta temporal si se usa.
 - Task 7+: CI/cierre documental y gate integral según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
