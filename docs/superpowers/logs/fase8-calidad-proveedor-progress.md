@@ -216,10 +216,9 @@ Hallazgo visual pendiente:
 - debe corregirse antes de cerrar Task 8 y repetirse el gate técnico si se modifica código.
 
 Hallazgo funcional adicional — gestión de proveedores:
-- ⚠️ en `Proveedores registrados` cada fila solo ofrece actualmente la acción `Editar`;
+- ⚠️ en `Proveedores registrados` cada fila solo ofrecía inicialmente la acción `Editar`;
 - existe un enlace global `Ver historial` en el encabezado de la pantalla de proveedores;
-- el informe global `/admin/externos/informe` ya soporta filtro `provider=<id>` y el XLSX reutiliza los mismos filtros;
-- por tanto, actualmente no hay acceso directo desde cada proveedor a **su historial de casos** ni a una **descarga Excel individual**;
+- el informe global `/admin/externos/informe` soporta filtro `provider=<id>` y el XLSX reutiliza los mismos filtros;
 - diseño aprobado: agregar acciones `Historial` y `Excel` por fila, reutilizando el informe existente con `provider=<id>`, junto a `Editar`;
 - no requiere cambios de BD ni nuevo controller.
 
@@ -228,40 +227,49 @@ Hallazgo funcional adicional — gestión de proveedores:
 Ejecutado `tests/phase8_provider_rating_report_regression.php` tras agregar las nuevas expectativas.
 
 Resultado:
-- todas las validaciones existentes de filtros, resumen, informe y XLSX permanecen `[OK]`;
-- fallan únicamente las 4 expectativas nuevas:
+- todas las validaciones existentes de filtros, resumen, informe y XLSX permanecieron `[OK]`;
+- fallaron únicamente las 4 expectativas nuevas:
   - `Directorio enlaza historial filtrado por proveedor`;
   - `Directorio muestra acción Historial por proveedor`;
   - `Directorio enlaza Excel filtrado por proveedor`;
-  - `Directorio muestra acción Excel por proveedor`;
-- working tree local limpio y sincronizado con `origin/fase8-calidad-proveedor`.
+  - `Directorio muestra acción Excel por proveedor`.
 
 Interpretación:
-- ✅ RED correcto: la prueba falla exclusivamente porque la UI por fila todavía no implementa las acciones aprobadas.
+- ✅ RED correcto: la prueba falló exclusivamente porque la UI por fila todavía no implementaba las acciones aprobadas.
 
-#### GREEN preparado — acciones por proveedor ⏳ pendiente de ejecutar
+#### GREEN TDD — acciones por proveedor ✅ confirmado en PC TEST
 
-Aplicador temporal creado:
+Aplicador temporal ejecutado:
 - `tools/apply_phase8_provider_row_actions.php`;
-- commit remoto: `b6637d6 tool: aplicar historial y excel por proveedor`.
-
-El aplicador hará únicamente:
-- agregar `Historial` por fila hacia `/admin/externos/informe?provider=<id>`;
-- agregar `Excel` por fila hacia `/admin/externos/informe/exportar?provider=<id>`;
-- conservar `Editar` en la misma celda de acciones;
-- agregar un contenedor flex con wrap para evitar desbordes visuales;
-- validar sintaxis PHP al terminar;
 - 0 cambios de BD.
 
+Cambio local aplicado únicamente en `app/Views/admin/externals.php`:
+- `Historial` por fila hacia `/admin/externos/informe?provider=<id>`;
+- `Excel` por fila hacia `/admin/externos/informe/exportar?provider=<id>`;
+- `Editar` se conserva en la misma celda;
+- contenedor flex con wrap para evitar desbordes.
+
+Verificación ejecutada:
+- sintaxis PHP de `app/Views/admin/externals.php`: GREEN;
+- `tests/phase8_provider_rating_report_regression.php`: GREEN completo;
+- las 4 nuevas validaciones `Historial`/`Excel`: `[OK]`;
+- todas las validaciones previas del informe permanecen `[OK]`;
+- `git diff --check`: sin errores;
+- `git status`: únicamente `app/Views/admin/externals.php` modificado y sin stage.
+
+Interpretación:
+- ✅ GREEN correcto y aislado;
+- ✅ no hubo regresión del informe ni XLSX;
+- ⏳ falta consolidar el archivo funcional en Git y retirar la herramienta temporal después del commit.
+
 Siguiente paso manual/técnico exacto:
-1. sincronizar la rama;
-2. ejecutar `tools/apply_phase8_provider_row_actions.php`;
-3. correr sintaxis de `app/Views/admin/externals.php`;
-4. repetir `phase8_provider_rating_report_regression.php` y validar GREEN;
-5. revisar `git diff --check` y `git status`;
-6. no hacer commit funcional hasta registrar el GREEN en este log;
-7. después continuar la validación de corrección sin comentario y demás checks funcionales;
-8. corregir el detalle visual actor/fecha antes del cierre final.
+1. actualizar este log antes del commit funcional — realizado;
+2. consolidar únicamente `app/Views/admin/externals.php`;
+3. dejar `tools/apply_phase8_provider_row_actions.php` fuera del commit funcional;
+4. después registrar el commit y retirar la herramienta temporal;
+5. validar visualmente los botones `Historial`, `Excel`, `Editar` en PC TEST;
+6. continuar la prueba de corrección sin comentario y demás checks funcionales;
+7. corregir el detalle visual actor/fecha antes del cierre final.
 
 ## Estado exacto para retomar
 
@@ -269,8 +277,7 @@ Siguiente paso manual/técnico exacto:
 - Task 8 técnico: ✅ GREEN base.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Validación manual confirmada hasta primera valoración persistida.
-- RED de acciones Historial/Excel por proveedor: ✅ confirmado.
-- GREEN de acciones Historial/Excel: ⏳ preparado, pendiente de ejecutar en PC TEST.
+- Acciones Historial/Excel por proveedor: ✅ GREEN técnico, pendiente de commit funcional y validación visual.
 - Hay un hallazgo visual menor actor/fecha pendiente de corrección.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
