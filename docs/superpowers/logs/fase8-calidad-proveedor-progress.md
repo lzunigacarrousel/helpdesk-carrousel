@@ -74,64 +74,77 @@ Implementado:
 
 `phase8_provider_rating_controller_regression.php`, dominio, identidad y `project_quality.php`: verdes.
 
-### Task 4 — UI interna de calidad del proveedor 🚧 EN CURSO
-
-Test RED creado: `tests/phase8_provider_rating_ui_regression.php`.
+### Task 4 — UI interna de calidad del proveedor ✅ GREEN, PENDIENTE DE COMMIT LOCAL
 
 Arquitectura confirmada:
 - `/tickets/view` entra por `TicketViewController`.
-- Usuarios internos son delegados a `TicketController::show()`.
-- Usuarios EXTERNAL renderizan `tickets/show_external.php` por separado.
-- Ratings se cargan solo en `TicketController::show()` y `tickets/show.php`.
+- usuarios internos son delegados a `TicketController::show()`.
+- usuarios `EXTERNAL` renderizan `tickets/show_external.php` por separado.
+- ratings se cargan solo en `TicketController::show()` y `tickets/show.php`.
 - `show_external.php` permanece sin score, comentario ni bloque de calidad.
 
-#### Avance GREEN funcional
+Implementado localmente:
+- `TicketController` carga `ProviderParticipationService` y `ProviderRatingService`;
+- obtiene `rowsForTicket($id)` y los enriquece con valoraciones;
+- expone `providerCycles`, `providerRatingLabels` y `canRateProviders`;
+- bloque interno `#provider-quality`;
+- ciclo activo muestra que aún no puede evaluarse;
+- ciclo finalizado sin valoración permite `Evaluar proveedor`;
+- ciclo evaluado permite `Registrar corrección`;
+- formularios conservan `external_user_id`, `grant_event_id` y `corrected_rating_event_id`;
+- muestra score vigente, etiqueta, actor, fecha y comentario interno;
+- la UI explica que el comentario es obligatorio para 1–2 estrellas y toda corrección;
+- proveedor externo y solicitante no reciben datos internos de valoración.
 
-El aplicador corregido tolerante a CRLF se ejecutó correctamente:
-- `[OK] TicketController importa servicios de calidad: ya aplicado.`
-- `[OK] TicketController carga ciclos y valoraciones.`
-- `[OK] TicketController expone calidad a la vista.`
-- `[OK] Vista interna incorpora calidad del proveedor.`
-- sintaxis PHP de controller y vista: OK.
+#### RED/GREEN de Task 4
 
-`tests/phase8_provider_rating_ui_regression.php`: completamente GREEN.
+RED inicial:
+- 23 validaciones fallaron, todas correspondientes a UI interna inexistente.
+- validaciones de no fuga externa ya estaban GREEN.
 
-También permanecen GREEN:
-- `phase8_provider_rating_controller_regression.php`
-- `phase8_provider_rating_service_regression.php`
-- `phase8_provider_cycle_identity_regression.php`
-- `phase7_provider_participation_regression.php`
-- `project_quality.php`
+GREEN actual:
+- `phase8_provider_rating_ui_regression.php`: completamente GREEN.
+- `phase8_provider_rating_controller_regression.php`: GREEN.
+- `phase8_provider_rating_service_regression.php`: GREEN.
+- `phase8_provider_cycle_identity_regression.php`: GREEN.
+- regresión Fase 7 de proveedores: GREEN.
+- `project_quality.php`: GREEN en la ejecución completa previa de Task 4.
+- sintaxis PHP de `TicketController.php` y `show.php`: GREEN.
 
-La UI interna ya cubre:
-- bloque `#provider-quality`;
-- ciclo activo no evaluable;
-- primera evaluación de ciclo finalizado;
-- corrección de valoración existente;
-- score, comentario, actor y fecha vigentes;
-- referencia exacta a `external_user_id`, `grant_event_id` y rating vigente;
-- regla visible de comentario obligatorio;
-- no fuga a proveedor externo.
+#### Blocker CRLF/LF — RESUELTO ✅
 
-#### Blocker menor actual: normalización EOL
+Problema detectado:
+- el primer aplicador falló en Windows porque un ancla multilínea esperaba LF y la copia local usaba CRLF;
+- luego `git diff --check` reportó `trailing whitespace` por `^M` en las líneas nuevas de `show.php`.
 
-`git diff --check` detectó `trailing whitespace` en las líneas nuevas de `app/Views/tickets/show.php`, mostrando `^M` al final.
+Correcciones realizadas:
+- `tools/apply_phase8_provider_rating_ui.php` quedó idempotente y tolerante a CRLF;
+- se creó `tools/normalize_phase8_task4_eol.php`;
+- ambos archivos modificados de Task 4 fueron normalizados a LF.
 
-**Causa raíz:** el aplicador preservó CRLF de Windows al insertar el bloque, mientras el diff espera LF para las líneas versionadas. No es un fallo funcional ni de PHP; es únicamente normalización de finales de línea antes del commit.
+Verificación después de normalizar:
+- no aparecieron nuevamente errores de `trailing whitespace`;
+- `git diff --check` solo mostró advertencias de Git para Windows: `LF will be replaced by CRLF the next time Git touches it`;
+- esas advertencias provienen de la configuración de finales de línea de Git y no constituyen un fallo de `diff --check`.
 
 **Estado local actual:**
-- `app/Controllers/TicketController.php` modificado.
-- `app/Views/tickets/show.php` modificado.
-- no hay commit local todavía para Task 4.
+- `app/Controllers/TicketController.php` modificado y listo para commit;
+- `app/Views/tickets/show.php` modificado y listo para commit;
+- working tree sin otros cambios funcionales locales;
+- herramientas temporales siguen versionadas remotamente hasta consolidar el cambio funcional.
 
-**Corrección preparada:**
-- creado `tools/normalize_phase8_task4_eol.php`;
-- normaliza `TicketController.php` y `show.php` a LF;
-- no toca BD;
-- después debe repetirse `git diff --check` y los gates de Task 4.
+**Siguiente acción exacta:**
+1. traer esta actualización del log con `git pull --ff-only origin fase8-calidad-proveedor`;
+2. stage de `TicketController.php` y `show.php`;
+3. `git diff --cached --check`;
+4. commit `ui: evaluar proveedores desde el ticket`;
+5. push de la rama;
+6. confirmar `git status` limpio;
+7. actualizar este log marcando Task 4 cerrada por commit;
+8. eliminar las herramientas temporales de Task 4;
+9. iniciar Task 5 con RED para informe + filtro + resumen + XLSX.
 
 ## Próximas tareas del plan
 
-- Task 4: ejecutar normalizador EOL, verificar nuevamente y cerrar commit.
 - Task 5: integrar rating en Informe de proveedores + filtro + resumen + XLSX.
 - Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
