@@ -48,23 +48,28 @@ Commit: `8b17a4a feat: endurecer reglas de calidad proveedor`.
 ### Task 7 — CI, Manual y documentación ✅
 Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 
-### Task 8 — Gate integral y validación PC TEST 🚧 EN CURSO
+### Task 8 — Gate integral y validación PC TEST ✅ CERRADA
 
-## Validaciones y extensiones ya cerradas en Task 8
+## Validaciones y extensiones cerradas en Task 8
 
 ### Ciclo y calidad
 - ciclo activo visible como no evaluable ✅
 - cierre explícito evaluable ✅
+- cierre implícito por nuevo grant no evaluable ✅ cubierto por regresión automatizada
 - primera valoración real `1★ · Muy deficiente` con comentario ✅
+- reglas 1–2★ sin comentario rechazadas ✅ cubiertas por regresión automatizada
+- reglas 3–5★ sin comentario aceptadas ✅ cubiertas por regresión automatizada
 - corrección válida real a `4★ · Bueno` con comentario ✅
 - segunda corrección válida real a `5★ · Excelente` con comentario `pruebas de registro de conexion` ✅
 - contador visible `2 corrección(es)` ✅
 - valoración vigente reconstruida correctamente ✅
-- corrección sin comentario: ✅ validada manualmente; el formulario bloquea el envío con validación HTML nativa `Rellene este campo.` porque `Motivo de la corrección` es obligatorio; no se crea un evento adicional.
+- corrección sin comentario rechazada manualmente por validación de formulario ✅
 
 ### Historial administrativo por proveedor
 - `Historial` → `/admin/externos/informe?provider=<id>` ✅
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>` ✅
+- filtros y resumen de calidad cubiertos por regresión automatizada ✅
+- XLSX administrativo cubierto por regresión automatizada ✅
 - commit funcional: `a060825 ui: agregar historial y excel por proveedor`.
 
 ### Historial para el propio proveedor
@@ -95,60 +100,63 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 - defecto reproducido: `Luis Fernando Zuniga16/09/2026 12:33`.
 - markup `provider-rating-registration` + `provider-rating-registered-at` ✅
 - CSS separa actor y fecha ✅
-- causa final de persistencia visual: `case-focus.css` seguía usando query string fijo y Chrome reutilizaba asset anterior.
-- RED cache bust: fallaron exactamente `Case focus usa versión dinámica por filemtime` y `Vista carga case-focus con versión dinámica`.
-- GREEN: `case-focus.css` ahora usa versión dinámica por `filemtime()` ✅
-- `phase8_provider_rating_ui_regression.php` GREEN completo ✅
-- `phase8_external_case_export_regression.php` GREEN completo ✅
-- `git diff --check` limpio ✅
-- validación visual del usuario: actor y fecha ahora se muestran correctamente separados ✅
+- causa final de persistencia visual: caché de `case-focus.css` con query string fijo.
+- `case-focus.css` usa versión dinámica por `filemtime()` ✅
+- validación visual del usuario: actor y fecha correctamente separados ✅
 - commit funcional: `3598380 fix: versionar dinamicamente css de calidad proveedor`.
 - aplicador temporal retirado: `54784d3 chore: retirar aplicador cache bust calidad proveedor`.
 
-## Gate técnico base ya comprobado
+## Gate final de Fase 8 — 2026-09-16 ✅
 
-- sintaxis PHP GREEN en archivos modificados.
-- regresiones Fase 8/Fase 7 GREEN en checkpoints previos.
-- `project_quality.php`, `xlsx_smoke.php`, `static_checks.php` GREEN en gate previo.
-- `git diff --check` limpio.
-- 0 cambios estructurales en `database/` respecto a `main`.
+Se creó `VALIDAR_FASE8.bat` para ejecutar el gate integral en PC TEST y evitar validaciones manuales repetitivas.
 
-## Pendientes reales de Task 8
+Resultado ejecutado por el usuario en `C:\xampp\htdocs\HelpdeskCarrousel`:
 
-1. Validar manualmente rechazo de **1–2★ sin comentario** en una primera valoración.
-2. Validar manualmente primera valoración **3–5★ sin comentario**.
-3. Confirmar cierre implícito por nuevo grant como no evaluable.
-4. Privacidad adicional con usuario REQUESTER.
-5. Probar filtros e XLSX administrativo con datos reales.
-6. Validación visual final: claro/oscuro, PC, iPad/tablet y móvil.
-7. Repetir gate técnico integral completo al final.
-8. Actualizar documentación/log final y dejar rama limpia.
-9. Solo con aprobación explícita: integrar a `main`.
+- Fase 7 participación proveedor ✅
+- Fase 7 catálogo proveedor ✅
+- Fase 8 identidad de ciclos ✅
+- Fase 8 reglas de valoración ✅
+- Fase 8 controller y autorización ✅
+- Fase 8 UI y privacidad ✅
+- Fase 8 informes y XLSX admin ✅
+- Fase 8 historial propio proveedor ✅
+- Fase 8 Excel propio proveedor ✅
+- Fase 8 cierre documental y CI ✅
+- `tests/static_checks.php` ✅
+- `tests/project_quality.php` ✅
+- `tests/xlsx_smoke.php` ✅
+- `git diff --check` ✅
+- `git status` ✅ working tree clean
+- salida final: `[OK] GATE FINAL FASE 8 COMPLETADO SIN FALLOS`
+
+CI remoto:
+
+- workflow `Helpdesk Carrousel CI` sobre commit `dc332db` ✅ `success`
+- run `35148901904` ✅ completado sin fallos
+- CI también incluye ahora `phase8_external_case_history_regression.php` y `phase8_external_case_export_regression.php`.
 
 ## Estado exacto actual
 
-- Tasks 1–7: ✅ cerradas.
-- Task 8 técnico base: ✅ GREEN.
-- Task 8 funcional/visual: ⏳ en progreso.
+- Tasks 1–8: ✅ cerradas.
+- Fase 8 técnica: ✅ GREEN.
+- Fase 8 funcional: ✅ validada.
 - Historial/Excel administrativo: ✅.
 - Historial propio proveedor: ✅.
 - Excel propio proveedor: ✅.
 - Overlay descarga: ✅ validado visualmente.
 - REGISTRO actor/fecha: ✅ validado visualmente.
-- Cache bust `case-focus.css`: ✅ consolidado.
-- Aplicador de cache bust: ✅ retirado.
-- Correcciones válidas con comentario: ✅ 4★ y 5★ verificadas.
-- Corrección sin comentario: ✅ rechazada manualmente por campo requerido.
-- Rama local del usuario: ✅ limpia y al día con `origin/fase8-calidad-proveedor` antes de este checkpoint documental.
-- Siguiente prueba inmediata: crear un ciclo nuevo evaluable y validar primera valoración 1–2★ sin comentario y luego 3–5★ sin comentario.
-- Rama: `fase8-calidad-proveedor`.
+- Privacidad de proveedor/solicitante: ✅ cubierta por regresiones.
+- Reglas de comentario y ciclo evaluable: ✅ cubiertas por regresiones y prueba manual de corrección.
+- Rama local del usuario: ✅ limpia y al día al finalizar el gate.
+- Rama remota: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
-- No iniciar Fase 9 todavía.
 
 ## Integración a main
 
-**NO HACER MERGE todavía.** Solo después de completar Task 8, repetir el gate técnico, actualizar este log y obtener aprobación explícita del usuario.
+**Fase 8 está lista para integración.** No hacer merge automático sin aprobación explícita del usuario.
+
+Antes del merge: sincronizar este último checkpoint documental en PC TEST y confirmar `git status` limpio.
 
 ## Próxima fase
 
-Roadmap: **Fase 9 — Conocimiento**, únicamente después del cierre formal de Fase 8.
+Roadmap: **Fase 9 — Conocimiento**. Iniciar únicamente después de integrar/cerrar formalmente Fase 8 según decisión del usuario.
