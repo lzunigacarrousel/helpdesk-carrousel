@@ -71,6 +71,26 @@ Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, 
 ### Checkpoint D — historial externo visible ✅
 Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
+### Checkpoint E — Excel externo real ✅
+Validación real del archivo descargado `helpdesk_mis_casos_20260916_120336.xlsx`:
+- workbook válido y abrible;
+- hoja única `Mis casos`;
+- encabezados exactos: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- fila de historial presente para `HD-2026-000001`;
+- asunto `necesito agregar un nit 123456`;
+- categoría `Programas y software`;
+- ubicación `Andaria`;
+- participación `Finalizada`;
+- asignado `15/09/2026 13:20`;
+- finalizado `16/09/2026 09:37`;
+- no aparecen estrellas, score, comentario interno, correo del solicitante ni resolución.
+
+Incidencia observada en captura:
+- Excel mostró “no hemos encontrado” para `helpdesk_proveedores_20260916_104604.xlsx`;
+- ese nombre corresponde a un archivo administrativo anterior, no al nuevo Excel externo;
+- el archivo externo nuevo sí existe y fue validado correctamente como `helpdesk_mis_casos_20260916_120336.xlsx`;
+- no se identifica fallo del exportador externo en esta evidencia.
+
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
@@ -83,7 +103,7 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO Y LIMPIO
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
 
 ### Diseño
 - botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
@@ -99,21 +119,14 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 `tests/phase8_external_case_export_regression.php` inició con 12 fallos esperados y 4 controles de privacidad ya GREEN.
 
 ### GREEN TDD ✅ CONFIRMADO EN PC TEST
-Primera ejecución de `tools/apply_phase8_external_case_export.php`:
-- controller, router y vista: sintaxis `[OK]`;
 - `tests/phase8_external_case_export_regression.php`: GREEN completo;
 - `tests/phase8_external_case_history_regression.php`: GREEN completo;
 - `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
 - `tests/xlsx_smoke.php`: GREEN completo;
-- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows.
-
-Segunda ejecución accidental del aplicador:
-- respondió `[ERROR] Ya existe ExternalCaseHistoryController.php` porque es un aplicador de una sola ejecución;
-- no alteró los cambios ya aplicados;
-- todas las pruebas se ejecutaron nuevamente y permanecieron GREEN.
+- `git diff --check`: sin errores.
 
 ### Consolidación funcional ✅
-Commit funcional confirmado y pusheado:
+Commit funcional:
 - `56615a6 feat: exportar historial de casos para proveedores`.
 
 Archivos funcionales:
@@ -126,12 +139,9 @@ Archivos funcionales:
 - aplicador temporal retirado: `43b6df9 chore: retirar aplicador excel externo proveedor`;
 - `tools/apply_phase8_external_case_export.php` ya no permanece en la rama.
 
-### Siguiente paso exacto
-1. sincronizar PC TEST;
-2. iniciar sesión como `Pruebas Comunicacion`;
-3. confirmar visualmente botón `Descargar Excel` en `Mis casos`;
-4. descargar el XLSX;
-5. abrirlo y validar únicamente las 7 columnas seguras y las participaciones del usuario autenticado.
+### Validación real ✅
+- descarga real confirmada con `Pruebas Comunicacion`;
+- XLSX real inspeccionado y contenido seguro confirmado en Checkpoint E.
 
 ## Pendientes de Task 8
 - rechazo de 1–2★ sin comentario;
@@ -141,10 +151,13 @@ Archivos funcionales:
 - cierre implícito no evaluable;
 - privacidad REQUESTER adicional;
 - filtros del informe y XLSX administrativo en uso real;
-- validar XLSX externo real;
 - corregir separación visual actor/fecha en `REGISTRO`;
 - visual claro/oscuro, PC, iPad/tablet y móvil;
 - repetir gate técnico integral al final.
+
+## Hallazgo visual pendiente
+
+En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
 
 ## Estado exacto actual
 - Tasks 1–7: ✅ cerradas.
@@ -152,7 +165,7 @@ Archivos funcionales:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado y limpio; pendiente prueba real del archivo descargado.
+- Excel propio del proveedor: ✅ consolidado, limpio y validado con archivo real.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
