@@ -44,6 +44,8 @@ Usar `ticket_events` como fuente de verdad de la valoración.
 
 No se crea una tabla nueva en Fase 8. La necesidad queda cubierta por eventos inmutables asociados al ticket y al ciclo exacto del proveedor.
 
+El esquema actual ya permite esta extensión sin cambio estructural: `ticket_events.event_type` es `VARCHAR(80)` y `metadata_json` es `LONGTEXT`, por lo que los nuevos tipos de evento y su payload caben en la estructura vigente.
+
 ### Identidad del ciclo
 
 Cada evaluación referencia de forma inequívoca:
@@ -205,8 +207,8 @@ Fase 8 enriquece esos ciclos con:
 El informe añade:
 
 - valoración individual vigente por ciclo;
-- filtro de valoración si aporta valor sin sobrecargar la UI;
-- promedio por proveedor calculado solo con ciclos evaluados;
+- filtro `Valoración` con opciones `Todas`, `Sin evaluar`, `1★`, `2★`, `3★`, `4★`, `5★`;
+- promedio calculado solo con ciclos evaluados dentro del conjunto filtrado;
 - cantidad de ciclos evaluados;
 - cantidad de ciclos sin evaluar.
 
@@ -279,7 +281,7 @@ Mostrar:
 
 ### Por proveedor
 
-Calcular:
+Calcular sobre los ciclos incluidos por los filtros actuales:
 
 - promedio de valoraciones vigentes;
 - ciclos evaluados;
@@ -290,7 +292,7 @@ No calcular promedio sobre:
 - ciclos sin evaluación;
 - versiones anteriores corregidas.
 
-La exportación XLSX del Informe de proveedores debe usar el mismo dataset y las mismas reglas que la pantalla.
+La exportación XLSX del Informe de proveedores debe usar el mismo dataset, filtros y reglas que la pantalla.
 
 ## Compatibilidad con satisfacción del solicitante
 
@@ -363,6 +365,7 @@ Cubrir:
 
 Cubrir:
 
+- filtro `Valoración` por `Sin evaluar` y score 1..5;
 - promedio ignora `Sin evaluar`;
 - promedio usa solo última versión por ciclo;
 - evaluados/sin evaluar correctos;
@@ -392,7 +395,7 @@ Fase 8 se considera implementada cuando:
 4. una corrección genera otro evento y la última pasa a ser vigente;
 5. proveedor y solicitante no ven la evaluación interna;
 6. la evaluación no altera estado, SLA, resolución ni acceso del ticket;
-7. el Informe de proveedores muestra valoración por ciclo y agregados por proveedor;
-8. XLSX usa la misma lógica;
+7. el Informe de proveedores muestra valoración por ciclo, filtro de valoración y agregados por proveedor;
+8. XLSX usa la misma lógica y filtros;
 9. no hay cambios estructurales de BD;
 10. regresiones de Fase 7 y quality gates permanecen verdes.
