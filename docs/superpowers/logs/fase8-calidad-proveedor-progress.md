@@ -90,6 +90,15 @@ Incidencia previa aclarada:
 - el archivo nuevo `helpdesk_mis_casos_20260916_120336.xlsx` existe y abre correctamente;
 - no se requiere cambio adicional en `XlsxExportService` por esta incidencia.
 
+### Checkpoint F — descarga desde la propia UI ✅
+Validación nueva desde `Pruebas Comunicacion` → `Mis casos`:
+- botón `Descargar Excel` visible en la pantalla externa;
+- Chrome inicia la descarga directamente desde la UI;
+- archivo generado: `helpdesk_mis_casos_20260916_121620.xlsx`;
+- navegador muestra estado `Hecho` y tamaño aproximado 3,4 KB;
+- la descarga no requiere abrir un informe administrativo ni una ruta manual;
+- rama local confirmada sincronizada y con working tree limpio al momento de la prueba.
+
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
@@ -137,6 +146,7 @@ Archivos funcionales:
 
 ### Validación real ✅
 - descarga real confirmada con `Pruebas Comunicacion`;
+- descarga desde navegador confirmada en Checkpoint F;
 - archivo localizado en Downloads;
 - apertura directa en Microsoft Excel confirmada;
 - columnas y datos seguros verificados.
@@ -163,7 +173,7 @@ En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, po
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado, limpio y validado en Microsoft Excel.
+- Excel propio del proveedor: ✅ consolidado, limpio y validado desde navegador y Microsoft Excel.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
