@@ -124,27 +124,12 @@ Consolidación:
 
 ## Historial visible para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
 
-### Diseño seguro implementado
-
 - `Mis casos` incluye accesos vigentes e históricos revocados.
 - Métricas: `Activos`, `En espera`, `Finalizados`, `Total`.
-- Para proveedor, `Finalizados` se determina por `eta.revoked_at`, no por estado global posterior del ticket.
-- Se muestran `granted_at` y `revoked_at` como asignación/finalización de participación.
-- Un caso revocado se muestra como historial **sin enlace al detalle**.
-- No se reabre conversación, adjuntos, resolución ni cambios posteriores a la revocación.
-- No se expone score/comentario de calidad.
-- Acceso vigente conserva comportamiento actual.
-- 0 cambios de BD; se reutiliza `external_ticket_access`.
-
-### TDD y consolidación ✅
-
-- RED: 10 fallos esperados aislados al historial externo; privacidad de valoración interna `[OK]`.
-- Blocker EOL resuelto en `1800ff9 fix: tolerar EOL mixto en historial externo`.
-- GREEN: `tests/phase8_external_case_history_regression.php` completo.
-- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo.
-- commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
-- registro de consolidación: `2e48e8e docs: registrar consolidacion historial externo proveedor`.
-- aplicador temporal retirado: `b3d103a chore: retirar aplicador historial externo proveedor`.
+- Un caso revocado se muestra como historial sin enlace al detalle.
+- No expone score/comentario de calidad.
+- 0 cambios de BD.
+- GREEN técnico completo y commit funcional `2ad58d5 feat: conservar historial de casos para proveedores`.
 - validación visual real: ✅ Checkpoint D.
 
 ## Nuevo hallazgo — Excel para el propio proveedor ⚠️ EN TDD
@@ -155,9 +140,8 @@ Diseño seguro definido:
 - botón `Descargar Excel` dentro de `Mis casos` para cuentas `EXTERNAL`;
 - endpoint propio, separado del informe administrativo;
 - exportar únicamente las participaciones del usuario autenticado;
-- incluir datos visibles y operativos: ticket, asunto, categoría, ubicación, estado de participación, fecha de asignación y fecha de finalización;
+- incluir: ticket, asunto, categoría, ubicación, estado de participación, fecha de asignación y fecha de finalización;
 - no incluir valoración interna, comentario de calidad, NPS, comentarios internos, datos del solicitante, auditoría ni resolución interna;
-- no reutilizar `/admin/externos/informe/exportar` porque ese XLSX contiene métricas internas de calidad;
 - 0 cambios de BD.
 
 ### RED TDD ✅ CONFIRMADO EN PC TEST
@@ -175,19 +159,30 @@ Resultado ejecutado:
   - `[OK] Excel externo no consulta resolución interna`;
 - `git status`: working tree limpio y sincronizado.
 
-Interpretación:
-- ✅ RED correcto y aislado a la funcionalidad faltante;
-- ✅ el contrato de privacidad está definido antes de implementar;
-- ✅ listo para GREEN mínimo sin tocar BD.
+### GREEN mínimo ✅ PREPARADO
+
+Aplicador temporal:
+- `824d375 tool: aplicar excel seguro para proveedor externo`;
+- archivo `tools/apply_phase8_external_case_export.php`.
+
+El aplicador prepara únicamente:
+- `app/Controllers/ExternalCaseHistoryController.php`;
+- import y ruta `GET /mis-tickets/exportar` en `public/index.php`;
+- botón `Descargar Excel` en `app/Views/tickets/index.php`;
+- consulta limitada por `eta.user_id=?` usando `Auth::id()`;
+- XLSX con columnas seguras `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- sin consultas a comentarios, resolución ni calidad interna;
+- normalización EOL para Windows;
+- 0 cambios de BD.
 
 ### Siguiente paso exacto
 
-1. preparar GREEN mínimo con `ExternalCaseHistoryController`, ruta y botón;
-2. reutilizar `XlsxExportService` con columnas seguras;
-3. limitar consulta por `eta.user_id=?` usando el usuario autenticado;
-4. ejecutar sintaxis + `phase8_external_case_export_regression.php` + `xlsx_smoke.php` + regresión de privacidad;
+1. sincronizar PC TEST;
+2. ejecutar `tools/apply_phase8_external_case_export.php`;
+3. verificar sintaxis de controller, router y vista;
+4. ejecutar `phase8_external_case_export_regression.php`, `phase8_external_case_history_regression.php`, `phase8_provider_rating_ui_regression.php` y `xlsx_smoke.php`;
 5. `git diff --check` y `git status`;
-6. registrar GREEN antes de cualquier commit funcional;
+6. registrar GREEN antes de commit funcional;
 7. consolidar y validar descarga real con `Pruebas Comunicacion`.
 
 ## Estado exacto actual
@@ -197,7 +192,7 @@ Interpretación:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
 - Historial para el propio proveedor: ✅ consolidado, limpio y validado visualmente.
-- Excel para el propio proveedor: RED ✅ confirmado; GREEN ⏳ siguiente.
+- Excel para el propio proveedor: RED ✅ confirmado; GREEN mínimo preparado ⏳ por ejecutar en PC TEST.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
