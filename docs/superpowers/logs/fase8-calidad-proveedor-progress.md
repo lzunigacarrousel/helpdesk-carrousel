@@ -147,7 +147,7 @@ Consolidación:
 - aplicador temporal retirado: `b3d103a chore: retirar aplicador historial externo proveedor`.
 - validación visual real: ✅ Checkpoint D.
 
-## Nuevo hallazgo — Excel para el propio proveedor ⚠️
+## Nuevo hallazgo — Excel para el propio proveedor ⚠️ EN TDD
 
 La cuenta externa ya puede ver su historial, pero **no tiene descarga Excel propia**.
 
@@ -156,19 +156,35 @@ Diseño seguro definido:
 - endpoint propio, separado del informe administrativo;
 - exportar únicamente las participaciones del usuario autenticado;
 - incluir datos visibles y operativos: ticket, asunto, categoría, ubicación, estado de participación, fecha de asignación y fecha de finalización;
-- para acceso vigente puede incluir estado actual de participación; para revocado solo el cierre de participación;
 - no incluir valoración interna, comentario de calidad, NPS, comentarios internos, datos del solicitante, auditoría ni resolución interna;
 - no reutilizar `/admin/externos/informe/exportar` porque ese XLSX contiene métricas internas de calidad;
 - 0 cambios de BD.
 
-### TDD Excel externo — siguiente paso
+### RED TDD preparado ✅
 
-1. crear regresión RED dedicada para ruta, autorización, scope por usuario y privacidad del XLSX;
-2. confirmar RED en PC TEST;
-3. implementar endpoint mínimo + botón;
-4. verificar XLSX y privacidad;
-5. consolidar y limpiar herramienta temporal;
-6. validar descarga real con `Pruebas Comunicacion`.
+Creado:
+- `tests/phase8_external_case_export_regression.php`;
+- commit `bd22fcd test: definir excel seguro para proveedor externo`.
+
+La regresión exige:
+- `ExternalCaseHistoryController` dedicado;
+- ruta `GET /mis-tickets/exportar`;
+- cuenta `EXTERNAL` obligatoria;
+- scope estricto `eta.user_id=?` del usuario autenticado;
+- activas e históricas sin reabrir acceso;
+- fechas de asignación/finalización;
+- columnas seguras: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- ausencia de `provider_rating`, `requester_email`, comentarios y resoluciones;
+- botón `Descargar Excel` en `Mis casos`.
+
+### Siguiente paso exacto
+
+1. sincronizar PC TEST;
+2. ejecutar `tests/phase8_external_case_export_regression.php` y confirmar RED;
+3. registrar RED;
+4. implementar controller/ruta/botón mínimo;
+5. verificar GREEN + `xlsx_smoke.php` + privacidad;
+6. consolidar y validar descarga real con `Pruebas Comunicacion`.
 
 ## Estado exacto actual
 
@@ -177,7 +193,7 @@ Diseño seguro definido:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
 - Historial para el propio proveedor: ✅ consolidado, limpio y validado visualmente.
-- Excel para el propio proveedor: ⚠️ diseño definido; TDD RED siguiente.
+- Excel para el propio proveedor: RED preparado ✅; ejecución RED pendiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
