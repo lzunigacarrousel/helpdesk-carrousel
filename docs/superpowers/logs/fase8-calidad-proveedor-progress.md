@@ -4,6 +4,19 @@
 **Objetivo:** valoración interna 1–5 de IT por ciclo finalizado de participación de proveedor, con correcciones inmutables, captura dentro del ticket e informe de proveedores.
 **BD:** 0 cambios estructurales previstos. Fuente de verdad: `ticket_events`.
 
+## Regla operativa del log
+
+Este archivo se actualiza obligatoriamente:
+- después de cada cambio funcional relevante;
+- después de cada RED/GREEN importante;
+- al encontrar o resolver un blocker;
+- al cerrar cada Task;
+- antes de un commit de cierre importante;
+- antes de cambiar de chat;
+- antes de fusionar o eliminar la rama.
+
+No guardar secretos, credenciales ni datos sensibles.
+
 ## Diseño aprobado
 
 - Evaluación por ciclo exacto de participación.
@@ -69,29 +82,52 @@ Arquitectura confirmada:
 - `/tickets/view` entra por `TicketViewController`.
 - Usuarios internos son delegados a `TicketController::show()`.
 - Usuarios EXTERNAL renderizan `tickets/show_external.php` por separado.
-- Por tanto ratings se cargan solo en `TicketController::show()` y `tickets/show.php`; `show_external.php` debe permanecer sin ratings.
+- Ratings se cargan solo en `TicketController::show()` y `tickets/show.php`.
+- `show_external.php` permanece sin score, comentario ni bloque de calidad.
 
-#### Estado local al último corte
+#### Avance GREEN funcional
 
-Se ejecutó `tools/apply_phase8_provider_rating_ui.php` en Windows.
+El aplicador corregido tolerante a CRLF se ejecutó correctamente:
+- `[OK] TicketController importa servicios de calidad: ya aplicado.`
+- `[OK] TicketController carga ciclos y valoraciones.`
+- `[OK] TicketController expone calidad a la vista.`
+- `[OK] Vista interna incorpora calidad del proveedor.`
+- sintaxis PHP de controller y vista: OK.
 
-Resultado:
-- `[OK] TicketController importa servicios de calidad.`
-- luego falló: `TicketController carga ciclos y valoraciones: esperaba 1 coincidencia y encontro 0.`
-- `app/Controllers/TicketController.php` quedó modificado localmente solo con el import de `ProviderParticipationService` y `ProviderRatingService`.
-- `app/Views/tickets/show.php` no fue modificado todavía.
-- resto de regresiones Fase 8/Fase 7 y `project_quality.php` permanecieron verdes.
+`tests/phase8_provider_rating_ui_regression.php`: completamente GREEN.
 
-**Causa raíz:** el aplicador usa un ancla multilínea con `\n`, mientras la copia Windows puede usar CRLF (`\r\n`). El reemplazo de una sola línea funcionó; el ancla multilínea no.
+También permanecen GREEN:
+- `phase8_provider_rating_controller_regression.php`
+- `phase8_provider_rating_service_regression.php`
+- `phase8_provider_cycle_identity_regression.php`
+- `phase7_provider_participation_regression.php`
+- `project_quality.php`
 
-**Siguiente acción:** hacer `tools/apply_phase8_provider_rating_ui.php` idempotente y tolerante a CRLF; después volver a ejecutarlo sin restaurar el import ya aplicado.
+La UI interna ya cubre:
+- bloque `#provider-quality`;
+- ciclo activo no evaluable;
+- primera evaluación de ciclo finalizado;
+- corrección de valoración existente;
+- score, comentario, actor y fecha vigentes;
+- referencia exacta a `external_user_id`, `grant_event_id` y rating vigente;
+- regla visible de comentario obligatorio;
+- no fuga a proveedor externo.
+
+#### Blocker menor actual: normalización EOL
+
+`git diff --check` detectó `trailing whitespace` en las líneas nuevas de `app/Views/tickets/show.php`, mostrando `^M` al final.
+
+**Causa raíz:** el aplicador preservó CRLF de Windows al insertar el bloque, mientras el diff espera LF para las líneas versionadas. No es un fallo funcional ni de PHP; es únicamente normalización de finales de línea antes del commit.
+
+**Estado local actual:**
+- `app/Controllers/TicketController.php` modificado.
+- `app/Views/tickets/show.php` modificado.
+- no hay commit local todavía para Task 4.
+
+**Siguiente acción:** normalizar LF en los archivos modificados, volver a ejecutar `git diff --check`, repetir gates de Task 4 y después consolidar/eliminar el aplicador temporal.
 
 ## Próximas tareas del plan
 
-- Task 4: terminar UI interna y dejar pruebas verdes.
+- Task 4: normalizar EOL, verificar nuevamente y cerrar commit.
 - Task 5: integrar rating en Informe de proveedores + filtro + resumen + XLSX.
-- Task 6+: endurecimiento/gates, CI y cierre documental según plan `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
-
-## Regla de continuidad
-
-Actualizar este archivo al cerrar cada task, al encontrar un blocker importante y antes de fusionar/eliminar la rama. No guardar secretos, credenciales ni datos sensibles en este log.
+- Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
