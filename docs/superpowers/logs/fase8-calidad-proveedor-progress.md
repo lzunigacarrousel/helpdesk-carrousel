@@ -185,27 +185,50 @@ Checkpoint B — cierre explícito y formulario evaluable:
 - se muestra botón `Guardar valoración`;
 - visualmente el bloque mantiene alineación correcta en la captura de PC.
 
-Resultado de este checkpoint:
+Resultado:
 - ✅ cierre explícito reconocido como evaluable;
 - ✅ formulario de primera valoración visible;
 - ✅ escala 1–5 visible y etiquetada correctamente;
-- ✅ regla de comentario visible;
-- ⏳ falta guardar 4★ o 5★ sin comentario y comprobar valoración vigente, actor y fecha.
+- ✅ regla de comentario visible.
+
+Checkpoint C — primera valoración real guardada:
+- se registró una valoración inicial `1★ · Muy deficiente` sobre el ciclo finalizado;
+- comentario interno guardado: `esto es una prueba de valoracion`;
+- la valoración vigente se actualizó correctamente a `1★ · Muy deficiente`;
+- la vista muestra el actor `Luis Fernando Zuniga`;
+- la vista muestra la fecha `16/09/2026 09:45`;
+- el comentario interno se muestra únicamente dentro del bloque de control interno;
+- aparece la acción `Registrar corrección`, por lo que el ciclo pasa al flujo de corrección;
+- la rama local continuó limpia y sincronizada después del `git pull` previo a la prueba.
+
+Resultado:
+- ✅ primera valoración persistida correctamente;
+- ✅ 1★ con comentario obligatorio aceptado;
+- ✅ valoración vigente reconstruida y mostrada correctamente;
+- ✅ actor y fecha disponibles;
+- ✅ acción de corrección disponible;
+- ⏳ todavía falta validar rechazo de 1–2★ sin comentario;
+- ⏳ todavía falta validar primera valoración 3–5★ sin comentario;
+- ⏳ todavía falta validar corrección y su comentario obligatorio.
+
+Hallazgo visual pendiente:
+- ⚠️ en el bloque `REGISTRO`, el actor y la fecha aparecen sin separación visual suficiente: `Luis Fernando Zuniga16/09/2026 09:45`;
+- debe corregirse antes de cerrar Task 8 y repetirse el gate técnico si se modifica código.
 
 Siguiente paso manual exacto:
-1. seleccionar `4★ Bueno` o `5★ Excelente`;
-2. dejar el comentario vacío;
-3. pulsar `Guardar valoración`;
-4. confirmar que guarda sin exigir comentario;
-5. comprobar que el bloque muestra la valoración vigente, el actor que calificó y la fecha;
-6. enviar captura del resultado antes de pasar a la prueba de 1–2 estrellas.
+1. sobre este mismo ciclo, abrir `Registrar corrección`;
+2. intentar guardar una corrección sin comentario: debe rechazarse;
+3. guardar luego una corrección con comentario y confirmar que se convierte en la valoración vigente sin eliminar el historial anterior;
+4. después crear/reutilizar un nuevo ciclo explícitamente finalizado sin valoración: intentar 1★ sin comentario (debe rechazarse) y, sin perder el ciclo, cambiar a 5★ sin comentario (debe guardarse);
+5. corregir el detalle visual actor/fecha antes del cierre final.
 
 ## Estado exacto para retomar
 
 - Tasks 1–7: ✅ cerradas.
 - Task 8 técnico: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
-- Validación manual confirmada hasta formulario de ciclo finalizado evaluable.
+- Validación manual confirmada hasta primera valoración persistida.
+- Hay un hallazgo visual menor actor/fecha pendiente de corrección.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No se debe iniciar Fase 9 todavía.
