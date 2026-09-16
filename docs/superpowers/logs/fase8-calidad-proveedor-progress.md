@@ -115,7 +115,7 @@ Consolidación y limpieza:
 - limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI, Manual y cierre documental ✅ CERRADA, PENDIENTE LIMPIEZA
+### Task 7 — CI, Manual y cierre documental ✅ CERRADA Y LIMPIA
 
 Commit de cierre:
 - `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
@@ -128,31 +128,48 @@ Incluye:
 - Manual integrado con escala 1–5, comentario obligatorio, correcciones, `Sin evaluar`, privacidad e Informe de proveedores;
 - corrección estable en `phase7_provider_participation_regression.php` para que Fase 7 verifique que Fase 8 permanece en el roadmap sin fijarla eternamente como la siguiente fase.
 
-GREEN definitivo previo al commit:
+GREEN definitivo:
 - `phase7_provider_participation_regression.php`: GREEN;
 - `phase8_provider_rating_closeout_regression.php`: GREEN;
 - `project_quality.php`: GREEN;
 - `xlsx_smoke.php`: GREEN;
 - `git diff --check`: sin errores; solo advertencias LF/CRLF de Windows.
 
-Consolidación:
-- `git diff --cached --stat` mostró exactamente cinco archivos reales de Task 7;
+Consolidación y limpieza:
 - commit `15ac1c4` subido a `origin/fase8-calidad-proveedor`;
-- PC TEST quedó `working tree clean` después del push.
+- PC TEST quedó `working tree clean` después del push;
+- cierre registrado en `bc39c41`;
+- `tools/apply_phase8_closeout.php` eliminado en `e9e48f1`;
+- `tools/fix_phase7_roadmap_regression.php` eliminado en `9f39b79`;
+- no quedan herramientas temporales de Task 7.
 
-Pendiente de limpieza:
-- eliminar `tools/apply_phase8_closeout.php`;
-- eliminar `tools/fix_phase7_roadmap_regression.php`;
-- registrar esa limpieza antes de iniciar Task 8.
+### Task 8 — Gate integral y validación PC TEST 🚧 SIGUIENTE
+
+Objetivo:
+- ejecutar sintaxis sobre todos los archivos funcionales modificados por Fase 8;
+- ejecutar las seis regresiones de Fase 8;
+- ejecutar las cinco regresiones de Fase 7;
+- ejecutar `project_quality.php`, `xlsx_smoke.php`, `static_checks.php` y `git diff --check`;
+- verificar que `origin/main...HEAD` no contiene cambios en `database/`;
+- validar funcionalmente evaluación/corrección, privacidad, filtros y XLSX en PC TEST;
+- validar visualmente claro/oscuro, laptop 1366, tablet/iPad y móvil;
+- no fusionar a `main` hasta aprobación explícita.
+
+Siguiente acción exacta en PC TEST:
+1. `git pull --ff-only origin fase8-calidad-proveedor` para recibir limpieza y este log;
+2. confirmar `git status` limpio;
+3. ejecutar gate técnico integral de Task 8;
+4. reportar cualquier fallo antes de hacer cambios;
+5. si todo queda GREEN, registrar evidencia técnica y pasar al checklist funcional/visual.
 
 ## Estado actual para retomar
 
-- Tasks 1–6: cerradas y limpias.
-- Task 7: cerrada en `15ac1c4`; pendiente únicamente retirar dos herramientas temporales.
+- Tasks 1–7: cerradas y limpias.
+- Task 8: siguiente paso.
 - Rama: `fase8-calidad-proveedor`.
-- PC TEST quedó limpio y sincronizado tras el commit documental.
+- PC TEST debe hacer `git pull` para recibir los commits de limpieza posteriores a `15ac1c4`.
 
 ## Próximas tareas del plan
 
-- Finalizar limpieza de Task 7 y registrar el resultado.
-- Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
+- Task 8: gate integral + validación funcional/visual.
+- Después, preparar integración a `main` únicamente con aprobación explícita.
