@@ -124,14 +124,38 @@ Cierre y limpieza:
 - eliminado `tools/normalize_phase8_task4_eol.php` en `e302a49`;
 - no quedan herramientas temporales de Task 4 versionadas.
 
+### Task 5 — Informe de proveedores + valoración + XLSX 🚧 EN CURSO
+
+Inicio TDD:
+- creado `tests/phase8_provider_rating_report_regression.php`;
+- commit RED: `8b74bfb test: definir informe de calidad de proveedores fase 8`.
+
+El RED exige:
+- filtro `rating=UNRATED`;
+- filtro exacto 1–5 usando `provider_rating_score` vigente;
+- resumen por proveedor con promedio, evaluados y sin evaluar;
+- `ExternalReportController` usando `ProviderRatingService::enrichRows()` antes de filtrar;
+- normalización GET `rating`;
+- exposición de `ratingOptions` y `providerRatingSummary`;
+- filtro de valoración en la vista;
+- métricas de calidad visibles en el informe;
+- valoración vigente por ciclo;
+- XLSX con valoración, comentario interno, promedio, evaluados y sin evaluar.
+
+Siguiente acción:
+1. sincronizar PC TEST con la rama;
+2. ejecutar `tests/phase8_provider_rating_report_regression.php`;
+3. confirmar RED esperado;
+4. implementar GREEN mínimo sin duplicar dataset de proveedores.
+
 ## Estado actual para retomar
 
 - Tasks 1–4: cerradas.
+- Task 5: iniciada en RED.
 - Rama de trabajo: `fase8-calidad-proveedor`.
-- Siguiente trabajo funcional: Task 5.
-- Antes de iniciar Task 5 en PC TEST: `git pull --ff-only origin fase8-calidad-proveedor` y confirmar `git status` limpio.
+- Antes de ejecutar el RED en PC TEST: `git pull --ff-only origin fase8-calidad-proveedor`.
 
 ## Próximas tareas del plan
 
-- Task 5: integrar rating en Informe de proveedores + filtro + resumen + XLSX.
+- Task 5: cerrar informe + filtro + resumen + XLSX.
 - Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
