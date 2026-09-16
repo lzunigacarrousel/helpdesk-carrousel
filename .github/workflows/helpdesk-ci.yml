@@ -116,6 +116,24 @@ jobs:
       - name: Phase 7 provider catalog regression
         run: php tests/phase7_provider_catalog_regression.php
 
+      - name: Phase 8 provider rating - cycle identity
+        run: php tests/phase8_provider_cycle_identity_regression.php
+
+      - name: Phase 8 provider rating - service
+        run: php tests/phase8_provider_rating_service_regression.php
+
+      - name: Phase 8 provider rating - controller
+        run: php tests/phase8_provider_rating_controller_regression.php
+
+      - name: Phase 8 provider rating - UI
+        run: php tests/phase8_provider_rating_ui_regression.php
+
+      - name: Phase 8 provider rating - reports
+        run: php tests/phase8_provider_rating_report_regression.php
+
+      - name: Phase 8 provider rating - closeout
+        run: php tests/phase8_provider_rating_closeout_regression.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 

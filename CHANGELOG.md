@@ -4,6 +4,16 @@
 >
 > La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
 
+## Fase 8 · Calidad IT → proveedor · 2026-09-16
+- Cada ciclo finalizado explícitamente mediante `EXTERNAL_REVOKED` puede recibir una valoración interna de IT de 1 a 5 estrellas.
+- La primera valoración se registra de forma inmutable con `PROVIDER_RATED`; una corrección crea `PROVIDER_RATING_CORRECTED` y nunca edita ni elimina la valoración anterior.
+- 1–2 estrellas exigen comentario y toda corrección exige motivo; `Sin evaluar` no equivale a cero ni participa en promedios.
+- La captura vive dentro del ticket interno y respeta roles operativos, scope backend, CSRF y auditoría.
+- Proveedor y solicitante no reciben score ni comentario interno.
+- El Informe de proveedores incorpora filtro por valoración, valoración vigente por ciclo, promedio, ciclos evaluados/sin evaluar y exportación XLSX consistente con la pantalla.
+- La calidad IT → proveedor permanece separada de `ticket_feedback.nps_score`, que conserva el feedback del solicitante y no se usa para medir al proveedor.
+- **BD: sin cambios.** Se reutiliza `ticket_events`; no se agregan tablas, columnas, índices ni migraciones.
+
 ## Fase 7 · Proveedores · 2026-09-15
 - `ProviderParticipationService` se convierte en la fuente única para reconstruir ciclos independientes de participación externa y calcular métricas sin duplicar lógica en controller o XLSX.
 - El informe de proveedores incorpora primera respuesta por mensaje o informe técnico, duración de participación, tiempo de trabajo declarado, actividad actual, respuestas, archivos, informes y entregas listas para revisión.

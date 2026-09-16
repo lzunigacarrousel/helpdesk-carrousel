@@ -147,8 +147,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |
 | 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
 | 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
-| 8 | Calidad IT → proveedor | **Siguiente fase** |
-| 9 | Conocimiento | Parcialmente adelantada; falta cierre formal |
+| 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
+| 9 | Conocimiento | **Siguiente fase** |
 | 10 | Reportes | Parcialmente adelantada; falta consolidación final |
 | 11 | Manual | Parcialmente adelantada; consolidación final pendiente |
 | 12 | Validación integral | Pendiente |
@@ -200,6 +200,25 @@ La Fase 7 consolida la medición operativa de proveedores externos sobre la info
 - la administración de colaboradores y sus accesos permanece separada del informe operativo.
 
 **BD: sin cambios.** La fase reutiliza `ticket_events`, `ticket_comments`, `ticket_attachments`, `ticket_work_reports` y el control de acceso externo existente; no crea tablas, columnas ni migraciones.
+### Fase 8 — Calidad IT → proveedor
+
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+
+La Fase 8 incorpora una valoración interna de IT sobre cada ciclo finalizado de participación de proveedor, sin convertirla en ranking público ni mezclarla con la satisfacción del solicitante:
+
+- escala interna de 1 a 5: 1 **Muy deficiente**, 2 **Deficiente**, 3 **Adecuado**, 4 **Bueno**, 5 **Excelente**;
+- solo ciclos cerrados mediante `EXTERNAL_REVOKED` son evaluables; ciclos activos o cerrados implícitamente por una nueva asignación no muestran formulario de valoración;
+- la primera valoración se registra como evento inmutable `PROVIDER_RATED`;
+- una corrección se registra como un nuevo evento `PROVIDER_RATING_CORRECTED`, conservando el historial anterior;
+- comentario obligatorio para 1–2 estrellas y para toda corrección;
+- `Sin evaluar` no equivale a cero y no participa en promedios;
+- solo ADMIN, SEMIADMIN y TECHNICIAN con scope válido pueden evaluar o corregir;
+- proveedor y solicitante no ven score ni comentario interno;
+- el Informe de proveedores y XLSX muestran valoración vigente, filtros y agregados de calidad por proveedor;
+- esta valoración es independiente de `ticket_feedback.nps_score`, que corresponde al feedback del solicitante.
+
+**BD: sin cambios.** La fase reutiliza `ticket_events` como fuente de verdad y no crea tablas, columnas, índices ni migraciones.
+
 ## Flujo Git oficial
 
 Regla general:
