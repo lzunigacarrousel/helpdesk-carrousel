@@ -37,16 +37,16 @@ Actualizar después de cada RED/GREEN importante, cambio funcional, blocker/reso
 `rateCycle()`, `correctCycle()`, `FOR UPDATE`, controller, CSRF, scope, auditoría y rutas POST. Sin UPDATE/DELETE de ratings.
 
 ### Task 4 — UI interna ✅ CERRADA
-Commit funcional: `67160ba ui: evaluar proveedores desde el ticket`.
+`67160ba ui: evaluar proveedores desde el ticket`.
 
 ### Task 5 — Informe + filtros + XLSX ✅ CERRADA
-Commit funcional: `a8811c6 feat: integrar calidad de proveedores en informes`.
+`a8811c6 feat: integrar calidad de proveedores en informes`.
 
 ### Task 6 — Seguridad y casos límite ✅ CERRADA
-Commit funcional: `8b17a4a feat: endurecer reglas de calidad proveedor`.
+`8b17a4a feat: endurecer reglas de calidad proveedor`.
 
 ### Task 7 — CI, Manual y documentación ✅ CERRADA Y LIMPIA
-Commit de cierre: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
+`15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 
 ### Task 8 — Gate integral y validación PC TEST 🚧 EN CURSO
 
@@ -71,7 +71,7 @@ Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, 
 ### Checkpoint D — historial externo visible ✅
 Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
-### Checkpoint E — Excel externo real ✅ RESUELTO Y VALIDADO
+### Checkpoint E — Excel externo real ✅
 - `helpdesk_mis_casos_20260916_120336.xlsx` existe y abre correctamente en Microsoft Excel;
 - hoja `Mis casos` sin reparación;
 - columnas seguras: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
@@ -80,19 +80,16 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 
 ### Checkpoint F — descarga desde la propia UI ✅
 - botón `Descargar Excel` visible para `Pruebas Comunicacion`;
-- Chrome genera `helpdesk_mis_casos_20260916_121620.xlsx` y marca la descarga como `Hecho`;
-- rama local limpia y sincronizada durante la prueba.
+- Chrome genera `helpdesk_mis_casos_20260916_121620.xlsx` y marca la descarga como `Hecho`.
 
 ### Checkpoint G — corrección válida de valoración ✅
-Validación manual posterior:
-- la valoración vigente cambió a `4★ · Bueno`;
-- se muestra `1 corrección(es)`;
-- comentario interno visible: `resultado bueno 4 prueba`;
-- actor: `Luis Fernando Zuniga`;
-- fecha registrada: `16/09/2026 12:33`;
-- el evento de corrección quedó aplicado y reconstruido correctamente.
+- valoración vigente `4★ · Bueno`;
+- `1 corrección(es)`;
+- comentario interno `resultado bueno 4 prueba`;
+- actor `Luis Fernando Zuniga`;
+- fecha `16/09/2026 12:33`.
 
-**Aún pendiente:** comprobar rechazo real de una corrección con comentario vacío.
+**Pendiente:** comprobar rechazo real de una corrección con comentario vacío.
 
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
@@ -106,86 +103,48 @@ Validación manual posterior:
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO Y VALIDADO
+## Excel seguro para el propio proveedor ✅
 - endpoint dedicado `GET /mis-tickets/exportar`;
 - controller `ExternalCaseHistoryController`;
 - consulta limitada por `Auth::id()`;
 - commit funcional `56615a6 feat: exportar historial de casos para proveedores`;
 - aplicador temporal retirado;
-- RED/GREEN técnico completo;
 - archivo real y descarga desde navegador validados.
 
-## Hallazgos UI nuevos
+## Hallazgos UI Task 8
 
-### 1. Overlay global al descargar Excel — ✅ GREEN técnico
-Reproducción inicial:
-- la descarga terminaba correctamente en Chrome;
-- la página quedaba cubierta por `Procesando información · Abriendo...` indefinidamente.
+### Overlay global al descargar Excel — ✅ GREEN técnico
+- RED: `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
+- el enlace externo ahora usa `data-no-loading="1"`;
+- falso negativo del test corregido en `c169136`;
+- revalidación PC TEST: `phase8_external_case_export_regression.php` GREEN completo.
 
-Causa:
-- `public/assets/js/app.js` activa el loader global para enlaces normales;
-- una descarga no provoca navegación ni `load/pageshow`;
-- el enlace externo necesitaba `data-no-loading="1"`.
+### REGISTRO actor/fecha — ✅ GREEN técnico
+- RED: `f0b8e2f test: exigir separacion visual de registro proveedor`;
+- bloque `provider-rating-registration` y fecha `provider-rating-registered-at` agregados;
+- CSS específico separa actor y fecha;
+- revalidación PC TEST: `phase8_provider_rating_ui_regression.php` GREEN completo.
 
-RED:
-- `3a197b2 test: exigir descarga externa sin overlay bloqueado`.
+### Consolidación funcional UI ✅
+Commit remoto verificado:
+- `d66545a fix: pulir descarga y registro de calidad proveedor`.
 
-GREEN aplicado:
-- `app/Views/tickets/index.php` agrega `data-no-loading="1"` a `Descargar Excel`;
-- el aplicador temporal reportó que el Excel externo ya no activa overlay global.
+Archivos del commit:
+- `app/Views/tickets/index.php`;
+- `app/Views/tickets/show.php`;
+- `public/assets/css/case-focus.css`.
 
-Falso negativo corregido:
-- la primera aserción del test buscaba barras invertidas literales;
-- commit `c169136 test: corregir asercion de overlay en excel externo`.
-
-Revalidación PC TEST posterior a `c169136`:
-- `[OK] Descarga Excel externa no deja overlay global bloqueado`;
-- `phase8_external_case_export_regression.php` GREEN completo;
-- `git diff --check` sin errores.
-
-**Pendiente:** validación visual real en navegador después de consolidar.
-
-### 2. REGISTRO concatena actor y fecha — ✅ GREEN técnico
-Reproducción inicial:
-- se visualizaba `Luis Fernando Zuniga16/09/2026 12:33` sin separación.
-
-Causa:
-- `resolution-read-grid` hacía block solo al `span` de etiqueta;
-- el `<strong>` del actor y `<small>` de la fecha quedaban inline.
-
-RED:
-- `f0b8e2f test: exigir separacion visual de registro proveedor`.
-
-GREEN aplicado:
-- `provider-rating-registration` agregado al bloque;
-- `provider-rating-registered-at` agregado a la fecha;
-- CSS específico muestra actor y fecha en líneas separadas.
-
-Revalidación PC TEST:
-- `[OK] Registro de valoración usa bloque visual propio`;
-- `[OK] Fecha de registro queda separada del actor`;
-- `[OK] CSS separa actor y fecha de la valoración`;
-- `phase8_provider_rating_ui_regression.php` GREEN completo;
-- `git diff --check` sin errores.
-
-**Pendiente:** validación visual real en navegador después de consolidar.
-
-### GREEN UI definitivo confirmado ✅
-Salida PC TEST más reciente:
+Verificación asociada previa al commit:
 - `phase8_external_case_export_regression.php`: GREEN completo;
 - `phase8_provider_rating_ui_regression.php`: GREEN completo;
 - `git diff --check`: sin errores;
-- únicos archivos funcionales modificados localmente:
-  - `app/Views/tickets/index.php`;
-  - `app/Views/tickets/show.php`;
-  - `public/assets/css/case-focus.css`.
+- `git status` posterior al push: working tree limpio.
 
-Aplicador temporal:
-- `f388e25 tool: aplicar ajustes ui finales task 8`;
-- todavía debe retirarse después de consolidar los tres archivos funcionales.
+Aplicador temporal pendiente de retiro:
+- `tools/apply_phase8_ui_polish.php`.
 
 ## Pendientes de Task 8
-- consolidar commit funcional del GREEN UI y retirar aplicador temporal;
+- retirar aplicador temporal UI y sincronizar PC TEST;
 - validar visualmente que la descarga ya no deje overlay bloqueado;
 - validar visualmente actor/fecha separados en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
@@ -205,10 +164,9 @@ Aplicador temporal:
 - Historial propio del proveedor: ✅.
 - Excel propio del proveedor: ✅ consolidado, limpio y validado.
 - Corrección válida 4★ con comentario: ✅.
-- Overlay post-descarga: ✅ GREEN técnico; validación visual pendiente.
-- Separación actor/fecha: ✅ GREEN técnico; validación visual pendiente.
+- Overlay post-descarga: ✅ GREEN técnico consolidado; validación visual pendiente.
+- Separación actor/fecha: ✅ GREEN técnico consolidado; validación visual pendiente.
 - Rama: `fase8-calidad-proveedor`.
-- Working tree local esperado: modificados `app/Views/tickets/index.php`, `app/Views/tickets/show.php`, `public/assets/css/case-focus.css`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
 
