@@ -115,7 +115,7 @@ Diff acumulado contra `origin/main` al ejecutar el gate:
 - 291 eliminaciones;
 - sin archivos de `database/`.
 
-#### Validación funcional/visual ⏳ PENDIENTE
+#### Validación funcional/visual ⏳ EN PROGRESO
 
 No cerrar Task 8 ni fusionar a `main` hasta completar:
 
@@ -157,27 +157,47 @@ No cerrar Task 8 ni fusionar a `main` hasta completar:
 
 Especial atención a tablet/iPad por antecedentes de responsive en otras pantallas.
 
+#### Evidencia manual registrada — 2026-09-16
+
+Captura revisada de un ticket interno con proveedor `Pruebas Comunicacion` y participación activa:
+- el bloque `Calidad del proveedor` aparece correctamente en la vista interna;
+- proveedor visible correctamente;
+- fecha de asignación visible;
+- estado de participación: `Activa`;
+- valoración vigente: `Sin evaluar`;
+- mensaje mostrado: `Podrás evaluar cuando finalice la participación.`;
+- no aparece formulario de evaluación mientras el ciclo sigue activo.
+
+Resultado de este checkpoint manual:
+- ✅ render del bloque interno confirmado;
+- ✅ ciclo activo tratado como no evaluable;
+- ✅ `Sin evaluar` mostrado correctamente;
+- ✅ mensaje operativo correcto;
+- ⏳ todavía falta validar primera valoración sobre un ciclo cerrado explícitamente.
+
+Siguiente paso manual exacto:
+1. finalizar explícitamente la participación del proveedor desde el flujo normal de la aplicación, o abrir otro ticket que ya tenga un `EXTERNAL_REVOKED` real;
+2. volver al ticket interno;
+3. confirmar que el bloque cambia de `Activa / Sin evaluar` a ciclo finalizado evaluable;
+4. probar primera valoración 4★ o 5★ sin comentario;
+5. comprobar valoración vigente, actor y fecha después de guardar.
+
 ## Estado exacto al pausar la sesión
 
 - Tasks 1–7: ✅ cerradas.
 - Task 8 técnico: ✅ GREEN.
-- Task 8 funcional/visual: ⏳ pendiente.
+- Task 8 funcional/visual: ⏳ en progreso.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No se debe iniciar Fase 9 todavía.
 - La siguiente sesión debe continuar **exactamente en Task 8, validación funcional/visual**.
-- Primer paso al retomar: `git pull --ff-only origin fase8-calidad-proveedor` y `git status`.
-- Luego comenzar con un ticket que tenga un ciclo de proveedor finalizado explícitamente y revisar/capturar el bloque `Calidad del proveedor`.
 
 ## Checkpoint final de sincronización local
 
 Confirmado por PC TEST al pausar:
-- `git pull --ff-only origin fase8-calidad-proveedor` avanzó hasta `e25d299`;
-- `git status` reportó `Your branch is up to date with 'origin/fase8-calidad-proveedor'`;
-- `nothing to commit, working tree clean`;
-- por tanto, la copia local quedó sincronizada y limpia en el checkpoint previo a este registro final del log.
-
-Este registro final del log genera un commit remoto adicional. Al retomar, ejecutar primero `git pull --ff-only origin fase8-calidad-proveedor` para recibirlo antes de continuar con la validación manual/visual.
+- rama local sincronizada con `origin/fase8-calidad-proveedor`;
+- `git status` limpio;
+- sin cambios locales pendientes.
 
 ## Integración a main
 
