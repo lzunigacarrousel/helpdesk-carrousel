@@ -133,13 +133,17 @@ CI remoto:
 
 - workflow `Helpdesk Carrousel CI` sobre commit `dc332db` ✅ `success`
 - run `35148901904` ✅ completado sin fallos
-- CI también incluye ahora `phase8_external_case_history_regression.php` y `phase8_external_case_export_regression.php`.
+- commit final documental `315589c docs: cerrar gate final fase 8` ✅
+- run `35149771223` sobre `315589c` ✅ `completed / success`
+- CI incluye `phase8_external_case_history_regression.php` y `phase8_external_case_export_regression.php`.
 
 ## Estado exacto actual
 
 - Tasks 1–8: ✅ cerradas.
 - Fase 8 técnica: ✅ GREEN.
 - Fase 8 funcional: ✅ validada.
+- Gate local final: ✅ GREEN.
+- CI remoto final: ✅ GREEN.
 - Historial/Excel administrativo: ✅.
 - Historial propio proveedor: ✅.
 - Excel propio proveedor: ✅.
@@ -147,7 +151,7 @@ CI remoto:
 - REGISTRO actor/fecha: ✅ validado visualmente.
 - Privacidad de proveedor/solicitante: ✅ cubierta por regresiones.
 - Reglas de comentario y ciclo evaluable: ✅ cubiertas por regresiones y prueba manual de corrección.
-- Rama local del usuario: ✅ limpia y al día al finalizar el gate.
+- Rama local del usuario: ✅ limpia y al día con `origin/fase8-calidad-proveedor` después de sincronizar `315589c`.
 - Rama remota: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 
@@ -155,7 +159,12 @@ CI remoto:
 
 **Fase 8 está lista para integración.** No hacer merge automático sin aprobación explícita del usuario.
 
-Antes del merge: sincronizar este último checkpoint documental en PC TEST y confirmar `git status` limpio.
+Estado antes de integración:
+
+- `fase8-calidad-proveedor` limpia y sincronizada ✅
+- gate local final ✅
+- CI remoto final ✅
+- siguiente acción: obtener aprobación explícita del usuario para integrar a `main`.
 
 ## Próxima fase
 
