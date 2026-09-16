@@ -122,8 +122,8 @@ Con la cuenta `Pruebas Comunicacion`, después de revocar su participación:
 - la URL del caso previo responde `Ese caso no está disponible para tu cuenta.`.
 
 Causa:
-- `TicketController::index()` para `EXTERNAL` filtra `eta.revoked_at IS NULL`;
-- la fila histórica permanece en `external_ticket_access`, pero desaparece del listado;
+- `TicketController::index()` para `EXTERNAL` filtraba `eta.revoked_at IS NULL`;
+- la fila histórica permanece en `external_ticket_access`, pero desaparecía del listado;
 - `TicketViewController` exige acceso vigente, por lo que el detalle revocado permanece correctamente bloqueado.
 
 ### Diseño seguro aprobado
@@ -148,39 +148,51 @@ Resultado ejecutado:
 - privacidad de valoración interna `[OK]`;
 - working tree limpio.
 
-### GREEN — primer aplicador bloqueado por EOL ⚠️
+### GREEN — primer aplicador bloqueado por EOL ⚠️ RESUELTO
 
 Primer intento con `tools/apply_phase8_external_case_history.php`:
 - abortó en `[ERROR] Contadores Mis casos: esperaba 1 coincidencia y encontro 0.`;
-- `TicketController.php` y `tickets/index.php` siguieron sin cambios porque el script escribe únicamente al final;
-- sintaxis de ambos archivos permaneció `[OK]`;
-- `phase8_external_case_history_regression.php` continuó con los mismos 10 fallos esperados;
-- `phase8_provider_rating_ui_regression.php` permaneció GREEN completo;
-- `git status`: working tree limpio.
+- no dejó cambios funcionales parciales;
+- regresión UI/privacidad permaneció GREEN.
 
-Causa del blocker:
-- el aplicador hacía una normalización EOL frágil y sus anclas heredaban el EOL del propio script;
-- en Windows, una diferencia LF/CRLF entre `TicketController.php`, `tickets/index.php` y el aplicador hace que `substr_count()` no encuentre una ancla aunque el contenido lógico sea igual.
+Causa:
+- comparación frágil por EOL mixtos LF/CRLF en Windows.
 
-### Fix del aplicador EOL ✅ PREPARADO
+Fix del aplicador:
+- `1800ff9 fix: tolerar EOL mixto en historial externo`;
+- normaliza archivos y anclas antes de comparar;
+- mantiene escritura atómica al final.
 
-Commit del aplicador corregido:
-- `1800ff9 fix: tolerar EOL mixto en historial externo`.
+### GREEN TDD ✅ CONFIRMADO EN PC TEST
 
-Cambio técnico:
-- normaliza CRLF y CR reales a LF en archivos objetivo;
-- normaliza también cada ancla y reemplazo heredoc antes de `substr_count()`;
-- mantiene escritura al final, por lo que un fallo intermedio no deja cambios funcionales parciales;
-- no modifica BD.
+Segundo intento después del fix EOL:
+- aplicador: `[OK] Historial seguro para proveedor externo aplicado. Casos revocados quedan visibles sin reabrir el detalle. No se modifico la BD.`;
+- sintaxis `app/Controllers/TicketController.php`: `[OK]`;
+- sintaxis `app/Views/tickets/index.php`: `[OK]`;
+- `tests/phase8_external_case_history_regression.php`: GREEN completo;
+- valida fechas de asignación/finalización, histórico revocado, métrica `Total`, estado `Participación finalizada` y ausencia de enlace al detalle;
+- privacidad de valoración interna permanece `[OK]`;
+- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
+- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows;
+- cambios locales pendientes únicamente en:
+  - `app/Controllers/TicketController.php`;
+  - `app/Views/tickets/index.php`.
+
+Interpretación:
+- ✅ historial externo implementado sin reabrir detalle revocado;
+- ✅ privacidad de score/comentario interno preservada;
+- ✅ sin cambios de BD;
+- ✅ listo para consolidación funcional antes de validación visual con `Pruebas Comunicacion`.
 
 ### Siguiente paso exacto
 
-1. sincronizar PC TEST;
-2. volver a ejecutar `tools/apply_phase8_external_case_history.php`;
-3. ejecutar sintaxis de `TicketController.php` y `tickets/index.php`;
-4. ejecutar `phase8_external_case_history_regression.php` y `phase8_provider_rating_ui_regression.php`;
-5. `git diff --check` y `git status`;
-6. registrar GREEN antes de cualquier commit funcional.
+1. actualizar log con este GREEN — hecho;
+2. consolidar únicamente `TicketController.php` y `tickets/index.php`;
+3. dejar `tools/apply_phase8_external_case_history.php` fuera del commit funcional;
+4. push de la rama;
+5. registrar commit funcional en el log;
+6. retirar aplicador temporal y registrar limpieza;
+7. validar visualmente con cuenta externa: métricas `Activos/En espera/Finalizados/Total`, tarjeta histórica y ausencia de enlace al detalle.
 
 ## Estado exacto actual
 
@@ -188,7 +200,7 @@ Cambio técnico:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: RED ✅ confirmado; aplicador EOL corregido y listo para reintento.
+- Historial para el propio proveedor: RED ✅ / GREEN técnico ✅; pendiente consolidación y validación visual real.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
