@@ -42,7 +42,7 @@ $rows=[
 
 $filtered=ProviderParticipationService::applyFilters($rows,['rating'=>'UNRATED']);
 ok(count($filtered)===1,'Filtro Sin evaluar selecciona solo ciclos sin rating');
-ok(($filtered[0]['provider_rating_score']??'x')===null,'Filtro Sin evaluar conserva ciclo no evaluado');
+ok(isset($filtered[0])&&array_key_exists('provider_rating_score',$filtered[0])&&$filtered[0]['provider_rating_score']===null,'Filtro Sin evaluar conserva ciclo no evaluado');
 
 $filtered=ProviderParticipationService::applyFilters($rows,['rating'=>'4']);
 ok(count($filtered)===1,'Filtro 4 estrellas usa valoración vigente');
