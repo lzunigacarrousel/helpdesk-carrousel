@@ -6,6 +6,7 @@ $controllerPath=$root.'/app/Controllers/TicketController.php';
 $showPath=$root.'/app/Views/tickets/show.php';
 $externalPath=$root.'/app/Views/tickets/show_external.php';
 $servicePath=$root.'/app/Services/ProviderRatingService.php';
+$stylePath=$root.'/public/assets/css/case-focus.css';
 $errors=0;
 
 function ok(bool $condition,string $message):void
@@ -19,6 +20,7 @@ $controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPa
 $showBody=is_file($showPath)?(string)file_get_contents($showPath):'';
 $externalBody=is_file($externalPath)?(string)file_get_contents($externalPath):'';
 $serviceBody=is_file($servicePath)?(string)file_get_contents($servicePath):'';
+$styleBody=is_file($stylePath)?(string)file_get_contents($stylePath):'';
 
 ok($controllerBody!=='','Existe TicketController');
 ok($showBody!=='','Existe vista interna del ticket');
@@ -51,6 +53,9 @@ ok(str_contains($showBody,'provider_rating_score'),'Vista muestra valoración vi
 ok(str_contains($showBody,'provider_rating_comment'),'Vista interna puede mostrar comentario de IT');
 ok(str_contains($showBody,'provider_rating_actor'),'Vista interna muestra quién calificó');
 ok(str_contains($showBody,'provider_rating_at'),'Vista interna muestra fecha de valoración');
+ok(str_contains($showBody,'provider-rating-registration'),'Registro de valoración usa bloque visual propio');
+ok(str_contains($showBody,'provider-rating-registered-at'),'Fecha de registro queda separada del actor');
+ok(str_contains($styleBody,'.provider-rating-registration strong')&&str_contains($styleBody,'.provider-rating-registration small'),'CSS separa actor y fecha de la valoración');
 
 ok(!str_contains($externalBody,'PROVIDER_RATED'),'Vista externa no expone evento de valoración');
 ok(!str_contains($externalBody,'provider_rating_score'),'Proveedor no recibe score interno');
