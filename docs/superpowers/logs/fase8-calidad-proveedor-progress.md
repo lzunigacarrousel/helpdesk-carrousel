@@ -76,7 +76,7 @@ Limpieza:
 - limpieza registrada en `f0503aa`;
 - no quedan herramientas temporales de Task 5.
 
-### Task 6 — Seguridad, historial y casos límite 🚧 RED CONFIRMADO / GREEN PREPARADO
+### Task 6 — Seguridad, historial y casos límite ✅ GREEN, PENDIENTE DE COMMIT FUNCIONAL
 
 Objetivo:
 - centralizar el criterio de ciclo evaluable en `ProviderRatingService::isCycleEvaluable()`;
@@ -86,57 +86,72 @@ Objetivo:
 - reutilizar el criterio en persistencia y UI;
 - reforzar no fuga a proveedor/solicitante.
 
-Tests RED preparados previamente:
+RED preparado:
 - `02e7252 test: exigir criterio central de ciclo evaluable`;
 - `ad55f02 test: exigir criterio evaluable en persistencia`;
 - `3915dba test: endurecer no fuga y criterio visual`.
 
 RED confirmado en PC TEST:
-- rama sincronizada y `working tree clean` antes de ejecutar;
 - `phase8_provider_rating_service_regression.php`: 4 fallos esperados;
 - `phase8_provider_rating_controller_regression.php`: 2 fallos esperados;
 - `phase8_provider_rating_ui_regression.php`: 2 fallos esperados.
 
-Fallos exactos confirmados:
-- falta `ProviderRatingService::isCycleEvaluable()`;
-- no existe aún una única regla reutilizable para distinguir cierre explícito, cierre implícito y ciclo activo;
-- persistencia todavía no reutiliza ese criterio central;
-- vista interna todavía no llama `ProviderRatingService::isCycleEvaluable()`.
-
-Defensas que ya permanecen GREEN durante el RED:
-- corrección obsoleta no desplaza la valoración vigente;
-- rating de otro proveedor no se aplica al ciclo;
-- proveedor externo no recibe score ni comentario interno;
-- solicitante queda fuera del bloque de calidad;
-- controller carga calidad solo para soporte interno;
-- roles, CSRF, scope, auditoría, rutas e inmutabilidad siguen verdes.
-
-GREEN mínimo preparado:
-- creado `tools/apply_phase8_provider_rating_hardening.php`;
-- commit del aplicador: `8395f9c tool: aplicar endurecimiento de calidad proveedor fase 8`;
-- agrega `ProviderRatingService::isCycleEvaluable()` con `grant_event_id>0`, `revoke_event_id>0` y `revoked_at` no vacío;
+GREEN aplicado en PC TEST:
+- aplicador `tools/apply_phase8_provider_rating_hardening.php` completó todos sus pasos en `[OK]`;
+- sintaxis PHP de `ProviderRatingService.php` y `tickets/show.php`: GREEN;
+- `ProviderRatingService::isCycleEvaluable()` agregado;
+- cierre explícito por `EXTERNAL_REVOKED`: evaluable;
+- cierre implícito por nuevo grant: no evaluable;
+- ciclo activo: no evaluable;
 - `enrichCycles()` ignora ratings de ciclos no evaluables;
 - `requireEvaluableCycle()` reutiliza el criterio central para primera valoración y corrección;
-- `tickets/show.php` importa `ProviderRatingService` y usa `ProviderRatingService::isCycleEvaluable($cycle)` para habilitar formularios;
-- cierre implícito queda visible como no evaluable, sin confundirse con ciclo activo;
-- aplicador tolerante a CRLF y no modifica BD.
+- UI usa `ProviderRatingService::isCycleEvaluable($cycle)` para habilitar formularios;
+- cierre implícito no se confunde con ciclo activo y no muestra formulario de evaluación.
 
-Siguiente acción exacta en PC TEST:
-1. `git pull --ff-only origin fase8-calidad-proveedor`;
-2. ejecutar `tools/apply_phase8_provider_rating_hardening.php`;
-3. validar sintaxis de `ProviderRatingService.php` y `tickets/show.php`;
-4. ejecutar los tres tests de Task 6;
-5. ejecutar acumulado Fase 8 + regresiones Fase 7 + `project_quality.php`;
-6. `git diff --check` y `git status`;
-7. si queda GREEN, registrar resultado antes del commit funcional.
+Verificación GREEN acumulada:
+- `phase8_provider_rating_service_regression.php`: GREEN completo;
+- `phase8_provider_rating_controller_regression.php`: GREEN completo;
+- `phase8_provider_rating_ui_regression.php`: GREEN completo;
+- `phase8_provider_cycle_identity_regression.php`: GREEN;
+- `phase8_provider_rating_report_regression.php`: GREEN;
+- `phase7_provider_participation_regression.php`: GREEN;
+- `phase7_provider_activity_regression.php`: GREEN;
+- `phase7_provider_returns_regression.php`: GREEN;
+- `phase7_provider_filters_regression.php`: GREEN;
+- `project_quality.php`: GREEN;
+- `git diff --check`: sin errores; solo advertencias LF/CRLF de Windows.
+
+Defensas confirmadas:
+- corrección obsoleta no desplaza valoración vigente;
+- rating de otro proveedor no se aplica al ciclo;
+- proveedor externo no recibe score ni comentario;
+- solicitante queda fuera del bloque de calidad interna;
+- controller carga calidad solo para soporte interno;
+- roles, CSRF, scope, auditoría, rutas e inmutabilidad permanecen verdes;
+- 0 cambios de BD.
+
+Cambios funcionales locales pendientes de commit:
+- `app/Services/ProviderRatingService.php`;
+- `app/Views/tickets/show.php`.
+
+Siguiente acción exacta:
+1. sincronizar la actualización del log con `git pull --ff-only origin fase8-calidad-proveedor`;
+2. stage de los dos archivos funcionales;
+3. `git diff --cached --check`;
+4. commit funcional de Task 6;
+5. push y confirmar `working tree clean`;
+6. actualizar este log con el commit funcional;
+7. eliminar `tools/apply_phase8_provider_rating_hardening.php`;
+8. registrar la limpieza en este log;
+9. iniciar Task 7.
 
 ## Estado actual para retomar
 
 - Tasks 1–5: cerradas y limpias.
-- Task 6: RED confirmado; GREEN preparado y pendiente de ejecución en PC TEST.
+- Task 6: GREEN completo; pendiente commit funcional y limpieza del aplicador temporal.
 - Rama: `fase8-calidad-proveedor`.
 
 ## Próximas tareas del plan
 
-- Task 6: ejecutar GREEN, consolidar y limpiar aplicador temporal.
+- Task 6: consolidar commit funcional y limpiar aplicador temporal.
 - Task 7+: CI/cierre documental y gate integral según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
