@@ -7,16 +7,7 @@
 
 ## Regla operativa del log
 
-Este archivo debe actualizarse:
-- después de cada cambio funcional relevante;
-- después de cada RED/GREEN importante;
-- al encontrar o resolver un blocker;
-- al cerrar cada Task;
-- antes de un commit de cierre importante;
-- antes de cambiar de chat o pausar la sesión;
-- antes de fusionar o eliminar la rama.
-
-No guardar secretos, credenciales ni datos sensibles.
+Actualizar este archivo después de cada RED/GREEN importante, cambio funcional, blocker/resolución, cierre de Task, pausa o antes de integración. No guardar secretos ni credenciales.
 
 ## Diseño aprobado
 
@@ -25,275 +16,134 @@ No guardar secretos, credenciales ni datos sensibles.
 - Escala: 1 Muy deficiente, 2 Deficiente, 3 Adecuado, 4 Bueno, 5 Excelente.
 - Comentario obligatorio para 1–2 estrellas y para toda corrección.
 - Evaluación opcional; no bloquea cierre ni flujo del ticket.
-- Roles que pueden evaluar/corregir: `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, siempre con scope válido.
+- Roles: `ADMIN`, `SEMIADMIN`, `TECHNICIAN`, con scope válido.
 - Proveedor y solicitante no ven score/comentario interno.
 - Primera valoración: `PROVIDER_RATED`.
 - Corrección: `PROVIDER_RATING_CORRECTED`.
-- Correcciones son nuevos eventos; nunca se modifica/elimina una valoración anterior.
+- Correcciones son eventos nuevos; nunca se modifica/elimina una valoración anterior.
 - Último evento válido del ciclo es la valoración vigente.
 - Cada rating referencia `external_user_id` + `grant_event_id`.
 - `Sin evaluar` no vale 0 ni entra al promedio.
 
-## Flujo de fases — estado actual
+## Flujo de fases
 
 ### Task 1 — Identidad exacta del ciclo ✅
-Implementado `grant_event_id`, `revoke_event_id`, `rowsForTicket()` y cierre implícito sin `revoke_event_id`.
+`grant_event_id`, `revoke_event_id`, `rowsForTicket()` y cierre implícito sin `revoke_event_id`.
 
 ### Task 2 — Dominio inmutable de valoración ✅
-Implementado `ProviderRatingService` con escala, validación, valoración vigente, correcciones, enriquecimiento y resumen.
+`ProviderRatingService`: escala, validación, valoración vigente, correcciones, enriquecimiento y resumen.
 
 ### Task 3 — Persistencia + autorización backend ✅
-Implementado `rateCycle()`, `correctCycle()`, `FOR UPDATE`, controller, CSRF, scope, auditoría y rutas POST. Sin UPDATE/DELETE de ratings.
+`rateCycle()`, `correctCycle()`, `FOR UPDATE`, controller, CSRF, scope, auditoría y rutas POST. Sin UPDATE/DELETE de ratings.
 
-### Task 4 — UI interna de calidad ✅ CERRADA
+### Task 4 — UI interna ✅ CERRADA
 Commit funcional: `67160ba ui: evaluar proveedores desde el ticket`.
 
-Incluye:
-- bloque interno `#provider-quality`;
-- primera valoración;
-- corrección;
-- actor/fecha/comentario vigentes;
-- aislamiento de `show_external.php`.
-
-### Task 5 — Informe + valoración + XLSX ✅ CERRADA
+### Task 5 — Informe + filtros + XLSX ✅ CERRADA
 Commit funcional: `a8811c6 feat: integrar calidad de proveedores en informes`.
 
-Incluye:
-- filtro `rating=UNRATED|1|2|3|4|5`;
-- dataset enriquecido antes de filtrar;
-- resumen por proveedor;
-- valoración vigente en pantalla;
-- XLSX con score, comentario y resumen.
-
-### Task 6 — Seguridad, historial y casos límite ✅ CERRADA
+### Task 6 — Seguridad y casos límite ✅ CERRADA
 Commit funcional: `8b17a4a feat: endurecer reglas de calidad proveedor`.
 
-Incluye:
-- `ProviderRatingService::isCycleEvaluable()`;
-- cierre explícito evaluable;
-- cierre implícito no evaluable;
-- ciclo activo no evaluable;
-- corrección obsoleta no desplaza vigente;
-- rating de otro proveedor no se aplica al ciclo;
-- proveedor y solicitante siguen sin acceso a calidad interna.
-
-### Task 7 — CI, Manual y cierre documental ✅ CERRADA Y LIMPIA
+### Task 7 — CI, Manual y documentación ✅ CERRADA Y LIMPIA
 Commit de cierre: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
-
-Incluye:
-- seis gates de Fase 8 en CI;
-- README con Fase 8 implementada y Fase 9 como siguiente;
-- CHANGELOG con `PROVIDER_RATED` y `PROVIDER_RATING_CORRECTED`;
-- separación explícita de `ticket_feedback.nps_score`;
-- Manual integrado con escala, correcciones, privacidad y `Sin evaluar`;
-- ajuste estable de regresión Fase 7 para no fijar eternamente qué fase es la siguiente.
-
-Herramientas temporales de Task 7 eliminadas.
 
 ### Task 8 — Gate integral y validación PC TEST 🚧 EN CURSO
 
-#### Gate técnico ✅ GREEN COMPLETO
+#### Gate técnico base ✅ GREEN
 
-Ejecutado en PC TEST sobre `fase8-calidad-proveedor` sincronizada.
+Confirmado previamente en PC TEST:
+- sintaxis PHP GREEN en archivos modificados;
+- 6 regresiones Fase 8 GREEN;
+- 5 regresiones Fase 7 GREEN;
+- `project_quality.php`, `xlsx_smoke.php`, `static_checks.php` GREEN;
+- `git diff --check` sin errores;
+- `git diff --name-only origin/main...HEAD -- database` sin salida;
+- 0 cambios en `database/` respecto a `main`.
 
-Confirmado:
-- sintaxis PHP GREEN en servicios, controllers, vistas y router modificados;
-- 6 regresiones de Fase 8: GREEN;
-- 5 regresiones de Fase 7: GREEN;
-- `project_quality.php`: GREEN;
-- `xlsx_smoke.php`: GREEN;
-- `static_checks.php`: GREEN;
-- `git diff --check`: sin errores;
-- `git diff --name-only origin/main...HEAD -- database`: sin salida;
-- por lo tanto, 0 cambios en `database/` respecto a `main`;
-- working tree limpio;
-- rama local sincronizada con `origin/fase8-calidad-proveedor`.
+## Validación manual registrada
 
-Diff acumulado contra `origin/main` al ejecutar el gate:
-- 22 archivos;
-- 3234 inserciones;
-- 291 eliminaciones;
-- sin archivos de `database/`.
-
-#### Validación funcional/visual ⏳ EN PROGRESO
-
-No cerrar Task 8 ni fusionar a `main` hasta completar:
-
-1. Ticket con proveedor finalizado explícitamente:
-   - aparece `Calidad del proveedor`;
-   - permite primera valoración;
-   - 3–5 estrellas pueden guardarse sin comentario;
-   - se muestra valoración vigente, actor y fecha.
-2. 1–2 estrellas:
-   - sin comentario debe rechazarse;
-   - con comentario debe guardarse.
-3. Corrección:
-   - `Registrar corrección` exige comentario;
-   - crea nueva valoración vigente;
-   - no elimina historial anterior.
-4. Casos no evaluables:
-   - ciclo activo no permite evaluar;
-   - cierre implícito por nuevo grant no permite evaluar.
-5. Privacidad:
-   - proveedor EXTERNAL no ve score/comentario/bloque;
-   - solicitante REQUESTER no ve score/comentario/bloque.
-6. Informe de proveedores:
-   - filtro `Sin evaluar`;
-   - filtros 1★–5★;
-   - promedio de calidad;
-   - ciclos evaluados/sin evaluar;
-   - valoración vigente.
-7. XLSX:
-   - respeta filtros;
-   - incluye valoración/score;
-   - incluye comentario interno;
-   - incluye resumen por proveedor.
-8. Visual:
-   - modo claro;
-   - modo oscuro;
-   - laptop/PC 1366px;
-   - tablet/iPad;
-   - móvil.
-
-Especial atención a tablet/iPad por antecedentes de responsive en otras pantallas.
-
-#### Evidencia manual registrada — 2026-09-16
-
-Checkpoint A — ciclo activo:
-- captura revisada de ticket interno con proveedor `Pruebas Comunicacion`;
+### Checkpoint A — ciclo activo ✅
 - bloque `Calidad del proveedor` visible;
 - participación `Activa`;
-- valoración vigente `Sin evaluar`;
-- mensaje `Podrás evaluar cuando finalice la participación.`;
-- no aparece formulario mientras el ciclo sigue activo.
+- `Sin evaluar`;
+- no aparece formulario;
+- mensaje operativo correcto.
 
-Resultado:
-- ✅ render del bloque interno confirmado;
-- ✅ ciclo activo tratado como no evaluable;
-- ✅ `Sin evaluar` mostrado correctamente;
-- ✅ mensaje operativo correcto.
+### Checkpoint B — cierre explícito evaluable ✅
+- participación finalizada por flujo normal;
+- aparece `Evaluar proveedor`;
+- opciones 1★–5★ visibles;
+- regla de comentario visible.
 
-Checkpoint B — cierre explícito y formulario evaluable:
-- la participación fue finalizada desde el flujo normal de la aplicación;
-- en administración de proveedores ya aparecen `0 accesos vigentes` para el caso compartido;
-- al volver al ticket, la participación aparece `Finalizada` con fecha `16/09/2026 09:37`;
-- valoración vigente sigue en `Sin evaluar` antes de guardar;
-- aparece la acción `Evaluar proveedor`;
-- al desplegarla se muestran las cinco opciones: 1★ Muy deficiente, 2★ Deficiente, 3★ Adecuado, 4★ Bueno, 5★ Excelente;
-- se muestra campo `Comentario` con indicación `Según valoración`;
-- se muestra regla visible: `Comentario obligatorio para 1–2 estrellas y para toda corrección.`;
-- se muestra botón `Guardar valoración`;
-- visualmente el bloque mantiene alineación correcta en la captura de PC.
+### Checkpoint C — primera valoración real ✅
+- se guardó `1★ · Muy deficiente` con comentario;
+- valoración vigente reconstruida correctamente;
+- actor y fecha visibles;
+- aparece `Registrar corrección`.
 
-Resultado:
-- ✅ cierre explícito reconocido como evaluable;
-- ✅ formulario de primera valoración visible;
-- ✅ escala 1–5 visible y etiquetada correctamente;
-- ✅ regla de comentario visible.
+Pendiente aún:
+- rechazo de 1–2★ sin comentario;
+- primera valoración 3–5★ sin comentario;
+- corrección sin comentario debe rechazarse;
+- corrección válida con comentario;
+- cierre implícito no evaluable;
+- privacidad EXTERNAL/REQUESTER;
+- filtros del informe y XLSX en uso real;
+- visual claro/oscuro, PC, iPad/tablet y móvil.
 
-Checkpoint C — primera valoración real guardada:
-- se registró una valoración inicial `1★ · Muy deficiente` sobre el ciclo finalizado;
-- comentario interno guardado: `esto es una prueba de valoracion`;
-- la valoración vigente se actualizó correctamente a `1★ · Muy deficiente`;
-- la vista muestra el actor `Luis Fernando Zuniga`;
-- la vista muestra la fecha `16/09/2026 09:45`;
-- el comentario interno se muestra únicamente dentro del bloque de control interno;
-- aparece la acción `Registrar corrección`, por lo que el ciclo pasa al flujo de corrección;
-- la rama local continuó limpia y sincronizada después del `git pull` previo a la prueba.
+## Hallazgo visual pendiente
 
-Resultado:
-- ✅ primera valoración persistida correctamente;
-- ✅ 1★ con comentario obligatorio aceptado;
-- ✅ valoración vigente reconstruida y mostrada correctamente;
-- ✅ actor y fecha disponibles;
-- ✅ acción de corrección disponible;
-- ⏳ todavía falta validar rechazo de 1–2★ sin comentario;
-- ⏳ todavía falta validar primera valoración 3–5★ sin comentario;
-- ⏳ todavía falta validar corrección y su comentario obligatorio.
+En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
 
-Hallazgo visual pendiente:
-- ⚠️ en el bloque `REGISTRO`, el actor y la fecha aparecen sin separación visual suficiente: `Luis Fernando Zuniga16/09/2026 09:45`;
-- debe corregirse antes de cerrar Task 8 y repetirse el gate técnico si se modifica código.
+## Historial y Excel por proveedor — TDD ✅
 
-Hallazgo funcional adicional — gestión de proveedores:
-- ⚠️ en `Proveedores registrados` cada fila solo ofrecía inicialmente la acción `Editar`;
-- existe un enlace global `Ver historial` en el encabezado de la pantalla de proveedores;
-- el informe global `/admin/externos/informe` soporta filtro `provider=<id>` y el XLSX reutiliza los mismos filtros;
-- diseño aprobado: agregar acciones `Historial` y `Excel` por fila, reutilizando el informe existente con `provider=<id>`, junto a `Editar`;
-- no requiere cambios de BD ni nuevo controller.
+Hallazgo: en `Proveedores registrados` cada fila solo tenía `Editar`; el informe global ya soportaba `provider=<id>` y la exportación XLSX reutiliza esos filtros.
 
-#### RED TDD — acciones por proveedor ✅ confirmado
+Diseño aprobado:
+- `Historial` → `/admin/externos/informe?provider=<id>`;
+- `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
+- conservar `Editar`;
+- sin BD nueva ni controller nuevo.
 
-Ejecutado `tests/phase8_provider_rating_report_regression.php` tras agregar las nuevas expectativas.
+RED confirmado en `tests/phase8_provider_rating_report_regression.php`: fallaron únicamente las 4 expectativas nuevas de Historial/Excel.
 
-Resultado:
-- todas las validaciones existentes de filtros, resumen, informe y XLSX permanecieron `[OK]`;
-- fallaron únicamente las 4 expectativas nuevas:
-  - `Directorio enlaza historial filtrado por proveedor`;
-  - `Directorio muestra acción Historial por proveedor`;
-  - `Directorio enlaza Excel filtrado por proveedor`;
-  - `Directorio muestra acción Excel por proveedor`.
-
-Interpretación:
-- ✅ RED correcto: la prueba falló exclusivamente porque la UI por fila todavía no implementaba las acciones aprobadas.
-
-#### GREEN TDD — acciones por proveedor ✅ confirmado en PC TEST
-
-Aplicador temporal ejecutado:
-- `tools/apply_phase8_provider_row_actions.php`;
-- 0 cambios de BD.
-
-Cambio local aplicado únicamente en `app/Views/admin/externals.php`:
-- `Historial` por fila hacia `/admin/externos/informe?provider=<id>`;
-- `Excel` por fila hacia `/admin/externos/informe/exportar?provider=<id>`;
-- `Editar` se conserva en la misma celda;
-- contenedor flex con wrap para evitar desbordes.
-
-Verificación ejecutada:
-- sintaxis PHP de `app/Views/admin/externals.php`: GREEN;
-- `tests/phase8_provider_rating_report_regression.php`: GREEN completo;
-- las 4 nuevas validaciones `Historial`/`Excel`: `[OK]`;
-- todas las validaciones previas del informe permanecen `[OK]`;
+GREEN confirmado en PC TEST:
+- sintaxis de `app/Views/admin/externals.php`: OK;
+- test de informe Fase 8: GREEN completo;
 - `git diff --check`: sin errores;
-- `git status`: únicamente `app/Views/admin/externals.php` modificado y sin stage.
+- único archivo funcional modificado: `app/Views/admin/externals.php`.
 
-Interpretación:
-- ✅ GREEN correcto y aislado;
-- ✅ no hubo regresión del informe ni XLSX;
-- ⏳ falta consolidar el archivo funcional en Git y retirar la herramienta temporal después del commit.
+### Consolidación funcional ✅
 
-Siguiente paso manual/técnico exacto:
-1. actualizar este log antes del commit funcional — realizado;
-2. consolidar únicamente `app/Views/admin/externals.php`;
-3. dejar `tools/apply_phase8_provider_row_actions.php` fuera del commit funcional;
-4. después registrar el commit y retirar la herramienta temporal;
-5. validar visualmente los botones `Historial`, `Excel`, `Editar` en PC TEST;
-6. continuar la prueba de corrección sin comentario y demás checks funcionales;
-7. corregir el detalle visual actor/fecha antes del cierre final.
+Commit realizado y subido:
+- `a060825 ui: agregar historial y excel por proveedor`.
 
-## Estado exacto para retomar
+Estado reportado por PC TEST después del push:
+- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
+- working tree limpio.
+
+Pendiente inmediato de este subcambio:
+- retirar `tools/apply_phase8_provider_row_actions.php` del repositorio;
+- registrar la limpieza;
+- sincronizar PC TEST;
+- validar visualmente que cada proveedor muestre `Historial · Excel · Editar` y que ambos enlaces funcionen.
+
+## Estado exacto actual
 
 - Tasks 1–7: ✅ cerradas.
-- Task 8 técnico: ✅ GREEN base.
+- Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
-- Validación manual confirmada hasta primera valoración persistida.
-- Acciones Historial/Excel por proveedor: ✅ GREEN técnico, pendiente de commit funcional y validación visual.
-- Hay un hallazgo visual menor actor/fecha pendiente de corrección.
+- Historial/Excel por proveedor: ✅ funcionalmente consolidado en `a060825`, pendiente limpieza de herramienta y validación visual.
+- Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
-- No se debe iniciar Fase 9 todavía.
+- No iniciar Fase 9 todavía.
 
 ## Integración a main
 
-**NO HACER MERGE todavía.**
+**NO HACER MERGE todavía.** Solo preparar integración después de completar checklist funcional/visual, resolver hallazgos, repetir gate técnico si hubo cambios, actualizar este log y obtener aprobación explícita del usuario.
 
-Solo preparar integración a `main` después de:
-- completar checklist funcional/visual;
-- resolver cualquier hallazgo;
-- repetir gate técnico si hubo cambios;
-- actualizar este log;
-- obtener aprobación explícita del usuario.
+## Próxima fase
 
-## Próxima fase después de cerrar Fase 8
-
-El roadmap documenta **Fase 9 — Conocimiento** como siguiente fase. No iniciar hasta cerrar formalmente Task 8 y Fase 8.
+Roadmap: **Fase 9 — Conocimiento**, únicamente después del cierre formal de Task 8/Fase 8.
