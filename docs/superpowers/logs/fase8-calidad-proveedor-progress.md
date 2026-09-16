@@ -115,7 +115,7 @@ Consolidación y limpieza:
 - limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI, Manual y cierre documental 🚧 RED CONFIRMADO / GREEN PREPARADO
+### Task 7 — CI, Manual y cierre documental 🚧 GREEN PROPIO / BLOCKER HEREDADO FASE 7
 
 Objetivo:
 - incorporar todos los gates de Fase 8 al CI;
@@ -126,50 +126,54 @@ Objetivo:
 
 TDD:
 - creado `tests/phase8_provider_rating_closeout_regression.php`;
-- commit RED: `fc61842 test: definir cierre documental fase 8`.
+- commit RED: `fc61842 test: definir cierre documental fase 8`;
+- aplicador temporal: `d527dd1 tool: aplicar cierre documental fase 8`.
 
-RED ejecutado en PC TEST con rama limpia y sincronizada:
-- 4 comprobaciones base quedaron `[OK]`: existen CI, README, CHANGELOG y Manual;
-- 21 validaciones fallaron, exactamente en CI/documentación pendiente.
+RED inicial:
+- 4 comprobaciones base `[OK]`;
+- 21 fallos esperados en CI/documentación pendiente.
 
-Fallos confirmados:
-- CI no declara todavía `Phase 8 provider rating` ni ejecuta los seis gates de Fase 8;
-- README todavía marca Fase 8 como siguiente y no mueve Fase 9 a siguiente;
-- README todavía no documenta ambos eventos inmutables;
-- CHANGELOG todavía no registra Fase 8, `PROVIDER_RATED`, `PROVIDER_RATING_CORRECTED` ni separación de `ticket_feedback.nps_score`;
-- Manual todavía no documenta `Calidad del proveedor`, escala 1–5, comentario obligatorio, `Sin evaluar`, correcciones ni privacidad de la valoración frente al proveedor.
+GREEN aplicado en PC TEST:
+- `tools/apply_phase8_closeout.php` completó todos los pasos `[OK]`;
+- `phase8_provider_rating_closeout_regression.php`: GREEN completo;
+- todos los tests funcionales de Fase 8 ejecutados: GREEN;
+- `phase7_provider_catalog_regression.php`: GREEN;
+- `phase7_provider_filters_regression.php`: GREEN;
+- `phase7_provider_activity_regression.php`: GREEN;
+- `phase7_provider_returns_regression.php`: GREEN;
+- `project_quality.php`: GREEN;
+- `xlsx_smoke.php`: GREEN;
+- `git diff --check`: sin errores; solo advertencias LF/CRLF de Windows.
 
-Comprobaciones que ya estaban GREEN antes del cambio documental:
-- README ya contiene el concepto `Calidad IT → proveedor`;
-- README ya contiene `BD: sin cambios` por fases anteriores;
-- CHANGELOG ya contiene referencias generales de BD sin cambios.
+Blocker detectado:
+- `phase7_provider_participation_regression.php` falla únicamente en `README marca Fase 8 como siguiente`;
+- causa: la regresión de Fase 7 quedó acoplada al estado temporal del roadmap al cierre de Fase 7;
+- ahora Fase 8 está implementada y Fase 9 es la siguiente, por lo que esa expectativa heredada es obsoleta;
+- no es un fallo funcional ni documental de Fase 8;
+- corrección correcta: Fase 7 debe verificar que Fase 8 siga presente en el roadmap, pero no controlar para siempre cuál fase es la siguiente.
 
-GREEN preparado:
-- creado `tools/apply_phase8_closeout.php`;
-- commit del aplicador: `d527dd1 tool: aplicar cierre documental fase 8`;
-- aplicador tolerante a CRLF y sin cambios de BD;
-- CI agregará los seis gates Fase 8 manteniendo Fase 7;
-- README marcará Fase 8 implementada, Fase 9 siguiente y documentará escala, eventos inmutables, scope, privacidad, reporte/XLSX y `BD: sin cambios`;
-- CHANGELOG agregará Fase 8 con ambos eventos y separación explícita de `ticket_feedback.nps_score`;
-- Manual agregará sección interna `Calidad del proveedor` con escala 1–5, comentario obligatorio, correcciones, `Sin evaluar`, privacidad e informe.
+Cambios documentales locales actuales, aún sin commit:
+- `.github/workflows/helpdesk-ci.yml`;
+- `README.md`;
+- `CHANGELOG.md`;
+- `app/Views/help/manual.php`.
 
-Siguiente acción exacta en PC TEST:
-1. `git pull --ff-only origin fase8-calidad-proveedor`;
-2. ejecutar `tools/apply_phase8_closeout.php`;
-3. validar sintaxis de `app/Views/help/manual.php`;
-4. ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
-5. ejecutar regresiones acumuladas Fase 8 + Fase 7 + quality gates relevantes;
-6. `git diff --check` y `git status`;
-7. si GREEN, registrar resultado antes del commit documental.
+Siguiente acción exacta:
+1. corregir solo la aserción heredada en `tests/phase7_provider_participation_regression.php`;
+2. volver a ejecutar esa regresión y `phase8_provider_rating_closeout_regression.php`;
+3. ejecutar gates acumulados relevantes;
+4. si todo queda GREEN, registrar resultado antes del commit documental de Task 7;
+5. consolidar documentación/CI + ajuste de regresión;
+6. eliminar `tools/apply_phase8_closeout.php` y registrar limpieza.
 
 ## Estado actual para retomar
 
 - Tasks 1–6: cerradas y limpias.
-- Task 7: RED confirmado; GREEN preparado y pendiente ejecutar en PC TEST.
+- Task 7: GREEN propio; pendiente corregir una expectativa heredada de Fase 7 y luego consolidar.
 - Rama: `fase8-calidad-proveedor`.
-- PC TEST quedó `working tree clean` tras ejecutar el RED.
+- PC TEST tiene cuatro archivos documentales modificados localmente, aún sin commit.
 
 ## Próximas tareas del plan
 
-- Task 7: ejecutar GREEN, consolidar CI/documentación y limpiar aplicador temporal.
+- Task 7: corregir regresión heredada, cerrar CI/documentación y limpiar aplicador temporal.
 - Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
