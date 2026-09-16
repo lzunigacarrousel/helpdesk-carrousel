@@ -3,13 +3,13 @@
 **Rama:** `fase8-calidad-proveedor`  
 **Fecha de checkpoint:** 2026-09-16  
 **Objetivo:** valoración interna 1–5 de IT por ciclo finalizado de participación de proveedor, con correcciones inmutables, captura dentro del ticket e informe de proveedores.  
-**BD:** 0 cambios estructurales. Fuente de verdad: `ticket_events`.
+**BD:** 0 cambios estructurales. Fuente de verdad de calidad: `ticket_events`.
 
 ## Regla operativa del log
 
-Actualizar este archivo después de cada RED/GREEN importante, cambio funcional, blocker/resolución, cierre de Task, pausa o antes de integración. No guardar secretos ni credenciales.
+Actualizar después de cada RED/GREEN importante, cambio funcional, blocker/resolución, cierre de Task, pausa o antes de integración. No guardar secretos ni credenciales.
 
-## Diseño aprobado
+## Diseño aprobado de Fase 8
 
 - Evaluación por ciclo exacto de participación.
 - Solo ciclo terminado mediante `EXTERNAL_REVOKED` es evaluable.
@@ -96,77 +96,81 @@ Pendiente aún:
 
 En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
 
-## Historial y Excel por proveedor — TDD ✅ CERRADO TÉCNICAMENTE
+## Historial y Excel administrativo por proveedor ✅ CERRADO TÉCNICAMENTE
 
-Hallazgo inicial: en `Proveedores registrados` cada fila solo tenía `Editar`; el informe global ya soportaba `provider=<id>` y la exportación XLSX reutiliza esos filtros.
-
-Diseño aprobado e implementado:
+Diseño implementado:
 - `Historial` → `/admin/externos/informe?provider=<id>`;
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
-- conservar `Editar`;
+- `Editar` se conserva;
 - sin BD nueva ni controller nuevo.
 
-RED:
-- `tests/phase8_provider_rating_report_regression.php` falló únicamente en las 4 expectativas nuevas de Historial/Excel.
+TDD:
+- RED aislado en 4 expectativas nuevas;
+- GREEN completo de `tests/phase8_provider_rating_report_regression.php`.
 
-GREEN:
-- sintaxis de `app/Views/admin/externals.php`: OK;
-- test de informe Fase 8: GREEN completo;
-- `git diff --check`: sin errores.
+Consolidación:
+- `a060825 ui: agregar historial y excel por proveedor`.
+- herramienta temporal retirada.
 
-Consolidación funcional:
-- commit `a060825 ui: agregar historial y excel por proveedor`.
+## Historial visible para el propio proveedor ⚠️ EN TDD
 
-Limpieza:
-- log del commit funcional: `aa9a03a docs: registrar commit historial y excel por proveedor`;
-- herramienta temporal eliminada: `6e5d691 chore: retirar aplicador temporal historial proveedor`.
+### Hallazgo real
 
-## Nuevo hallazgo — historial visible para el propio proveedor ⚠️
-
-Validación real iniciando sesión como `Pruebas Comunicacion` después de revocar su participación:
+Con la cuenta `Pruebas Comunicacion`, después de revocar su participación:
 - `Mis casos` muestra `Activos 0`, `En espera 0`, `Finalizados 0`;
-- la pantalla indica `No tienes casos asignados`;
-- al intentar abrir la URL del caso previamente compartido aparece `Ese caso no está disponible para tu cuenta.`;
-- por lo tanto, el proveedor no puede saber cuántos casos tiene actualmente ni cuántos atendió anteriormente.
+- aparece `No tienes casos asignados`;
+- la URL del caso previo responde `Ese caso no está disponible para tu cuenta.`.
 
-Causa confirmada en código:
-- `TicketController::index()` para cuentas `EXTERNAL` filtra `external_ticket_access` con `eta.revoked_at IS NULL`;
-- al revocar, el registro histórico permanece en `external_ticket_access`, pero desaparece de `Mis casos`;
-- `TicketViewController` también exige acceso vigente, por lo que un caso revocado no puede abrirse.
+Causa:
+- `TicketController::index()` para `EXTERNAL` filtra `eta.revoked_at IS NULL`;
+- la fila histórica permanece en `external_ticket_access`, pero desaparece del listado;
+- `TicketViewController` exige acceso vigente, por lo que el detalle revocado permanece correctamente bloqueado.
 
-Diseño seguro definido dentro de Task 8:
-- `Mis casos` incluirá accesos vigentes e históricos revocados;
-- métricas: `Activos`, `En espera`, `Finalizados`, `Total`;
-- `Finalizados` se basará en `eta.revoked_at`, no en el estado global actual del ticket;
-- histórico con fecha de asignación/finalización;
-- histórico revocado solo lectura en listado y **sin enlace al detalle**;
-- no se exponen conversación, adjuntos, resolución ni cambios posteriores a la revocación;
-- no se expone score/comentario de calidad;
-- acceso vigente conserva comportamiento actual;
-- 0 cambios de BD: se reutiliza `external_ticket_access.granted_at/revoked_at`.
+### Diseño seguro aprobado
 
-### TDD historial externo — RED preparado ⏳
+- `Mis casos` incluirá accesos vigentes e históricos revocados.
+- Métricas: `Activos`, `En espera`, `Finalizados`, `Total`.
+- Para proveedor, `Finalizados` se determina por `eta.revoked_at`, no por estado global posterior del ticket.
+- Se mostrarán `granted_at` y `revoked_at` como asignación/finalización de participación.
+- Un caso revocado se muestra como historial **sin enlace al detalle**.
+- No se reabre conversación, adjuntos, resolución ni cambios posteriores a la revocación.
+- No se expone score/comentario de calidad.
+- Acceso vigente conserva comportamiento actual.
+- 0 cambios de BD; se reutiliza `external_ticket_access`.
 
-Creado `tests/phase8_external_case_history_regression.php` en commit:
-- `5a8b391 test: definir historial seguro para proveedor externo`.
+### RED TDD ✅ CONFIRMADO EN PC TEST
 
-La regresión exige:
-- fechas `external_granted_at` y `external_revoked_at` en el listado;
-- conservar histórico revocado aunque el ticket vuelva a visibilidad interna;
-- dejar de limitar el listado completo a `eta.revoked_at IS NULL`;
-- distinguir historial en la vista;
-- mostrar métrica `Total`;
-- identificar `Participación finalizada`;
-- mostrar fechas de asignación/finalización;
-- no enlazar tarjetas históricas al detalle;
-- no exponer `provider_rating`.
+Test: `tests/phase8_external_case_history_regression.php`.
 
-Próximo paso exacto:
-1. sincronizar PC TEST;
-2. ejecutar `tests/phase8_external_case_history_regression.php` y confirmar RED por funcionalidad faltante;
-3. registrar el RED;
-4. aplicar GREEN mínimo únicamente en `TicketController::index()` y `tickets/index.php`;
-5. repetir regresiones y validar visualmente con la cuenta del proveedor.
+Resultado ejecutado:
+- `[OK] Existe TicketController`;
+- `[OK] Existe vista Mis casos`;
+- `[FALLO] Listado externo conserva fecha de asignación`;
+- `[FALLO] Listado externo conserva fecha de finalización`;
+- `[FALLO] Listado externo conserva histórico revocado sin reabrir acceso`;
+- `[FALLO] Listado externo ya no limita todo a accesos vigentes`;
+- `[FALLO] Vista distingue participación activa e histórica`;
+- `[FALLO] Proveedor ve total histórico de casos`;
+- `[FALLO] Historial identifica participación finalizada`;
+- `[FALLO] Historial muestra fecha de asignación`;
+- `[FALLO] Historial muestra fecha de finalización`;
+- `[FALLO] Caso histórico no enlaza al detalle`;
+- `[OK] Vista externa no expone valoración interna`;
+- total: 10 fallos esperados.
+
+Interpretación:
+- ✅ RED correcto y aislado a la funcionalidad faltante;
+- ✅ privacidad de valoración interna permanece protegida;
+- ✅ working tree limpio y sincronizado al ejecutar el RED.
+
+### Siguiente paso exacto
+
+1. preparar GREEN mínimo solo en `TicketController::index()` y `app/Views/tickets/index.php`;
+2. conservar bloqueo de `TicketViewController` para históricos;
+3. ejecutar sintaxis y `phase8_external_case_history_regression.php`;
+4. repetir regresión UI/privacidad de Fase 8 y `git diff --check`;
+5. registrar GREEN antes de commit funcional;
+6. validar visualmente con la cuenta externa.
 
 ## Estado exacto actual
 
@@ -174,9 +178,9 @@ Próximo paso exacto:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial visible para el propio proveedor: ⚠️ hallazgo confirmado; RED preparado.
+- Historial para el propio proveedor: RED ✅ confirmado; GREEN ⏳ siguiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
-- Rama de trabajo: `fase8-calidad-proveedor`.
+- Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
 
