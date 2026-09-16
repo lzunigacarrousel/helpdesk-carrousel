@@ -215,12 +215,17 @@ Hallazgo visual pendiente:
 - ⚠️ en el bloque `REGISTRO`, el actor y la fecha aparecen sin separación visual suficiente: `Luis Fernando Zuniga16/09/2026 09:45`;
 - debe corregirse antes de cerrar Task 8 y repetirse el gate técnico si se modifica código.
 
+Hallazgo funcional adicional — gestión de proveedores:
+- ⚠️ en `Proveedores registrados` cada fila solo ofrece actualmente la acción `Editar`;
+- existe un enlace global `Ver historial` en el encabezado de la pantalla de proveedores;
+- el informe global `/admin/externos/informe` ya soporta filtro `provider=<id>` y el XLSX reutiliza los mismos filtros;
+- por tanto, actualmente no hay acceso directo desde cada proveedor a **su historial de casos** ni a una **descarga Excel individual**;
+- este hallazgo se considera pendiente de diseño/aprobación dentro de Task 8 antes del cierre final.
+
 Siguiente paso manual exacto:
-1. sobre este mismo ciclo, abrir `Registrar corrección`;
-2. intentar guardar una corrección sin comentario: debe rechazarse;
-3. guardar luego una corrección con comentario y confirmar que se convierte en la valoración vigente sin eliminar el historial anterior;
-4. después crear/reutilizar un nuevo ciclo explícitamente finalizado sin valoración: intentar 1★ sin comentario (debe rechazarse) y, sin perder el ciclo, cambiar a 5★ sin comentario (debe guardarse);
-5. corregir el detalle visual actor/fecha antes del cierre final.
+1. definir si `Proveedores registrados` debe incorporar acciones directas por fila para `Historial` y `Excel` filtradas al proveedor;
+2. después continuar la validación de corrección sin comentario y demás checks funcionales;
+3. corregir el detalle visual actor/fecha antes del cierre final.
 
 ## Estado exacto para retomar
 
@@ -229,6 +234,7 @@ Siguiente paso manual exacto:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Validación manual confirmada hasta primera valoración persistida.
 - Hay un hallazgo visual menor actor/fecha pendiente de corrección.
+- Hay un hallazgo funcional pendiente sobre historial/Excel individual por proveedor.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No se debe iniciar Fase 9 todavía.
