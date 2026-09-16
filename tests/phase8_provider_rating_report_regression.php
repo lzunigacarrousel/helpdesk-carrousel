@@ -56,8 +56,10 @@ ok((int)($summary[10]['unrated_cycles']??0)===1,'Cuenta ciclos sin evaluar');
 
 $controllerPath=$root.'/app/Controllers/ExternalReportController.php';
 $viewPath=$root.'/app/Views/management/external_report.php';
+$adminViewPath=$root.'/app/Views/admin/externals.php';
 $controllerBody=is_file($controllerPath)?(string)file_get_contents($controllerPath):'';
 $viewBody=is_file($viewPath)?(string)file_get_contents($viewPath):'';
+$adminViewBody=is_file($adminViewPath)?(string)file_get_contents($adminViewPath):'';
 
 ok(str_contains($controllerBody,'ProviderRatingService'),'Informe usa ProviderRatingService');
 ok(str_contains($controllerBody,'enrichRows('),'Informe enriquece participaciones antes de filtrar');
@@ -78,6 +80,11 @@ ok(str_contains($controllerBody,"'Comentario valoración'"),'XLSX exporta coment
 ok(str_contains($controllerBody,"'Promedio calidad'"),'XLSX incluye promedio de calidad por proveedor');
 ok(str_contains($controllerBody,"'Ciclos evaluados'"),'XLSX incluye ciclos evaluados');
 ok(str_contains($controllerBody,"'Ciclos sin evaluar'"),'XLSX incluye ciclos sin evaluar');
+
+ok(str_contains($adminViewBody,'/admin/externos/informe?provider='),'Directorio enlaza historial filtrado por proveedor');
+ok(str_contains($adminViewBody,'>Historial</a>'),'Directorio muestra acción Historial por proveedor');
+ok(str_contains($adminViewBody,'/admin/externos/informe/exportar?provider='),'Directorio enlaza Excel filtrado por proveedor');
+ok(str_contains($adminViewBody,'>Excel</a>'),'Directorio muestra acción Excel por proveedor');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
