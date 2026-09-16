@@ -1,7 +1,7 @@
 <?php
 use App\Core\{Csrf,Database,Auth};
 use App\Controllers\WorkflowController;
-use App\Services\{SolutionSuggestionService,TicketClassificationService};
+use App\Services\{ProviderRatingService,SolutionSuggestionService,TicketClassificationService};
 $statusLabels=$statusLabels??[];$priorityLabels=$priorityLabels??[];$status=(string)$ticket['status'];
 $pendingReasons=WorkflowController::PENDING_REASONS;$slaSummary=$ticket['sla_summary']??null;
 $requestTypeOptions=TicketClassificationService::requestTypeOptions();$impactOptions=TicketClassificationService::impactOptions();$urgencyOptions=TicketClassificationService::urgencyOptions();$classificationPriorities=TicketClassificationService::priorityOptions();
@@ -323,7 +323,9 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
     <?php foreach($providerCycles as $cycle):
 
-      $closed=!empty($cycle['revoke_event_id']);
+      $closed=!empty($cycle['revoked_at']);
+
+      $cycleEvaluable=ProviderRatingService::isCycleEvaluable($cycle);
 
       $rated=($cycle['provider_rating_score']??null)!==null;
 
@@ -345,9 +347,9 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
 
 
-      <?php if(!$closed): ?>
+      <?php if(!$cycleEvaluable): ?>
 
-        <div class="dashboard-scope-note"><span>Podrás evaluar cuando finalice la participación.</span></div>
+        <div class="dashboard-scope-note"><span><?= $closed?'Esta participación no puede evaluarse porque no finalizó mediante revocación explícita.':'Podrás evaluar cuando finalice la participación.' ?></span></div>
 
       <?php elseif(!$rated&&$canRateProviders): ?>
 

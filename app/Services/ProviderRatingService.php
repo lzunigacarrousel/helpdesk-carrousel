@@ -38,6 +38,13 @@ final class ProviderRatingService
         }
     }
 
+    public static function isCycleEvaluable(array $cycle): bool
+    {
+        return (int)($cycle['grant_event_id']??0)>0
+            && (int)($cycle['revoke_event_id']??0)>0
+            && trim((string)($cycle['revoked_at']??''))!=='';
+    }
+
     public static function buildCurrentRatings(array $events): array
     {
         usort($events,static function(array $a,array $b):int{
@@ -109,6 +116,7 @@ final class ProviderRatingService
             $rating=$grantEventId>0?($current[$grantEventId]??null):null;
 
             if(is_array($rating)
+                &&self::isCycleEvaluable($cycle)
                 &&(int)($rating['external_user_id']??0)===(int)($cycle['user_id']??0)
                 &&(int)($rating['ticket_id']??0)===(int)($cycle['ticket_id']??0)){
                 $cycle['provider_rating_score']=(int)$rating['score'];
@@ -296,7 +304,7 @@ final class ProviderRatingService
         foreach($cycles as $cycle){
             if((int)($cycle['grant_event_id']??0)!==$grantEventId)continue;
             if((int)($cycle['user_id']??0)!==$externalUserId)continue;
-            if(($cycle['revoke_event_id']??null)===null){
+            if(!self::isCycleEvaluable($cycle)){
                 throw new \RuntimeException('Solo puedes evaluar una participación finalizada mediante revocación.');
             }
             return $cycle;
