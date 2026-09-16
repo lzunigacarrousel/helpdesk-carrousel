@@ -159,45 +159,56 @@ Especial atención a tablet/iPad por antecedentes de responsive en otras pantall
 
 #### Evidencia manual registrada — 2026-09-16
 
-Captura revisada de un ticket interno con proveedor `Pruebas Comunicacion` y participación activa:
-- el bloque `Calidad del proveedor` aparece correctamente en la vista interna;
-- proveedor visible correctamente;
-- fecha de asignación visible;
-- estado de participación: `Activa`;
-- valoración vigente: `Sin evaluar`;
-- mensaje mostrado: `Podrás evaluar cuando finalice la participación.`;
-- no aparece formulario de evaluación mientras el ciclo sigue activo.
+Checkpoint A — ciclo activo:
+- captura revisada de ticket interno con proveedor `Pruebas Comunicacion`;
+- bloque `Calidad del proveedor` visible;
+- participación `Activa`;
+- valoración vigente `Sin evaluar`;
+- mensaje `Podrás evaluar cuando finalice la participación.`;
+- no aparece formulario mientras el ciclo sigue activo.
 
-Resultado de este checkpoint manual:
+Resultado:
 - ✅ render del bloque interno confirmado;
 - ✅ ciclo activo tratado como no evaluable;
 - ✅ `Sin evaluar` mostrado correctamente;
-- ✅ mensaje operativo correcto;
-- ⏳ todavía falta validar primera valoración sobre un ciclo cerrado explícitamente.
+- ✅ mensaje operativo correcto.
+
+Checkpoint B — cierre explícito y formulario evaluable:
+- la participación fue finalizada desde el flujo normal de la aplicación;
+- en administración de proveedores ya aparecen `0 accesos vigentes` para el caso compartido;
+- al volver al ticket, la participación aparece `Finalizada` con fecha `16/09/2026 09:37`;
+- valoración vigente sigue en `Sin evaluar` antes de guardar;
+- aparece la acción `Evaluar proveedor`;
+- al desplegarla se muestran las cinco opciones: 1★ Muy deficiente, 2★ Deficiente, 3★ Adecuado, 4★ Bueno, 5★ Excelente;
+- se muestra campo `Comentario` con indicación `Según valoración`;
+- se muestra regla visible: `Comentario obligatorio para 1–2 estrellas y para toda corrección.`;
+- se muestra botón `Guardar valoración`;
+- visualmente el bloque mantiene alineación correcta en la captura de PC.
+
+Resultado de este checkpoint:
+- ✅ cierre explícito reconocido como evaluable;
+- ✅ formulario de primera valoración visible;
+- ✅ escala 1–5 visible y etiquetada correctamente;
+- ✅ regla de comentario visible;
+- ⏳ falta guardar 4★ o 5★ sin comentario y comprobar valoración vigente, actor y fecha.
 
 Siguiente paso manual exacto:
-1. finalizar explícitamente la participación del proveedor desde el flujo normal de la aplicación, o abrir otro ticket que ya tenga un `EXTERNAL_REVOKED` real;
-2. volver al ticket interno;
-3. confirmar que el bloque cambia de `Activa / Sin evaluar` a ciclo finalizado evaluable;
-4. probar primera valoración 4★ o 5★ sin comentario;
-5. comprobar valoración vigente, actor y fecha después de guardar.
+1. seleccionar `4★ Bueno` o `5★ Excelente`;
+2. dejar el comentario vacío;
+3. pulsar `Guardar valoración`;
+4. confirmar que guarda sin exigir comentario;
+5. comprobar que el bloque muestra la valoración vigente, el actor que calificó y la fecha;
+6. enviar captura del resultado antes de pasar a la prueba de 1–2 estrellas.
 
-## Estado exacto al pausar la sesión
+## Estado exacto para retomar
 
 - Tasks 1–7: ✅ cerradas.
 - Task 8 técnico: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
+- Validación manual confirmada hasta formulario de ciclo finalizado evaluable.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No se debe iniciar Fase 9 todavía.
-- La siguiente sesión debe continuar **exactamente en Task 8, validación funcional/visual**.
-
-## Checkpoint final de sincronización local
-
-Confirmado por PC TEST al pausar:
-- rama local sincronizada con `origin/fase8-calidad-proveedor`;
-- `git status` limpio;
-- sin cambios locales pendientes.
 
 ## Integración a main
 
