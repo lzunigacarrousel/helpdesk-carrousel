@@ -145,23 +145,34 @@ Fallos RED confirmados:
 - tabla aún no muestra valoración vigente;
 - XLSX aún no exporta score/comentario ni resumen de calidad por proveedor.
 
-GREEN mínimo a implementar:
-- enriquecer el dataset de `ProviderParticipationService::rows()` una sola vez mediante `ProviderRatingService::enrichRows()` antes de filtrar;
-- extender `ProviderParticipationService::applyFilters()` con `rating=UNRATED|1|2|3|4|5`;
-- construir `ProviderRatingService::providerSummary()` sobre las filas filtradas;
-- exponer `ratingOptions` y `providerRatingSummary` en pantalla;
-- agregar filtro y columna de valoración sin perder filtros existentes;
-- extender XLSX con valoración vigente, comentario interno y métricas por proveedor;
-- mantener 0 cambios de BD.
+GREEN preparado:
+- creado `tools/apply_phase8_provider_rating_report.php`;
+- commit del aplicador: `b144e23 tool: aplicar informe de calidad proveedores fase 8`;
+- el aplicador es tolerante a CRLF y escribe LF para evitar repetir el blocker de Task 4;
+- modifica solo código de servicio/controller/vista; no toca BD.
+
+El GREEN preparado hará:
+- `ProviderParticipationService::applyFilters()` soportará `rating=UNRATED|1|2|3|4|5`;
+- `ExternalReportController` enriquecerá el dataset con `ProviderRatingService::enrichRows()` antes de filtrar;
+- controller normalizará `rating` y expondrá `ratingOptions` + `providerRatingSummary`;
+- vista agregará filtro Valoración, resumen `Calidad por proveedor` y columna de valoración por ciclo;
+- export XLSX incluirá detalle de rating, comentario interno y hoja `Calidad proveedores` con promedio/evaluados/sin evaluar.
+
+Siguiente acción exacta:
+1. `git pull --ff-only origin fase8-calidad-proveedor`;
+2. ejecutar `tools/apply_phase8_provider_rating_report.php`;
+3. validar sintaxis de los 3 archivos modificados;
+4. ejecutar `phase8_provider_rating_report_regression.php` y regresiones Fase 8/Fase 7;
+5. ejecutar `git diff --check` y `git status`;
+6. si todo queda GREEN, registrar resultado en este log antes de consolidar Task 5.
 
 ## Estado actual para retomar
 
 - Tasks 1–4: cerradas.
-- Task 5: RED confirmado; GREEN pendiente.
+- Task 5: RED confirmado; GREEN preparado y pendiente de ejecución en PC TEST.
 - Rama de trabajo: `fase8-calidad-proveedor`.
-- PC TEST estaba limpio antes de ejecutar el RED.
 
 ## Próximas tareas del plan
 
-- Task 5: implementar y verificar GREEN de informe + filtro + resumen + XLSX.
+- Task 5: ejecutar/ajustar GREEN, consolidar y limpiar aplicador temporal.
 - Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
