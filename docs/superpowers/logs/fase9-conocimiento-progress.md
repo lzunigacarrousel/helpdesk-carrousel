@@ -2,7 +2,7 @@
 
 Fecha de inicio: 2026-09-16
 Rama única: `main`
-Estado: diseño aprobado; spec escrita; implementación no iniciada
+Estado: diseño aprobado; spec aprobada; plan TDD escrito; implementación no iniciada
 
 ## Punto de partida
 
@@ -159,6 +159,14 @@ Para evitar mezclar fases:
 - se validará responsive en PC, iPad y móvil;
 - correo, chat global, dashboard completo, formulario público global y manual global permanecen como backlog transversal para fases/pulidos posteriores.
 
+Backlog registrado en:
+
+`docs/superpowers/logs/pulido-operativo-backlog.md`
+
+Commit:
+
+- `bab293e` — `docs: registrar backlog transversal de pulido`
+
 ## Spec
 
 Archivo:
@@ -168,6 +176,10 @@ Archivo:
 Commit de creación:
 
 - `8eac3a9` — `docs: definir arquitectura fase 9 conocimiento`
+
+Estado:
+
+- ✅ aprobada por el usuario el 2026-09-16.
 
 La spec contiene:
 
@@ -191,35 +203,67 @@ La spec contiene:
 - gate final;
 - criterios de aceptación.
 
+## Plan de implementación TDD
+
+Archivo:
+
+`docs/superpowers/plans/2026-09-16-fase9-conocimiento-versionado-implementation.md`
+
+Commit de creación:
+
+- `9c4eae8` — `docs: planificar implementacion TDD fase 9 conocimiento`
+
+El plan queda dividido en 14 tareas ejecutables:
+
+1. esquema y migración aditiva;
+2. núcleo `KnowledgeRevisionService`;
+3. permisos editoriales/publicación;
+4. refactor de `KnowledgeController` y rutas;
+5. lecturas/listados/UI sobre revisiones;
+6. historial, comparación y restauración;
+7. candidatos desde tickets resueltos;
+8. `Usar como referencia` y trazabilidad;
+9. evolución de `SolutionSuggestionService`;
+10. autoservicio público;
+11. métricas y efectividad;
+12. manual/tutorial + pulido visual Fase 9;
+13. migración y verificación real en PC TEST;
+14. CI, `VALIDAR_FASE9.bat`, changelog y cierre.
+
+Cada tarea incluye ciclo TDD: prueba en rojo -> implementación mínima -> prueba verde -> commit.
+
 ## Estado actual exacto
 
 - Diseño arquitectónico: ✅ aprobado.
-- Spec formal: ✅ escrita.
-- Log de continuidad: ✅ creado con este archivo.
-- Plan de implementación: ⏸️ no iniciado.
+- Spec formal: ✅ escrita y aprobada.
+- Log de continuidad: ✅ actualizado.
+- Backlog transversal: ✅ registrado.
+- Plan de implementación TDD: ✅ escrito.
 - Código funcional Fase 9: ⏸️ no iniciado.
 - Migración Fase 9: ⏸️ no creada.
 - BD PC TEST: sin cambios de Fase 9.
 - Producción: sin cambios.
 
-## Próximo gate
+## Próximo paso exacto
 
-El usuario debe revisar/aprobar la spec.
+Iniciar ejecución del plan desde **Task 1 — Esquema y migración aditiva**, aplicando TDD.
 
-Después de aprobación:
+Orden inmediato:
 
-1. redactar plan de implementación detallado;
-2. dividir por tareas TDD;
-3. definir orden de migración y verificadores;
-4. implementar únicamente sobre `main`;
-5. validar primero en PC TEST;
-6. mantener este log actualizado durante toda la fase;
-7. crear `VALIDAR_FASE9.bat` antes del cierre;
-8. no tocar producción hasta gate final y aprobación explícita.
+1. crear `tests/phase9_knowledge_schema_regression.php` en rojo;
+2. ejecutar y confirmar fallo esperado;
+3. crear `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`;
+4. crear `database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`;
+5. actualizar `INSTALAR.sql` y `VERIFICAR_INSTALACION.sql`;
+6. pasar test a verde;
+7. commit de Task 1;
+8. continuar Task 2.
+
+No ejecutar todavía la migración contra producción.
 
 ## Regla para futuros chats
 
-Si se cambia de chat, continuar desde este archivo y desde la spec de Fase 9.
+Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
 
 No regresar a ramas antiguas ni a `v2-rebuild`.
 
