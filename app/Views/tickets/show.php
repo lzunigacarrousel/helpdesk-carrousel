@@ -383,7 +383,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
           <div><span>Valoración</span><strong><?= (int)$cycle['provider_rating_score'] ?>★ · <?= htmlspecialchars((string)$cycle['provider_rating_label']) ?></strong></div>
 
-          <div><span>Registró</span><strong><?= htmlspecialchars((string)($cycle['provider_rating_actor']?:'Equipo IT')) ?></strong><?php if(!empty($cycle['provider_rating_at'])): ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$cycle['provider_rating_at']))) ?></small><?php endif; ?></div>
+          <div class="provider-rating-registration"><span>Registró</span><strong><?= htmlspecialchars((string)($cycle['provider_rating_actor']?:'Equipo IT')) ?></strong><?php if(!empty($cycle['provider_rating_at'])): ?><small class="provider-rating-registered-at"><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$cycle['provider_rating_at']))) ?></small><?php endif; ?></div>
 
           <div><span>Comentario interno</span><p><?= ($cycle['provider_rating_comment']??'')!==''?nl2br(htmlspecialchars((string)$cycle['provider_rating_comment'])):'Sin comentario.' ?></p></div>
 

@@ -20,7 +20,7 @@ foreach($tickets as $t){
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="tickets-page <?= $isExternal?'external-cases-page':'' ?>">
-<div class="page-heading tickets-heading"><div><h1 class="page-title"><?= htmlspecialchars($isExternal?'Mis casos':'Mis solicitudes') ?></h1><p class="page-subtitle"><?= $isExternal?'Consulta tus casos activos y el historial de participaciones finalizadas.':'Revisa el estado de tus casos y abre solo el que necesites continuar.' ?></p></div><?php if($isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/mis-tickets/exportar">Descargar Excel</a></div><?php else: ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
+<div class="page-heading tickets-heading"><div><h1 class="page-title"><?= htmlspecialchars($isExternal?'Mis casos':'Mis solicitudes') ?></h1><p class="page-subtitle"><?= $isExternal?'Consulta tus casos activos y el historial de participaciones finalizadas.':'Revisa el estado de tus casos y abre solo el que necesites continuar.' ?></p></div><?php if($isExternal): ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/mis-tickets/exportar" data-no-loading="1">Descargar Excel</a></div><?php else: ?><div class="tickets-main-actions"><a class="btn btn-primary" href="<?= APP_BASE_URL ?>/crear-ticket">+ Nueva solicitud</a></div><?php endif; ?></div>
 <?php if(!empty($flash)): ?><div class="alert"><?= htmlspecialchars($flash['message']) ?></div><?php endif; ?>
 
 <?php if(!$isExternal&&$reviewCount>0): ?>
