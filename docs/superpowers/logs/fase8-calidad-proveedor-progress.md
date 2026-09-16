@@ -91,6 +91,13 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 
 **Pendiente:** comprobar rechazo real de una corrección con comentario vacío.
 
+### Checkpoint H — sincronización post-limpieza UI ✅
+PC TEST sincronizada después de retirar `tools/apply_phase8_ui_polish.php`:
+- `git pull --ff-only origin fase8-calidad-proveedor` avanzó de `d66545a` a `9895977`;
+- aplicador temporal eliminado localmente por fast-forward;
+- rama local `fase8-calidad-proveedor` al día con `origin/fase8-calidad-proveedor`;
+- `git status`: `nothing to commit, working tree clean`.
+
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
 - `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
@@ -138,7 +145,6 @@ Verificación previa al commit funcional:
 - `git status` posterior al push: working tree limpio.
 
 ## Pendientes de Task 8
-- sincronizar PC TEST con la limpieza UI;
 - validar visualmente que la descarga ya no deje overlay bloqueado;
 - validar visualmente actor/fecha separados en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
@@ -160,6 +166,7 @@ Verificación previa al commit funcional:
 - Corrección válida 4★ con comentario: ✅.
 - Overlay post-descarga: ✅ GREEN técnico consolidado; validación visual pendiente.
 - Separación actor/fecha: ✅ GREEN técnico consolidado; validación visual pendiente.
+- PC TEST: ✅ sincronizada y limpia en `9895977` antes de este checkpoint documental.
 - Rama: `fase8-calidad-proveedor`.
 - Aplicadores temporales de este bloque: ✅ retirados.
 - No se ha fusionado a `main`.
