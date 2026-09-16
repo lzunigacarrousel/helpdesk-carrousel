@@ -131,6 +131,12 @@ jobs:
       - name: Phase 8 provider rating - reports
         run: php tests/phase8_provider_rating_report_regression.php
 
+      - name: Phase 8 external provider - case history
+        run: php tests/phase8_external_case_history_regression.php
+
+      - name: Phase 8 external provider - Excel history
+        run: php tests/phase8_external_case_export_regression.php
+
       - name: Phase 8 provider rating - closeout
         run: php tests/phase8_provider_rating_closeout_regression.php
 
