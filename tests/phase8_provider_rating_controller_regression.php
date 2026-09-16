@@ -26,6 +26,8 @@ ok(str_contains($serviceBody,'function ratingEventsForTickets('),'Servicio expon
 ok(str_contains($serviceBody,'function enrichRows('),'Servicio expone enrichRows');
 ok(str_contains($serviceBody,'function rateCycle('),'Servicio expone rateCycle');
 ok(str_contains($serviceBody,'function correctCycle('),'Servicio expone correctCycle');
+ok(str_contains($serviceBody,'function isCycleEvaluable('),'Servicio centraliza criterio de ciclo evaluable');
+ok(substr_count($serviceBody,'isCycleEvaluable(')>=3,'Persistencia reutiliza criterio evaluable en lectura y escritura');
 
 ok(str_contains($serviceBody,"event_type IN('PROVIDER_RATED','PROVIDER_RATING_CORRECTED')")
     ||str_contains($serviceBody,"event_type IN ('PROVIDER_RATED','PROVIDER_RATING_CORRECTED')"),
