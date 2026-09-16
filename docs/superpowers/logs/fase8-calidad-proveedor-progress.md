@@ -96,18 +96,22 @@ PC TEST sincronizada después de retirar `tools/apply_phase8_ui_polish.php`:
 - rama local `fase8-calidad-proveedor` al día con `origin/fase8-calidad-proveedor`;
 - `git status`: `nothing to commit, working tree clean`.
 
-### Checkpoint I — validación visual post-fix
+### Checkpoint I — validación visual post-fix ✅
 - descarga de Excel: ✅ usuario confirma que el overlay ya no queda bloqueado;
-- bloque `REGISTRÓ`: ❌ continúa mostrando `Luis Fernando Zuniga16/09/2026 12:33` sin separación visual;
-- el HTML nuevo y las clases de Fase 8 sí están en `show.php`;
-- `case-focus.css` contiene las reglas nuevas;
-- causa identificada: `app/Views/shared/app_start.php` carga `case-focus.css` con `$assetVersion='20260911-UXHELP1'` fijo, por lo que Chrome puede reutilizar una copia antigua del CSS aun cuando el archivo cambió;
-- solución diseñada: versionar `case-focus.css` con `filemtime()` para que cada cambio del archivo genere una URL distinta y fuerce recarga del asset;
-- RED preparado en `tests/phase8_provider_rating_ui_regression.php` para exigir el cache bust dinámico;
-- aplicador temporal preparado en `tools/apply_phase8_case_focus_cache_bust.php`;
-- no se modifica BD ni dominio de valoración.
+- bloque `REGISTRÓ`: inicialmente seguía concatenando actor/fecha por CSS cacheado;
+- HTML/clases y reglas CSS ya estaban correctos;
+- causa real: `app/Views/shared/app_start.php` cargaba `case-focus.css` con `$assetVersion='20260911-UXHELP1'` fijo;
+- se añadió RED para exigir cache bust dinámico por `filemtime()`;
+- antes del cambio fallaron exactamente:
+  - `Case focus usa versión dinámica por filemtime`;
+  - `Vista carga case-focus con versión dinámica`;
+- aplicador `tools/apply_phase8_case_focus_cache_bust.php` modificó únicamente `app/Views/shared/app_start.php`;
+- después del cambio, `phase8_provider_rating_ui_regression.php` quedó GREEN completo;
+- `phase8_external_case_export_regression.php` siguió GREEN completo;
+- `git diff --check` sin errores;
+- usuario confirma visualmente: **ahora sí** se separan actor y fecha correctamente.
 
-Commits de preparación:
+Commits de preparación de cache bust:
 - `c67d385 test: exigir cache bust de css calidad proveedor`;
 - `0205cde tool: aplicar cache bust de css calidad proveedor`;
 - `84011b7 fix: corregir aplicador de cache bust case focus`.
@@ -141,12 +145,12 @@ Commits de preparación:
 - regresión PC TEST GREEN completa;
 - validación visual posterior: usuario confirma descarga funcional sin overlay persistente.
 
-### REGISTRO actor/fecha — ⚠️ CSS correcto, cache bust pendiente
+### REGISTRO actor/fecha — ✅ VALIDADO VISUALMENTE
 - RED inicial: `f0b8e2f test: exigir separacion visual de registro proveedor`;
-- bloque `provider-rating-registration` y fecha `provider-rating-registered-at` ya están consolidados;
-- CSS específico ya está en `case-focus.css`;
-- regresión de contenido GREEN, pero navegador sigue usando CSS anterior por query string estático;
-- nuevo RED exige versión dinámica de `case-focus.css` por `filemtime()`.
+- bloque `provider-rating-registration` y fecha `provider-rating-registered-at` consolidados;
+- CSS específico en `case-focus.css`;
+- cache bust dinámico por `filemtime()` probado RED → GREEN;
+- usuario confirma visualmente que actor y fecha ya quedan separados.
 
 ### Consolidación UI previa ✅
 - `d66545a fix: pulir descarga y registro de calidad proveedor`;
@@ -154,9 +158,8 @@ Commits de preparación:
 - `72650e0 chore: retirar aplicador ui task 8`.
 
 ## Pendientes de Task 8
-- ejecutar RED de cache bust de `case-focus.css`;
-- aplicar GREEN del cache bust y consolidarlo;
-- validar visualmente actor/fecha separados en `REGISTRO`;
+- consolidar commit funcional de `app/Views/shared/app_start.php` para cache bust;
+- retirar `tools/apply_phase8_case_focus_cache_bust.php` tras consolidar;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -175,7 +178,8 @@ Commits de preparación:
 - Excel propio del proveedor: ✅.
 - Descarga Excel sin overlay: ✅ validada visualmente.
 - Corrección válida 4★ con comentario: ✅.
-- Separación actor/fecha: ⚠️ markup/CSS consolidados, navegador con asset stale; cache bust preparado.
+- Separación actor/fecha: ✅ validada visualmente tras cache bust.
+- Cache bust `case-focus.css`: ✅ GREEN técnico y visual, pendiente consolidación del archivo `app_start.php`.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
