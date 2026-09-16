@@ -82,14 +82,24 @@ Confirmado previamente en PC TEST:
 - actor y fecha visibles;
 - aparece `Registrar corrección`.
 
+### Checkpoint D — historial externo visible ✅
+Validación real con la cuenta `Pruebas Comunicacion`:
+- `Mis casos` muestra `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`;
+- el caso `HD-2026-000001` permanece visible como historial;
+- aparece `Participación finalizada`;
+- se muestran `Asignado 15/09/2026 13:20` y `Finalizó 16/09/2026 09:37`;
+- no se muestra valoración, score ni comentario interno;
+- la tarjeta histórica está presentada como historial de participación y no reabre el detalle revocado.
+
 Pendiente aún:
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
 - corrección válida con comentario;
 - cierre implícito no evaluable;
-- privacidad EXTERNAL/REQUESTER;
-- filtros del informe y XLSX en uso real;
+- privacidad REQUESTER adicional;
+- filtros del informe y XLSX administrativo en uso real;
+- Excel seguro para el propio proveedor;
 - visual claro/oscuro, PC, iPad/tablet y móvil.
 
 ## Hallazgo visual pendiente
@@ -112,19 +122,7 @@ Consolidación:
 - `a060825 ui: agregar historial y excel por proveedor`.
 - herramienta temporal retirada.
 
-## Historial visible para el propio proveedor ✅ CONSOLIDADO Y LIMPIO
-
-### Hallazgo real
-
-Con la cuenta `Pruebas Comunicacion`, después de revocar su participación:
-- `Mis casos` mostraba `Activos 0`, `En espera 0`, `Finalizados 0`;
-- aparecía `No tienes casos asignados`;
-- la URL del caso previo respondía `Ese caso no está disponible para tu cuenta.`.
-
-Causa:
-- `TicketController::index()` para `EXTERNAL` filtraba `eta.revoked_at IS NULL`;
-- la fila histórica permanecía en `external_ticket_access`, pero desaparecía del listado;
-- `TicketViewController` exige acceso vigente, por lo que el detalle revocado permanece correctamente bloqueado.
+## Historial visible para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
 
 ### Diseño seguro implementado
 
@@ -138,42 +136,39 @@ Causa:
 - Acceso vigente conserva comportamiento actual.
 - 0 cambios de BD; se reutiliza `external_ticket_access`.
 
-### TDD y verificación ✅
+### TDD y consolidación ✅
 
-- RED: 10 fallos esperados aislados al historial externo; privacidad de valoración interna ya estaba `[OK]`.
-- Blocker EOL del aplicador resuelto en `1800ff9 fix: tolerar EOL mixto en historial externo`.
+- RED: 10 fallos esperados aislados al historial externo; privacidad de valoración interna `[OK]`.
+- Blocker EOL resuelto en `1800ff9 fix: tolerar EOL mixto en historial externo`.
 - GREEN: `tests/phase8_external_case_history_regression.php` completo.
 - `tests/phase8_provider_rating_ui_regression.php`: GREEN completo.
-- sintaxis de `TicketController.php` y `tickets/index.php`: `[OK]`.
-- `git diff --check`: sin errores.
-- sin cambios de BD.
+- commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
+- registro de consolidación: `2e48e8e docs: registrar consolidacion historial externo proveedor`.
+- aplicador temporal retirado: `b3d103a chore: retirar aplicador historial externo proveedor`.
+- validación visual real: ✅ Checkpoint D.
 
-### Consolidación funcional ✅
+## Nuevo hallazgo — Excel para el propio proveedor ⚠️
 
-Commit funcional:
-- `2ad58d5 feat: conservar historial de casos para proveedores`.
+La cuenta externa ya puede ver su historial, pero **no tiene descarga Excel propia**.
 
-Archivos funcionales:
-- `app/Controllers/TicketController.php`;
-- `app/Views/tickets/index.php`.
+Diseño seguro definido:
+- botón `Descargar Excel` dentro de `Mis casos` para cuentas `EXTERNAL`;
+- endpoint propio, separado del informe administrativo;
+- exportar únicamente las participaciones del usuario autenticado;
+- incluir datos visibles y operativos: ticket, asunto, categoría, ubicación, estado de participación, fecha de asignación y fecha de finalización;
+- para acceso vigente puede incluir estado actual de participación; para revocado solo el cierre de participación;
+- no incluir valoración interna, comentario de calidad, NPS, comentarios internos, datos del solicitante, auditoría ni resolución interna;
+- no reutilizar `/admin/externos/informe/exportar` porque ese XLSX contiene métricas internas de calidad;
+- 0 cambios de BD.
 
-### Limpieza ✅
+### TDD Excel externo — siguiente paso
 
-- registro de consolidación: `2e48e8e docs: registrar consolidacion historial externo proveedor`;
-- aplicador temporal retirado: `b3d103a chore: retirar aplicador historial externo proveedor`;
-- `tools/apply_phase8_external_case_history.php` ya no debe permanecer en la rama.
-
-### Siguiente validación manual
-
-1. sincronizar PC TEST con la rama;
-2. iniciar sesión como `Pruebas Comunicacion`;
-3. abrir `Mis casos`;
-4. confirmar visualmente:
-   - `Activos`, `En espera`, `Finalizados`, `Total`;
-   - historial con `Participación finalizada`;
-   - fechas de asignación/finalización;
-   - tarjeta histórica sin posibilidad de abrir el detalle;
-   - ninguna valoración, score o comentario interno visible.
+1. crear regresión RED dedicada para ruta, autorización, scope por usuario y privacidad del XLSX;
+2. confirmar RED en PC TEST;
+3. implementar endpoint mínimo + botón;
+4. verificar XLSX y privacidad;
+5. consolidar y limpiar herramienta temporal;
+6. validar descarga real con `Pruebas Comunicacion`.
 
 ## Estado exacto actual
 
@@ -181,7 +176,8 @@ Archivos funcionales:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: ✅ consolidado y herramienta temporal retirada; ⏳ validación visual real pendiente.
+- Historial para el propio proveedor: ✅ consolidado, limpio y validado visualmente.
+- Excel para el propio proveedor: ⚠️ diseño definido; TDD RED siguiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
