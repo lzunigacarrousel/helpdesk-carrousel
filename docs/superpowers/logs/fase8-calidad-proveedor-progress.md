@@ -83,7 +83,7 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ GREEN TÉCNICO
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE
 
 ### Diseño
 - botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
@@ -105,25 +105,33 @@ Primera ejecución de `tools/apply_phase8_external_case_export.php`:
 - `tests/phase8_external_case_history_regression.php`: GREEN completo;
 - `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
 - `tests/xlsx_smoke.php`: GREEN completo;
-- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows;
-- cambios funcionales locales únicamente en:
-  - `app/Controllers/ExternalCaseHistoryController.php` (nuevo);
-  - `public/index.php`;
-  - `app/Views/tickets/index.php`.
+- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows.
 
 Segunda ejecución accidental del aplicador:
 - respondió `[ERROR] Ya existe ExternalCaseHistoryController.php` porque es un aplicador de una sola ejecución;
 - no alteró los cambios ya aplicados;
-- todas las pruebas se ejecutaron nuevamente y permanecieron GREEN;
-- por tanto no es un fallo funcional, solo una protección contra reaplicar el script.
+- todas las pruebas se ejecutaron nuevamente y permanecieron GREEN.
+
+### Consolidación funcional ✅
+Commit funcional confirmado y pusheado:
+- `56615a6 feat: exportar historial de casos para proveedores`.
+
+Archivos funcionales:
+- `app/Controllers/ExternalCaseHistoryController.php`;
+- `public/index.php`;
+- `app/Views/tickets/index.php`.
+
+Estado después del push:
+- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
+- working tree limpio.
 
 ### Siguiente paso exacto
-1. consolidar únicamente los tres archivos funcionales anteriores;
-2. dejar `tools/apply_phase8_external_case_export.php` fuera del commit funcional;
-3. push de la rama;
-4. registrar commit funcional en este log;
-5. retirar aplicador temporal y registrar limpieza;
-6. validar descarga real iniciando sesión como `Pruebas Comunicacion` y abrir el XLSX descargado.
+1. retirar `tools/apply_phase8_external_case_export.php`;
+2. registrar limpieza en este log;
+3. sincronizar PC TEST;
+4. iniciar sesión como `Pruebas Comunicacion`;
+5. usar `Descargar Excel`;
+6. abrir el XLSX y confirmar columnas y ausencia de datos internos.
 
 ## Pendientes de Task 8
 - rechazo de 1–2★ sin comentario;
@@ -144,7 +152,7 @@ Segunda ejecución accidental del aplicador:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ GREEN técnico; pendiente consolidación + prueba real.
+- Excel propio del proveedor: ✅ consolidado técnicamente en `56615a6`; pendiente limpieza del aplicador y prueba real.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
