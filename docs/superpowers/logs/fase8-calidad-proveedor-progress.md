@@ -71,25 +71,21 @@ Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, 
 ### Checkpoint D — historial externo visible ✅
 Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
-### Checkpoint E — Excel externo real ✅
-Validación real del archivo descargado `helpdesk_mis_casos_20260916_120336.xlsx`:
-- workbook válido y abrible;
-- hoja única `Mis casos`;
-- encabezados exactos: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
-- fila de historial presente para `HD-2026-000001`;
-- asunto `necesito agregar un nit 123456`;
-- categoría `Programas y software`;
-- ubicación `Andaria`;
-- participación `Finalizada`;
-- asignado `15/09/2026 13:20`;
-- finalizado `16/09/2026 09:37`;
-- no aparecen estrellas, score, comentario interno, correo del solicitante ni resolución.
+### Checkpoint E — Excel externo real ⚠️ BLOQUEADO EN APERTURA LOCAL
+El archivo descargado `helpdesk_mis_casos_20260916_120336.xlsx` fue aportado por el usuario y, al inspeccionarlo fuera de Excel, el paquete XLSX es estructuralmente válido y contiene:
+- hoja `Mis casos`;
+- encabezados `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- fila para `HD-2026-000001` con datos esperados;
+- sin valoración interna, comentario interno ni datos del solicitante.
 
-Incidencia observada en captura:
-- Excel mostró “no hemos encontrado” para `helpdesk_proveedores_20260916_104604.xlsx`;
-- ese nombre corresponde a un archivo administrativo anterior, no al nuevo Excel externo;
-- el archivo externo nuevo sí existe y fue validado correctamente como `helpdesk_mis_casos_20260916_120336.xlsx`;
-- no se identifica fallo del exportador externo en esta evidencia.
+Sin embargo, el usuario confirma que la captura de Microsoft Excel **sí corresponde a la prueba de este archivo/flujo** y Excel muestra un error de archivo no encontrado apuntando a una ruta/nombre distinto (`helpdesk_proveedores_20260916_104604.xlsx`).
+
+Interpretación actual:
+- el contenido OOXML del XLSX nuevo no muestra corrupción;
+- el error observado es `archivo no encontrado`, no `formato dañado`;
+- existe una discrepancia entre el archivo descargado nuevo (`helpdesk_mis_casos_...`) y la ruta que Microsoft Excel intenta resolver (`helpdesk_proveedores_...`);
+- **no dar por cerrada la validación real todavía**;
+- diagnosticar entrega/apertura local antes de modificar código.
 
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
@@ -103,7 +99,7 @@ Incidencia observada en captura:
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE / ⚠️ VALIDACIÓN LOCAL ABIERTA
 
 ### Diseño
 - botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
@@ -115,10 +111,7 @@ Incidencia observada en captura:
 - sin valoración interna, comentario de calidad, NPS, correo del solicitante, comentarios, auditoría o resolución interna;
 - 0 cambios de BD.
 
-### RED TDD ✅
-`tests/phase8_external_case_export_regression.php` inició con 12 fallos esperados y 4 controles de privacidad ya GREEN.
-
-### GREEN TDD ✅ CONFIRMADO EN PC TEST
+### RED/GREEN técnico ✅
 - `tests/phase8_external_case_export_regression.php`: GREEN completo;
 - `tests/phase8_external_case_history_regression.php`: GREEN completo;
 - `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
@@ -135,15 +128,19 @@ Archivos funcionales:
 - `app/Views/tickets/index.php`.
 
 ### Limpieza ✅
-- registro de consolidación: `847e050 docs: registrar consolidacion excel externo proveedor`;
-- aplicador temporal retirado: `43b6df9 chore: retirar aplicador excel externo proveedor`;
-- `tools/apply_phase8_external_case_export.php` ya no permanece en la rama.
+- `847e050 docs: registrar consolidacion excel externo proveedor`;
+- `43b6df9 chore: retirar aplicador excel externo proveedor`;
+- aplicador temporal ya retirado.
 
-### Validación real ✅
-- descarga real confirmada con `Pruebas Comunicacion`;
-- XLSX real inspeccionado y contenido seguro confirmado en Checkpoint E.
+### Próximo diagnóstico exacto
+1. confirmar en `Downloads` los nombres y rutas reales de `helpdesk_mis_casos_*.xlsx` y `helpdesk_proveedores_*.xlsx`;
+2. abrir explícitamente el archivo nuevo por ruta completa, sin usar `Recientes` de Excel;
+3. si abre, clasificar incidencia como referencia reciente/autoapertura local;
+4. si vuelve a intentar el nombre viejo, investigar asociación/autoapertura de Excel/Chrome y cabeceras HTTP;
+5. no modificar `XlsxExportService` sin reproducir primero el fallo sobre la ruta exacta.
 
 ## Pendientes de Task 8
+- resolver validación local del XLSX externo;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -165,7 +162,7 @@ En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, po
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado, limpio y validado con archivo real.
+- Excel propio del proveedor: ✅ consolidado técnicamente; ⚠️ prueba de apertura local aún sin cerrar.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
