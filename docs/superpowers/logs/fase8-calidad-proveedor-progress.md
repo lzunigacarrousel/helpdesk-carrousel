@@ -112,87 +112,82 @@ Consolidación:
 - `a060825 ui: agregar historial y excel por proveedor`.
 - herramienta temporal retirada.
 
-## Historial visible para el propio proveedor ⚠️ EN TDD
+## Historial visible para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE
 
 ### Hallazgo real
 
 Con la cuenta `Pruebas Comunicacion`, después de revocar su participación:
-- `Mis casos` muestra `Activos 0`, `En espera 0`, `Finalizados 0`;
-- aparece `No tienes casos asignados`;
-- la URL del caso previo responde `Ese caso no está disponible para tu cuenta.`.
+- `Mis casos` mostraba `Activos 0`, `En espera 0`, `Finalizados 0`;
+- aparecía `No tienes casos asignados`;
+- la URL del caso previo respondía `Ese caso no está disponible para tu cuenta.`.
 
 Causa:
 - `TicketController::index()` para `EXTERNAL` filtraba `eta.revoked_at IS NULL`;
-- la fila histórica permanece en `external_ticket_access`, pero desaparecía del listado;
+- la fila histórica permanecía en `external_ticket_access`, pero desaparecía del listado;
 - `TicketViewController` exige acceso vigente, por lo que el detalle revocado permanece correctamente bloqueado.
 
 ### Diseño seguro aprobado
 
-- `Mis casos` incluirá accesos vigentes e históricos revocados.
+- `Mis casos` incluye accesos vigentes e históricos revocados.
 - Métricas: `Activos`, `En espera`, `Finalizados`, `Total`.
 - Para proveedor, `Finalizados` se determina por `eta.revoked_at`, no por estado global posterior del ticket.
-- Se mostrarán `granted_at` y `revoked_at` como asignación/finalización de participación.
+- Se muestran `granted_at` y `revoked_at` como asignación/finalización de participación.
 - Un caso revocado se muestra como historial **sin enlace al detalle**.
 - No se reabre conversación, adjuntos, resolución ni cambios posteriores a la revocación.
 - No se expone score/comentario de calidad.
 - Acceso vigente conserva comportamiento actual.
 - 0 cambios de BD; se reutiliza `external_ticket_access`.
 
-### RED TDD ✅ CONFIRMADO EN PC TEST
+### RED TDD ✅ CONFIRMADO
 
 Test: `tests/phase8_external_case_history_regression.php`.
 
-Resultado ejecutado:
+Resultado inicial:
 - 2 comprobaciones base `[OK]`;
 - 10 fallos esperados de historial externo;
 - privacidad de valoración interna `[OK]`;
 - working tree limpio.
 
-### GREEN — primer aplicador bloqueado por EOL ⚠️ RESUELTO
+### Blocker EOL ✅ RESUELTO
 
-Primer intento con `tools/apply_phase8_external_case_history.php`:
-- abortó en `[ERROR] Contadores Mis casos: esperaba 1 coincidencia y encontro 0.`;
-- no dejó cambios funcionales parciales;
-- regresión UI/privacidad permaneció GREEN.
+Primer aplicador abortó por anclas LF/CRLF mixtas sin dejar cambios parciales. Se corrigió en:
+- `1800ff9 fix: tolerar EOL mixto en historial externo`.
 
-Causa:
-- comparación frágil por EOL mixtos LF/CRLF en Windows.
+### GREEN TDD ✅ CONFIRMADO
 
-Fix del aplicador:
-- `1800ff9 fix: tolerar EOL mixto en historial externo`;
-- normaliza archivos y anclas antes de comparar;
-- mantiene escritura atómica al final.
-
-### GREEN TDD ✅ CONFIRMADO EN PC TEST
-
-Segundo intento después del fix EOL:
+Después del fix EOL:
 - aplicador: `[OK] Historial seguro para proveedor externo aplicado. Casos revocados quedan visibles sin reabrir el detalle. No se modifico la BD.`;
-- sintaxis `app/Controllers/TicketController.php`: `[OK]`;
-- sintaxis `app/Views/tickets/index.php`: `[OK]`;
+- sintaxis `TicketController.php` y `tickets/index.php`: `[OK]`;
 - `tests/phase8_external_case_history_regression.php`: GREEN completo;
-- valida fechas de asignación/finalización, histórico revocado, métrica `Total`, estado `Participación finalizada` y ausencia de enlace al detalle;
-- privacidad de valoración interna permanece `[OK]`;
 - `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
 - `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows;
-- cambios locales pendientes únicamente en:
-  - `app/Controllers/TicketController.php`;
-  - `app/Views/tickets/index.php`.
+- privacidad de score/comentario interno preservada;
+- sin cambios de BD.
 
-Interpretación:
-- ✅ historial externo implementado sin reabrir detalle revocado;
-- ✅ privacidad de score/comentario interno preservada;
-- ✅ sin cambios de BD;
-- ✅ listo para consolidación funcional antes de validación visual con `Pruebas Comunicacion`.
+### Consolidación funcional ✅
+
+Commit funcional confirmado y pusheado:
+- `2ad58d5 feat: conservar historial de casos para proveedores`.
+
+Archivos funcionales del commit:
+- `app/Controllers/TicketController.php`;
+- `app/Views/tickets/index.php`.
+
+Estado después del push:
+- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
+- working tree limpio.
 
 ### Siguiente paso exacto
 
-1. actualizar log con este GREEN — hecho;
-2. consolidar únicamente `TicketController.php` y `tickets/index.php`;
-3. dejar `tools/apply_phase8_external_case_history.php` fuera del commit funcional;
-4. push de la rama;
-5. registrar commit funcional en el log;
-6. retirar aplicador temporal y registrar limpieza;
-7. validar visualmente con cuenta externa: métricas `Activos/En espera/Finalizados/Total`, tarjeta histórica y ausencia de enlace al detalle.
+1. retirar `tools/apply_phase8_external_case_history.php`;
+2. registrar limpieza en este log;
+3. sincronizar PC TEST;
+4. validar visualmente con cuenta `Pruebas Comunicacion`:
+   - métricas `Activos`, `En espera`, `Finalizados`, `Total`;
+   - tarjeta histórica con `Participación finalizada`;
+   - fechas de asignación/finalización;
+   - tarjeta histórica sin enlace al detalle;
+   - ninguna valoración interna visible.
 
 ## Estado exacto actual
 
@@ -200,7 +195,7 @@ Interpretación:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: RED ✅ / GREEN técnico ✅; pendiente consolidación y validación visual real.
+- Historial para el propio proveedor: ✅ consolidado técnicamente en `2ad58d5`; ⏳ validación visual real pendiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
