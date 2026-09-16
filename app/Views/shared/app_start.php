@@ -44,6 +44,7 @@ try{
 }catch(Throwable){$recentNotifications=[];$notificationUnread=0;}
 
 $assetVersion='20260911-UXHELP1';
+$caseFocusAssetVersion=(string)(@filemtime(APP_ROOT.'/public/assets/css/case-focus.css')?:$assetVersion);
 ?>
 <!doctype html>
 <html lang="es">
@@ -55,7 +56,7 @@ $assetVersion='20260911-UXHELP1';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-fixes.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ux-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/ui-refresh.css?v=<?= $assetVersion ?>">
-<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/case-focus.css?v=<?= $assetVersion ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/case-focus.css?v=<?= htmlspecialchars($caseFocusAssetVersion) ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/content-priority.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/shell-v2.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/management.css?v=<?= $assetVersion ?>">
