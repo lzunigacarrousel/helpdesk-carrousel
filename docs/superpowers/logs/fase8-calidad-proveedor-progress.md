@@ -142,40 +142,35 @@ Causa:
 
 Test: `tests/phase8_external_case_history_regression.php`.
 
-Resultado:
-- 2 checks base `[OK]`;
-- 10 fallos esperados sobre fechas, histórico, total, etiqueta y ausencia de enlace;
+Resultado ejecutado:
+- 2 comprobaciones base `[OK]`;
+- 10 fallos esperados de historial externo;
 - privacidad de valoración interna `[OK]`;
-- working tree limpio y sincronizado.
+- working tree limpio.
 
-### GREEN preparado ⏳ pendiente de ejecutar en PC TEST
+### GREEN — primer aplicador bloqueado por EOL ⚠️
 
-Aplicador temporal creado:
-- `tools/apply_phase8_external_case_history.php`;
-- commit remoto: `d5ab9c0 tool: aplicar historial seguro para proveedor externo`.
+Primer intento con `tools/apply_phase8_external_case_history.php`:
+- abortó en `[ERROR] Contadores Mis casos: esperaba 1 coincidencia y encontro 0.`;
+- `TicketController.php` y `tickets/index.php` siguieron sin cambios porque el script escribe únicamente al final;
+- sintaxis de ambos archivos permaneció `[OK]`;
+- `phase8_external_case_history_regression.php` continuó con los mismos 10 fallos esperados;
+- `phase8_provider_rating_ui_regression.php` permaneció GREEN completo;
+- `git status`: working tree limpio.
 
-El aplicador modifica únicamente:
-- `app/Controllers/TicketController.php`;
-- `app/Views/tickets/index.php`.
+Causa del blocker:
+- el aplicador hacía una normalización EOL frágil y sus anclas heredaban el EOL del propio script;
+- en Windows, una diferencia LF/CRLF entre `TicketController.php`, `tickets/index.php` y el aplicador hace que `substr_count()` no encuentre una ancla aunque el contenido lógico sea igual;
+- se corregirá únicamente el aplicador, normalizando realmente archivos **y anclas** antes de comparar.
 
-Cambios preparados:
-- SELECT externo agrega `eta.granted_at external_granted_at` y `eta.revoked_at external_revoked_at`;
-- listado conserva históricos con `eta.revoked_at IS NOT NULL OR t.visibility_mode='EXTERNAL_ALLOWED'`;
-- métricas externas separan activos/en espera/finalizados y agregan `Total`;
-- tarjeta histórica muestra `Participación finalizada`, fecha de asignación y fecha de finalización;
-- tarjeta revocada no renderiza `ticket-card-link`, por lo que no reabre el detalle;
-- `TicketViewController` no se modifica y continúa exigiendo acceso vigente;
-- 0 cambios de BD.
+### Siguiente paso exacto
 
-Siguiente paso exacto:
-1. sincronizar PC TEST;
-2. ejecutar `tools/apply_phase8_external_case_history.php`;
-3. validar sintaxis de `TicketController.php` y `tickets/index.php`;
-4. ejecutar `tests/phase8_external_case_history_regression.php`;
-5. ejecutar `tests/phase8_provider_rating_ui_regression.php` para privacidad;
-6. `git diff --check` y `git status`;
-7. registrar GREEN antes de commit funcional;
-8. validar visualmente con la cuenta externa.
+1. corregir `tools/apply_phase8_external_case_history.php` para EOL mixto;
+2. sincronizar PC TEST;
+3. volver a ejecutar el aplicador;
+4. ejecutar sintaxis, historial externo y regresión UI/privacidad;
+5. `git diff --check` y `git status`;
+6. registrar GREEN antes de cualquier commit funcional.
 
 ## Estado exacto actual
 
@@ -183,7 +178,7 @@ Siguiente paso exacto:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: RED ✅ confirmado; GREEN ⏳ preparado.
+- Historial para el propio proveedor: RED ✅ confirmado; primer GREEN bloqueado por EOL del aplicador; archivos funcionales intactos.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
