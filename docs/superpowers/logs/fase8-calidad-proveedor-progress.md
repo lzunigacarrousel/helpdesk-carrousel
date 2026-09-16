@@ -148,12 +148,21 @@ RED confirmado en PC TEST:
 
 Commits RED:
 - `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
-- `f0b8e2f test: exigir separacion visual de registro proveedor`.
+- `f0b8e2f test: exigir separacion visual de registro proveedor`;
+- `c0a7fad docs: registrar red ui task 8`.
 
-Working tree limpio después del RED. Próximo paso: GREEN mínimo de presentación, sin BD ni cambios de dominio.
+### GREEN mínimo preparado ⏳
+Aplicador temporal:
+- `f388e25 tool: aplicar ajustes ui finales task 8`;
+- agrega `data-no-loading="1"` al Excel externo;
+- agrega `provider-rating-registration` y `provider-rating-registered-at` al bloque REGISTRO;
+- añade CSS específico para mostrar actor y fecha en líneas separadas;
+- no modifica BD, servicios ni dominio de valoración.
+
+Working tree local permanecía limpio antes de aplicar el GREEN. El aplicador debe ejecutarse una sola vez y luego retirarse tras consolidar.
 
 ## Pendientes de Task 8
-- aplicar GREEN de los dos hallazgos UI anteriores;
+- ejecutar GREEN de los dos hallazgos UI anteriores;
 - validar visualmente overlay de descarga y separación actor/fecha;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
@@ -172,8 +181,8 @@ Working tree limpio después del RED. Próximo paso: GREEN mínimo de presentaci
 - Historial propio del proveedor: ✅.
 - Excel propio del proveedor: ✅ consolidado, limpio y validado.
 - Corrección válida 4★ con comentario: ✅.
-- Overlay post-descarga: 🔴 RED confirmado.
-- Separación actor/fecha: 🔴 RED confirmado.
+- Overlay post-descarga: 🔴 RED confirmado; GREEN preparado.
+- Separación actor/fecha: 🔴 RED confirmado; GREEN preparado.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
