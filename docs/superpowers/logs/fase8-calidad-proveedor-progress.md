@@ -113,38 +113,32 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 
 ## Hallazgos UI Task 8
 
-### Overlay global al descargar Excel — ✅ GREEN técnico
+### Overlay global al descargar Excel — ✅ GREEN técnico consolidado
 - RED: `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
-- el enlace externo ahora usa `data-no-loading="1"`;
+- enlace externo usa `data-no-loading="1"`;
 - falso negativo del test corregido en `c169136`;
-- revalidación PC TEST: `phase8_external_case_export_regression.php` GREEN completo.
+- regresión PC TEST GREEN completa.
 
-### REGISTRO actor/fecha — ✅ GREEN técnico
+### REGISTRO actor/fecha — ✅ GREEN técnico consolidado
 - RED: `f0b8e2f test: exigir separacion visual de registro proveedor`;
-- bloque `provider-rating-registration` y fecha `provider-rating-registered-at` agregados;
+- bloque `provider-rating-registration` y fecha `provider-rating-registered-at`;
 - CSS específico separa actor y fecha;
-- revalidación PC TEST: `phase8_provider_rating_ui_regression.php` GREEN completo.
+- regresión PC TEST GREEN completa.
 
-### Consolidación funcional UI ✅
-Commit remoto verificado:
-- `d66545a fix: pulir descarga y registro de calidad proveedor`.
+### Consolidación y limpieza UI ✅
+- `d66545a fix: pulir descarga y registro de calidad proveedor`;
+- `51af5d2 docs: registrar consolidacion ui task 8`;
+- `72650e0 chore: retirar aplicador ui task 8`;
+- aplicador `tools/apply_phase8_ui_polish.php` retirado del repositorio.
 
-Archivos del commit:
-- `app/Views/tickets/index.php`;
-- `app/Views/tickets/show.php`;
-- `public/assets/css/case-focus.css`.
-
-Verificación asociada previa al commit:
+Verificación previa al commit funcional:
 - `phase8_external_case_export_regression.php`: GREEN completo;
 - `phase8_provider_rating_ui_regression.php`: GREEN completo;
 - `git diff --check`: sin errores;
 - `git status` posterior al push: working tree limpio.
 
-Aplicador temporal pendiente de retiro:
-- `tools/apply_phase8_ui_polish.php`.
-
 ## Pendientes de Task 8
-- retirar aplicador temporal UI y sincronizar PC TEST;
+- sincronizar PC TEST con la limpieza UI;
 - validar visualmente que la descarga ya no deje overlay bloqueado;
 - validar visualmente actor/fecha separados en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
@@ -167,6 +161,7 @@ Aplicador temporal pendiente de retiro:
 - Overlay post-descarga: ✅ GREEN técnico consolidado; validación visual pendiente.
 - Separación actor/fecha: ✅ GREEN técnico consolidado; validación visual pendiente.
 - Rama: `fase8-calidad-proveedor`.
+- Aplicadores temporales de este bloque: ✅ retirados.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
 
