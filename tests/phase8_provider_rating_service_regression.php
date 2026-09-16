@@ -35,6 +35,7 @@ ok(str_contains($body,'function buildCurrentRatings('),'Expone buildCurrentRatin
 ok(str_contains($body,'function enrichCycles('),'Expone enrichCycles');
 ok(str_contains($body,'function providerSummary('),'Expone providerSummary');
 ok(str_contains($body,'function ratingOptions('),'Expone ratingOptions');
+ok(str_contains($body,'function isCycleEvaluable('),'Expone isCycleEvaluable');
 
 if($body!==''){
     require_once $servicePath;
@@ -61,6 +62,19 @@ if($body!==''){
         ok(throwsInvalidArgument(static fn()=>$class::validateInput(1,'',false)),'Score 1 exige comentario');
         ok(throwsInvalidArgument(static fn()=>$class::validateInput(2,'   ',false)),'Score 2 exige comentario');
         ok(throwsInvalidArgument(static fn()=>$class::validateInput(5,'',true)),'Corrección exige comentario');
+
+        if(method_exists($class,'isCycleEvaluable')){
+            $explicitClosed=['grant_event_id'=>101,'revoke_event_id'=>102,'revoked_at'=>'2026-09-03 08:00:00'];
+            $implicitClosed=['grant_event_id'=>103,'revoke_event_id'=>null,'revoked_at'=>'2026-09-04 08:00:00'];
+            $activeCycle=['grant_event_id'=>104,'revoke_event_id'=>null,'revoked_at'=>null];
+            ok($class::isCycleEvaluable($explicitClosed),'Cierre explícito por EXTERNAL_REVOKED es evaluable');
+            ok(!$class::isCycleEvaluable($implicitClosed),'Cierre implícito por nuevo grant no es evaluable');
+            ok(!$class::isCycleEvaluable($activeCycle),'Ciclo activo no es evaluable');
+        }else{
+            ok(false,'Cierre explícito por EXTERNAL_REVOKED es evaluable');
+            ok(false,'Cierre implícito por nuevo grant no es evaluable');
+            ok(false,'Ciclo activo no es evaluable');
+        }
 
         $ratingEvents=[
             [
@@ -103,6 +117,7 @@ if($body!==''){
         $current=$class::buildCurrentRatings($ratingEvents);
         ok(count($current)===2,'Solo conserva grants con valoración válida');
         ok((int)($current[101]['score']??0)===4,'Última corrección válida es vigente');
+        ok((int)($current[101]['score']??0)===4&&((int)($current[101]['event_id']??0)===202),'Corrección obsoleta no desplaza valoración vigente');
         ok((int)($current[101]['event_id']??0)===202,'Conserva id de evento vigente');
         ok((int)($current[101]['revision_count']??-1)===1,'Cuenta una corrección válida');
         ok(($current[101]['label']??null)==='Bueno','Valoración vigente usa etiqueta correcta');
@@ -138,6 +153,11 @@ if($body!==''){
         ok(($enriched[2]['provider_rating_score']??null)===null,'Ciclo sin evaluación conserva score null');
         ok(($enriched[2]['provider_rating_label']??null)==='Sin evaluar','Ciclo sin evaluación usa etiqueta Sin evaluar');
         ok(($enriched[2]['provider_rating_comment']??null)===null,'Ciclo sin evaluación no inventa comentario');
+
+        $mismatched=$class::enrichCycles([
+            ['ticket_id'=>100,'user_id'=>99,'organization'=>'Proveedor distinto','grant_event_id'=>101,'revoke_event_id'=>102,'granted_at'=>'2026-09-01 08:00:00','revoked_at'=>'2026-09-03 08:00:00'],
+        ],$ratingEvents);
+        ok(($mismatched[0]['provider_rating_score']??null)===null,'Rating de otro proveedor no se aplica al ciclo');
 
         $summary=$class::providerSummary($enriched);
         ok((int)($summary[10]['rated_cycles']??0)===2,'Resumen cuenta ciclos evaluados');
