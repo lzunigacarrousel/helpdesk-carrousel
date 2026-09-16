@@ -237,15 +237,21 @@ final class ProviderParticipationService
         $provider=(int)($filters['provider']??0);
         $state=(string)($filters['state']??'');
         $activity=(string)($filters['activity']??'');
+        $rating=(string)($filters['rating']??'');
         $from=(string)($filters['from']??'');
         $to=(string)($filters['to']??'');
 
-        return array_values(array_filter($rows,static function(array $row)use($q,$provider,$state,$activity,$from,$to):bool{
+        return array_values(array_filter($rows,static function(array $row)use($q,$provider,$state,$activity,$rating,$from,$to):bool{
             if($provider>0&&(int)($row['user_id']??0)!==$provider)return false;
             if($state==='active'&&($row['revoked_at']??null)!==null)return false;
             if($state==='closed'&&($row['revoked_at']??null)===null)return false;
             if($activity==='NONE'&&($row['work_status']??null)!==null)return false;
             if($activity!==''&&$activity!=='NONE'&&(string)($row['work_status']??'')!==$activity)return false;
+            if($rating==='UNRATED'&&($row['provider_rating_score']??null)!==null)return false;
+            if($rating!==''&&$rating!=='UNRATED'){
+                $ratingScore=(int)$rating;
+                if($ratingScore<1||$ratingScore>5||(int)($row['provider_rating_score']??0)!==$ratingScore)return false;
+            }
 
             $day=substr((string)($row['granted_at']??''),0,10);
             if($from!==''&&$day<$from)return false;

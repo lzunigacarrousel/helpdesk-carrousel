@@ -3,9 +3,11 @@ $pageTitle='Informe de proveedores';$pageSection='Proveedores';$activeNav='exter
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $rows=$rows??[];
 $summary=$summary??[];
-$filters=$filters??['q'=>'','provider'=>0,'state'=>'','activity'=>'','from'=>'','to'=>''];
+$filters=$filters??['q'=>'','provider'=>0,'state'=>'','activity'=>'','rating'=>'','from'=>'','to'=>''];
 $providers=$providers??[];
 $activityOptions=$activityOptions??[];
+$ratingOptions=$ratingOptions??[];
+$providerRatingSummary=$providerRatingSummary??[];
 $fmtDuration=static function(?int $minutes):string{
     if($minutes===null)return '—';
     if($minutes<60)return $minutes.' min';
@@ -24,6 +26,7 @@ $exportQuery=http_build_query(array_filter([
     'provider'=>$filters['provider']?:null,
     'state'=>$filters['state'],
     'activity'=>$filters['activity'],
+    'rating'=>$filters['rating'],
     'from'=>$filters['from'],
     'to'=>$filters['to'],
 ],static fn($v)=>$v!==null&&$v!==''));
@@ -42,6 +45,7 @@ $exportQuery=http_build_query(array_filter([
     <label>Proveedor<select class="form-control" name="provider"><option value="">Todos</option><?php foreach($providers as $id=>$name): ?><option value="<?= (int)$id ?>" <?= (int)$filters['provider']===(int)$id?'selected':'' ?>><?= htmlspecialchars($name) ?></option><?php endforeach; ?></select></label>
     <label>Estado<select class="form-control" name="state"><option value="">Todos</option><option value="active" <?= $filters['state']==='active'?'selected':'' ?>>Activas</option><option value="closed" <?= $filters['state']==='closed'?'selected':'' ?>>Finalizadas</option></select></label>
     <label>Actividad actual<select class="form-control" name="activity"><option value="">Todas</option><?php foreach($activityOptions as $value=>$label): ?><option value="<?= htmlspecialchars((string)$value) ?>" <?= $filters['activity']===$value?'selected':'' ?>><?= htmlspecialchars((string)$label) ?></option><?php endforeach; ?></select></label>
+    <label>Valoración<select class="form-control" name="rating"><option value="">Todas</option><?php foreach($ratingOptions as $value=>$label): ?><option value="<?= htmlspecialchars((string)$value) ?>" <?= $filters['rating']===(string)$value?'selected':'' ?>><?= htmlspecialchars((string)$label) ?></option><?php endforeach; ?></select></label>
     <label>Desde<input class="form-control" type="date" name="from" value="<?= htmlspecialchars((string)$filters['from']) ?>"></label>
     <label>Hasta<input class="form-control" type="date" name="to" value="<?= htmlspecialchars((string)$filters['to']) ?>"></label>
     <div class="external-report-filter-actions"><button class="btn btn-primary" type="submit">Aplicar</button><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/admin/externos/informe">Limpiar</a></div>
@@ -55,9 +59,27 @@ $exportQuery=http_build_query(array_filter([
     <article><span>Devoluciones</span><strong><?= (int)($summary['returns']??0) ?></strong></article>
   </section>
 
+  <section class="data-table-shell" aria-label="Calidad por proveedor">
+    <div class="case-section-head"><div><span class="mgmt-kicker">Calidad interna</span><h2>Calidad por proveedor</h2><p>Solo las valoraciones vigentes entran al promedio; Sin evaluar no equivale a cero.</p></div></div>
+    <div class="data-table-wrap"><table class="data-table">
+      <thead><tr><th>Proveedor</th><th>Promedio de calidad</th><th>Ciclos evaluados</th><th>Sin evaluar</th></tr></thead>
+      <tbody>
+      <?php foreach($providerRatingSummary as $quality): ?>
+        <tr>
+          <td data-label="Proveedor"><strong><?= htmlspecialchars((string)($quality['organization']??'')) ?></strong></td>
+          <td data-label="Promedio de calidad"><strong><?= ($quality['average_score']??null)===null?'—':htmlspecialchars(number_format((float)$quality['average_score'],2)) ?></strong></td>
+          <td data-label="Ciclos evaluados"><?= (int)($quality['rated_cycles']??0) ?></td>
+          <td data-label="Sin evaluar"><?= (int)($quality['unrated_cycles']??0) ?></td>
+        </tr>
+      <?php endforeach; ?>
+      <?php if(!$providerRatingSummary): ?><tr><td class="data-table-empty" data-label="" colspan="4">No hay ciclos para resumir con estos filtros.</td></tr><?php endif; ?>
+      </tbody>
+    </table></div>
+  </section>
+
   <section class="data-table-shell" aria-label="Participación operativa de proveedores">
     <div class="data-table-wrap"><table class="data-table">
-      <thead><tr><th>Proveedor / Ticket</th><th>Asignación</th><th>Primera respuesta</th><th>Participación</th><th>Actividad actual</th><th>Trabajo</th><th>Resultado</th></tr></thead>
+      <thead><tr><th>Proveedor / Ticket</th><th>Asignación</th><th>Primera respuesta</th><th>Participación</th><th>Actividad actual</th><th>Trabajo</th><th>Resultado</th><th>Valoración</th></tr></thead>
       <tbody>
       <?php foreach($rows as $r): ?>
         <?php $isActive=empty($r['revoked_at']);$firstResponse=$r['first_response_at']??null;$activityLabel=(string)($r['activity_label']??'Sin actualización');$workStatus=(string)($r['work_status']??''); ?>
@@ -87,9 +109,15 @@ $exportQuery=http_build_query(array_filter([
           <td data-label="Resultado">
             <div class="external-metric-stack"><div class="external-result-line"><strong><?= (int)($r['deliveries']??0) ?> entregas</strong><strong>· <?= (int)($r['returns']??0) ?> devoluciones</strong></div><small>Ticket: <?= htmlspecialchars($statusLabels[$r['ticket_status']]??(string)$r['ticket_status']) ?></small><span class="external-cycle-status <?= $isActive?'active':'' ?>"><?= $isActive?'Ciclo activo':'Ciclo finalizado' ?></span></div>
           </td>
-        </tr>
+          <td data-label="Valoración">
+            <?php if(($r['provider_rating_score']??null)===null): ?>
+              <div class="external-metric-stack"><strong>Sin evaluar</strong><small>No afecta el promedio.</small></div>
+            <?php else: ?>
+              <div class="external-metric-stack"><strong><?= (int)$r['provider_rating_score'] ?>★ · <?= htmlspecialchars((string)($r['provider_rating_label']??'')) ?></strong><?php if(!empty($r['provider_rating_comment'])): ?><small><?= htmlspecialchars((string)$r['provider_rating_comment']) ?></small><?php endif; ?><?php if(!empty($r['provider_rating_revisions'])): ?><small><?= (int)$r['provider_rating_revisions'] ?> corrección(es)</small><?php endif; ?></div>
+            <?php endif; ?>
+          </td>        </tr>
       <?php endforeach; ?>
-      <?php if(!$rows): ?><tr><td class="data-table-empty" data-label="" colspan="7">No hay resultados con estos filtros.</td></tr><?php endif; ?>
+      <?php if(!$rows): ?><tr><td class="data-table-empty" data-label="" colspan="8">No hay resultados con estos filtros.</td></tr><?php endif; ?>
       </tbody>
     </table></div>
   </section>

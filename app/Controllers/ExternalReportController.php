@@ -3,17 +3,20 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Database,View};
-use App\Services\{ProviderParticipationService,XlsxExportService};
+use App\Services\{ProviderParticipationService,ProviderRatingService,XlsxExportService};
 
 final class ExternalReportController
 {
     public function index(): void
     {
         $this->requireAccess();
-        $service=new ProviderParticipationService(Database::pdo());
-        $allRows=$service->rows();
+        $pdo=Database::pdo();
+        $service=new ProviderParticipationService($pdo);
+        $ratingService=new ProviderRatingService($pdo);
+        $allRows=$ratingService->enrichRows($service->rows());
         $filters=$this->filters();
         $rows=ProviderParticipationService::applyFilters($allRows,$filters);
+        $providerRatingSummary=ProviderRatingService::providerSummary($rows);
 
         View::render('management/external_report',[
             'user'=>Auth::user(),
@@ -22,16 +25,21 @@ final class ExternalReportController
             'filters'=>$filters,
             'providers'=>$service->registeredProviders(),
             'activityOptions'=>ProviderParticipationService::activityOptions(),
+            'ratingOptions'=>ProviderRatingService::ratingOptions(),
+            'providerRatingSummary'=>$providerRatingSummary,
         ]);
     }
 
     public function export(): void
     {
         $this->requireAccess();
-        $service=new ProviderParticipationService(Database::pdo());
+        $pdo=Database::pdo();
+        $service=new ProviderParticipationService($pdo);
+        $ratingService=new ProviderRatingService($pdo);
         $filters=$this->filters();
-        $rows=ProviderParticipationService::applyFilters($service->rows(),$filters);
+        $rows=ProviderParticipationService::applyFilters($ratingService->enrichRows($service->rows()),$filters);
         $summary=ProviderParticipationService::summary($rows);
+        $providerRatingSummary=ProviderRatingService::providerSummary($rows);
         $data=[];
 
         foreach($rows as $r){
@@ -57,8 +65,24 @@ final class ExternalReportController
                 (int)($r['reports']??0),
                 (int)($r['deliveries']??0),
                 (int)($r['returns']??0),
+                $r['provider_rating_score']===null?'':(int)$r['provider_rating_score'],
+                (string)($r['provider_rating_label']??'Sin evaluar'),
+                (string)($r['provider_rating_comment']??''),
+                (string)($r['provider_rating_actor']??''),
+                $this->displayDate($r['provider_rating_at']??null),
+                (int)($r['provider_rating_revisions']??0),
                 $this->ticketStatusLabel((string)$r['ticket_status']),
                 empty($r['revoked_at'])?'Activo':'Finalizado',
+            ];
+        }
+
+        $qualityData=[];
+        foreach($providerRatingSummary as $quality){
+            $qualityData[]=[
+                (string)($quality['organization']??''),
+                $quality['average_score']===null?'':(float)$quality['average_score'],
+                (int)($quality['rated_cycles']??0),
+                (int)($quality['unrated_cycles']??0),
             ];
         }
 
@@ -90,9 +114,18 @@ final class ExternalReportController
                     'Proveedor','Contacto','Correo','Ticket','Asunto','Asignado','Asignado por',
                     'Revocado','Revocado por','Duración (min)','Primera respuesta','T. primera respuesta (min)',
                     'Origen primera respuesta','Actividad actual','Última actualización','Trabajo declarado (min)',
-                    'Respuestas','Archivos','Informes','Entregas listas','Devoluciones','Estado ticket','Estado ciclo',
+                    'Respuestas','Archivos','Informes','Entregas listas','Devoluciones',
+                    'Valoración proveedor','Etiqueta valoración','Comentario valoración','Registró valoración','Fecha valoración','Correcciones valoración',
+                    'Estado ticket','Estado ciclo',
                 ],
                 'rows'=>$data,
+            ],
+            [
+                'name'=>'Calidad proveedores',
+                'title'=>'Helpdesk Carrousel · Calidad por proveedor',
+                'subtitle'=>'Promedio vigente; los ciclos sin evaluar no equivalen a cero',
+                'headers'=>['Proveedor','Promedio calidad','Ciclos evaluados','Ciclos sin evaluar'],
+                'rows'=>$qualityData,
             ],
         ]);
     }
@@ -108,11 +141,16 @@ final class ExternalReportController
         $validActivities=array_keys(ProviderParticipationService::activityOptions());
         if($activity!==''&&!in_array($activity,$validActivities,true))$activity='';
 
+        $rating=(string)($_GET['rating']??'');
+        $validRatings=array_keys(ProviderRatingService::ratingOptions());
+        if($rating!==''&&!in_array($rating,$validRatings,true))$rating='';
+
         return [
             'q'=>$q,
             'provider'=>$provider,
             'state'=>$state,
             'activity'=>$activity,
+            'rating'=>$rating,
             'from'=>$this->validDate((string)($_GET['from']??'')),
             'to'=>$this->validDate((string)($_GET['to']??'')),
         ];
