@@ -51,47 +51,81 @@ Commit de cierre: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 ### Task 8 — Gate integral y validación PC TEST 🚧 EN CURSO
 
 #### Gate técnico base ✅ GREEN
-
-Confirmado previamente en PC TEST:
 - sintaxis PHP GREEN en archivos modificados;
-- 6 regresiones Fase 8 GREEN;
-- 5 regresiones Fase 7 GREEN;
+- regresiones Fase 8 y Fase 7 GREEN;
 - `project_quality.php`, `xlsx_smoke.php`, `static_checks.php` GREEN;
 - `git diff --check` sin errores;
-- `git diff --name-only origin/main...HEAD -- database` sin salida;
 - 0 cambios en `database/` respecto a `main`.
 
 ## Validación manual registrada
 
 ### Checkpoint A — ciclo activo ✅
-- bloque `Calidad del proveedor` visible;
-- participación `Activa`;
-- `Sin evaluar`;
-- no aparece formulario;
-- mensaje operativo correcto.
+Bloque `Calidad del proveedor` visible, participación activa, `Sin evaluar`, sin formulario.
 
 ### Checkpoint B — cierre explícito evaluable ✅
-- participación finalizada por flujo normal;
-- aparece `Evaluar proveedor`;
-- opciones 1★–5★ visibles;
-- regla de comentario visible.
+Participación finalizada por flujo normal; aparece `Evaluar proveedor`, escala 1★–5★ y regla de comentario.
 
 ### Checkpoint C — primera valoración real ✅
-- se guardó `1★ · Muy deficiente` con comentario;
-- valoración vigente reconstruida correctamente;
-- actor y fecha visibles;
-- aparece `Registrar corrección`.
+Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, fecha y `Registrar corrección` visibles.
 
 ### Checkpoint D — historial externo visible ✅
-Validación real con la cuenta `Pruebas Comunicacion`:
-- `Mis casos` muestra `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`;
-- el caso `HD-2026-000001` permanece visible como historial;
-- aparece `Participación finalizada`;
-- se muestran `Asignado 15/09/2026 13:20` y `Finalizó 16/09/2026 09:37`;
-- no se muestra valoración, score ni comentario interno;
-- la tarjeta histórica está presentada como historial de participación y no reabre el detalle revocado.
+Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
-Pendiente aún:
+## Historial y Excel administrativo por proveedor ✅
+- `Historial` → `/admin/externos/informe?provider=<id>`;
+- `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
+- commit funcional: `a060825 ui: agregar historial y excel por proveedor`.
+
+## Historial para el propio proveedor ✅
+- accesos vigentes e históricos revocados visibles en `Mis casos`;
+- histórico revocado sin enlace al detalle;
+- métricas `Activos`, `En espera`, `Finalizados`, `Total`;
+- sin valoración interna;
+- commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
+
+## Excel seguro para el propio proveedor ✅ GREEN TÉCNICO
+
+### Diseño
+- botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
+- endpoint dedicado `GET /mis-tickets/exportar`;
+- controller dedicado `ExternalCaseHistoryController`;
+- consulta limitada por `eta.user_id=?` con `Auth::id()`;
+- columnas: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- activas e históricas revocadas incluidas;
+- sin valoración interna, comentario de calidad, NPS, correo del solicitante, comentarios, auditoría o resolución interna;
+- 0 cambios de BD.
+
+### RED TDD ✅
+`tests/phase8_external_case_export_regression.php` inició con 12 fallos esperados y 4 controles de privacidad ya GREEN.
+
+### GREEN TDD ✅ CONFIRMADO EN PC TEST
+Primera ejecución de `tools/apply_phase8_external_case_export.php`:
+- controller, router y vista: sintaxis `[OK]`;
+- `tests/phase8_external_case_export_regression.php`: GREEN completo;
+- `tests/phase8_external_case_history_regression.php`: GREEN completo;
+- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
+- `tests/xlsx_smoke.php`: GREEN completo;
+- `git diff --check`: sin errores, solo warnings LF→CRLF normales de Windows;
+- cambios funcionales locales únicamente en:
+  - `app/Controllers/ExternalCaseHistoryController.php` (nuevo);
+  - `public/index.php`;
+  - `app/Views/tickets/index.php`.
+
+Segunda ejecución accidental del aplicador:
+- respondió `[ERROR] Ya existe ExternalCaseHistoryController.php` porque es un aplicador de una sola ejecución;
+- no alteró los cambios ya aplicados;
+- todas las pruebas se ejecutaron nuevamente y permanecieron GREEN;
+- por tanto no es un fallo funcional, solo una protección contra reaplicar el script.
+
+### Siguiente paso exacto
+1. consolidar únicamente los tres archivos funcionales anteriores;
+2. dejar `tools/apply_phase8_external_case_export.php` fuera del commit funcional;
+3. push de la rama;
+4. registrar commit funcional en este log;
+5. retirar aplicador temporal y registrar limpieza;
+6. validar descarga real iniciando sesión como `Pruebas Comunicacion` y abrir el XLSX descargado.
+
+## Pendientes de Task 8
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -99,109 +133,24 @@ Pendiente aún:
 - cierre implícito no evaluable;
 - privacidad REQUESTER adicional;
 - filtros del informe y XLSX administrativo en uso real;
-- Excel seguro para el propio proveedor;
-- visual claro/oscuro, PC, iPad/tablet y móvil.
-
-## Hallazgo visual pendiente
-
-En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
-
-## Historial y Excel administrativo por proveedor ✅ CERRADO TÉCNICAMENTE
-
-Diseño implementado:
-- `Historial` → `/admin/externos/informe?provider=<id>`;
-- `Excel` → `/admin/externos/informe/exportar?provider=<id>`;
-- `Editar` se conserva;
-- sin BD nueva ni controller nuevo.
-
-TDD:
-- RED aislado en 4 expectativas nuevas;
-- GREEN completo de `tests/phase8_provider_rating_report_regression.php`.
-
-Consolidación:
-- `a060825 ui: agregar historial y excel por proveedor`.
-- herramienta temporal retirada.
-
-## Historial visible para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
-
-- `Mis casos` incluye accesos vigentes e históricos revocados.
-- Métricas: `Activos`, `En espera`, `Finalizados`, `Total`.
-- Un caso revocado se muestra como historial sin enlace al detalle.
-- No expone score/comentario de calidad.
-- 0 cambios de BD.
-- GREEN técnico completo y commit funcional `2ad58d5 feat: conservar historial de casos para proveedores`.
-- validación visual real: ✅ Checkpoint D.
-
-## Nuevo hallazgo — Excel para el propio proveedor ⚠️ EN TDD
-
-La cuenta externa ya puede ver su historial, pero **no tiene descarga Excel propia**.
-
-Diseño seguro definido:
-- botón `Descargar Excel` dentro de `Mis casos` para cuentas `EXTERNAL`;
-- endpoint propio, separado del informe administrativo;
-- exportar únicamente las participaciones del usuario autenticado;
-- incluir: ticket, asunto, categoría, ubicación, estado de participación, fecha de asignación y fecha de finalización;
-- no incluir valoración interna, comentario de calidad, NPS, comentarios internos, datos del solicitante, auditoría ni resolución interna;
-- 0 cambios de BD.
-
-### RED TDD ✅ CONFIRMADO EN PC TEST
-
-Test: `tests/phase8_external_case_export_regression.php`.
-
-Resultado ejecutado:
-- `[OK] Existe router principal`;
-- `[OK] Existe vista Mis casos`;
-- 12 fallos esperados correspondientes a controller, ruta, scope, fechas, columnas seguras y botón de descarga;
-- privacidad ya GREEN:
-  - `[OK] Excel externo no expone valoración interna`;
-  - `[OK] Excel externo no expone correo del solicitante`;
-  - `[OK] Excel externo no consulta comentarios`;
-  - `[OK] Excel externo no consulta resolución interna`;
-- `git status`: working tree limpio y sincronizado.
-
-### GREEN mínimo ✅ PREPARADO
-
-Aplicador temporal:
-- `824d375 tool: aplicar excel seguro para proveedor externo`;
-- archivo `tools/apply_phase8_external_case_export.php`.
-
-El aplicador prepara únicamente:
-- `app/Controllers/ExternalCaseHistoryController.php`;
-- import y ruta `GET /mis-tickets/exportar` en `public/index.php`;
-- botón `Descargar Excel` en `app/Views/tickets/index.php`;
-- consulta limitada por `eta.user_id=?` usando `Auth::id()`;
-- XLSX con columnas seguras `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
-- sin consultas a comentarios, resolución ni calidad interna;
-- normalización EOL para Windows;
-- 0 cambios de BD.
-
-### Siguiente paso exacto
-
-1. sincronizar PC TEST;
-2. ejecutar `tools/apply_phase8_external_case_export.php`;
-3. verificar sintaxis de controller, router y vista;
-4. ejecutar `phase8_external_case_export_regression.php`, `phase8_external_case_history_regression.php`, `phase8_provider_rating_ui_regression.php` y `xlsx_smoke.php`;
-5. `git diff --check` y `git status`;
-6. registrar GREEN antes de commit funcional;
-7. consolidar y validar descarga real con `Pruebas Comunicacion`.
+- validar XLSX externo real;
+- corregir separación visual actor/fecha en `REGISTRO`;
+- visual claro/oscuro, PC, iPad/tablet y móvil;
+- repetir gate técnico integral al final.
 
 ## Estado exacto actual
-
 - Tasks 1–7: ✅ cerradas.
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
-- Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: ✅ consolidado, limpio y validado visualmente.
-- Excel para el propio proveedor: RED ✅ confirmado; GREEN mínimo preparado ⏳ por ejecutar en PC TEST.
-- Hallazgo visual actor/fecha: ⏳ pendiente.
+- Historial/Excel administrativo: ✅.
+- Historial propio del proveedor: ✅.
+- Excel propio del proveedor: ✅ GREEN técnico; pendiente consolidación + prueba real.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
 
 ## Integración a main
-
-**NO HACER MERGE todavía.** Solo preparar integración después de completar checklist funcional/visual, resolver hallazgos, repetir gate técnico si hubo cambios, actualizar este log y obtener aprobación explícita del usuario.
+**NO HACER MERGE todavía.** Solo después de completar validación funcional/visual, resolver hallazgos, repetir gate técnico, actualizar este log y obtener aprobación explícita del usuario.
 
 ## Próxima fase
-
 Roadmap: **Fase 9 — Conocimiento**, únicamente después del cierre formal de Task 8/Fase 8.
