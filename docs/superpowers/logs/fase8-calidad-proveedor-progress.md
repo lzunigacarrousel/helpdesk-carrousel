@@ -115,7 +115,7 @@ Validación manual posterior:
 - RED/GREEN técnico completo;
 - archivo real y descarga desde navegador validados.
 
-## Hallazgos UI nuevos — RED preparado ⏳
+## Hallazgos UI nuevos — RED confirmado 🔴
 
 ### 1. Overlay global queda abierto al descargar Excel
 Reproducción manual:
@@ -125,12 +125,12 @@ Reproducción manual:
 Causa identificada:
 - `public/assets/js/app.js` activa el loader global para enlaces normales;
 - solo omite el loader cuando el enlace tiene `download`, `target="_blank"` o `data-no-loading="1"`;
-- el enlace externo de `Descargar Excel` no tenía `data-no-loading="1"`;
+- el enlace externo de `Descargar Excel` no tiene `data-no-loading="1"`;
 - como la respuesta es una descarga y no una navegación, no ocurre `load/pageshow` para cerrar el overlay.
 
-RED preparado:
-- `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
-- `tests/phase8_external_case_export_regression.php` ahora exige `data-no-loading="1"` en el enlace externo.
+RED confirmado en PC TEST:
+- `tests/phase8_external_case_export_regression.php` falla únicamente en `Descarga Excel externa no deja overlay global bloqueado`;
+- el resto de la regresión del Excel externo permanece GREEN.
 
 ### 2. REGISTRO concatena actor y fecha
 Reproducción manual:
@@ -140,16 +140,21 @@ Causa visual:
 - `resolution-read-grid` hace block solo al `span` de etiqueta;
 - el `<strong>` del actor y `<small>` de la fecha quedan inline sin gap.
 
-RED preparado:
-- `f0b8e2f test: exigir separacion visual de registro proveedor`;
-- `tests/phase8_provider_rating_ui_regression.php` exige bloque `provider-rating-registration`, fecha `provider-rating-registered-at` y CSS que separe ambos elementos.
+RED confirmado en PC TEST:
+- `Registro de valoración usa bloque visual propio` falla;
+- `Fecha de registro queda separada del actor` falla;
+- `CSS separa actor y fecha de la valoración` falla;
+- el resto de `phase8_provider_rating_ui_regression.php` permanece GREEN.
 
-No hay cambios funcionales aplicados todavía para estos dos hallazgos.
+Commits RED:
+- `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
+- `f0b8e2f test: exigir separacion visual de registro proveedor`.
+
+Working tree limpio después del RED. Próximo paso: GREEN mínimo de presentación, sin BD ni cambios de dominio.
 
 ## Pendientes de Task 8
-- ejecutar RED de los dos hallazgos UI anteriores;
-- corregir overlay de descarga externa;
-- corregir separación visual actor/fecha en `REGISTRO`;
+- aplicar GREEN de los dos hallazgos UI anteriores;
+- validar visualmente overlay de descarga y separación actor/fecha;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -167,8 +172,8 @@ No hay cambios funcionales aplicados todavía para estos dos hallazgos.
 - Historial propio del proveedor: ✅.
 - Excel propio del proveedor: ✅ consolidado, limpio y validado.
 - Corrección válida 4★ con comentario: ✅.
-- Overlay post-descarga: ⚠️ RED preparado.
-- Separación actor/fecha: ⚠️ RED preparado.
+- Overlay post-descarga: 🔴 RED confirmado.
+- Separación actor/fecha: 🔴 RED confirmado.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
