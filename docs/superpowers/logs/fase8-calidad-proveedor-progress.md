@@ -115,7 +115,7 @@ Consolidación y limpieza:
 - limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI, Manual y cierre documental 🚧 GREEN PROPIO / BLOCKER HEREDADO FASE 7
+### Task 7 — CI, Manual y cierre documental 🚧 GREEN PROPIO / FIX HEREDADO PREPARADO
 
 Objetivo:
 - incorporar todos los gates de Fase 8 al CI;
@@ -145,12 +145,18 @@ GREEN aplicado en PC TEST:
 - `xlsx_smoke.php`: GREEN;
 - `git diff --check`: sin errores; solo advertencias LF/CRLF de Windows.
 
-Blocker detectado:
+Blocker heredado detectado:
 - `phase7_provider_participation_regression.php` falla únicamente en `README marca Fase 8 como siguiente`;
-- causa: la regresión de Fase 7 quedó acoplada al estado temporal del roadmap al cierre de Fase 7;
-- ahora Fase 8 está implementada y Fase 9 es la siguiente, por lo que esa expectativa heredada es obsoleta;
-- no es un fallo funcional ni documental de Fase 8;
-- corrección correcta: Fase 7 debe verificar que Fase 8 siga presente en el roadmap, pero no controlar para siempre cuál fase es la siguiente.
+- la regresión de Fase 7 quedó acoplada al estado temporal del roadmap al cierre de Fase 7;
+- ahora Fase 8 está implementada y Fase 9 es la siguiente;
+- no es un fallo funcional ni documental de Fase 8.
+
+Fix mínimo preparado:
+- creado `tools/fix_phase7_roadmap_regression.php`;
+- commit `3c5f2fb tool: corregir regresion heredada roadmap fase 7`;
+- reemplaza únicamente la expectativa `Fase 8 como siguiente` por una verificación estable de que `Fase 8` permanece en el roadmap;
+- el estado de Fase 8 implementada y Fase 9 siguiente continúa siendo responsabilidad de `phase8_provider_rating_closeout_regression.php`;
+- no modifica BD ni código funcional.
 
 Cambios documentales locales actuales, aún sin commit:
 - `.github/workflows/helpdesk-ci.yml`;
@@ -159,21 +165,23 @@ Cambios documentales locales actuales, aún sin commit:
 - `app/Views/help/manual.php`.
 
 Siguiente acción exacta:
-1. corregir solo la aserción heredada en `tests/phase7_provider_participation_regression.php`;
-2. volver a ejecutar esa regresión y `phase8_provider_rating_closeout_regression.php`;
-3. ejecutar gates acumulados relevantes;
-4. si todo queda GREEN, registrar resultado antes del commit documental de Task 7;
-5. consolidar documentación/CI + ajuste de regresión;
-6. eliminar `tools/apply_phase8_closeout.php` y registrar limpieza.
+1. `git pull --ff-only origin fase8-calidad-proveedor` para recibir el fix temporal y este log;
+2. ejecutar `tools/fix_phase7_roadmap_regression.php`;
+3. ejecutar `phase7_provider_participation_regression.php` y `phase8_provider_rating_closeout_regression.php`;
+4. ejecutar `project_quality.php`, `xlsx_smoke.php` y `git diff --check`;
+5. confirmar `git status` con cuatro archivos documentales + el test heredado modificados;
+6. si GREEN, registrar resultado antes del commit documental de Task 7;
+7. consolidar documentación/CI + ajuste de regresión;
+8. eliminar `tools/apply_phase8_closeout.php` y `tools/fix_phase7_roadmap_regression.php`, registrando limpieza.
 
 ## Estado actual para retomar
 
 - Tasks 1–6: cerradas y limpias.
-- Task 7: GREEN propio; pendiente corregir una expectativa heredada de Fase 7 y luego consolidar.
+- Task 7: GREEN propio; fix heredado preparado y pendiente ejecutar en PC TEST.
 - Rama: `fase8-calidad-proveedor`.
 - PC TEST tiene cuatro archivos documentales modificados localmente, aún sin commit.
 
 ## Próximas tareas del plan
 
-- Task 7: corregir regresión heredada, cerrar CI/documentación y limpiar aplicador temporal.
+- Task 7: ejecutar fix heredado, cerrar CI/documentación y limpiar herramientas temporales.
 - Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
