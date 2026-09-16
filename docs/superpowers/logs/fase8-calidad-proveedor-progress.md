@@ -83,7 +83,7 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO Y LIMPIO
 
 ### Diseño
 - botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
@@ -121,17 +121,17 @@ Archivos funcionales:
 - `public/index.php`;
 - `app/Views/tickets/index.php`.
 
-Estado después del push:
-- rama `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`;
-- working tree limpio.
+### Limpieza ✅
+- registro de consolidación: `847e050 docs: registrar consolidacion excel externo proveedor`;
+- aplicador temporal retirado: `43b6df9 chore: retirar aplicador excel externo proveedor`;
+- `tools/apply_phase8_external_case_export.php` ya no permanece en la rama.
 
 ### Siguiente paso exacto
-1. retirar `tools/apply_phase8_external_case_export.php`;
-2. registrar limpieza en este log;
-3. sincronizar PC TEST;
-4. iniciar sesión como `Pruebas Comunicacion`;
-5. usar `Descargar Excel`;
-6. abrir el XLSX y confirmar columnas y ausencia de datos internos.
+1. sincronizar PC TEST;
+2. iniciar sesión como `Pruebas Comunicacion`;
+3. confirmar visualmente botón `Descargar Excel` en `Mis casos`;
+4. descargar el XLSX;
+5. abrirlo y validar únicamente las 7 columnas seguras y las participaciones del usuario autenticado.
 
 ## Pendientes de Task 8
 - rechazo de 1–2★ sin comentario;
@@ -152,7 +152,7 @@ Estado después del push:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado técnicamente en `56615a6`; pendiente limpieza del aplicador y prueba real.
+- Excel propio del proveedor: ✅ consolidado y limpio; pendiente prueba real del archivo descargado.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
