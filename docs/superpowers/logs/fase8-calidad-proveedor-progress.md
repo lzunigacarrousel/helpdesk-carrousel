@@ -124,7 +124,7 @@ Cierre y limpieza:
 - eliminado `tools/normalize_phase8_task4_eol.php` en `e302a49`;
 - no quedan herramientas temporales de Task 4 versionadas.
 
-### Task 5 — Informe de proveedores + valoración + XLSX ✅ CERRADA
+### Task 5 — Informe de proveedores + valoración + XLSX ✅ CERRADA Y LIMPIA
 
 Inicio TDD:
 - creado `tests/phase8_provider_rating_report_regression.php`;
@@ -162,20 +162,33 @@ GREEN final:
 Commit funcional:
 - `a8811c6 feat: integrar calidad de proveedores en informes`.
 
-Estado después del commit:
-- push exitoso a `origin/fase8-calidad-proveedor`;
-- `git status`: `nothing to commit, working tree clean`.
+Cierre y limpieza:
+- push de `a8811c6` exitoso;
+- working tree local quedó limpio y sincronizado;
+- cierre registrado en log en `20be230`;
+- eliminado `tools/apply_phase8_provider_rating_report.php` en `b07b827`;
+- no quedan herramientas temporales de Task 5 versionadas.
 
-Limpieza pendiente inmediata:
-- eliminar `tools/apply_phase8_provider_rating_report.php`;
-- registrar esa limpieza en este log;
-- iniciar Task 6.
+### Task 6 — Seguridad, historial y casos límite ⏭️ SIGUIENTE
+
+Objetivo del plan:
+- endurecer el criterio de ciclo evaluable;
+- ignorar correcciones obsoletas/corruptas;
+- reutilizar el mismo criterio en servicio y vista;
+- verificar nuevamente que proveedor y solicitante no reciben score/comentario interno.
+
+RED por preparar:
+- `isCycleEvaluable()` debe rechazar cierre implícito por nuevo grant;
+- corrección cuyo `corrected_rating_event_id` no sea el evento vigente debe ignorarse;
+- vista externa/proveedor no debe contener `provider_rating_score` ni `provider_rating_comment`;
+- vista pública/solicitante no debe exponer comentario interno.
 
 ## Estado actual para retomar
 
-- Tasks 1–5: cerradas funcionalmente.
-- Task 5: pendiente solo limpieza del aplicador temporal remoto.
+- Tasks 1–5: cerradas y limpias.
+- Siguiente trabajo: Task 6 RED.
 - Rama de trabajo: `fase8-calidad-proveedor`.
+- Antes de continuar en PC TEST: `git pull --ff-only origin fase8-calidad-proveedor` y confirmar `git status` limpio.
 
 ## Próximas tareas del plan
 
