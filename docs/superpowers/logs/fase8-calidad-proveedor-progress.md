@@ -72,32 +72,27 @@ Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, 
 Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
 ### Checkpoint E — Excel externo real ✅ RESUELTO Y VALIDADO
-Validación con `helpdesk_mis_casos_20260916_120336.xlsx`:
-- archivo existe en `C:\Users\Luis Fernando Zuniga\Downloads\helpdesk_mis_casos_20260916_120336.xlsx`;
-- `Test-Path` devuelve `True`;
-- Microsoft Excel lo abre correctamente cuando se abre por su ruta real;
-- hoja `Mis casos` visible sin reparación;
-- encabezados: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- `helpdesk_mis_casos_20260916_120336.xlsx` existe y abre correctamente en Microsoft Excel;
+- hoja `Mis casos` sin reparación;
+- columnas seguras: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
 - fila `HD-2026-000001` correcta;
-- participación `Finalizada`;
-- asignado `15/09/2026 13:20`;
-- finalizado `16/09/2026 09:37`;
-- no aparecen valoración interna, comentario de calidad, correo del solicitante ni resolución interna.
-
-Incidencia previa aclarada:
-- Excel había mostrado un mensaje buscando `helpdesk_proveedores_20260916_104604.xlsx`;
-- el diagnóstico confirmó que ese mensaje correspondía a una referencia previa/reciente distinta del archivo nuevo;
-- el archivo nuevo `helpdesk_mis_casos_20260916_120336.xlsx` existe y abre correctamente;
-- no se requiere cambio adicional en `XlsxExportService` por esta incidencia.
+- sin valoración interna, comentario de calidad, correo del solicitante ni resolución interna.
 
 ### Checkpoint F — descarga desde la propia UI ✅
-Validación nueva desde `Pruebas Comunicacion` → `Mis casos`:
-- botón `Descargar Excel` visible en la pantalla externa;
-- Chrome inicia la descarga directamente desde la UI;
-- archivo generado: `helpdesk_mis_casos_20260916_121620.xlsx`;
-- navegador muestra estado `Hecho` y tamaño aproximado 3,4 KB;
-- la descarga no requiere abrir un informe administrativo ni una ruta manual;
-- rama local confirmada sincronizada y con working tree limpio al momento de la prueba.
+- botón `Descargar Excel` visible para `Pruebas Comunicacion`;
+- Chrome genera `helpdesk_mis_casos_20260916_121620.xlsx` y marca la descarga como `Hecho`;
+- rama local limpia y sincronizada durante la prueba.
+
+### Checkpoint G — corrección válida de valoración ✅
+Validación manual posterior:
+- la valoración vigente cambió a `4★ · Bueno`;
+- se muestra `1 corrección(es)`;
+- comentario interno visible: `resultado bueno 4 prueba`;
+- actor: `Luis Fernando Zuniga`;
+- fecha registrada: `16/09/2026 12:33`;
+- el evento de corrección quedó aplicado y reconstruido correctamente.
+
+**Aún pendiente:** comprobar rechazo real de una corrección con comentario vacío.
 
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
@@ -111,61 +106,58 @@ Validación nueva desde `Pruebas Comunicacion` → `Mis casos`:
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
-
-### Diseño
-- botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO Y VALIDADO
 - endpoint dedicado `GET /mis-tickets/exportar`;
-- controller dedicado `ExternalCaseHistoryController`;
-- consulta limitada por `eta.user_id=?` con `Auth::id()`;
-- columnas: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
-- activas e históricas revocadas incluidas;
-- sin valoración interna, comentario de calidad, NPS, correo del solicitante, comentarios, auditoría o resolución interna;
-- 0 cambios de BD.
+- controller `ExternalCaseHistoryController`;
+- consulta limitada por `Auth::id()`;
+- commit funcional `56615a6 feat: exportar historial de casos para proveedores`;
+- aplicador temporal retirado;
+- RED/GREEN técnico completo;
+- archivo real y descarga desde navegador validados.
 
-### RED/GREEN técnico ✅
-- `tests/phase8_external_case_export_regression.php`: GREEN completo;
-- `tests/phase8_external_case_history_regression.php`: GREEN completo;
-- `tests/phase8_provider_rating_ui_regression.php`: GREEN completo;
-- `tests/xlsx_smoke.php`: GREEN completo;
-- `git diff --check`: sin errores.
+## Hallazgos UI nuevos — RED preparado ⏳
 
-### Consolidación funcional ✅
-Commit funcional:
-- `56615a6 feat: exportar historial de casos para proveedores`.
+### 1. Overlay global queda abierto al descargar Excel
+Reproducción manual:
+- la descarga termina correctamente en Chrome;
+- la página queda cubierta por `Procesando información · Abriendo...` indefinidamente.
 
-Archivos funcionales:
-- `app/Controllers/ExternalCaseHistoryController.php`;
-- `public/index.php`;
-- `app/Views/tickets/index.php`.
+Causa identificada:
+- `public/assets/js/app.js` activa el loader global para enlaces normales;
+- solo omite el loader cuando el enlace tiene `download`, `target="_blank"` o `data-no-loading="1"`;
+- el enlace externo de `Descargar Excel` no tenía `data-no-loading="1"`;
+- como la respuesta es una descarga y no una navegación, no ocurre `load/pageshow` para cerrar el overlay.
 
-### Limpieza ✅
-- `847e050 docs: registrar consolidacion excel externo proveedor`;
-- `43b6df9 chore: retirar aplicador excel externo proveedor`;
-- aplicador temporal retirado.
+RED preparado:
+- `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
+- `tests/phase8_external_case_export_regression.php` ahora exige `data-no-loading="1"` en el enlace externo.
 
-### Validación real ✅
-- descarga real confirmada con `Pruebas Comunicacion`;
-- descarga desde navegador confirmada en Checkpoint F;
-- archivo localizado en Downloads;
-- apertura directa en Microsoft Excel confirmada;
-- columnas y datos seguros verificados.
+### 2. REGISTRO concatena actor y fecha
+Reproducción manual:
+- se visualiza `Luis Fernando Zuniga16/09/2026 12:33` sin separación.
+
+Causa visual:
+- `resolution-read-grid` hace block solo al `span` de etiqueta;
+- el `<strong>` del actor y `<small>` de la fecha quedan inline sin gap.
+
+RED preparado:
+- `f0b8e2f test: exigir separacion visual de registro proveedor`;
+- `tests/phase8_provider_rating_ui_regression.php` exige bloque `provider-rating-registration`, fecha `provider-rating-registered-at` y CSS que separe ambos elementos.
+
+No hay cambios funcionales aplicados todavía para estos dos hallazgos.
 
 ## Pendientes de Task 8
+- ejecutar RED de los dos hallazgos UI anteriores;
+- corregir overlay de descarga externa;
+- corregir separación visual actor/fecha en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
-- corrección válida con comentario;
 - cierre implícito no evaluable;
 - privacidad REQUESTER adicional;
 - filtros del informe y XLSX administrativo en uso real;
-- corregir separación visual actor/fecha en `REGISTRO`;
 - visual claro/oscuro, PC, iPad/tablet y móvil;
 - repetir gate técnico integral al final.
-
-## Hallazgo visual pendiente
-
-En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, por ejemplo `Luis Fernando Zuniga16/09/2026 09:45`. Debe corregirse antes de cerrar Task 8 y luego repetir gate técnico.
 
 ## Estado exacto actual
 - Tasks 1–7: ✅ cerradas.
@@ -173,7 +165,10 @@ En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, po
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado, limpio y validado desde navegador y Microsoft Excel.
+- Excel propio del proveedor: ✅ consolidado, limpio y validado.
+- Corrección válida 4★ con comentario: ✅.
+- Overlay post-descarga: ⚠️ RED preparado.
+- Separación actor/fecha: ⚠️ RED preparado.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
