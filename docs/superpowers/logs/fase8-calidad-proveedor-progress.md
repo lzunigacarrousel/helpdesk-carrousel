@@ -119,8 +119,7 @@ Consolidación funcional:
 
 Limpieza:
 - log del commit funcional: `aa9a03a docs: registrar commit historial y excel por proveedor`;
-- herramienta temporal eliminada: `6e5d691 chore: retirar aplicador temporal historial proveedor`;
-- `tools/apply_phase8_provider_row_actions.php` ya no debe permanecer en la rama.
+- herramienta temporal eliminada: `6e5d691 chore: retirar aplicador temporal historial proveedor`.
 
 ## Nuevo hallazgo — historial visible para el propio proveedor ⚠️
 
@@ -135,23 +134,39 @@ Causa confirmada en código:
 - al revocar, el registro histórico permanece en `external_ticket_access`, pero desaparece de `Mis casos`;
 - `TicketViewController` también exige acceso vigente, por lo que un caso revocado no puede abrirse.
 
-Diseño seguro aprobado para resolver este hallazgo dentro de Task 8:
-- `Mis casos` del proveedor incluirá accesos vigentes e históricos revocados;
-- métricas visibles: `Activos`, `En espera`, `Finalizados` y `Total`;
-- `Finalizados` se basará en la finalización de la participación (`eta.revoked_at`), no en el estado global actual del ticket;
-- los casos históricos se mostrarán en la lista con fecha de asignación/finalización;
-- un caso histórico revocado será **solo lectura en el listado y sin enlace al detalle**;
-- no se permitirá consultar conversación, adjuntos, resolución ni cambios posteriores a la revocación;
-- no se expondrá score, comentario de calidad ni ningún dato interno de la valoración;
-- los casos con acceso vigente seguirán abriéndose y funcionando como ahora;
+Diseño seguro definido dentro de Task 8:
+- `Mis casos` incluirá accesos vigentes e históricos revocados;
+- métricas: `Activos`, `En espera`, `Finalizados`, `Total`;
+- `Finalizados` se basará en `eta.revoked_at`, no en el estado global actual del ticket;
+- histórico con fecha de asignación/finalización;
+- histórico revocado solo lectura en listado y **sin enlace al detalle**;
+- no se exponen conversación, adjuntos, resolución ni cambios posteriores a la revocación;
+- no se expone score/comentario de calidad;
+- acceso vigente conserva comportamiento actual;
 - 0 cambios de BD: se reutiliza `external_ticket_access.granted_at/revoked_at`.
 
-Próximo paso TDD:
-1. crear regresión específica para historial externo;
-2. ejecutar RED en PC TEST;
-3. aplicar GREEN mínimo únicamente en `TicketController::index()` y `tickets/index.php`;
-4. no habilitar apertura de detalle histórico en esta fase;
-5. repetir regresiones y validación visual con la cuenta del proveedor.
+### TDD historial externo — RED preparado ⏳
+
+Creado `tests/phase8_external_case_history_regression.php` en commit:
+- `5a8b391 test: definir historial seguro para proveedor externo`.
+
+La regresión exige:
+- fechas `external_granted_at` y `external_revoked_at` en el listado;
+- conservar histórico revocado aunque el ticket vuelva a visibilidad interna;
+- dejar de limitar el listado completo a `eta.revoked_at IS NULL`;
+- distinguir historial en la vista;
+- mostrar métrica `Total`;
+- identificar `Participación finalizada`;
+- mostrar fechas de asignación/finalización;
+- no enlazar tarjetas históricas al detalle;
+- no exponer `provider_rating`.
+
+Próximo paso exacto:
+1. sincronizar PC TEST;
+2. ejecutar `tests/phase8_external_case_history_regression.php` y confirmar RED por funcionalidad faltante;
+3. registrar el RED;
+4. aplicar GREEN mínimo únicamente en `TicketController::index()` y `tickets/index.php`;
+5. repetir regresiones y validar visualmente con la cuenta del proveedor.
 
 ## Estado exacto actual
 
@@ -159,7 +174,7 @@ Próximo paso TDD:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial visible para el propio proveedor: ⚠️ hallazgo confirmado; diseño definido; TDD pendiente.
+- Historial visible para el propio proveedor: ⚠️ hallazgo confirmado; RED preparado.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
