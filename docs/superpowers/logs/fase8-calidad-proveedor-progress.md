@@ -117,64 +117,77 @@ Validación manual posterior:
 
 ## Hallazgos UI nuevos
 
-### 1. Overlay global queda abierto al descargar Excel
-Reproducción manual:
-- la descarga termina correctamente en Chrome;
-- la página queda cubierta por `Procesando información · Abriendo...` indefinidamente.
+### 1. Overlay global al descargar Excel — ✅ GREEN técnico
+Reproducción inicial:
+- la descarga terminaba correctamente en Chrome;
+- la página quedaba cubierta por `Procesando información · Abriendo...` indefinidamente.
 
-Causa identificada:
+Causa:
 - `public/assets/js/app.js` activa el loader global para enlaces normales;
-- solo omite el loader cuando el enlace tiene `download`, `target="_blank"` o `data-no-loading="1"`;
-- como la respuesta es una descarga y no una navegación, no ocurre `load/pageshow` para cerrar el overlay.
+- una descarga no provoca navegación ni `load/pageshow`;
+- el enlace externo necesitaba `data-no-loading="1"`.
 
-RED confirmado inicialmente:
-- `tests/phase8_external_case_export_regression.php` fallaba únicamente en `Descarga Excel externa no deja overlay global bloqueado`.
+RED:
+- `3a197b2 test: exigir descarga externa sin overlay bloqueado`.
 
-GREEN local aplicado:
-- `tools/apply_phase8_ui_polish.php` agregó `data-no-loading="1"` al enlace externo;
-- el aplicador reportó `[OK] Descarga Excel externa ya no activa overlay global.`
+GREEN aplicado:
+- `app/Views/tickets/index.php` agrega `data-no-loading="1"` a `Descargar Excel`;
+- el aplicador temporal reportó que el Excel externo ya no activa overlay global.
 
-Blocker de test detectado después del GREEN:
-- la regresión siguió roja por una aserción incorrecta del propio test;
-- el test estaba buscando barras invertidas literales alrededor de comillas dentro de una cadena PHP con comillas simples;
-- la vista generada por el aplicador es correcta, pero la aserción no podía coincidir;
-- commit de corrección del test: `c169136 test: corregir asercion de overlay en excel externo`.
+Falso negativo corregido:
+- la primera aserción del test buscaba barras invertidas literales;
+- commit `c169136 test: corregir asercion de overlay en excel externo`.
 
-Pendiente inmediato: hacer `git pull` y repetir la regresión con los cambios funcionales locales todavía sin commit.
+Revalidación PC TEST posterior a `c169136`:
+- `[OK] Descarga Excel externa no deja overlay global bloqueado`;
+- `phase8_external_case_export_regression.php` GREEN completo;
+- `git diff --check` sin errores.
 
-### 2. REGISTRO concatena actor y fecha
-Reproducción manual:
+**Pendiente:** validación visual real en navegador después de consolidar.
+
+### 2. REGISTRO concatena actor y fecha — ✅ GREEN técnico
+Reproducción inicial:
 - se visualizaba `Luis Fernando Zuniga16/09/2026 12:33` sin separación.
 
-Causa visual:
+Causa:
 - `resolution-read-grid` hacía block solo al `span` de etiqueta;
-- el `<strong>` del actor y `<small>` de la fecha quedaban inline sin gap.
+- el `<strong>` del actor y `<small>` de la fecha quedaban inline.
 
-RED confirmado:
-- `Registro de valoración usa bloque visual propio`;
-- `Fecha de registro queda separada del actor`;
-- `CSS separa actor y fecha de la valoración`.
+RED:
+- `f0b8e2f test: exigir separacion visual de registro proveedor`.
 
-GREEN local aplicado y validado técnicamente:
+GREEN aplicado:
 - `provider-rating-registration` agregado al bloque;
 - `provider-rating-registered-at` agregado a la fecha;
-- CSS específico separa actor y fecha;
-- las tres comprobaciones ahora están `[OK]`;
-- todavía falta validación visual real en navegador.
+- CSS específico muestra actor y fecha en líneas separadas.
 
-Commits RED:
-- `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
-- `f0b8e2f test: exigir separacion visual de registro proveedor`;
-- `c0a7fad docs: registrar red ui task 8`.
+Revalidación PC TEST:
+- `[OK] Registro de valoración usa bloque visual propio`;
+- `[OK] Fecha de registro queda separada del actor`;
+- `[OK] CSS separa actor y fecha de la valoración`;
+- `phase8_provider_rating_ui_regression.php` GREEN completo;
+- `git diff --check` sin errores.
+
+**Pendiente:** validación visual real en navegador después de consolidar.
+
+### GREEN UI definitivo confirmado ✅
+Salida PC TEST más reciente:
+- `phase8_external_case_export_regression.php`: GREEN completo;
+- `phase8_provider_rating_ui_regression.php`: GREEN completo;
+- `git diff --check`: sin errores;
+- únicos archivos funcionales modificados localmente:
+  - `app/Views/tickets/index.php`;
+  - `app/Views/tickets/show.php`;
+  - `public/assets/css/case-focus.css`.
 
 Aplicador temporal:
 - `f388e25 tool: aplicar ajustes ui finales task 8`;
-- debe retirarse después de consolidar los tres archivos funcionales.
+- todavía debe retirarse después de consolidar los tres archivos funcionales.
 
 ## Pendientes de Task 8
-- repetir `phase8_external_case_export_regression.php` tras `c169136`;
-- consolidar GREEN de overlay + REGISTRO si queda todo verde;
-- validar visualmente overlay de descarga y separación actor/fecha;
+- consolidar commit funcional del GREEN UI y retirar aplicador temporal;
+- validar visualmente que la descarga ya no deje overlay bloqueado;
+- validar visualmente actor/fecha separados en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -192,8 +205,8 @@ Aplicador temporal:
 - Historial propio del proveedor: ✅.
 - Excel propio del proveedor: ✅ consolidado, limpio y validado.
 - Corrección válida 4★ con comentario: ✅.
-- Overlay post-descarga: 🟡 GREEN funcional local aplicado; test corregido remotamente, revalidación pendiente.
-- Separación actor/fecha: ✅ GREEN técnico local; validación visual pendiente.
+- Overlay post-descarga: ✅ GREEN técnico; validación visual pendiente.
+- Separación actor/fecha: ✅ GREEN técnico; validación visual pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - Working tree local esperado: modificados `app/Views/tickets/index.php`, `app/Views/tickets/show.php`, `public/assets/css/case-focus.css`.
 - No se ha fusionado a `main`.
