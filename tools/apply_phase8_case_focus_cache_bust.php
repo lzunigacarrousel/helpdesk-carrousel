@@ -17,8 +17,8 @@ if($body===false){
 
 $body=str_replace(["\r\n","\r"],"\n",$body);
 
-$versionFrom="$assetVersion='20260911-UXHELP1';";
-$versionTo="$assetVersion='20260911-UXHELP1';\n$caseFocusAssetVersion=(string)(@filemtime(APP_ROOT.'/public/assets/css/case-focus.css')?:$assetVersion);";
+$versionFrom="\$assetVersion='20260911-UXHELP1';";
+$versionTo="\$assetVersion='20260911-UXHELP1';\n\$caseFocusAssetVersion=(string)(@filemtime(APP_ROOT.'/public/assets/css/case-focus.css')?:\$assetVersion);";
 $linkFrom='<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/case-focus.css?v=<?= $assetVersion ?>">';
 $linkTo='<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/case-focus.css?v=<?= htmlspecialchars($caseFocusAssetVersion) ?>">';
 
