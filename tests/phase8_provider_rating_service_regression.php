@@ -145,7 +145,7 @@ if($body!==''){
         ok((float)($summary[10]['average_score']??0)===4.5,'Promedio ignora Sin evaluar y usa vigentes');
         ok((int)($summary[11]['rated_cycles']??-1)===0,'Proveedor sin ratings tiene cero evaluados');
         ok((int)($summary[11]['unrated_cycles']??0)===1,'Proveedor sin ratings cuenta ciclo sin evaluar');
-        ok(($summary[11]['average_score']??'x')===null,'Proveedor sin ratings no recibe promedio cero');
+        ok(array_key_exists('average_score',$summary[11])&&$summary[11]['average_score']===null,'Proveedor sin ratings no recibe promedio cero');
 
         $options=$class::ratingOptions();
         ok(($options['UNRATED']??null)==='Sin evaluar','Opciones incluyen Sin evaluar');
