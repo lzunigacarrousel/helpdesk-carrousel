@@ -60,7 +60,7 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 - segunda corrección válida real a `5★ · Excelente` con comentario `pruebas de registro de conexion` ✅
 - contador visible `2 corrección(es)` ✅
 - valoración vigente reconstruida correctamente ✅
-- **todavía no se ha probado corrección con comentario vacío** ⏳
+- corrección sin comentario: ✅ validada manualmente; el formulario bloquea el envío con validación HTML nativa `Rellene este campo.` porque `Motivo de la corrección` es obligatorio; no se crea un evento adicional.
 
 ### Historial administrativo por proveedor
 - `Historial` → `/admin/externos/informe?provider=<id>` ✅
@@ -115,16 +115,15 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 
 ## Pendientes reales de Task 8
 
-1. Validar manualmente rechazo de **1–2★ sin comentario**.
+1. Validar manualmente rechazo de **1–2★ sin comentario** en una primera valoración.
 2. Validar manualmente primera valoración **3–5★ sin comentario**.
-3. Validar manualmente que **toda corrección sin comentario** sea rechazada.
-4. Confirmar cierre implícito por nuevo grant como no evaluable.
-5. Privacidad adicional con usuario REQUESTER.
-6. Probar filtros e XLSX administrativo con datos reales.
-7. Validación visual final: claro/oscuro, PC, iPad/tablet y móvil.
-8. Repetir gate técnico integral completo al final.
-9. Actualizar documentación/log final y dejar rama limpia.
-10. Solo con aprobación explícita: integrar a `main`.
+3. Confirmar cierre implícito por nuevo grant como no evaluable.
+4. Privacidad adicional con usuario REQUESTER.
+5. Probar filtros e XLSX administrativo con datos reales.
+6. Validación visual final: claro/oscuro, PC, iPad/tablet y móvil.
+7. Repetir gate técnico integral completo al final.
+8. Actualizar documentación/log final y dejar rama limpia.
+9. Solo con aprobación explícita: integrar a `main`.
 
 ## Estado exacto actual
 
@@ -139,9 +138,9 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 - Cache bust `case-focus.css`: ✅ consolidado.
 - Aplicador de cache bust: ✅ retirado.
 - Correcciones válidas con comentario: ✅ 4★ y 5★ verificadas.
-- Corrección sin comentario: ⏳ todavía pendiente.
-- Rama local del usuario tras sincronización: ✅ limpia y al día con `origin/fase8-calidad-proveedor`.
-- Siguiente prueba inmediata: **corrección sin comentario debe rechazarse**.
+- Corrección sin comentario: ✅ rechazada manualmente por campo requerido.
+- Rama local del usuario: ✅ limpia y al día con `origin/fase8-calidad-proveedor` antes de este checkpoint documental.
+- Siguiente prueba inmediata: crear un ciclo nuevo evaluable y validar primera valoración 1–2★ sin comentario y luego 3–5★ sin comentario.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
