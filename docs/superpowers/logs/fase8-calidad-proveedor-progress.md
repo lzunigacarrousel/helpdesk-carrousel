@@ -76,7 +76,7 @@ Limpieza:
 - limpieza registrada en `f0503aa`;
 - no quedan herramientas temporales de Task 5.
 
-### Task 6 — Seguridad, historial y casos límite ✅ CERRADA FUNCIONALMENTE
+### Task 6 — Seguridad, historial y casos límite ✅ CERRADA Y LIMPIA
 
 Commit funcional:
 - `8b17a4a feat: endurecer reglas de calidad proveedor`.
@@ -106,23 +106,31 @@ Verificación GREEN acumulada previa al commit:
 - `project_quality.php`: GREEN;
 - `git diff --check`: sin errores; solo advertencias LF/CRLF de Windows.
 
-Consolidación:
+Consolidación y limpieza:
 - `git diff --cached --stat` mostró únicamente `ProviderRatingService.php` y `tickets/show.php`;
 - commit `8b17a4a` subido correctamente a `origin/fase8-calidad-proveedor`;
-- working tree quedó limpio y sincronizado después del push.
+- working tree quedó limpio y sincronizado después del push;
+- cierre funcional registrado en `8f79804`;
+- `tools/apply_phase8_provider_rating_hardening.php` eliminado en `6a64d31`;
+- no quedan herramientas temporales de Task 6.
 
-Pendiente de limpieza:
-- eliminar `tools/apply_phase8_provider_rating_hardening.php`;
-- registrar esa limpieza en este log antes de iniciar Task 7.
+### Task 7 — CI y cierre documental ⏭️ SIGUIENTE
+
+Pendiente según plan:
+- crear/ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
+- integrar gates de Fase 8 en `.github/workflows/helpdesk-ci.yml`;
+- actualizar `README.md`, `CHANGELOG.md` y `app/Views/help/manual.php`;
+- documentar explícitamente que Fase 8 usa `ticket_events` y no requiere cambios estructurales de BD;
+- ejecutar gate integral antes del cierre de la fase.
 
 ## Estado actual para retomar
 
-- Tasks 1–5: cerradas y limpias.
-- Task 6: funcionalmente cerrada en `8b17a4a`; pendiente únicamente limpieza del aplicador temporal.
+- Tasks 1–6: cerradas y limpias.
+- Task 7: siguiente paso.
 - Rama: `fase8-calidad-proveedor`.
-- PC TEST quedó `working tree clean` tras el commit funcional.
+- PC TEST quedó `working tree clean` tras el commit funcional de Task 6; debe hacer `git pull` para recibir la limpieza y este log actualizado.
 
 ## Próximas tareas del plan
 
-- Task 6: eliminar aplicador temporal y registrar limpieza.
-- Task 7+: CI/cierre documental y gate integral según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
+- Task 7: CI + documentación + closeout regression.
+- Luego: gate integral, sincronización final y preparación para integrar a `main` según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
