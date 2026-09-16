@@ -60,6 +60,15 @@ final class ProviderParticipationService
         return $rows;
     }
 
+    public function rowsForTicket(int $ticketId, ?int $nowTs = null): array
+    {
+        if($ticketId<=0)return [];
+        return array_values(array_filter(
+            $this->rows($nowTs),
+            static fn(array $row):bool=>(int)($row['ticket_id']??0)===$ticketId
+        ));
+    }
+
     public static function buildCycles(array $users,array $events,array $comments,array $attachments,array $reports,?int $nowTs = null): array
     {
         $nowTs=$nowTs??time();
@@ -91,6 +100,7 @@ final class ProviderParticipationService
                 if(!is_array($meta))$meta=[];
                 $rows[]=[
                     'ticket_id'=>$ticketId,'user_id'=>$uid,
+                    'grant_event_id'=>(int)($event['id']??0),'revoke_event_id'=>null,
                     'organization'=>(string)($u['organization_name']??$u['full_name']??''),
                     'contact'=>(string)($u['full_name']??''),'email'=>(string)($u['email']??''),
                     'ticket_number'=>(string)($event['ticket_number']??''),'subject'=>(string)($event['subject']??''),
@@ -107,6 +117,7 @@ final class ProviderParticipationService
                 $i=$open[$key];
                 $rows[$i]['revoked_at']=(string)($event['created_at']??'');
                 $rows[$i]['revoked_by']=(string)(($event['actor_name']??'')?:'Sistema');
+                $rows[$i]['revoke_event_id']=(int)($event['id']??0);
                 unset($open[$key]);
             }
         }
