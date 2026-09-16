@@ -160,31 +160,35 @@ Diseño seguro definido:
 - no reutilizar `/admin/externos/informe/exportar` porque ese XLSX contiene métricas internas de calidad;
 - 0 cambios de BD.
 
-### RED TDD preparado ✅
+### RED TDD ✅ CONFIRMADO EN PC TEST
 
-Creado:
-- `tests/phase8_external_case_export_regression.php`;
-- commit `bd22fcd test: definir excel seguro para proveedor externo`.
+Test: `tests/phase8_external_case_export_regression.php`.
 
-La regresión exige:
-- `ExternalCaseHistoryController` dedicado;
-- ruta `GET /mis-tickets/exportar`;
-- cuenta `EXTERNAL` obligatoria;
-- scope estricto `eta.user_id=?` del usuario autenticado;
-- activas e históricas sin reabrir acceso;
-- fechas de asignación/finalización;
-- columnas seguras: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
-- ausencia de `provider_rating`, `requester_email`, comentarios y resoluciones;
-- botón `Descargar Excel` en `Mis casos`.
+Resultado ejecutado:
+- `[OK] Existe router principal`;
+- `[OK] Existe vista Mis casos`;
+- 12 fallos esperados correspondientes a controller, ruta, scope, fechas, columnas seguras y botón de descarga;
+- privacidad ya GREEN:
+  - `[OK] Excel externo no expone valoración interna`;
+  - `[OK] Excel externo no expone correo del solicitante`;
+  - `[OK] Excel externo no consulta comentarios`;
+  - `[OK] Excel externo no consulta resolución interna`;
+- `git status`: working tree limpio y sincronizado.
+
+Interpretación:
+- ✅ RED correcto y aislado a la funcionalidad faltante;
+- ✅ el contrato de privacidad está definido antes de implementar;
+- ✅ listo para GREEN mínimo sin tocar BD.
 
 ### Siguiente paso exacto
 
-1. sincronizar PC TEST;
-2. ejecutar `tests/phase8_external_case_export_regression.php` y confirmar RED;
-3. registrar RED;
-4. implementar controller/ruta/botón mínimo;
-5. verificar GREEN + `xlsx_smoke.php` + privacidad;
-6. consolidar y validar descarga real con `Pruebas Comunicacion`.
+1. preparar GREEN mínimo con `ExternalCaseHistoryController`, ruta y botón;
+2. reutilizar `XlsxExportService` con columnas seguras;
+3. limitar consulta por `eta.user_id=?` usando el usuario autenticado;
+4. ejecutar sintaxis + `phase8_external_case_export_regression.php` + `xlsx_smoke.php` + regresión de privacidad;
+5. `git diff --check` y `git status`;
+6. registrar GREEN antes de cualquier commit funcional;
+7. consolidar y validar descarga real con `Pruebas Comunicacion`.
 
 ## Estado exacto actual
 
@@ -193,7 +197,7 @@ La regresión exige:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
 - Historial para el propio proveedor: ✅ consolidado, limpio y validado visualmente.
-- Excel para el propio proveedor: RED preparado ✅; ejecución RED pendiente.
+- Excel para el propio proveedor: RED ✅ confirmado; GREEN ⏳ siguiente.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
