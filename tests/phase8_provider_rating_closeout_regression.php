@@ -31,6 +31,8 @@ ok(str_contains($ciBody,'php tests/phase8_provider_rating_service_regression.php
 ok(str_contains($ciBody,'php tests/phase8_provider_rating_controller_regression.php'),'CI ejecuta controller Fase 8');
 ok(str_contains($ciBody,'php tests/phase8_provider_rating_ui_regression.php'),'CI ejecuta UI Fase 8');
 ok(str_contains($ciBody,'php tests/phase8_provider_rating_report_regression.php'),'CI ejecuta reportes Fase 8');
+ok(str_contains($ciBody,'php tests/phase8_external_case_history_regression.php'),'CI ejecuta historial propio del proveedor');
+ok(str_contains($ciBody,'php tests/phase8_external_case_export_regression.php'),'CI ejecuta Excel propio del proveedor');
 ok(str_contains($ciBody,'php tests/phase8_provider_rating_closeout_regression.php'),'CI ejecuta cierre Fase 8');
 
 ok(str_contains($readmeBody,'| 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |'),'README cierra Fase 8');
