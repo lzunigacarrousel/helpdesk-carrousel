@@ -41,6 +41,7 @@ ok(!str_contains($controller,'ticket_resolutions'),'Excel externo no consulta re
 
 ok(str_contains($view,'/mis-tickets/exportar'),'Vista enlaza descarga Excel externa');
 ok(str_contains($view,'Descargar Excel'),'Vista muestra botón Descargar Excel');
+ok(str_contains($view,'/mis-tickets/exportar\" data-no-loading=\"1\"'),'Descarga Excel externa no deja overlay global bloqueado');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
