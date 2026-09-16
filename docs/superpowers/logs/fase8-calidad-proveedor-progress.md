@@ -124,10 +124,14 @@ La UI interna ya cubre:
 - `app/Views/tickets/show.php` modificado.
 - no hay commit local todavía para Task 4.
 
-**Siguiente acción:** normalizar LF en los archivos modificados, volver a ejecutar `git diff --check`, repetir gates de Task 4 y después consolidar/eliminar el aplicador temporal.
+**Corrección preparada:**
+- creado `tools/normalize_phase8_task4_eol.php`;
+- normaliza `TicketController.php` y `show.php` a LF;
+- no toca BD;
+- después debe repetirse `git diff --check` y los gates de Task 4.
 
 ## Próximas tareas del plan
 
-- Task 4: normalizar EOL, verificar nuevamente y cerrar commit.
+- Task 4: ejecutar normalizador EOL, verificar nuevamente y cerrar commit.
 - Task 5: integrar rating en Informe de proveedores + filtro + resumen + XLSX.
 - Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
