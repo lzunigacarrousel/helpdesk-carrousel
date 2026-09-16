@@ -115,7 +115,7 @@ Consolidación y limpieza:
 - limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI, Manual y cierre documental 🚧 RED PREPARADO
+### Task 7 — CI, Manual y cierre documental 🚧 RED CONFIRMADO
 
 Objetivo:
 - incorporar todos los gates de Fase 8 al CI;
@@ -126,30 +126,40 @@ Objetivo:
 
 TDD:
 - creado `tests/phase8_provider_rating_closeout_regression.php`;
-- commit RED: `fc61842 test: definir cierre documental fase 8`;
-- todavía no se modificaron `.github/workflows/helpdesk-ci.yml`, `README.md`, `CHANGELOG.md` ni `app/Views/help/manual.php` para Task 7.
+- commit RED: `fc61842 test: definir cierre documental fase 8`.
 
-El test RED exige:
-- bloque `Phase 8 provider rating` en CI;
-- ejecución de los seis tests Fase 8 en CI;
-- README con Fase 8 implementada y Fase 9 siguiente;
-- README con `BD: sin cambios` y eventos inmutables;
-- CHANGELOG con Fase 8, ambos eventos, separación de `ticket_feedback.nps_score` y cero cambios BD;
-- Manual con `Calidad del proveedor`, escala 1–5, comentario obligatorio, correcciones, `Sin evaluar` y privacidad frente al proveedor.
+RED ejecutado en PC TEST con rama limpia y sincronizada:
+- 4 comprobaciones base quedaron `[OK]`: existen CI, README, CHANGELOG y Manual;
+- 21 validaciones fallaron, exactamente en CI/documentación pendiente.
 
-Siguiente acción exacta en PC TEST:
-1. `git pull --ff-only origin fase8-calidad-proveedor`;
-2. confirmar `git status` limpio;
-3. ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
-4. registrar RED exacto antes de tocar CI/documentación.
+Fallos confirmados:
+- CI no declara todavía `Phase 8 provider rating` ni ejecuta los seis gates de Fase 8;
+- README todavía marca Fase 8 como siguiente y no mueve Fase 9 a siguiente;
+- README todavía no documenta ambos eventos inmutables;
+- CHANGELOG todavía no registra Fase 8, `PROVIDER_RATED`, `PROVIDER_RATING_CORRECTED` ni separación de `ticket_feedback.nps_score`;
+- Manual todavía no documenta `Calidad del proveedor`, escala 1–5, comentario obligatorio, `Sin evaluar`, correcciones ni privacidad de la valoración frente al proveedor.
+
+Comprobaciones que ya estaban GREEN antes del cambio documental:
+- README ya contiene el concepto `Calidad IT → proveedor`;
+- README ya contiene `BD: sin cambios` por fases anteriores;
+- CHANGELOG ya contiene referencias generales de BD sin cambios.
+
+GREEN mínimo pendiente:
+1. agregar seis pasos de CI para Fase 8, sin retirar gates Fase 7;
+2. cambiar roadmap README: Fase 8 implementada, Fase 9 siguiente;
+3. agregar sección formal Fase 8 al README con eventos inmutables y `BD: sin cambios`;
+4. agregar entrada Fase 8 al CHANGELOG incluyendo separación de `ticket_feedback.nps_score`;
+5. agregar sección interna al Manual con escala, comentario obligatorio, corrección, `Sin evaluar` y privacidad;
+6. ejecutar closeout regression y gates acumulados antes de commit.
 
 ## Estado actual para retomar
 
 - Tasks 1–6: cerradas y limpias.
-- Task 7: RED preparado remotamente, pendiente ejecutar en PC TEST.
+- Task 7: RED confirmado; GREEN documental/CI pendiente.
 - Rama: `fase8-calidad-proveedor`.
+- PC TEST quedó `working tree clean` tras ejecutar el RED.
 
 ## Próximas tareas del plan
 
-- Task 7: ejecutar RED, actualizar CI/README/CHANGELOG/Manual y llevar closeout a GREEN.
+- Task 7: aplicar CI/README/CHANGELOG/Manual, llevar closeout a GREEN y consolidar.
 - Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
