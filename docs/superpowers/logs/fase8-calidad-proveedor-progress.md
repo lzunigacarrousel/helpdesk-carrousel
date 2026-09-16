@@ -143,33 +143,66 @@ Consolidación y limpieza:
 - `tools/fix_phase7_roadmap_regression.php` eliminado en `9f39b79`;
 - no quedan herramientas temporales de Task 7.
 
-### Task 8 — Gate integral y validación PC TEST 🚧 SIGUIENTE
+### Task 8 — Gate integral y validación PC TEST 🚧 GATE TÉCNICO GREEN
 
-Objetivo:
-- ejecutar sintaxis sobre todos los archivos funcionales modificados por Fase 8;
-- ejecutar las seis regresiones de Fase 8;
-- ejecutar las cinco regresiones de Fase 7;
-- ejecutar `project_quality.php`, `xlsx_smoke.php`, `static_checks.php` y `git diff --check`;
-- verificar que `origin/main...HEAD` no contiene cambios en `database/`;
-- validar funcionalmente evaluación/corrección, privacidad, filtros y XLSX en PC TEST;
-- validar visualmente claro/oscuro, laptop 1366, tablet/iPad y móvil;
+Gate técnico ejecutado completo en PC TEST sobre `fase8-calidad-proveedor` sincronizada con `origin/fase8-calidad-proveedor`.
+
+Resultado técnico confirmado:
+- `git status`: limpio antes y después del gate;
+- sintaxis PHP GREEN en `ProviderParticipationService`, `ProviderRatingService`, `ProviderRatingController`, `TicketController`, `ExternalReportController`, `tickets/show.php`, `management/external_report.php` y `public/index.php`;
+- las seis regresiones Fase 8: GREEN;
+- las cinco regresiones Fase 7 ejecutadas: GREEN;
+- `project_quality.php`: GREEN;
+- `xlsx_smoke.php`: GREEN;
+- `static_checks.php`: GREEN;
+- `git diff --check`: sin errores;
+- `git diff --name-only origin/main...HEAD -- database`: sin salida, confirmando 0 cambios en `database/` respecto a `main`;
+- rama local visible: `fase8-calidad-proveedor`, con `main` local y remotos `origin/fase8-calidad-proveedor` / `origin/main`;
+- working tree final: `nothing to commit, working tree clean`.
+
+Diff acumulado contra `origin/main`:
+- 22 archivos modificados/agregados;
+- 3234 inserciones y 291 eliminaciones;
+- incluye implementación funcional, tests Fase 8, documentación de diseño/plan/log, CI/README/CHANGELOG/Manual y el ajuste estable de regresión Fase 7;
+- no incluye archivos de `database/`.
+
+Archivos principales en el diff acumulado:
+- `.github/workflows/helpdesk-ci.yml`;
+- `CHANGELOG.md`, `README.md`;
+- `app/Controllers/ExternalReportController.php`, `ProviderRatingController.php`, `TicketController.php`;
+- `app/Services/ProviderParticipationService.php`, `ProviderRatingService.php`;
+- `app/Views/help/manual.php`, `management/external_report.php`, `tickets/show.php`;
+- `public/index.php`;
+- seis tests Fase 8 + ajuste de `phase7_provider_participation_regression.php`;
+- documentos de diseño, plan y log de Fase 8.
+
+Pendiente para cerrar Task 8:
+- validación funcional manual en PC TEST;
+- validación visual en modo claro/oscuro;
+- revisión en laptop 1366px, tablet/iPad y móvil;
+- comprobar captura de primera valoración, corrección, comentario obligatorio 1–2 estrellas, `Sin evaluar`, privacidad para EXTERNAL/REQUESTER, filtros del Informe de proveedores y XLSX;
+- registrar evidencia/manual findings en este log;
 - no fusionar a `main` hasta aprobación explícita.
 
 Siguiente acción exacta en PC TEST:
-1. `git pull --ff-only origin fase8-calidad-proveedor` para recibir limpieza y este log;
-2. confirmar `git status` limpio;
-3. ejecutar gate técnico integral de Task 8;
-4. reportar cualquier fallo antes de hacer cambios;
-5. si todo queda GREEN, registrar evidencia técnica y pasar al checklist funcional/visual.
+1. abrir un ticket con ciclo de proveedor finalizado explícitamente;
+2. validar primera valoración 3–5 estrellas sin comentario obligatorio;
+3. validar 1–2 estrellas con comentario obligatorio;
+4. registrar una corrección y confirmar historial/vigente;
+5. revisar un ciclo activo y un cierre implícito: no deben ser evaluables;
+6. entrar como proveedor/solicitante y confirmar que score/comentario no aparecen;
+7. revisar `/admin/externos/informe`, filtros `Sin evaluar` / estrellas y exportación XLSX;
+8. repetir revisión visual en claro/oscuro y tamaños laptop/tablet/móvil;
+9. reportar cualquier detalle antes de merge.
 
 ## Estado actual para retomar
 
 - Tasks 1–7: cerradas y limpias.
-- Task 8: siguiente paso.
+- Task 8: gate técnico GREEN; validación manual/visual pendiente.
 - Rama: `fase8-calidad-proveedor`.
-- PC TEST debe hacer `git pull` para recibir los commits de limpieza posteriores a `15ac1c4`.
+- PC TEST sincronizada y limpia.
 
 ## Próximas tareas del plan
 
-- Task 8: gate integral + validación funcional/visual.
-- Después, preparar integración a `main` únicamente con aprobación explícita.
+- Task 8: validación funcional/visual final.
+- Después, preparar integración a `main` únicamente con aprobación explícita del usuario.
