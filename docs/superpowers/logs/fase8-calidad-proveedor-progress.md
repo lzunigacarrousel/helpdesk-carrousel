@@ -93,10 +93,24 @@ Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 
 
 ### Checkpoint H — sincronización post-limpieza UI ✅
 PC TEST sincronizada después de retirar `tools/apply_phase8_ui_polish.php`:
-- `git pull --ff-only origin fase8-calidad-proveedor` avanzó de `d66545a` a `9895977`;
-- aplicador temporal eliminado localmente por fast-forward;
 - rama local `fase8-calidad-proveedor` al día con `origin/fase8-calidad-proveedor`;
 - `git status`: `nothing to commit, working tree clean`.
+
+### Checkpoint I — validación visual post-fix
+- descarga de Excel: ✅ usuario confirma que el overlay ya no queda bloqueado;
+- bloque `REGISTRÓ`: ❌ continúa mostrando `Luis Fernando Zuniga16/09/2026 12:33` sin separación visual;
+- el HTML nuevo y las clases de Fase 8 sí están en `show.php`;
+- `case-focus.css` contiene las reglas nuevas;
+- causa identificada: `app/Views/shared/app_start.php` carga `case-focus.css` con `$assetVersion='20260911-UXHELP1'` fijo, por lo que Chrome puede reutilizar una copia antigua del CSS aun cuando el archivo cambió;
+- solución diseñada: versionar `case-focus.css` con `filemtime()` para que cada cambio del archivo genere una URL distinta y fuerce recarga del asset;
+- RED preparado en `tests/phase8_provider_rating_ui_regression.php` para exigir el cache bust dinámico;
+- aplicador temporal preparado en `tools/apply_phase8_case_focus_cache_bust.php`;
+- no se modifica BD ni dominio de valoración.
+
+Commits de preparación:
+- `c67d385 test: exigir cache bust de css calidad proveedor`;
+- `0205cde tool: aplicar cache bust de css calidad proveedor`;
+- `84011b7 fix: corregir aplicador de cache bust case focus`.
 
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
@@ -120,32 +134,28 @@ PC TEST sincronizada después de retirar `tools/apply_phase8_ui_polish.php`:
 
 ## Hallazgos UI Task 8
 
-### Overlay global al descargar Excel — ✅ GREEN técnico consolidado
+### Overlay global al descargar Excel — ✅ VALIDADO VISUALMENTE
 - RED: `3a197b2 test: exigir descarga externa sin overlay bloqueado`;
 - enlace externo usa `data-no-loading="1"`;
 - falso negativo del test corregido en `c169136`;
-- regresión PC TEST GREEN completa.
+- regresión PC TEST GREEN completa;
+- validación visual posterior: usuario confirma descarga funcional sin overlay persistente.
 
-### REGISTRO actor/fecha — ✅ GREEN técnico consolidado
-- RED: `f0b8e2f test: exigir separacion visual de registro proveedor`;
-- bloque `provider-rating-registration` y fecha `provider-rating-registered-at`;
-- CSS específico separa actor y fecha;
-- regresión PC TEST GREEN completa.
+### REGISTRO actor/fecha — ⚠️ CSS correcto, cache bust pendiente
+- RED inicial: `f0b8e2f test: exigir separacion visual de registro proveedor`;
+- bloque `provider-rating-registration` y fecha `provider-rating-registered-at` ya están consolidados;
+- CSS específico ya está en `case-focus.css`;
+- regresión de contenido GREEN, pero navegador sigue usando CSS anterior por query string estático;
+- nuevo RED exige versión dinámica de `case-focus.css` por `filemtime()`.
 
-### Consolidación y limpieza UI ✅
+### Consolidación UI previa ✅
 - `d66545a fix: pulir descarga y registro de calidad proveedor`;
 - `51af5d2 docs: registrar consolidacion ui task 8`;
-- `72650e0 chore: retirar aplicador ui task 8`;
-- aplicador `tools/apply_phase8_ui_polish.php` retirado del repositorio.
-
-Verificación previa al commit funcional:
-- `phase8_external_case_export_regression.php`: GREEN completo;
-- `phase8_provider_rating_ui_regression.php`: GREEN completo;
-- `git diff --check`: sin errores;
-- `git status` posterior al push: working tree limpio.
+- `72650e0 chore: retirar aplicador ui task 8`.
 
 ## Pendientes de Task 8
-- validar visualmente que la descarga ya no deje overlay bloqueado;
+- ejecutar RED de cache bust de `case-focus.css`;
+- aplicar GREEN del cache bust y consolidarlo;
 - validar visualmente actor/fecha separados en `REGISTRO`;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
@@ -162,13 +172,11 @@ Verificación previa al commit funcional:
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado, limpio y validado.
+- Excel propio del proveedor: ✅.
+- Descarga Excel sin overlay: ✅ validada visualmente.
 - Corrección válida 4★ con comentario: ✅.
-- Overlay post-descarga: ✅ GREEN técnico consolidado; validación visual pendiente.
-- Separación actor/fecha: ✅ GREEN técnico consolidado; validación visual pendiente.
-- PC TEST: ✅ sincronizada y limpia en `9895977` antes de este checkpoint documental.
+- Separación actor/fecha: ⚠️ markup/CSS consolidados, navegador con asset stale; cache bust preparado.
 - Rama: `fase8-calidad-proveedor`.
-- Aplicadores temporales de este bloque: ✅ retirados.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
 
