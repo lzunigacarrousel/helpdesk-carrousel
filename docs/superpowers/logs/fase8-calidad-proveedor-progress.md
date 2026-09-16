@@ -57,7 +57,10 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 - cierre explícito evaluable ✅
 - primera valoración real `1★ · Muy deficiente` con comentario ✅
 - corrección válida real a `4★ · Bueno` con comentario ✅
+- segunda corrección válida real a `5★ · Excelente` con comentario `pruebas de registro de conexion` ✅
+- contador visible `2 corrección(es)` ✅
 - valoración vigente reconstruida correctamente ✅
+- **todavía no se ha probado corrección con comentario vacío** ⏳
 
 ### Historial administrativo por proveedor
 - `Historial` → `/admin/externos/informe?provider=<id>` ✅
@@ -135,7 +138,9 @@ Commit: `15ac1c4 docs: cerrar fase 8 calidad proveedor`.
 - REGISTRO actor/fecha: ✅ validado visualmente.
 - Cache bust `case-focus.css`: ✅ consolidado.
 - Aplicador de cache bust: ✅ retirado.
-- Corrección válida 4★ con comentario: ✅.
+- Correcciones válidas con comentario: ✅ 4★ y 5★ verificadas.
+- Corrección sin comentario: ⏳ todavía pendiente.
+- Rama local del usuario tras sincronización: ✅ limpia y al día con `origin/fase8-calidad-proveedor`.
 - Siguiente prueba inmediata: **corrección sin comentario debe rechazarse**.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
