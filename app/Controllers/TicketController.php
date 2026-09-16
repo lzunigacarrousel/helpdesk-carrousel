@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService};
 use PDO;
 
 final class TicketController
@@ -199,6 +199,17 @@ final class TicketController
         $activityProviderUsers=$canCreateActivities?$activityService->providerOptionsForTicket($id):[];
         $activityParks=$isSupport?$pdo->query("SELECT id,name FROM parks WHERE is_active=1 ORDER BY name")->fetchAll():[];
 
+        $providerCycles=[];
+        $providerRatingLabels=ProviderRatingService::SCORE_LABELS;
+        $canRateProviders=$isSupport
+            &&in_array((string)Auth::role(),['ADMIN','SEMIADMIN','TECHNICIAN'],true)
+            &&(new ScopeService())->userCanAccessTicket((int)Auth::id(),$id);
+        if($isSupport){
+            $participationService=new ProviderParticipationService($pdo);
+            $ratingService=new ProviderRatingService($pdo);
+            $providerCycles=$ratingService->enrichRows($participationService->rowsForTicket($id));
+        }
+
         View::render('tickets/show',[
             'user'=>Auth::user(),
             'ticket'=>$ticket,
@@ -226,6 +237,9 @@ final class TicketController
             'canCreateActivities'=>$canCreateActivities,
             'canManageActivities'=>$canManageActivities,
             'canCancelActivities'=>$canCancelActivities,
+            'providerCycles'=>$providerCycles,
+            'providerRatingLabels'=>$providerRatingLabels,
+            'canRateProviders'=>$canRateProviders,
         ]);
     }
 

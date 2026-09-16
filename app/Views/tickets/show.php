@@ -100,55 +100,104 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <?php if($canChangeStatus&&in_array($status,['IN_PROGRESS','PENDING','REOPENED'],true)): ?><div class="resolution-capture case-resolution-capture"><div class="case-section-head"><div><span class="ticket-kicker">Documentar solución</span><h2>Qué resolvió el caso</h2></div></div><form method="post" action="<?= APP_BASE_URL ?>/tickets/resolve" data-single-submit class="resolution-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><div class="resolution-grid"><label>Tipo de solución<select class="form-control" name="resolution_type" required><option value="">Selecciona</option><option value="CONFIGURATION">Configuración</option><option value="RESTART">Reinicio / restablecimiento</option><option value="REPLACEMENT">Cambio o reemplazo</option><option value="PROVIDER">Gestión con proveedor</option><option value="USER_GUIDANCE">Orientación al usuario</option><option value="SOFTWARE">Software / aplicación</option><option value="NETWORK">Red / conectividad</option><option value="HARDWARE">Hardware / equipo</option><option value="PERMISSION">Acceso / permisos</option><option value="MAINTENANCE">Mantenimiento</option><option value="OTHER">Otro</option></select></label><label>Qué encontramos<input class="form-control" name="root_cause" required placeholder="Causa o condición encontrada"></label><label class="resolution-full">Qué hicimos<textarea class="form-control" name="solution_applied" rows="3" required placeholder="Describe la acción o los pasos que resolvieron el problema"></textarea></label><label class="resolution-full">Cómo evitarlo <span class="subtle">(opcional)</span><textarea class="form-control" name="preventive_action" rows="2" placeholder="Recomendación, mantenimiento o seguimiento"></textarea></label></div><button class="btn btn-primary" type="submit">Guardar solución y resolver</button></form></div><?php endif; ?>
   </div></section><?php endif; ?>
 
-  <?php if($isRequester&&!empty($requesterActivities)):
-    $requesterActivityTypeLabels=[
-      'VISITA_EN_SITIO'=>'Visita en sitio',
-      'SOPORTE_REMOTO'=>'Soporte remoto',
-      'SEGUIMIENTO'=>'Seguimiento',
-      'INTERVENCION_PROVEEDOR'=>'Intervención programada',
-      'OTRA'=>'Atención programada',
-    ];
-    $requesterActivityStatusLabels=[
-      'PROGRAMADA'=>'Programada',
-      'EN_CURSO'=>'En curso',
-      'FINALIZADA'=>'Finalizada',
-      'CANCELADA'=>'Cancelada',
-    ];
-  ?>
-  <section class="card ticket-activities-card ticket-requester-activities">
-    <div class="card-body">
-      <div class="case-section-head ticket-activities-head">
-        <div>
-          <span class="ticket-kicker">Seguimiento</span>
-          <h2>Próxima atención</h2>
-          <p class="ticket-activities-intro">Aquí verás únicamente la información de atención que el equipo de soporte publicó para ti.</p>
-        </div>
-      </div>
-      <div class="ticket-activity-grid <?= count($requesterActivities)===1?'is-single':'' ?>">
-        <?php foreach($requesterActivities as $activity):
-          $requesterType=(string)($activity['activity_type']??'OTRA');
-          $requesterStatus=(string)($activity['status']??'PROGRAMADA');
-        ?>
-          <article class="ticket-activity-item <?= in_array($requesterStatus,['PROGRAMADA','EN_CURSO'],true)?'is-active':'' ?>">
-            <div class="ticket-activity-item-head">
-              <div class="ticket-activity-kind">
-                <strong><?= htmlspecialchars($requesterActivityTypeLabels[$requesterType]??'Atención programada') ?></strong>
-                <small>Actualización publicada por soporte</small>
-              </div>
-              <span class="ticket-activity-status status-<?= strtolower($requesterStatus) ?>"><?= htmlspecialchars($requesterActivityStatusLabels[$requesterStatus]??$requesterStatus) ?></span>
-            </div>
-            <div class="ticket-activity-meta">
-              <div><span>Fecha programada</span><strong><?= !empty($activity['scheduled_start_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_start_at']))):'Por confirmar' ?></strong></div>
-              <?php if(!empty($activity['scheduled_end_at'])): ?><div><span>Fin estimado</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_end_at']))) ?></strong></div><?php endif; ?>
-              <?php if(!empty($activity['park_name'])): ?><div><span>Ubicación</span><strong><?= htmlspecialchars((string)$activity['park_name']) ?></strong></div><?php endif; ?>
-            </div>
-            <p class="ticket-activity-objective"><?= nl2br(htmlspecialchars((string)$activity['requester_summary'])) ?></p>
-          </article>
-        <?php endforeach; ?>
-      </div>
-    </div>
-  </section>
-  <?php endif; ?>
+  <?php if($isRequester&&!empty($requesterActivities)):
+
+    $requesterActivityTypeLabels=[
+
+      'VISITA_EN_SITIO'=>'Visita en sitio',
+
+      'SOPORTE_REMOTO'=>'Soporte remoto',
+
+      'SEGUIMIENTO'=>'Seguimiento',
+
+      'INTERVENCION_PROVEEDOR'=>'Intervención programada',
+
+      'OTRA'=>'Atención programada',
+
+    ];
+
+    $requesterActivityStatusLabels=[
+
+      'PROGRAMADA'=>'Programada',
+
+      'EN_CURSO'=>'En curso',
+
+      'FINALIZADA'=>'Finalizada',
+
+      'CANCELADA'=>'Cancelada',
+
+    ];
+
+  ?>
+
+  <section class="card ticket-activities-card ticket-requester-activities">
+
+    <div class="card-body">
+
+      <div class="case-section-head ticket-activities-head">
+
+        <div>
+
+          <span class="ticket-kicker">Seguimiento</span>
+
+          <h2>Próxima atención</h2>
+
+          <p class="ticket-activities-intro">Aquí verás únicamente la información de atención que el equipo de soporte publicó para ti.</p>
+
+        </div>
+
+      </div>
+
+      <div class="ticket-activity-grid <?= count($requesterActivities)===1?'is-single':'' ?>">
+
+        <?php foreach($requesterActivities as $activity):
+
+          $requesterType=(string)($activity['activity_type']??'OTRA');
+
+          $requesterStatus=(string)($activity['status']??'PROGRAMADA');
+
+        ?>
+
+          <article class="ticket-activity-item <?= in_array($requesterStatus,['PROGRAMADA','EN_CURSO'],true)?'is-active':'' ?>">
+
+            <div class="ticket-activity-item-head">
+
+              <div class="ticket-activity-kind">
+
+                <strong><?= htmlspecialchars($requesterActivityTypeLabels[$requesterType]??'Atención programada') ?></strong>
+
+                <small>Actualización publicada por soporte</small>
+
+              </div>
+
+              <span class="ticket-activity-status status-<?= strtolower($requesterStatus) ?>"><?= htmlspecialchars($requesterActivityStatusLabels[$requesterStatus]??$requesterStatus) ?></span>
+
+            </div>
+
+            <div class="ticket-activity-meta">
+
+              <div><span>Fecha programada</span><strong><?= !empty($activity['scheduled_start_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_start_at']))):'Por confirmar' ?></strong></div>
+
+              <?php if(!empty($activity['scheduled_end_at'])): ?><div><span>Fin estimado</span><strong><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$activity['scheduled_end_at']))) ?></strong></div><?php endif; ?>
+
+              <?php if(!empty($activity['park_name'])): ?><div><span>Ubicación</span><strong><?= htmlspecialchars((string)$activity['park_name']) ?></strong></div><?php endif; ?>
+
+            </div>
+
+            <p class="ticket-activity-objective"><?= nl2br(htmlspecialchars((string)$activity['requester_summary'])) ?></p>
+
+          </article>
+
+        <?php endforeach; ?>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <?php endif; ?>
+
   <?php if($isSupport):
     $activityTypeLabels=[
       'VISITA_EN_SITIO'=>'Visita en sitio',
@@ -262,6 +311,124 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </section>
   <?php endif; ?>
+  <?php if($isSupport&&!empty($providerCycles)): ?>
+
+  <section class="card ticket-classification-card" id="provider-quality"><div class="card-body">
+
+    <div class="case-section-head"><div><span class="ticket-kicker">Control interno</span><h2>Calidad del proveedor</h2></div></div>
+
+    <p class="field-help">Valoración interna de IT por cada participación finalizada. No es visible para el proveedor ni para el solicitante.</p>
+
+
+
+    <?php foreach($providerCycles as $cycle):
+
+      $closed=!empty($cycle['revoke_event_id']);
+
+      $rated=($cycle['provider_rating_score']??null)!==null;
+
+      $organization=(string)($cycle['organization']??$cycle['contact']??'Proveedor');
+
+    ?>
+
+      <div class="ticket-classification-summary">
+
+        <div><span>Proveedor</span><strong><?= htmlspecialchars($organization) ?></strong><small><?= htmlspecialchars((string)($cycle['contact']??'')) ?></small></div>
+
+        <div><span>Asignado</span><strong><?= !empty($cycle['granted_at'])?htmlspecialchars(date('d/m/Y H:i',strtotime((string)$cycle['granted_at']))):'Sin fecha' ?></strong></div>
+
+        <div><span>Participación</span><strong><?= $closed?'Finalizada':'Activa' ?></strong><?php if($closed&&!empty($cycle['revoked_at'])): ?><small>Finalizó <?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$cycle['revoked_at']))) ?></small><?php endif; ?></div>
+
+        <div><span>Valoración vigente</span><strong><?= $rated?((int)$cycle['provider_rating_score'].'★ · '.htmlspecialchars((string)$cycle['provider_rating_label'])):'Sin evaluar' ?></strong><?php if($rated&&!empty($cycle['provider_rating_revisions'])): ?><small><?= (int)$cycle['provider_rating_revisions'] ?> corrección(es)</small><?php endif; ?></div>
+
+      </div>
+
+
+
+      <?php if(!$closed): ?>
+
+        <div class="dashboard-scope-note"><span>Podrás evaluar cuando finalice la participación.</span></div>
+
+      <?php elseif(!$rated&&$canRateProviders): ?>
+
+        <details class="ticket-classification-edit"><summary>Evaluar proveedor</summary>
+
+          <form class="ticket-classification-form" method="post" action="<?= APP_BASE_URL ?>/tickets/provider-rating" data-single-submit>
+
+            <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+
+            <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
+
+            <input type="hidden" name="external_user_id" value="<?= (int)$cycle['user_id'] ?>">
+
+            <input type="hidden" name="grant_event_id" value="<?= (int)$cycle['grant_event_id'] ?>">
+
+            <label><span class="form-label">Valoración</span><select class="form-control" name="score" required><option value="">Selecciona</option><?php foreach(($providerRatingLabels??[]) as $score=>$label): ?><option value="<?= (int)$score ?>"><?= (int)$score ?>★ <?= htmlspecialchars((string)$label) ?></option><?php endforeach; ?></select></label>
+
+            <label><span class="form-label">Comentario <span class="optional">Según valoración</span></span><textarea class="form-control" name="comment" rows="3" maxlength="2000" placeholder="Contexto interno de la valoración"></textarea></label>
+
+            <span class="field-help">Comentario obligatorio para 1–2 estrellas y para toda corrección.</span>
+
+            <div class="classification-submit"><button class="btn btn-primary" type="submit">Guardar valoración</button></div>
+
+          </form>
+
+        </details>
+
+      <?php elseif($rated): ?>
+
+        <div class="resolution-read-grid">
+
+          <div><span>Valoración</span><strong><?= (int)$cycle['provider_rating_score'] ?>★ · <?= htmlspecialchars((string)$cycle['provider_rating_label']) ?></strong></div>
+
+          <div><span>Registró</span><strong><?= htmlspecialchars((string)($cycle['provider_rating_actor']?:'Equipo IT')) ?></strong><?php if(!empty($cycle['provider_rating_at'])): ?><small><?= htmlspecialchars(date('d/m/Y H:i',strtotime((string)$cycle['provider_rating_at']))) ?></small><?php endif; ?></div>
+
+          <div><span>Comentario interno</span><p><?= ($cycle['provider_rating_comment']??'')!==''?nl2br(htmlspecialchars((string)$cycle['provider_rating_comment'])):'Sin comentario.' ?></p></div>
+
+        </div>
+
+        <?php if($canRateProviders): ?>
+
+          <details class="ticket-classification-edit"><summary>Registrar corrección</summary>
+
+            <form class="ticket-classification-form" method="post" action="<?= APP_BASE_URL ?>/tickets/provider-rating/correct" data-single-submit>
+
+              <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+
+              <input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>">
+
+              <input type="hidden" name="external_user_id" value="<?= (int)$cycle['user_id'] ?>">
+
+              <input type="hidden" name="grant_event_id" value="<?= (int)$cycle['grant_event_id'] ?>">
+
+              <input type="hidden" name="corrected_rating_event_id" value="<?= (int)$cycle['provider_rating_event_id'] ?>">
+
+              <label><span class="form-label">Nueva valoración</span><select class="form-control" name="score" required><option value="">Selecciona</option><?php foreach(($providerRatingLabels??[]) as $score=>$label): ?><option value="<?= (int)$score ?>" <?= (int)$cycle['provider_rating_score']===(int)$score?'selected':'' ?>><?= (int)$score ?>★ <?= htmlspecialchars((string)$label) ?></option><?php endforeach; ?></select></label>
+
+              <label><span class="form-label">Motivo de la corrección</span><textarea class="form-control" name="comment" rows="3" maxlength="2000" required placeholder="Explica por qué se corrige la valoración"></textarea></label>
+
+              <span class="field-help">Comentario obligatorio para 1–2 estrellas y para toda corrección.</span>
+
+              <div class="classification-submit"><button class="btn btn-primary" type="submit">Guardar corrección</button></div>
+
+            </form>
+
+          </details>
+
+        <?php endif; ?>
+
+      <?php else: ?>
+
+        <div class="dashboard-scope-note"><span>Participación finalizada · Sin evaluar.</span></div>
+
+      <?php endif; ?>
+
+    <?php endforeach; ?>
+
+  </div></section>
+
+  <?php endif; ?>
+
   <section class="card conversation-card case-conversation-card" id="conversacion"><div class="card-body"><div class="case-section-head"><div><span class="ticket-kicker">Comunicación</span><h2><?= $isSupport?'Conversaciones':'Seguimiento' ?></h2></div><?php if($isSupport&&$externalParticipants): ?><div class="dashboard-scope-note"><strong>Proveedor participando</strong><span><?= htmlspecialchars(implode(', ',array_map(static fn(array $x):string=>(string)($x['organization_name']?:$x['full_name']),$externalParticipants))) ?></span></div><?php endif; ?></div><div class="conversation-list"><?php foreach($comments as $c): $mine=(int)($c['author_user_id']??0)===(int)Auth::id();$internal=$c['visibility']==='INTERNAL';$externalChannel=$c['visibility']==='EXTERNAL';$fromExternal=(($c['author_access_type']??'')==='EXTERNAL');$fromSupport=in_array((string)($c['author_role']??''),['ADMIN','SEMIADMIN','TECHNICIAN'],true);$author=$c['author_name']?:'Usuario';$channel=$internal?'Solo equipo de soporte':($externalChannel?'Colaboración con proveedor':($fromSupport?'Equipo de soporte':'Solicitante'));$class=$internal?'is-internal':($externalChannel?'is-external':($fromSupport?'is-mine':'is-requester')); ?><article class="conversation-message <?= $mine?'is-mine ':'' ?><?= $class ?>"><div class="conversation-channel-label <?= $internal?'internal':($externalChannel?'external':($fromSupport?'support':'')) ?>"><?= $internal?'🔒 ':'' ?><?= htmlspecialchars($channel) ?></div><div class="conversation-meta"><strong><?= htmlspecialchars($author) ?></strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($c['created_at']))) ?></span></div><p><?= nl2br(htmlspecialchars($c['body'])) ?></p><?php foreach($attachmentsByComment[(int)$c['id']]??[] as $f): ?><a class="conversation-file" href="<?= APP_BASE_URL ?>/tickets/attachment?id=<?= (int)$f['id'] ?>"><span>📎</span><span><strong><?= htmlspecialchars($f['original_name']) ?></strong><small><?= number_format(((int)$f['size_bytes'])/1024,0) ?> KB · Descargar</small></span></a><?php endforeach; ?></article><?php endforeach; ?><?php foreach($looseAttachments as $f): ?><article class="conversation-message"><div class="conversation-meta"><strong>Archivo adjunto</strong><span><?= htmlspecialchars(date('d/m/Y H:i',strtotime($f['created_at']))) ?></span></div><a class="conversation-file" href="<?= APP_BASE_URL ?>/tickets/attachment?id=<?= (int)$f['id'] ?>"><span>📎</span><span><strong><?= htmlspecialchars($f['original_name']) ?></strong><small><?= number_format(((int)$f['size_bytes'])/1024,0) ?> KB · Descargar</small></span></a></article><?php endforeach; ?><?php if(!$comments&&!$looseAttachments): ?><div class="empty-state conversation-empty"><strong>Aún no hay mensajes.</strong></div><?php endif; ?></div>
   <?php if(!in_array($status,['CLOSED','CANCELLED'],true)): ?><form method="post" action="<?= APP_BASE_URL ?>/tickets/respond" enctype="multipart/form-data" class="conversation-form" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><?php if($isSupport): ?><div class="conversation-mode" role="radiogroup" aria-label="Tipo de mensaje"><label><input type="radio" name="visibility" value="PUBLIC" checked><span>Respuesta al usuario</span></label><?php if($externalParticipants): ?><label class="external-mode"><input type="radio" name="visibility" value="EXTERNAL"><span>Colaboración con proveedor</span></label><?php endif; ?><label class="internal-mode"><input type="radio" name="visibility" value="INTERNAL"><span>🔒 Conversación interna</span></label></div><div class="conversation-mode-help">Usuario: visible para el solicitante. Proveedor: solo soporte y colaboradores del caso. Interna: solo equipo de soporte.</div><?php endif; ?><label>Mensaje<textarea class="form-control" name="body" rows="4" placeholder="<?= $isSupport?'Escribe el avance, consulta o coordinación necesaria...':'Agrega información o responde al equipo de soporte...' ?>"></textarea></label><label>Archivo <span class="subtle">(opcional · máximo 10 MB)</span><input class="form-control" type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx"></label><button class="btn btn-primary" type="submit"><?= $isSupport?'Enviar mensaje':'Enviar actualización' ?></button></form><?php endif; ?></div></section>
 
