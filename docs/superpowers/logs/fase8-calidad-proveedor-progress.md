@@ -142,35 +142,40 @@ Causa:
 
 Test: `tests/phase8_external_case_history_regression.php`.
 
-Resultado ejecutado:
-- `[OK] Existe TicketController`;
-- `[OK] Existe vista Mis casos`;
-- `[FALLO] Listado externo conserva fecha de asignación`;
-- `[FALLO] Listado externo conserva fecha de finalización`;
-- `[FALLO] Listado externo conserva histórico revocado sin reabrir acceso`;
-- `[FALLO] Listado externo ya no limita todo a accesos vigentes`;
-- `[FALLO] Vista distingue participación activa e histórica`;
-- `[FALLO] Proveedor ve total histórico de casos`;
-- `[FALLO] Historial identifica participación finalizada`;
-- `[FALLO] Historial muestra fecha de asignación`;
-- `[FALLO] Historial muestra fecha de finalización`;
-- `[FALLO] Caso histórico no enlaza al detalle`;
-- `[OK] Vista externa no expone valoración interna`;
-- total: 10 fallos esperados.
+Resultado:
+- 2 checks base `[OK]`;
+- 10 fallos esperados sobre fechas, histórico, total, etiqueta y ausencia de enlace;
+- privacidad de valoración interna `[OK]`;
+- working tree limpio y sincronizado.
 
-Interpretación:
-- ✅ RED correcto y aislado a la funcionalidad faltante;
-- ✅ privacidad de valoración interna permanece protegida;
-- ✅ working tree limpio y sincronizado al ejecutar el RED.
+### GREEN preparado ⏳ pendiente de ejecutar en PC TEST
 
-### Siguiente paso exacto
+Aplicador temporal creado:
+- `tools/apply_phase8_external_case_history.php`;
+- commit remoto: `d5ab9c0 tool: aplicar historial seguro para proveedor externo`.
 
-1. preparar GREEN mínimo solo en `TicketController::index()` y `app/Views/tickets/index.php`;
-2. conservar bloqueo de `TicketViewController` para históricos;
-3. ejecutar sintaxis y `phase8_external_case_history_regression.php`;
-4. repetir regresión UI/privacidad de Fase 8 y `git diff --check`;
-5. registrar GREEN antes de commit funcional;
-6. validar visualmente con la cuenta externa.
+El aplicador modifica únicamente:
+- `app/Controllers/TicketController.php`;
+- `app/Views/tickets/index.php`.
+
+Cambios preparados:
+- SELECT externo agrega `eta.granted_at external_granted_at` y `eta.revoked_at external_revoked_at`;
+- listado conserva históricos con `eta.revoked_at IS NOT NULL OR t.visibility_mode='EXTERNAL_ALLOWED'`;
+- métricas externas separan activos/en espera/finalizados y agregan `Total`;
+- tarjeta histórica muestra `Participación finalizada`, fecha de asignación y fecha de finalización;
+- tarjeta revocada no renderiza `ticket-card-link`, por lo que no reabre el detalle;
+- `TicketViewController` no se modifica y continúa exigiendo acceso vigente;
+- 0 cambios de BD.
+
+Siguiente paso exacto:
+1. sincronizar PC TEST;
+2. ejecutar `tools/apply_phase8_external_case_history.php`;
+3. validar sintaxis de `TicketController.php` y `tickets/index.php`;
+4. ejecutar `tests/phase8_external_case_history_regression.php`;
+5. ejecutar `tests/phase8_provider_rating_ui_regression.php` para privacidad;
+6. `git diff --check` y `git status`;
+7. registrar GREEN antes de commit funcional;
+8. validar visualmente con la cuenta externa.
 
 ## Estado exacto actual
 
@@ -178,7 +183,7 @@ Interpretación:
 - Task 8 técnico base: ✅ GREEN.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo por proveedor: ✅ consolidado.
-- Historial para el propio proveedor: RED ✅ confirmado; GREEN ⏳ siguiente.
+- Historial para el propio proveedor: RED ✅ confirmado; GREEN ⏳ preparado.
 - Hallazgo visual actor/fecha: ⏳ pendiente.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
