@@ -71,21 +71,24 @@ Se guardó `1★ · Muy deficiente` con comentario; valoración vigente, actor, 
 ### Checkpoint D — historial externo visible ✅
 Con `Pruebas Comunicacion`: `Activos 0`, `En espera 0`, `Finalizados 1`, `Total 1`; caso histórico visible como `Participación finalizada`, con fechas de asignación/finalización y sin score/comentario interno.
 
-### Checkpoint E — Excel externo real ⚠️ BLOQUEADO EN APERTURA LOCAL
-El archivo descargado `helpdesk_mis_casos_20260916_120336.xlsx` fue aportado por el usuario y, al inspeccionarlo fuera de Excel, el paquete XLSX es estructuralmente válido y contiene:
-- hoja `Mis casos`;
-- encabezados `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
-- fila para `HD-2026-000001` con datos esperados;
-- sin valoración interna, comentario interno ni datos del solicitante.
+### Checkpoint E — Excel externo real ✅ RESUELTO Y VALIDADO
+Validación con `helpdesk_mis_casos_20260916_120336.xlsx`:
+- archivo existe en `C:\Users\Luis Fernando Zuniga\Downloads\helpdesk_mis_casos_20260916_120336.xlsx`;
+- `Test-Path` devuelve `True`;
+- Microsoft Excel lo abre correctamente cuando se abre por su ruta real;
+- hoja `Mis casos` visible sin reparación;
+- encabezados: `Ticket`, `Asunto`, `Categoría`, `Ubicación`, `Participación`, `Asignado`, `Finalizado`;
+- fila `HD-2026-000001` correcta;
+- participación `Finalizada`;
+- asignado `15/09/2026 13:20`;
+- finalizado `16/09/2026 09:37`;
+- no aparecen valoración interna, comentario de calidad, correo del solicitante ni resolución interna.
 
-Sin embargo, el usuario confirma que la captura de Microsoft Excel **sí corresponde a la prueba de este archivo/flujo** y Excel muestra un error de archivo no encontrado apuntando a una ruta/nombre distinto (`helpdesk_proveedores_20260916_104604.xlsx`).
-
-Interpretación actual:
-- el contenido OOXML del XLSX nuevo no muestra corrupción;
-- el error observado es `archivo no encontrado`, no `formato dañado`;
-- existe una discrepancia entre el archivo descargado nuevo (`helpdesk_mis_casos_...`) y la ruta que Microsoft Excel intenta resolver (`helpdesk_proveedores_...`);
-- **no dar por cerrada la validación real todavía**;
-- diagnosticar entrega/apertura local antes de modificar código.
+Incidencia previa aclarada:
+- Excel había mostrado un mensaje buscando `helpdesk_proveedores_20260916_104604.xlsx`;
+- el diagnóstico confirmó que ese mensaje correspondía a una referencia previa/reciente distinta del archivo nuevo;
+- el archivo nuevo `helpdesk_mis_casos_20260916_120336.xlsx` existe y abre correctamente;
+- no se requiere cambio adicional en `XlsxExportService` por esta incidencia.
 
 ## Historial y Excel administrativo por proveedor ✅
 - `Historial` → `/admin/externos/informe?provider=<id>`;
@@ -99,7 +102,7 @@ Interpretación actual:
 - sin valoración interna;
 - commit funcional: `2ad58d5 feat: conservar historial de casos para proveedores`.
 
-## Excel seguro para el propio proveedor ✅ CONSOLIDADO TÉCNICAMENTE / ⚠️ VALIDACIÓN LOCAL ABIERTA
+## Excel seguro para el propio proveedor ✅ CONSOLIDADO, LIMPIO Y VALIDADO
 
 ### Diseño
 - botón `Descargar Excel` en `Mis casos` solo para cuentas `EXTERNAL`;
@@ -130,17 +133,15 @@ Archivos funcionales:
 ### Limpieza ✅
 - `847e050 docs: registrar consolidacion excel externo proveedor`;
 - `43b6df9 chore: retirar aplicador excel externo proveedor`;
-- aplicador temporal ya retirado.
+- aplicador temporal retirado.
 
-### Próximo diagnóstico exacto
-1. confirmar en `Downloads` los nombres y rutas reales de `helpdesk_mis_casos_*.xlsx` y `helpdesk_proveedores_*.xlsx`;
-2. abrir explícitamente el archivo nuevo por ruta completa, sin usar `Recientes` de Excel;
-3. si abre, clasificar incidencia como referencia reciente/autoapertura local;
-4. si vuelve a intentar el nombre viejo, investigar asociación/autoapertura de Excel/Chrome y cabeceras HTTP;
-5. no modificar `XlsxExportService` sin reproducir primero el fallo sobre la ruta exacta.
+### Validación real ✅
+- descarga real confirmada con `Pruebas Comunicacion`;
+- archivo localizado en Downloads;
+- apertura directa en Microsoft Excel confirmada;
+- columnas y datos seguros verificados.
 
 ## Pendientes de Task 8
-- resolver validación local del XLSX externo;
 - rechazo de 1–2★ sin comentario;
 - primera valoración 3–5★ sin comentario;
 - corrección sin comentario debe rechazarse;
@@ -162,7 +163,7 @@ En el bloque `REGISTRO`, actor y fecha aparecen con separación insuficiente, po
 - Task 8 funcional/visual: ⏳ en progreso.
 - Historial/Excel administrativo: ✅.
 - Historial propio del proveedor: ✅.
-- Excel propio del proveedor: ✅ consolidado técnicamente; ⚠️ prueba de apertura local aún sin cerrar.
+- Excel propio del proveedor: ✅ consolidado, limpio y validado en Microsoft Excel.
 - Rama: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No iniciar Fase 9 todavía.
