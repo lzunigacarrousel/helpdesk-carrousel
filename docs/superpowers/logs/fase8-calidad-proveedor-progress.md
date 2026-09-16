@@ -220,21 +220,40 @@ Hallazgo funcional adicional — gestión de proveedores:
 - existe un enlace global `Ver historial` en el encabezado de la pantalla de proveedores;
 - el informe global `/admin/externos/informe` ya soporta filtro `provider=<id>` y el XLSX reutiliza los mismos filtros;
 - por tanto, actualmente no hay acceso directo desde cada proveedor a **su historial de casos** ni a una **descarga Excel individual**;
-- este hallazgo se considera pendiente de diseño/aprobación dentro de Task 8 antes del cierre final.
+- diseño aprobado: agregar acciones `Historial` y `Excel` por fila, reutilizando el informe existente con `provider=<id>`, junto a `Editar`;
+- no requiere cambios de BD ni nuevo controller.
 
-Siguiente paso manual exacto:
-1. definir si `Proveedores registrados` debe incorporar acciones directas por fila para `Historial` y `Excel` filtradas al proveedor;
-2. después continuar la validación de corrección sin comentario y demás checks funcionales;
-3. corregir el detalle visual actor/fecha antes del cierre final.
+#### RED TDD — acciones por proveedor ✅ confirmado
+
+Ejecutado `tests/phase8_provider_rating_report_regression.php` tras agregar las nuevas expectativas.
+
+Resultado:
+- todas las validaciones existentes de filtros, resumen, informe y XLSX permanecen `[OK]`;
+- fallan únicamente las 4 expectativas nuevas:
+  - `Directorio enlaza historial filtrado por proveedor`;
+  - `Directorio muestra acción Historial por proveedor`;
+  - `Directorio enlaza Excel filtrado por proveedor`;
+  - `Directorio muestra acción Excel por proveedor`;
+- working tree local limpio y sincronizado con `origin/fase8-calidad-proveedor`.
+
+Interpretación:
+- ✅ RED correcto: la prueba falla exclusivamente porque la UI por fila todavía no implementa las acciones aprobadas;
+- siguiente paso: GREEN mínimo en `app/Views/admin/externals.php`, sin tocar BD ni lógica de reporte.
+
+Siguiente paso manual/técnico exacto:
+1. aplicar el GREEN mínimo que agregue `Historial`, `Excel` y conserve `Editar` en cada fila de proveedor;
+2. repetir `phase8_provider_rating_report_regression.php` y validar GREEN;
+3. continuar la validación de corrección sin comentario y demás checks funcionales;
+4. corregir el detalle visual actor/fecha antes del cierre final.
 
 ## Estado exacto para retomar
 
 - Tasks 1–7: ✅ cerradas.
-- Task 8 técnico: ✅ GREEN.
+- Task 8 técnico: ✅ GREEN base.
 - Task 8 funcional/visual: ⏳ en progreso.
 - Validación manual confirmada hasta primera valoración persistida.
+- RED de acciones Historial/Excel por proveedor: ✅ confirmado.
 - Hay un hallazgo visual menor actor/fecha pendiente de corrección.
-- Hay un hallazgo funcional pendiente sobre historial/Excel individual por proveedor.
 - Rama de trabajo: `fase8-calidad-proveedor`.
 - No se ha fusionado a `main`.
 - No se debe iniciar Fase 9 todavía.
