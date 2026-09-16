@@ -112,25 +112,44 @@ Consolidación y limpieza:
 - working tree quedó limpio y sincronizado después del push;
 - cierre funcional registrado en `8f79804`;
 - `tools/apply_phase8_provider_rating_hardening.php` eliminado en `6a64d31`;
+- limpieza registrada en `4a2791a`;
 - no quedan herramientas temporales de Task 6.
 
-### Task 7 — CI y cierre documental ⏭️ SIGUIENTE
+### Task 7 — CI, Manual y cierre documental 🚧 RED PREPARADO
 
-Pendiente según plan:
-- crear/ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
-- integrar gates de Fase 8 en `.github/workflows/helpdesk-ci.yml`;
-- actualizar `README.md`, `CHANGELOG.md` y `app/Views/help/manual.php`;
-- documentar explícitamente que Fase 8 usa `ticket_events` y no requiere cambios estructurales de BD;
-- ejecutar gate integral antes del cierre de la fase.
+Objetivo:
+- incorporar todos los gates de Fase 8 al CI;
+- marcar Fase 8 implementada y Fase 9 como siguiente;
+- documentar eventos `PROVIDER_RATED` / `PROVIDER_RATING_CORRECTED`;
+- documentar escala, correcciones, privacidad, reporte/XLSX y separación de NPS;
+- confirmar explícitamente `BD: sin cambios`.
+
+TDD:
+- creado `tests/phase8_provider_rating_closeout_regression.php`;
+- commit RED: `fc61842 test: definir cierre documental fase 8`;
+- todavía no se modificaron `.github/workflows/helpdesk-ci.yml`, `README.md`, `CHANGELOG.md` ni `app/Views/help/manual.php` para Task 7.
+
+El test RED exige:
+- bloque `Phase 8 provider rating` en CI;
+- ejecución de los seis tests Fase 8 en CI;
+- README con Fase 8 implementada y Fase 9 siguiente;
+- README con `BD: sin cambios` y eventos inmutables;
+- CHANGELOG con Fase 8, ambos eventos, separación de `ticket_feedback.nps_score` y cero cambios BD;
+- Manual con `Calidad del proveedor`, escala 1–5, comentario obligatorio, correcciones, `Sin evaluar` y privacidad frente al proveedor.
+
+Siguiente acción exacta en PC TEST:
+1. `git pull --ff-only origin fase8-calidad-proveedor`;
+2. confirmar `git status` limpio;
+3. ejecutar `tests/phase8_provider_rating_closeout_regression.php`;
+4. registrar RED exacto antes de tocar CI/documentación.
 
 ## Estado actual para retomar
 
 - Tasks 1–6: cerradas y limpias.
-- Task 7: siguiente paso.
+- Task 7: RED preparado remotamente, pendiente ejecutar en PC TEST.
 - Rama: `fase8-calidad-proveedor`.
-- PC TEST quedó `working tree clean` tras el commit funcional de Task 6; debe hacer `git pull` para recibir la limpieza y este log actualizado.
 
 ## Próximas tareas del plan
 
-- Task 7: CI + documentación + closeout regression.
-- Luego: gate integral, sincronización final y preparación para integrar a `main` según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
+- Task 7: ejecutar RED, actualizar CI/README/CHANGELOG/Manual y llevar closeout a GREEN.
+- Task 8: gate integral, validación manual/visual y preparación para integración a `main`.
