@@ -130,32 +130,38 @@ Inicio TDD:
 - creado `tests/phase8_provider_rating_report_regression.php`;
 - commit RED: `8b74bfb test: definir informe de calidad de proveedores fase 8`.
 
-El RED exige:
-- filtro `rating=UNRATED`;
-- filtro exacto 1–5 usando `provider_rating_score` vigente;
-- resumen por proveedor con promedio, evaluados y sin evaluar;
-- `ExternalReportController` usando `ProviderRatingService::enrichRows()` antes de filtrar;
-- normalización GET `rating`;
-- exposición de `ratingOptions` y `providerRatingSummary`;
-- filtro de valoración en la vista;
-- métricas de calidad visibles en el informe;
-- valoración vigente por ciclo;
-- XLSX con valoración, comentario interno, promedio, evaluados y sin evaluar.
+RED confirmado en PC TEST:
+- rama sincronizada y `working tree clean` antes de ejecutar;
+- 21 validaciones fallaron, todas correspondientes a integración aún no implementada;
+- 4 validaciones de `ProviderRatingService::providerSummary()` ya pasan por venir de Task 2.
 
-Siguiente acción:
-1. sincronizar PC TEST con la rama;
-2. ejecutar `tests/phase8_provider_rating_report_regression.php`;
-3. confirmar RED esperado;
-4. implementar GREEN mínimo sin duplicar dataset de proveedores.
+Fallos RED confirmados:
+- `rating=UNRATED` aún no filtra ciclos sin evaluación;
+- filtros 1–5 aún no usan `provider_rating_score` vigente;
+- `ExternalReportController` aún no usa `ProviderRatingService` ni `enrichRows()`;
+- GET `rating` aún no se normaliza;
+- controller aún no expone `ratingOptions` ni `providerRatingSummary`;
+- vista aún no tiene filtro Valoración ni métricas de calidad;
+- tabla aún no muestra valoración vigente;
+- XLSX aún no exporta score/comentario ni resumen de calidad por proveedor.
+
+GREEN mínimo a implementar:
+- enriquecer el dataset de `ProviderParticipationService::rows()` una sola vez mediante `ProviderRatingService::enrichRows()` antes de filtrar;
+- extender `ProviderParticipationService::applyFilters()` con `rating=UNRATED|1|2|3|4|5`;
+- construir `ProviderRatingService::providerSummary()` sobre las filas filtradas;
+- exponer `ratingOptions` y `providerRatingSummary` en pantalla;
+- agregar filtro y columna de valoración sin perder filtros existentes;
+- extender XLSX con valoración vigente, comentario interno y métricas por proveedor;
+- mantener 0 cambios de BD.
 
 ## Estado actual para retomar
 
 - Tasks 1–4: cerradas.
-- Task 5: iniciada en RED.
+- Task 5: RED confirmado; GREEN pendiente.
 - Rama de trabajo: `fase8-calidad-proveedor`.
-- Antes de ejecutar el RED en PC TEST: `git pull --ff-only origin fase8-calidad-proveedor`.
+- PC TEST estaba limpio antes de ejecutar el RED.
 
 ## Próximas tareas del plan
 
-- Task 5: cerrar informe + filtro + resumen + XLSX.
+- Task 5: implementar y verificar GREEN de informe + filtro + resumen + XLSX.
 - Task 6+: endurecimiento/gates, CI y cierre documental según `docs/superpowers/plans/2026-09-15-fase8-calidad-proveedor-implementation.md`.
