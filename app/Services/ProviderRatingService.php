@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Database;
+
 final class ProviderRatingService
 {
     public const SCORE_LABELS=[
@@ -14,6 +16,11 @@ final class ProviderRatingService
     ];
 
     public function __construct(private ?object $pdo=null){}
+
+    private function pdo(): object
+    {
+        return $this->pdo??Database::pdo();
+    }
 
     public static function validateInput(int $score,string $comment,bool $correction): void
     {
@@ -173,6 +180,104 @@ final class ProviderRatingService
         return $summary;
     }
 
+    public function ratingEventsForTickets(array $ticketIds): array
+    {
+        $ticketIds=array_values(array_unique(array_filter(array_map('intval',$ticketIds),static fn(int $id):bool=>$id>0)));
+        if($ticketIds===[])return [];
+
+        $placeholders=implode(',',array_fill(0,count($ticketIds),'?'));
+        $q=$this->pdo()->prepare(
+            "SELECT te.id,te.ticket_id,te.event_type,te.actor_user_id,te.metadata_json,te.created_at,actor.full_name actor_name
+             FROM ticket_events te
+             LEFT JOIN users actor ON actor.id=te.actor_user_id
+             WHERE te.event_type IN('PROVIDER_RATED','PROVIDER_RATING_CORRECTED')
+               AND te.ticket_id IN ({$placeholders})
+             ORDER BY te.created_at,te.id"
+        );
+        $q->execute($ticketIds);
+        return $q->fetchAll();
+    }
+
+    public function enrichRows(array $rows): array
+    {
+        $ticketIds=[];
+        foreach($rows as $row){
+            $ticketId=(int)($row['ticket_id']??0);
+            if($ticketId>0)$ticketIds[$ticketId]=$ticketId;
+        }
+        return self::enrichCycles($rows,$this->ratingEventsForTickets(array_values($ticketIds)));
+    }
+
+    public function rateCycle(int $ticketId,int $externalUserId,int $grantEventId,int $score,string $comment,int $actorUserId): int
+    {
+        self::validateInput($score,$comment,false);
+        $comment=trim($comment);
+
+        return $this->transaction(function(object $pdo)use($ticketId,$externalUserId,$grantEventId,$score,$comment,$actorUserId):int{
+            $this->lockTicket($pdo,$ticketId);
+            $this->requireEvaluableCycle($pdo,$ticketId,$externalUserId,$grantEventId);
+
+            $current=self::buildCurrentRatings($this->ratingEventsForTickets([$ticketId]));
+            if(isset($current[$grantEventId])){
+                throw new \RuntimeException('Este ciclo ya tiene una valoración. Registra una corrección si necesitas ajustarla.');
+            }
+
+            $metadata=json_encode([
+                'external_user_id'=>$externalUserId,
+                'grant_event_id'=>$grantEventId,
+                'score'=>$score,
+                'comment'=>$comment,
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            if($metadata===false)throw new \RuntimeException('No fue posible preparar la valoración.');
+
+            $insert=$pdo->prepare(
+                "INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,metadata_json,created_at)
+                 VALUES(?,'PROVIDER_RATED',?,'USER',?,NOW())"
+            );
+            $insert->execute([$ticketId,$actorUserId,$metadata]);
+            return (int)$pdo->lastInsertId();
+        });
+    }
+
+    public function correctCycle(int $ticketId,int $externalUserId,int $grantEventId,int $score,string $comment,int $correctedRatingEventId,int $actorUserId): int
+    {
+        self::validateInput($score,$comment,true);
+        $comment=trim($comment);
+
+        return $this->transaction(function(object $pdo)use($ticketId,$externalUserId,$grantEventId,$score,$comment,$correctedRatingEventId,$actorUserId):int{
+            $this->lockTicket($pdo,$ticketId);
+            $this->requireEvaluableCycle($pdo,$ticketId,$externalUserId,$grantEventId);
+
+            $current=self::buildCurrentRatings($this->ratingEventsForTickets([$ticketId]));
+            $rating=$current[$grantEventId]??null;
+            if(!is_array($rating)){
+                throw new \RuntimeException('Este ciclo todavía no tiene una valoración que corregir.');
+            }
+            if((int)($rating['external_user_id']??0)!==$externalUserId){
+                throw new \RuntimeException('La valoración vigente no corresponde a este proveedor.');
+            }
+            if((int)($rating['event_id']??0)!==$correctedRatingEventId){
+                throw new \RuntimeException('La valoración cambió mientras la revisabas. Actualiza el caso e inténtalo de nuevo.');
+            }
+
+            $metadata=json_encode([
+                'external_user_id'=>$externalUserId,
+                'grant_event_id'=>$grantEventId,
+                'score'=>$score,
+                'comment'=>$comment,
+                'corrected_rating_event_id'=>$correctedRatingEventId,
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            if($metadata===false)throw new \RuntimeException('No fue posible preparar la corrección.');
+
+            $insert=$pdo->prepare(
+                "INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,metadata_json,created_at)
+                 VALUES(?,'PROVIDER_RATING_CORRECTED',?,'USER',?,NOW())"
+            );
+            $insert->execute([$ticketId,$actorUserId,$metadata]);
+            return (int)$pdo->lastInsertId();
+        });
+    }
+
     public static function ratingOptions(): array
     {
         return [
@@ -183,5 +288,42 @@ final class ProviderRatingService
             '4'=>'4★ Bueno',
             '5'=>'5★ Excelente',
         ];
+    }
+
+    private function requireEvaluableCycle(object $pdo,int $ticketId,int $externalUserId,int $grantEventId): array
+    {
+        $cycles=(new ProviderParticipationService($pdo))->rowsForTicket($ticketId);
+        foreach($cycles as $cycle){
+            if((int)($cycle['grant_event_id']??0)!==$grantEventId)continue;
+            if((int)($cycle['user_id']??0)!==$externalUserId)continue;
+            if(($cycle['revoke_event_id']??null)===null){
+                throw new \RuntimeException('Solo puedes evaluar una participación finalizada mediante revocación.');
+            }
+            return $cycle;
+        }
+        throw new \RuntimeException('No encontramos ese ciclo de participación para este proveedor.');
+    }
+
+    private function lockTicket(object $pdo,int $ticketId): void
+    {
+        if($ticketId<=0)throw new \RuntimeException('Ticket no válido.');
+        $lock=$pdo->prepare('SELECT id FROM tickets WHERE id=? AND deleted_at IS NULL FOR UPDATE');
+        $lock->execute([$ticketId]);
+        if(!$lock->fetchColumn())throw new \RuntimeException('Ticket no encontrado.');
+    }
+
+    private function transaction(callable $callback): mixed
+    {
+        $pdo=$this->pdo();
+        $started=!$pdo->inTransaction();
+        if($started)$pdo->beginTransaction();
+        try{
+            $result=$callback($pdo);
+            if($started)$pdo->commit();
+            return $result;
+        }catch(\Throwable $e){
+            if($started&&$pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
     }
 }
