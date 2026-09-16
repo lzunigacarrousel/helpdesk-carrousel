@@ -107,7 +107,7 @@ Confirmado:
 - `git diff --name-only origin/main...HEAD -- database`: sin salida;
 - por lo tanto, 0 cambios en `database/` respecto a `main`;
 - working tree limpio;
-- rama local sincronizada con `origin/fase8-calidad-proveedor` antes de este checkpoint.
+- rama local sincronizada con `origin/fase8-calidad-proveedor`.
 
 Diff acumulado contra `origin/main` al ejecutar el gate:
 - 22 archivos;
@@ -168,6 +168,16 @@ Especial atención a tablet/iPad por antecedentes de responsive en otras pantall
 - La siguiente sesión debe continuar **exactamente en Task 8, validación funcional/visual**.
 - Primer paso al retomar: `git pull --ff-only origin fase8-calidad-proveedor` y `git status`.
 - Luego comenzar con un ticket que tenga un ciclo de proveedor finalizado explícitamente y revisar/capturar el bloque `Calidad del proveedor`.
+
+## Checkpoint final de sincronización local
+
+Confirmado por PC TEST al pausar:
+- `git pull --ff-only origin fase8-calidad-proveedor` avanzó hasta `e25d299`;
+- `git status` reportó `Your branch is up to date with 'origin/fase8-calidad-proveedor'`;
+- `nothing to commit, working tree clean`;
+- por tanto, la copia local quedó sincronizada y limpia en el checkpoint previo a este registro final del log.
+
+Este registro final del log genera un commit remoto adicional. Al retomar, ejecutar primero `git pull --ff-only origin fase8-calidad-proveedor` para recibirlo antes de continuar con la validación manual/visual.
 
 ## Integración a main
 
