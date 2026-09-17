@@ -46,7 +46,7 @@ final class KnowledgeRevisionService
                     article_number,lifecycle_status,current_internal_revision_id,current_public_revision_id,
                     created_by_user_id,title,summary,content,status,visibility,category_id,author_user_id,
                     published_at,archived_at,created_at,updated_at
-                 ) VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"
+                 ) VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"
             );
             $article->execute([
                 $userId,$title,$summary!==''?$summary:null,$content,$categoryId>0?$categoryId:null,$userId
