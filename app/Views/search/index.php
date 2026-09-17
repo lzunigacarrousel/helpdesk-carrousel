@@ -1,6 +1,7 @@
 <?php
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
+$knowledgeStatusLabels=['DRAFT'=>'Borrador','IN_REVIEW'=>'En revisión','PUBLISHED'=>'Publicado para soporte','ARCHIVED'=>'Archivado'];
 $searchTerm=(string)($q??'');$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
 require APP_ROOT.'/app/Views/shared/app_start.php';
 $total=count($tickets)+count($problems)+count($articles);
@@ -66,7 +67,7 @@ $normalize=static function(string $value):string{$value=mb_strtolower(trim((stri
     <?php if($articles): ?>
       <section class="search-result-section" data-search-section="articles">
         <div class="search-section-head"><div><span class="ticket-kicker">Conocimiento</span><h2>Documentación relacionada</h2></div><span><?= count($articles) ?></span></div>
-        <div class="search-knowledge-grid"><?php foreach($articles as $a): ?><a class="card search-knowledge-card itsm-result-link" href="<?= APP_BASE_URL ?>/knowledge/view?id=<?= (int)$a['id'] ?>"><div class="card-body"><div class="search-knowledge-kicker"><strong><?= htmlspecialchars($a['article_number']) ?></strong><span><?= htmlspecialchars($a['status']) ?></span></div><h3><?= htmlspecialchars($a['title']) ?></h3><?php if(!empty($a['summary'])): ?><p><?= htmlspecialchars(mb_strimwidth(trim((string)$a['summary']),0,240,'…')) ?></p><?php endif; ?><div class="search-answer"><span>Contenido</span><p><?= nl2br(htmlspecialchars(mb_strimwidth(trim(strip_tags((string)$a['content'])),0,420,'…'))) ?></p></div><small><?= htmlspecialchars($a['category_name']??'Sin categoría') ?> · <?= htmlspecialchars($a['visibility']) ?></small></div></a><?php endforeach; ?></div>
+        <div class="search-knowledge-grid"><?php foreach($articles as $a): ?><a class="card search-knowledge-card itsm-result-link" href="<?= APP_BASE_URL ?>/knowledge/view?id=<?= (int)$a['id'] ?>"><div class="card-body"><div class="search-knowledge-kicker"><strong><?= htmlspecialchars($a['article_number']) ?></strong><span><?= htmlspecialchars($knowledgeStatusLabels[$a['status']]??$a['status']) ?></span></div><h3><?= htmlspecialchars($a['title']) ?></h3><?php if(!empty($a['summary'])): ?><p><?= htmlspecialchars(mb_strimwidth(trim((string)$a['summary']),0,240,'…')) ?></p><?php endif; ?><div class="search-answer"><span>Contenido</span><p><?= nl2br(htmlspecialchars(mb_strimwidth(trim(strip_tags((string)$a['content'])),0,420,'…'))) ?></p></div><small><?= htmlspecialchars($a['category_name']??'Sin categoría') ?><?= !empty($a['public_available'])?' · Disponible para solicitantes':'' ?></small></div></a><?php endforeach; ?></div>
       </section>
     <?php endif; ?>
   <?php endif; ?>
