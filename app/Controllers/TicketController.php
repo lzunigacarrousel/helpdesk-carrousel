@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService,SolutionSuggestionService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService,SolutionSuggestionService,KnowledgeMetricsService};
 use PDO;
 
 final class TicketController
@@ -61,6 +61,34 @@ final class TicketController
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store, max-age=0');
         echo json_encode(['items'=>$items],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    }
+
+    public function publicKnowledgeOpened(): void
+    {
+        Csrf::verify($_POST['_csrf']??null);
+        $articleId=(int)($_POST['article_id']??0);
+        $revisionId=(int)($_POST['revision_id']??0);
+        if($articleId<=0||$revisionId<=0){http_response_code(204);return;}
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare(
+            "SELECT COUNT(*)
+             FROM knowledge_articles ka
+             JOIN knowledge_revisions kr ON kr.id=ka.current_public_revision_id
+             WHERE ka.id=? AND kr.id=? AND ka.lifecycle_status='ACTIVE'"
+        );
+        $q->execute([$articleId,$revisionId]);
+        if((int)$q->fetchColumn()===1){
+            try{
+                (new KnowledgeMetricsService())->recordOpened(
+                    null,
+                    Auth::user()?(int)Auth::id():null,
+                    'SELF_SERVICE',
+                    ['type'=>'KNOWLEDGE','article_id'=>$articleId,'revision_id'=>$revisionId]
+                );
+            }catch(\Throwable $e){Logger::error($e);}
+        }
+        http_response_code(204);
     }
 
     public function publicStore():void{
@@ -182,6 +210,54 @@ final class TicketController
         $label=self::STATUS_LABELS[$status]??$status;
         $this->publish($id,'STATUS_CHANGED','Estado actualizado','El caso cambió de '.(self::STATUS_LABELS[$oldStatus]??$oldStatus).' a '.$label.'.',['requester','assignee','externals','admins']);
         Flash::set('Estado actualizado a '.$label.'.','success');header('Location: '.APP_BASE_URL.'/tickets/view?id='.$id);exit;
+    }
+
+    public function recordSuggestionOpen(): void
+    {
+        Auth::requireLogin();
+        Csrf::verify($_POST['_csrf']??null);
+
+        $ticketId=(int)($_POST['ticket_id']??0);
+        $type=strtoupper(trim((string)($_POST['reference_type']??'')));
+        $referenceId=(int)($_POST['reference_id']??0);
+        $revisionId=(int)($_POST['revision_id']??0);
+        if($ticketId<=0||$referenceId<=0||!in_array($type,['KNOWLEDGE','PROBLEM','TICKET'],true)){
+            http_response_code(204);return;
+        }
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare('SELECT * FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');
+        $q->execute([$ticketId]);
+        $ticket=$q->fetch();
+        if(!$ticket){http_response_code(204);return;}
+        $this->visible($ticket);
+
+        $reference=['type'=>$type];
+        if($type==='KNOWLEDGE'){
+            $valid=$pdo->prepare(
+                "SELECT current_internal_revision_id
+                 FROM knowledge_articles
+                 WHERE id=? AND lifecycle_status='ACTIVE' LIMIT 1"
+            );
+            $valid->execute([$referenceId]);
+            $currentRevision=(int)($valid->fetchColumn()?:0);
+            if($currentRevision<=0||($revisionId>0&&$revisionId!==$currentRevision)){
+                http_response_code(204);return;
+            }
+            $reference['article_id']=$referenceId;
+            $reference['revision_id']=$currentRevision;
+        }elseif($type==='PROBLEM'){
+            $reference['problem_id']=$referenceId;
+        }else{
+            $reference['source_ticket_id']=$referenceId;
+        }
+
+        try{
+            (new KnowledgeMetricsService())->recordOpened(
+                $ticketId,(int)Auth::id(),'INTERNAL_TICKET',$reference
+            );
+        }catch(\Throwable $e){Logger::error($e);}
+        http_response_code(204);
     }
 
     public function show():void{
