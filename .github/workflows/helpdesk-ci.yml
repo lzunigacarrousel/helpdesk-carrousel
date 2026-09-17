@@ -140,6 +140,42 @@ jobs:
       - name: Phase 8 provider rating - closeout
         run: php tests/phase8_provider_rating_closeout_regression.php
 
+      - name: Phase 9 knowledge - schema
+        run: php tests/phase9_knowledge_schema_regression.php
+
+      - name: Phase 9 knowledge - revision service
+        run: php tests/phase9_knowledge_revision_service_regression.php
+
+      - name: Phase 9 knowledge - permissions
+        run: php tests/phase9_knowledge_permissions_regression.php
+
+      - name: Phase 9 knowledge - workflow controller
+        run: php tests/phase9_knowledge_workflow_controller_regression.php
+
+      - name: Phase 9 knowledge - candidates
+        run: php tests/phase9_knowledge_candidate_regression.php
+
+      - name: Phase 9 knowledge - references
+        run: php tests/phase9_knowledge_reference_regression.php
+
+      - name: Phase 9 knowledge - suggestions
+        run: php tests/phase9_solution_suggestions_regression.php
+
+      - name: Phase 9 knowledge - self service
+        run: php tests/phase9_self_service_regression.php
+
+      - name: Phase 9 knowledge - history
+        run: php tests/phase9_knowledge_history_regression.php
+
+      - name: Phase 9 knowledge - metrics
+        run: php tests/phase9_knowledge_metrics_regression.php
+
+      - name: Phase 9 knowledge - UI and help
+        run: php tests/phase9_knowledge_ui_regression.php
+
+      - name: Phase 9 knowledge - closeout
+        run: php tests/phase9_closeout_regression.php
+
       - name: Route, view and CSS quality gate
         run: php tests/project_quality.php
 
@@ -183,7 +219,7 @@ jobs:
           MYSQL_PWD: root
         run: |
           mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='carrousel_helpdesk' AND TABLE_TYPE='BASE TABLE';")" = "39"
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='carrousel_helpdesk' AND TABLE_TYPE='BASE TABLE';")" = "43"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.users;")" = "1"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='helpdesk_carrousel';")" = "0"
