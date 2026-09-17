@@ -76,9 +76,13 @@
       ['.itsm-table','Recurrencias','Abre un problema para ver casos relacionados, solución temporal, solución definitiva y conocimiento asociado.','Relacionar tickets mantiene la recurrencia actualizada.']
     ],
     knowledge:[
-      ['.page-heading','Base de conocimiento','Centraliza procedimientos y soluciones reutilizables.','El objetivo es que una buena solución no tenga que descubrirse nuevamente.'],
-      ['.itsm-filter-grid','Filtros','Ubica artículos por estado, visibilidad, categoría o texto.','Revisa antes de publicar.'],
-      ['.itsm-table, .knowledge-grid','Artículos','Los nuevos artículos deben revisarse antes de publicarse.','Publicar es una acción explícita; crear un borrador no lo expone automáticamente.']
+      ['.page-heading','Qué estás viendo','La Base de conocimiento reúne soluciones reutilizables y conserva sus versiones.','Empieza buscando si ya existe una solución antes de crear otra.'],
+      ['.itsm-filter-grid','Encuentra primero','Filtra por estado, categoría o texto para localizar el artículo correcto.','Un borrador o una versión En revisión no reemplaza la versión que ya usa soporte.'],
+      ['.itsm-table, .knowledge-grid','Artículos','Abre el artículo que responda al problema que estás investigando.','Publicado para soporte y Disponible para solicitantes son pasos distintos.'],
+      ['.itsm-editor-form','Crear borrador','Documenta problema, causa, solución, pasos y prevención. Después usa Enviar a revisión.','Guardar o editar un borrador nunca publica automáticamente.'],
+      ['.knowledge-state-bar','Qué ocurre después','La revisión puede volver a borrador o quedar Publicado para soporte. La publicación para solicitantes se decide después.','No publiques una versión solo para quitarla de pendientes; primero valida su contenido.'],
+      ['.knowledge-actions-menu','Acciones menos frecuentes','Aquí aparecen devolución, publicación para solicitantes y archivo cuando tu perfil puede hacerlo.','Si necesitas una versión anterior, usa Comparar versiones y Restaurar versión desde el historial; restaurar crea un borrador nuevo.'],
+      ['.suggested-solutions','Usar como referencia','Desde un ticket puedes usar conocimiento, problemas o casos anteriores como referencia sin resolver automáticamente el caso.','Revisa la precarga antes de guardar la solución; causa, solución y prevención siguen editables.']
     ],
     search:[
       ['.search-page-form','Búsqueda global','Busca ticket, problema o artículo desde un solo lugar.','Puedes usar número, asunto, términos del problema, parque o categoría.'],
