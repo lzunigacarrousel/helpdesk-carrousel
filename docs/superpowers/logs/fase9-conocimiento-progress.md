@@ -391,6 +391,33 @@ Corregido:
 
 Validación contractual de compatibilidad transversal: GREEN.
 
+## Task 13 — Validación real de migración en PC TEST
+Estado: 🟡 migración/verificador GREEN; faltan gate local y smoke funcional/visual.
+
+Evidencia PC TEST — 2026-09-17:
+- backup previo: `carrousel_helpdesk_PRE_FASE9_20260917.sql`;
+- tamaño backup: 266665 bytes;
+- baseline: 1 artículo `PUBLISHED + PUBLIC`;
+- baseline `problem_solutions`: 1;
+- primera migración: OK;
+- artículo `KB-2026-0001` migrado a REV 1 `PUBLISHED`;
+- `current_internal_revision_id = 1`;
+- `current_public_revision_id = 1`;
+- fechas interna/pública preservadas;
+- `knowledge_article_sources`: 1 fuente `PROBLEM`;
+- segunda migración: OK;
+- `REVISIONES_TOTALES = 1` después de ejecutar dos veces;
+- `duplicate_revision_numbers = 0`;
+- `published_without_internal_pointer = 0`;
+- `public_without_public_pointer = 0`;
+- `problem_solutions = 1`;
+- `permissions_phase9 = 6`;
+- `technician_forbidden_publish_permissions = 0`;
+- `semiadmin_expected_permissions = 6`;
+- `fase9_schema_gate = PASS`.
+
+Idempotencia y preservación de relaciones: ✅ confirmadas.
+
 ## Task 14 — Gate/CI/documentación
 Estado: 🟡 preparado; CI remoto y PC TEST todavía pendientes de confirmación final.
 
@@ -410,10 +437,10 @@ Preparado:
 - Tasks 1–12: ✅ implementadas a nivel de repositorio.
 - Compatibilidad transversal: ✅ buscador, Problemas y Dashboard migrados al modelo versionado.
 - Regresiones contractuales Fase 9: ✅ preparadas e integradas al gate.
-- Task 13 — migración/verificación PC TEST: ⏳ pendiente.
+- Task 13 — migración/verificación PC TEST: 🟡 migración/verificador GREEN; faltan gate local y smoke funcional/visual.
 - Task 14 — CI/gate/cierre: 🟡 preparado; falta CI remoto GREEN y evidencia de PC TEST.
-- Migración Fase 9: ✅ creada; ⏳ no ejecutada aún en PC TEST.
-- BD PC TEST: sin cambios de Fase 9 hasta este punto.
+- Migración Fase 9: ✅ ejecutada dos veces en PC TEST; idempotencia y verificador GREEN.
+- BD PC TEST: ✅ migrada a Fase 9 y verificada; aún pendiente smoke funcional/visual.
 - Producción: sin cambios de Fase 9.
 
 ## Próximo paso exacto
