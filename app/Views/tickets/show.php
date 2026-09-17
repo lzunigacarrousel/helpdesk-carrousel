@@ -124,7 +124,12 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             $referenceType=$s['type']==='ARTICLE'?'KNOWLEDGE':$s['type'];
           ?>
             <article class="suggestion-item">
-              <a href="<?= htmlspecialchars($s['url']) ?>">
+              <a href="<?= htmlspecialchars($s['url']) ?>"
+                 data-suggestion-open
+                 data-ticket-id="<?= (int)$ticket['id'] ?>"
+                 data-reference-type="<?= htmlspecialchars($referenceType) ?>"
+                 data-reference-id="<?= (int)$s['id'] ?>"
+                 data-revision-id="<?= (int)($s['revision_id']??0) ?>">
                 <div class="suggestion-type"><span><?= $s['type']==='ARTICLE'?'Artículo':($s['type']==='PROBLEM'?'Problema conocido':'Caso resuelto') ?></span></div>
                 <strong><?= htmlspecialchars($s['number'].' · '.$s['title']) ?></strong>
                 <p><?= htmlspecialchars((string)$s['summary']) ?></p>
@@ -493,4 +498,24 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 </div>
 <?php $ticketActivitiesJsVersion=(string)(@filemtime(APP_ROOT.'/public/assets/js/ticket-activities.js')?:'20260914-F5'); ?>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/ticket-activities.js?v=<?= htmlspecialchars($ticketActivitiesJsVersion) ?>"></script>
+<script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
+document.addEventListener('click',function(event){
+  const link=event.target.closest('[data-suggestion-open]');
+  if(!link)return;
+  try{
+    const body=new FormData();
+    body.append('_csrf','<?= htmlspecialchars(Csrf::token(),ENT_QUOTES,'UTF-8') ?>');
+    body.append('ticket_id',link.dataset.ticketId||'');
+    body.append('reference_type',link.dataset.referenceType||'');
+    body.append('reference_id',link.dataset.referenceId||'');
+    body.append('revision_id',link.dataset.revisionId||'');
+    fetch('<?= APP_BASE_URL ?>/tickets/suggestion/open',{
+      method:'POST',
+      body,
+      keepalive:true,
+      credentials:'same-origin'
+    }).catch(()=>{});
+  }catch(e){}
+});
+</script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
