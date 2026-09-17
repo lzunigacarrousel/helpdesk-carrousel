@@ -495,6 +495,28 @@ Pendiente antes de producción:
 
 Producción continúa sin cambios de Fase 9.
 
+## Incidencia smoke funcional — creación de artículo · 2026-09-17
+
+Durante el smoke en navegador:
+- artículo migrado `KB-2026-0001`: ✅ carga correcta;
+- creación de nuevo artículo: ❌ fallaba al guardar y terminaba en pantalla genérica de error.
+
+Causa:
+- `KnowledgeRevisionService::createArticle()` tenía 7 placeholders `?` en el INSERT de `knowledge_articles`, pero `execute()` enviaba 6 valores.
+
+Corrección:
+- commit `520827d`: corrige alineación del INSERT;
+- commit `5ff646e`: agrega regresión específica para impedir que reaparezca.
+
+Validación PC TEST:
+- `tests/phase9_knowledge_revision_service_regression.php`: ✅ GREEN;
+- `INSERT de artículo alinea 6 placeholders con 6 valores`: ✅;
+- `No reaparece INSERT desalineado de artículos`: ✅;
+- resto de reglas de dominio/versionado del servicio: ✅ GREEN.
+
+Pendiente inmediato:
+- repetir creación de artículo en navegador y continuar smoke editorial.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
