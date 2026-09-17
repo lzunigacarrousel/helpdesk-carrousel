@@ -438,7 +438,7 @@ Preparado:
 - Compatibilidad transversal: ✅ buscador, Problemas y Dashboard migrados al modelo versionado.
 - Regresiones contractuales Fase 9: ✅ preparadas e integradas al gate.
 - Task 13 — migración/verificación PC TEST: 🟡 migración/verificador GREEN; faltan gate local y smoke funcional/visual.
-- Task 14 — CI/gate/cierre: 🟡 preparado; falta CI remoto GREEN y evidencia de PC TEST.
+- Task 14 — CI/gate/cierre: 🟡 gate local PC TEST GREEN; faltan smoke funcional/visual, CI remoto y aprobación final.
 - Migración Fase 9: ✅ ejecutada dos veces en PC TEST; idempotencia y verificador GREEN.
 - BD PC TEST: ✅ migrada a Fase 9 y verificada; aún pendiente smoke funcional/visual.
 - Producción: sin cambios de Fase 9.
@@ -459,6 +459,41 @@ Ejecutar **Task 13 en PC TEST**, nunca en producción:
 10. solo con todo GREEN considerar el cierre de Task 14.
 
 No ejecutar todavía la migración contra producción.
+
+## Gate local Fase 9 — GREEN · 2026-09-17
+
+Evidencia ejecutada en PC TEST:
+- `VALIDAR_FASE9.bat` completó sin fallos;
+- esquema/migración: GREEN;
+- núcleo de revisiones: GREEN;
+- permisos editoriales: GREEN;
+- workflow de conocimiento: GREEN;
+- candidatos a conocimiento: GREEN;
+- referencias de solución: GREEN;
+- sugerencias versionadas: GREEN;
+- autoservicio público: GREEN;
+- historial/comparación: GREEN;
+- métricas de conocimiento: GREEN;
+- UI/manual/tutorial: GREEN;
+- lecturas transversales: GREEN;
+- cierre documental/CI: GREEN;
+- checks estáticos: GREEN;
+- calidad de rutas/vistas/CSS: GREEN;
+- smoke XLSX: GREEN;
+- `git diff --check`: GREEN;
+- working tree: limpio.
+
+Resultado final:
+`[OK] GATE FINAL FASE 9 COMPLETADO SIN FALLOS`
+
+Pendiente antes de producción:
+1. smoke funcional de navegador en PC TEST;
+2. matriz responsive/seguridad PC + iPad + móvil;
+3. CI remoto GREEN;
+4. aprobación explícita;
+5. despliegue/migración en producción solo después de lo anterior.
+
+Producción continúa sin cambios de Fase 9.
 
 ## Regla para futuros chats
 
