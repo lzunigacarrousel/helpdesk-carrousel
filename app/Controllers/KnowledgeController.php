@@ -494,6 +494,85 @@ final class KnowledgeController
         ]);
     }
 
+    public function history(): void
+    {
+        Auth::requirePermission('knowledge.history');
+        $articleId=(int)($_GET['id']??0);
+        if($articleId<=0)throw new \RuntimeException('Artículo no válido.');
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare(
+            "SELECT ka.id,ka.article_number,ka.lifecycle_status,
+                    ka.current_internal_revision_id,ka.current_public_revision_id
+             FROM knowledge_articles ka WHERE ka.id=? LIMIT 1"
+        );
+        $q->execute([$articleId]);
+        $article=$q->fetch();
+        if(!$article)throw new \RuntimeException('Artículo no encontrado.');
+
+        $r=$pdo->prepare(
+            "SELECT kr.*,c.name category_name,
+                    creator.full_name created_by_name,
+                    reviewer.full_name reviewed_by_name
+             FROM knowledge_revisions kr
+             LEFT JOIN ticket_categories c ON c.id=kr.category_id
+             LEFT JOIN users creator ON creator.id=kr.created_by_user_id
+             LEFT JOIN users reviewer ON reviewer.id=kr.reviewed_by_user_id
+             WHERE kr.article_id=?
+             ORDER BY kr.revision_number DESC"
+        );
+        $r->execute([$articleId]);
+
+        View::render('knowledge/history',[
+            'user'=>Auth::user(),
+            'article'=>$article,
+            'revisions'=>$r->fetchAll(),
+            'statuses'=>self::STATUSES,
+            'canRestore'=>Auth::can('knowledge.restore'),
+            'flash'=>Flash::pull(),
+        ]);
+    }
+
+    public function compare(): void
+    {
+        Auth::requirePermission('knowledge.history');
+        $articleId=(int)($_GET['id']??0);
+        $fromId=(int)($_GET['from']??0);
+        $toId=(int)($_GET['to']??0);
+        if($articleId<=0||$fromId<=0||$toId<=0){
+            throw new \RuntimeException('Selecciona dos versiones válidas para comparar.');
+        }
+
+        $pdo=Database::pdo();
+        $a=$pdo->prepare('SELECT id,article_number FROM knowledge_articles WHERE id=? LIMIT 1');
+        $a->execute([$articleId]);
+        $article=$a->fetch();
+        if(!$article)throw new \RuntimeException('Artículo no encontrado.');
+
+        $q=$pdo->prepare(
+            "SELECT kr.*,c.name category_name
+             FROM knowledge_revisions kr
+             LEFT JOIN ticket_categories c ON c.id=kr.category_id
+             WHERE kr.article_id=? AND kr.id IN(?,?)
+             ORDER BY kr.revision_number"
+        );
+        $q->execute([$articleId,$fromId,$toId]);
+        $rows=$q->fetchAll();
+        $byId=[];
+        foreach($rows as $row)$byId[(int)$row['id']]=$row;
+        if(!isset($byId[$fromId],$byId[$toId])){
+            throw new \RuntimeException('Una de las versiones no pertenece a este artículo.');
+        }
+
+        View::render('knowledge/compare',[
+            'user'=>Auth::user(),
+            'article'=>$article,
+            'from'=>$byId[$fromId],
+            'to'=>$byId[$toId],
+            'statuses'=>self::STATUSES,
+        ]);
+    }
+
     private function latestRevisionId(PDO $pdo,int $articleId,array $states): int
     {
         if($articleId<=0||$states===[])return 0;
