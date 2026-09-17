@@ -65,6 +65,49 @@ final class SolutionSuggestionService
         return $out;
     }
 
+    public function forRequesterDraft(array $context,int $limit=3): array
+    {
+        $pdo=Database::pdo();
+        $limit=max(1,min(3,$limit));
+        $terms=$this->terms(
+            (string)($context['subject']??'').' '.(string)($context['description']??'')
+        );
+        $category=(int)($context['category_id']??0);
+        $hasContext=$terms!==[]||$category>0;
+        if(!$hasContext)return[];
+
+        $q=$pdo->query(
+            "SELECT ka.id,ka.article_number,kr.id revision_id,kr.title,kr.summary,kr.content,kr.category_id,kr.updated_at
+             FROM knowledge_articles ka
+             JOIN knowledge_revisions kr ON kr.id=ka.current_public_revision_id
+             WHERE ka.lifecycle_status='ACTIVE'
+             ORDER BY kr.updated_at DESC
+             LIMIT 80"
+        );
+
+        $items=[];
+        foreach($q->fetchAll() as $row){
+            $score=$this->score(
+                $row['title'].' '.($row['summary']??'').' '.strip_tags((string)$row['content']),
+                $terms,$category,(int)($row['category_id']??0),0,0
+            );
+            if($score<7)continue;
+            $items[]=[
+                'type'=>'ARTICLE',
+                'id'=>(int)$row['id'],
+                'revision_id'=>(int)$row['revision_id'],
+                'number'=>$row['article_number'],
+                'title'=>$row['title'],
+                'summary'=>$row['summary']?:mb_strimwidth(strip_tags((string)$row['content']),0,180,'…'),
+                'content'=>strip_tags((string)$row['content']),
+                'score'=>$score,
+            ];
+        }
+
+        usort($items,static fn(array $a,array $b):int=>$b['score']<=>$a['score']);
+        return array_slice($items,0,$limit);
+    }
+
     private function score(string $text,array $terms,int $ticketCategory,int $candidateCategory,int $ticketPark,int $candidatePark): int
     {
         $score=0;
