@@ -93,7 +93,11 @@ final class KnowledgeReferenceService
             ]);
             $traceId=(int)$pdo->lastInsertId();
 
-            $eventType=$type.'_REFERENCE_USED';
+            $eventType=[
+                'KNOWLEDGE'=>'KNOWLEDGE_REFERENCE_USED',
+                'PROBLEM'=>'PROBLEM_REFERENCE_USED',
+                'TICKET'=>'TICKET_REFERENCE_USED',
+            ][$type];
             $metadata=[
                 'reference_trace_id'=>$traceId,
                 'reference_type'=>$type,
@@ -108,9 +112,9 @@ final class KnowledgeReferenceService
             $pdo->prepare(
                 "INSERT INTO ticket_events(
                     ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at
-                 ) VALUES(?,?,'{$userId}','USER',?,?,NOW())"
+                 ) VALUES(?,?,?,'USER',?,?,NOW())"
             )->execute([
-                $ticketId,$eventType,
+                $ticketId,$eventType,$userId,
                 json_encode(['reference_type'=>$type],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
                 json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
             ]);
