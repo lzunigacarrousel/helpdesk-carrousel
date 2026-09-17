@@ -73,6 +73,8 @@ $routes=[
     ['POST','/knowledge/create',[KnowledgeController::class,'create']],
     ['POST','/knowledge/update',[KnowledgeController::class,'update']],
     ['GET','/knowledge/view',[KnowledgeController::class,'view']],
+    ['GET','/knowledge/history',[KnowledgeController::class,'history']],
+    ['GET','/knowledge/compare',[KnowledgeController::class,'compare']],
     ['POST','/knowledge/submit-review',[KnowledgeController::class,'submitReview']],
     ['POST','/knowledge/return-draft',[KnowledgeController::class,'returnDraft']],
     ['POST','/knowledge/publish-internal',[KnowledgeController::class,'publishInternal']],
