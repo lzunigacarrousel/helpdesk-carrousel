@@ -2,7 +2,7 @@
 
 Fecha de inicio: 2026-09-16
 Rama única: `main`
-Estado: diseño aprobado; spec aprobada; plan TDD escrito; implementación no iniciada
+Estado: Tasks 1–12 implementadas; compatibilidad transversal cerrada; Task 13 PC TEST pendiente; Task 14 preparado
 
 ## Punto de partida
 
@@ -375,32 +375,61 @@ Estado: ✅ implementadas a nivel de repositorio; ⏳ validación integral pendi
 Validaciones contractuales realizadas mediante lectura del repositorio: GREEN.
 Pruebas que requieren entorno completo, MariaDB, CSS/runtime y navegación real: pendientes de PC TEST/gate final.
 
+## Compatibilidad transversal — 2026-09-17
+
+Durante el pre-gate se detectaron lecturas legacy fuera del módulo principal de Conocimiento.
+
+Corregido:
+- `SearchController`: búsqueda de artículos desde revisiones, con puntero interno/público según perfil;
+- `app/Views/search/index.php`: estados editoriales legibles y eliminación de `INTERNAL/PUBLIC` visible;
+- `ProblemController`: relaciones Problema ↔ Artículo usan identidad estable + revisiones;
+- `app/Views/problems/show.php`: copy versionado y sin visibilidad legacy;
+- `DashboardController`: contador de trabajo editorial usa `knowledge_revisions.state IN ('DRAFT','IN_REVIEW')`;
+- eliminado uso funcional de `knowledge.manage` en estas lecturas;
+- nueva regresión `tests/phase9_knowledge_legacy_read_regression.php`;
+- regresión agregada a CI, `VALIDAR_FASE9.bat` y `phase9_closeout_regression.php`.
+
+Validación contractual de compatibilidad transversal: GREEN.
+
+## Task 14 — Gate/CI/documentación
+Estado: 🟡 preparado; CI remoto y PC TEST todavía pendientes de confirmación final.
+
+Preparado:
+- `VALIDAR_FASE9.bat`;
+- regresiones Fase 9 integradas a `.github/workflows/helpdesk-ci.yml`;
+- instalación limpia actualizada a 43 tablas;
+- `tests/phase9_closeout_regression.php`;
+- `CHANGELOG.md` actualizado;
+- producción marcada explícitamente como no migrada.
+
 ## Estado actual exacto
 
 - Diseño arquitectónico: ✅ aprobado.
 - Spec formal: ✅ escrita y aprobada.
-- Log de continuidad: ✅ actualizado.
-- Backlog transversal: ✅ registrado.
-- Plan de implementación TDD: ✅ escrito.
-- Código funcional Fase 9: 🟡 Tasks 1–12 implementadas a nivel de repositorio; PC TEST y gate final pendientes.
+- Plan de implementación TDD: ✅ escrito y ejecutado hasta Task 12.
+- Tasks 1–12: ✅ implementadas a nivel de repositorio.
+- Compatibilidad transversal: ✅ buscador, Problemas y Dashboard migrados al modelo versionado.
+- Regresiones contractuales Fase 9: ✅ preparadas e integradas al gate.
+- Task 13 — migración/verificación PC TEST: ⏳ pendiente.
+- Task 14 — CI/gate/cierre: 🟡 preparado; falta CI remoto GREEN y evidencia de PC TEST.
 - Migración Fase 9: ✅ creada; ⏳ no ejecutada aún en PC TEST.
-- BD PC TEST: sin cambios de Fase 9.
-- Producción: sin cambios.
+- BD PC TEST: sin cambios de Fase 9 hasta este punto.
+- Producción: sin cambios de Fase 9.
 
 ## Próximo paso exacto
 
-Iniciar ejecución del plan desde **Task 1 — Esquema y migración aditiva**, aplicando TDD.
+Ejecutar **Task 13 en PC TEST**, nunca en producción:
 
-Orden inmediato:
-
-1. crear `tests/phase9_knowledge_schema_regression.php` en rojo;
-2. ejecutar y confirmar fallo esperado;
-3. crear `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`;
-4. crear `database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`;
-5. actualizar `INSTALAR.sql` y `VERIFICAR_INSTALACION.sql`;
-6. pasar test a verde;
-7. commit de Task 1;
-8. continuar Task 2.
+1. sincronizar `main` en la PC TEST;
+2. tomar evidencia/conteos previos de `knowledge_articles` y `problem_solutions`;
+3. ejecutar `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`;
+4. ejecutar `database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`;
+5. repetir la migración para comprobar idempotencia;
+6. volver a ejecutar el verificador;
+7. correr `VALIDAR_FASE9.bat`;
+8. probar manualmente creación, revisión, publicación interna/pública, restauración, referencias y autoservicio;
+9. validar PC, iPad y móvil;
+10. solo con todo GREEN considerar el cierre de Task 14.
 
 No ejecutar todavía la migración contra producción.
 
