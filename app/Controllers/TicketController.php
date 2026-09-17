@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService};
 use PDO;
 
 final class TicketController
@@ -210,6 +210,33 @@ final class TicketController
             $providerCycles=$ratingService->enrichRows($participationService->rowsForTicket($id));
         }
 
+        $knowledgeCandidate=['eligible'=>false,'reasons'=>[],'documentation_ok'=>false];
+        if($isSupport&&Auth::can('knowledge.draft_manage')&&in_array((string)$ticket['status'],['RESOLVED','CLOSED'],true)){
+            $resolutionQuery=$pdo->prepare(
+                'SELECT root_cause,solution_applied,preventive_action FROM ticket_resolutions WHERE ticket_id=? LIMIT 1'
+            );
+            $resolutionQuery->execute([$id]);
+            $candidateResolution=$resolutionQuery->fetch()?:[];
+
+            $signals=[];
+            $problemSignal=$pdo->prepare(
+                'SELECT COUNT(*) linked_count,COALESCE(MAX(kp.occurrence_count),0) max_occurrences
+                 FROM problem_occurrences po
+                 JOIN known_problems kp ON kp.id=po.problem_id
+                 WHERE po.ticket_id=?'
+            );
+            $problemSignal->execute([$id]);
+            $problemStats=$problemSignal->fetch()?:[];
+            if((int)($problemStats['linked_count']??0)>0)$signals[]='KNOWN_PROBLEM';
+            if((int)($problemStats['max_occurrences']??0)>1)$signals[]='RECURRENT';
+
+            $reopened=$pdo->prepare("SELECT COUNT(*) FROM ticket_events WHERE ticket_id=? AND event_type='REOPENED'");
+            $reopened->execute([$id]);
+            if((int)$reopened->fetchColumn()>0)$signals[]='REOPENED';
+
+            $knowledgeCandidate=KnowledgeCandidateService::evaluate($ticket,$candidateResolution,$signals);
+        }
+
         View::render('tickets/show',[
             'user'=>Auth::user(),
             'ticket'=>$ticket,
@@ -240,6 +267,7 @@ final class TicketController
             'providerCycles'=>$providerCycles,
             'providerRatingLabels'=>$providerRatingLabels,
             'canRateProviders'=>$canRateProviders,
+            'knowledgeCandidate'=>$knowledgeCandidate,
         ]);
     }
 
