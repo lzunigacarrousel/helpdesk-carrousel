@@ -13,7 +13,8 @@ INSERT INTO required_tables(name) VALUES
 ('support_teams'),('support_team_members'),('support_scopes'),('ticket_categories'),('sla_policies'),
 ('tickets'),('ticket_events'),('ticket_comments'),('ticket_activities'),('ticket_activity_participants'),('ticket_attachments'),('external_ticket_access'),
 ('external_profiles'),('ticket_work_reports'),('ticket_resolutions'),('ticket_feedback'),('known_problems'),('problem_occurrences'),
-('problem_tags'),('known_problem_tags'),('knowledge_articles'),('problem_solutions'),('problem_attachments'),
+('problem_tags'),('known_problem_tags'),('knowledge_articles'),('knowledge_revisions'),('knowledge_article_sources'),
+('ticket_resolution_references'),('solution_suggestion_events'),('problem_solutions'),('problem_attachments'),
 ('notification_events'),('notification_deliveries'),('audit_logs'),('schema_migrations');
 
 DROP TEMPORARY TABLE IF EXISTS required_columns;
@@ -29,7 +30,14 @@ INSERT INTO required_columns(table_name,column_name) VALUES
 ('ticket_activities','scheduled_start_at'),('ticket_activities','scheduled_end_at'),('ticket_activities','requester_visible'),
 ('ticket_activity_participants','activity_id'),('ticket_activity_participants','user_id'),
 ('ticket_resolutions','solution_applied'),('ticket_resolutions','resolved_by'),
-('ticket_feedback','nps_score'),('external_profiles','organization_name'),('external_profiles','report_template'),
+('ticket_feedback','nps_score'),
+('knowledge_articles','lifecycle_status'),('knowledge_articles','current_internal_revision_id'),('knowledge_articles','current_public_revision_id'),
+('knowledge_articles','created_by_user_id'),('knowledge_articles','archived_at'),
+('knowledge_revisions','article_id'),('knowledge_revisions','revision_number'),('knowledge_revisions','state'),
+('knowledge_article_sources','article_id'),('knowledge_article_sources','source_type'),
+('ticket_resolution_references','ticket_id'),('ticket_resolution_references','reference_type'),
+('solution_suggestion_events','context'),('solution_suggestion_events','event_type'),('solution_suggestion_events','reference_type'),
+('external_profiles','organization_name'),('external_profiles','report_template'),
 ('external_ticket_access','report_template'),('ticket_work_reports','report_template'),('ticket_work_reports','work_status'),
 ('notification_deliveries','channel'),('notification_deliveries','title'),('notification_deliveries','message'),
 ('notification_deliveries','action_url'),('notification_deliveries','read_at'),
@@ -48,6 +56,7 @@ BEGIN
     DECLARE missing_admin INT DEFAULT 0;
     DECLARE missing_trigger INT DEFAULT 0;
     DECLARE missing_activity_fks INT DEFAULT 0;
+    DECLARE missing_knowledge_fks INT DEFAULT 0;
     DECLARE bad_categories INT DEFAULT 0;
 
     SELECT COUNT(*) INTO missing_tables
@@ -92,10 +101,12 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: un perfil vigente esta inactivo';
     END IF;
 
-    SELECT 8-COUNT(*) INTO missing_permissions
+    SELECT 14-COUNT(*) INTO missing_permissions
     FROM permissions
     WHERE code IN('tickets.resolve','tickets.classify','management.view','external.manage',
-                  'activities.view','activities.create','activities.manage','activities.cancel');
+                  'activities.view','activities.create','activities.manage','activities.cancel',
+                  'knowledge.draft_manage','knowledge.review','knowledge.publish_internal',
+                  'knowledge.publish_public','knowledge.history','knowledge.restore');
     IF missing_permissions > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan permisos actuales';
     END IF;
@@ -106,6 +117,14 @@ BEGIN
       AND CONSTRAINT_NAME IN('fk_ta_ticket','fk_tap_activity','fk_ticket_attachment_activity');
     IF missing_activity_fks > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan relaciones de actividades';
+    END IF;
+
+    SELECT 2-COUNT(*) INTO missing_knowledge_fks
+    FROM information_schema.REFERENTIAL_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA=DATABASE()
+      AND CONSTRAINT_NAME IN('fk_ka_current_internal_revision','fk_ka_current_public_revision');
+    IF missing_knowledge_fks > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan relaciones de conocimiento versionado';
     END IF;
 
     SELECT 15-COUNT(*) INTO bad_categories
