@@ -19,6 +19,12 @@ final class HelpController
             'isSupport'=>$isSupport,
             'canProblems'=>!$isExternal&&Auth::can('problems.view'),
             'canKnowledge'=>!$isExternal&&Auth::can('knowledge.view'),
+            'canKnowledgeDraft'=>!$isExternal&&Auth::can('knowledge.draft_manage'),
+            'canKnowledgeReview'=>!$isExternal&&Auth::can('knowledge.review'),
+            'canKnowledgePublishInternal'=>!$isExternal&&Auth::can('knowledge.publish_internal'),
+            'canKnowledgePublishPublic'=>!$isExternal&&Auth::can('knowledge.publish_public'),
+            'canKnowledgeHistory'=>!$isExternal&&Auth::can('knowledge.history'),
+            'canKnowledgeRestore'=>!$isExternal&&Auth::can('knowledge.restore'),
             'canManagement'=>!$isExternal&&(Auth::role()==='ADMIN'||Auth::role()==='SEMIADMIN'||Auth::can('management.view')),
             'canAdmin'=>!$isExternal&&(Auth::role()==='ADMIN'||Auth::can('users.manage')||Auth::can('audit.view')),
         ]);
