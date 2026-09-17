@@ -153,6 +153,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
   const categoryHelp=document.querySelector('[data-category-help-text]');
   const knowledgeHelp=document.querySelector('[data-public-knowledge]');
   const knowledgeList=document.querySelector('[data-public-knowledge-list]');
+  const knowledgeCsrf='<?= htmlspecialchars(Csrf::token(),ENT_QUOTES,'UTF-8') ?>';
   const locationFields=document.querySelector('[data-location-fields]');
   const locationToggle=document.querySelector('[data-location-toggle]');
   const defaultPlaceholder='Describe qué ocurre, desde cuándo y qué estabas intentando hacer.';
@@ -167,6 +168,9 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
     items.slice(0,3).forEach(item=>{
       const details=document.createElement('details');
       details.className='public-knowledge-item';
+      details.dataset.articleId=String(item.id||'');
+      details.dataset.revisionId=String(item.revision_id||'');
+      details.dataset.openTracked='0';
       const summary=document.createElement('summary');
       summary.textContent=(item.number?item.number+' · ':'')+(item.title||'Información útil');
       const intro=document.createElement('p');
@@ -175,6 +179,21 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
       body.className='public-knowledge-content';
       body.textContent=item.content||'';
       details.append(summary,intro,body);
+      details.addEventListener('toggle',()=>{
+        if(!details.open||details.dataset.openTracked==='1')return;
+        details.dataset.openTracked='1';
+        const payload=new URLSearchParams();
+        payload.set('_csrf',knowledgeCsrf);
+        payload.set('article_id',details.dataset.articleId||'');
+        payload.set('revision_id',details.dataset.revisionId||'');
+        fetch('<?= APP_BASE_URL ?>/crear-ticket/sugerencias/abrir',{
+          method:'POST',
+          headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+          body:payload.toString(),
+          keepalive:true,
+          credentials:'same-origin'
+        }).catch(()=>{});
+      });
       knowledgeList.appendChild(details);
     });
     knowledgeHelp.hidden=false;
