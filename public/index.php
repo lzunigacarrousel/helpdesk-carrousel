@@ -40,6 +40,7 @@ $routes=[
     ['POST','/tickets/classification',[TicketClassificationController::class,'update']],
     ['POST','/tickets/location',[TicketLocationController::class,'update']],
     ['GET','/tickets/resolve',[ResolutionController::class,'index']],
+    ['POST','/tickets/reference/use',[ResolutionController::class,'useReference']],
     ['POST','/tickets/resolve',[ResolutionController::class,'store']],
     ['POST','/tickets/respond',[ConversationController::class,'respond']],
     ['POST','/tickets/work-report',[WorkReportController::class,'store']],
