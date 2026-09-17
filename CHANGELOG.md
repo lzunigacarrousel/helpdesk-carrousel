@@ -4,6 +4,21 @@
 >
 > La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
 
+## Fase 9 · Conocimiento versionado · 2026-09-17
+- `knowledge_articles` conserva la identidad estable `KB-*` y el contenido pasa a revisiones en `knowledge_revisions`; una versión publicada ya no se sobrescribe directamente.
+- Cada artículo separa la versión vigente **Publicado para soporte** de la versión **Disponible para solicitantes** mediante `current_internal_revision_id` y `current_public_revision_id`.
+- Técnicos pueden crear y mejorar borradores; revisión, publicación interna, publicación para solicitantes, historial y restauración usan permisos editoriales separados.
+- Editar una versión publicada o restaurar una versión histórica crea una revisión borrador nueva. Historial y comparación muestran Título, Resumen, Contenido y Categoría sin alterar la versión vigente.
+- Tickets resueltos/cerrados con solución útil y señales de reutilización pueden sugerir **Crear borrador**; la sugerencia nunca publica automáticamente.
+- `SolutionSuggestionService` usa la revisión interna vigente para sugerencias a soporte y la revisión pública vigente para autoservicio.
+- **Usar como referencia** acepta artículo, problema conocido o caso resuelto; registra la relación estructurada, conserva la revisión exacta utilizada y precarga causa, solución y prevención sin resolver automáticamente el ticket.
+- Autoservicio muestra hasta tres artículos públicos relacionados mientras el solicitante describe el problema y siempre permite continuar con **Enviar solicitud**.
+- `KnowledgeMetricsService` registra `SUGGESTED`, `OPENED` y `USED_REFERENCE`; la efectividad se deriva de resolución posterior sin reapertura posterior, utilizando el historial real del ticket.
+- Manual y tutoriales explican el flujo según perfil: autoservicio para solicitantes, borradores/referencias para técnicos y gobierno editorial completo para Admin/Semiadmin.
+- Migración aditiva preparada en `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`, con verificador dedicado y actualización del esquema canónico de instalación limpia.
+- Gate local `VALIDAR_FASE9.bat` y CI incorporan las regresiones de Fase 9; la instalación canónica pasa de 39 a 43 tablas.
+- **BD PC TEST: migración pendiente de ejecución/validación real. Producción: sin cambios y sin migración de Fase 9.**
+
 ## Fase 8 · Calidad IT → proveedor · 2026-09-16
 - Cada ciclo finalizado explícitamente mediante `EXTERNAL_REVOKED` puede recibir una valoración interna de IT de 1 a 5 estrellas.
 - La primera valoración se registra de forma inmutable con `PROVIDER_RATED`; una corrección crea `PROVIDER_RATING_CORRECTED` y nunca edita ni elimina la valoración anterior.
