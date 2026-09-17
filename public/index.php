@@ -10,6 +10,7 @@ $method=$_SERVER['REQUEST_METHOD']??'GET';
 $routes=[
     ['GET','/',[TicketController::class,'publicHome']],
     ['GET','/crear-ticket',[TicketController::class,'publicCreate']],
+    ['GET','/crear-ticket/sugerencias',[TicketController::class,'publicKnowledgeSuggestions']],
     ['POST','/crear-ticket',[TicketController::class,'publicStore']],
     ['GET','/ticket-enviado',[TicketController::class,'publicDone']],
     ['GET','/mis-tickets',[TicketController::class,'index']],
