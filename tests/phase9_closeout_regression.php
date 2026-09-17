@@ -26,6 +26,7 @@ $required=[
     'phase9_knowledge_history_regression.php',
     'phase9_knowledge_metrics_regression.php',
     'phase9_knowledge_ui_regression.php',
+    'phase9_knowledge_legacy_read_regression.php',
 ];
 
 ok($bat!=='','Existe VALIDAR_FASE9.bat');
