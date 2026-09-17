@@ -17,7 +17,7 @@
 - Manual y tutoriales explican el flujo según perfil: autoservicio para solicitantes, borradores/referencias para técnicos y gobierno editorial completo para Admin/Semiadmin.
 - Migración aditiva preparada en `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`, con verificador dedicado y actualización del esquema canónico de instalación limpia.
 - Gate local `VALIDAR_FASE9.bat` y CI incorporan las regresiones de Fase 9; la instalación canónica pasa de 39 a 43 tablas.
-- **BD PC TEST: migración pendiente de ejecución/validación real. Producción: sin cambios y sin migración de Fase 9.**
+- **BD PC TEST: migración ejecutada dos veces y verificada con `fase9_schema_gate = PASS`; idempotencia confirmada. Producción: sin cambios y sin migración de Fase 9.**
 
 ## Fase 8 · Calidad IT → proveedor · 2026-09-16
 - Cada ciclo finalizado explícitamente mediante `EXTERNAL_REVOKED` puede recibir una valoración interna de IT de 1 a 5 estrellas.
