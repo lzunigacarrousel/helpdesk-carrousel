@@ -28,7 +28,18 @@ final class DashboardController
         if($isSupport){$support=$pdo->prepare("SELECT SUM(assigned_to=? AND status IN('IN_PROGRESS','PENDING','REOPENED')) mine,SUM(assigned_to IS NULL AND status IN('NEW','AVAILABLE','REOPENED')) available,SUM(status='IN_PROGRESS') in_progress,SUM(status='PENDING') pending,SUM(status='REOPENED') reopened,SUM(priority='CRITICAL' AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) critical,SUM(resolution_due_at IS NOT NULL AND resolution_due_at<NOW() AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) overdue,SUM(resolution_due_at IS NOT NULL AND resolution_due_at>=NOW() AND resolution_due_at<=DATE_ADD(NOW(),INTERVAL 2 HOUR) AND status NOT IN('RESOLVED','CLOSED','CANCELLED')) near_due FROM tickets WHERE deleted_at IS NULL AND (assigned_to=? OR assigned_to IS NULL)");$support->execute([$uid,$uid]);$row=$support->fetch()?:[];foreach($supportStats as $key=>$value)$supportStats[$key]=(int)($row[$key]??0);
             $activity=$pdo->prepare("SELECT te.event_type,te.new_value,te.created_at,t.id ticket_id,t.ticket_number,t.subject,u.full_name actor_name,u.access_type actor_access_type,r.code actor_role FROM ticket_events te JOIN tickets t ON t.id=te.ticket_id LEFT JOIN users u ON u.id=te.actor_user_id LEFT JOIN roles r ON r.id=u.role_id WHERE t.deleted_at IS NULL AND (t.assigned_to=? OR t.assigned_to IS NULL) AND te.event_type IN('CREATED','CLAIMED','REASSIGNED','COMMENTED','RESOLUTION_RECORDED','RESOLVED','CLOSED','REOPENED','STATUS_CHANGED','PROBLEM_LINKED','KNOWLEDGE_CREATED') ORDER BY te.created_at DESC,te.id DESC LIMIT 8");$activity->execute([$uid]);$supportActivity=$activity->fetchAll();
             if(Auth::can('problems.view')){$itsmStats['problems_open']=(int)$pdo->query("SELECT COUNT(*) FROM known_problems WHERE status<>'CLOSED'")->fetchColumn();$itsmStats['problems_investigating']=(int)$pdo->query("SELECT COUNT(*) FROM known_problems WHERE status='INVESTIGATING'")->fetchColumn();}
-            if(Auth::can('knowledge.manage'))$itsmStats['knowledge_drafts']=(int)$pdo->query("SELECT COUNT(*) FROM knowledge_articles WHERE status='DRAFT'")->fetchColumn();
+            $canSeeKnowledgeWork=Auth::can('knowledge.draft_manage')
+                ||Auth::can('knowledge.review')
+                ||Auth::can('knowledge.publish_internal');
+            if($canSeeKnowledgeWork){
+                $itsmStats['knowledge_drafts']=(int)$pdo->query(
+                    "SELECT COUNT(DISTINCT kr.article_id)
+                     FROM knowledge_revisions kr
+                     JOIN knowledge_articles ka ON ka.id=kr.article_id
+                     WHERE ka.lifecycle_status='ACTIVE'
+                       AND kr.state IN('DRAFT','IN_REVIEW')"
+                )->fetchColumn();
+            }
             if(Auth::role()==='ADMIN'||Auth::role()==='SEMIADMIN'||Auth::can('external.manage')){
                 $ex=$pdo->query("SELECT COUNT(DISTINCT CASE WHEN t.status NOT IN('RESOLVED','CLOSED','CANCELLED') THEN t.id END) active_cases,COUNT(DISTINCT CASE WHEN t.status='PENDING' AND t.pending_reason_code='WAITING_PROVIDER' THEN t.id END) waiting_provider,COUNT(DISTINCT CASE WHEN t.status NOT IN('RESOLVED','CLOSED','CANCELLED') THEN eta.user_id END) active_providers,COUNT(DISTINCT CASE WHEN tc.created_at>=CURDATE() AND cu.access_type='EXTERNAL' THEN tc.id END) responses_today FROM external_ticket_access eta JOIN tickets t ON t.id=eta.ticket_id LEFT JOIN ticket_comments tc ON tc.ticket_id=t.id AND tc.deleted_at IS NULL AND tc.visibility='EXTERNAL' LEFT JOIN users cu ON cu.id=tc.author_user_id WHERE eta.revoked_at IS NULL AND t.deleted_at IS NULL")->fetch()?:[];
                 foreach($externalCollabStats as $key=>$value)$externalCollabStats[$key]=(int)($ex[$key]??0);
