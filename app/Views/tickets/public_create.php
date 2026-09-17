@@ -31,7 +31,7 @@ $helpContext='public_create';$assetVersion='20260912-ITSM21AUTO1';
 .public-request-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}.public-request-fields .field-full{grid-column:1/-1}.public-request-card .form-label{margin:0 0 6px;font-size:13px}.public-request-card .form-control{min-height:44px;font-size:14px}
 .signed-requester{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--card) 94%,var(--bg) 6%)}.signed-avatar{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;font-weight:850}.signed-requester strong,.signed-requester span{display:block}.signed-requester strong{font-size:13px}.signed-requester span{color:var(--muted);font-size:11px}.requester-phone-missing{margin-top:12px}
 .public-location-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:58px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--card) 94%,var(--bg) 6%)}.public-location-summary span,.public-location-summary strong{display:block}.public-location-summary span{font-size:11px;color:var(--muted)}.public-location-summary strong{margin-top:2px;font-size:14px;color:var(--ink)}.public-location-fields{margin-top:12px}.public-location-fields[hidden]{display:none!important}
-.public-help-card .card-body{padding:22px}.public-help-grid{display:grid;grid-template-columns:minmax(250px,.34fr) minmax(0,1fr);gap:18px;align-items:start}.public-help-grid textarea{min-height:170px;resize:vertical}.public-category-help{margin:8px 2px 0;min-height:34px;color:var(--muted);font-size:12px;line-height:1.4}.public-description-help{margin:7px 2px 0;color:var(--muted);font-size:12px}.public-submit-bar{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}.public-submit{min-width:190px;min-height:46px;background:var(--brand);border-color:var(--brand)}
+.public-help-card .card-body{padding:22px}.public-help-grid{display:grid;grid-template-columns:minmax(250px,.34fr) minmax(0,1fr);gap:18px;align-items:start}.public-help-grid textarea{min-height:170px;resize:vertical}.public-category-help{margin:8px 2px 0;min-height:34px;color:var(--muted);font-size:12px;line-height:1.4}.public-description-help{margin:7px 2px 0;color:var(--muted);font-size:12px}.public-knowledge-help{margin-top:16px;padding:15px 16px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--brand) 5%,var(--card) 95%)}.public-knowledge-help[hidden]{display:none!important}.public-knowledge-help h3{margin:0 0 5px;font-size:16px}.public-knowledge-help>p{margin:0 0 12px;color:var(--muted);font-size:13px}.public-knowledge-list{display:grid;gap:8px}.public-knowledge-item{padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card)}.public-knowledge-item summary{cursor:pointer;font-weight:750;color:var(--ink)}.public-knowledge-item p{margin:8px 0 0;color:var(--muted);font-size:13px}.public-knowledge-content{margin-top:8px;white-space:pre-wrap;font-size:13px;line-height:1.5;color:var(--ink)}.public-submit-bar{display:flex;align-items:center;justify-content:flex-end;gap:14px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border)}.public-submit{min-width:190px;min-height:46px;background:var(--brand);border-color:var(--brand)}
 html[data-theme="dark"] .public-request-brand img{background:#fff}
 @media(max-width:900px){.public-request-main{padding:18px}.public-context-grid,.public-help-grid{grid-template-columns:1fr}.public-request-heading h1{font-size:25px}}
 @media(max-width:650px){.public-request-topbar{height:60px}.public-request-topbar-inner{padding:0 12px}.public-request-brand img{width:42px;height:42px}.public-request-user{display:none}.public-request-actions .btn:not(.theme-btn){font-size:0;min-width:40px;width:40px;padding:0}.public-request-actions .btn:not(.theme-btn):first-of-type:before{content:"⌂";font-size:17px}.public-request-actions .btn:not(.theme-btn):nth-of-type(2):before{content:"▤";font-size:16px}.public-request-main{padding:14px 12px 28px}.public-request-heading{margin-bottom:14px}.public-request-heading h1{font-size:23px}.public-request-fields{grid-template-columns:1fr}.public-request-fields .field-full{grid-column:auto}.public-request-card .card-body,.public-help-card .card-body{padding:15px}.public-location-summary{align-items:flex-start;flex-direction:column}.public-location-summary .btn{width:100%}.public-submit-bar{align-items:stretch;flex-direction:column}.public-submit{width:100%;min-width:0}}
@@ -130,6 +130,12 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
           <p class="public-description-help">No necesitas usar palabras técnicas. Incluye mensajes de error o el equipo afectado si los conoces.</p>
         </div>
       </div>
+      <div class="public-knowledge-help" data-public-knowledge hidden>
+        <h3>Esto podría ayudarte</h3>
+        <p>Encontramos información relacionada con lo que estás reportando.</p>
+        <div class="public-knowledge-list" data-public-knowledge-list></div>
+        <p>¿Aún necesitas ayuda? Continúa con tu solicitud.</p>
+      </div>
       <div class="public-submit-bar" data-public-step="submit"><button class="btn btn-primary public-submit" id="publicSubmitBtn" type="submit">Enviar solicitud</button></div>
     </div></section>
   </form>
@@ -145,15 +151,49 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
   const categoryId=document.getElementById('category_id');
   const category=document.getElementById('requester_topic');
   const categoryHelp=document.querySelector('[data-category-help-text]');
+  const knowledgeHelp=document.querySelector('[data-public-knowledge]');
+  const knowledgeList=document.querySelector('[data-public-knowledge-list]');
   const locationFields=document.querySelector('[data-location-fields]');
   const locationToggle=document.querySelector('[data-location-toggle]');
   const defaultPlaceholder='Describe qué ocurre, desde cuándo y qué estabas intentando hacer.';
   if(!form||!description||!subject)return;
   const buildSubject=()=>{const clean=(description.value||'').replace(/\s+/g,' ').trim();if(!clean){subject.value='';return;}let short=clean.split(/[.!?]\s/)[0]||clean;if(short.length<5)short=clean;subject.value=short.slice(0,180).trim();};
   const syncCategoryContext=()=>{if(!category)return;const option=category.options[category.selectedIndex];if(categoryId)categoryId.value=(option&&option.dataset.categoryId)||'';if(categoryHelp)categoryHelp.textContent=(option&&option.dataset.categoryHelp)||'Selecciona una opción y te mostraremos qué información puede ayudarnos.';description.placeholder=(option&&option.dataset.categoryPlaceholder)||defaultPlaceholder;};
-  description.addEventListener('input',buildSubject);
+  let knowledgeTimer=null;
+  const renderKnowledge=(items)=>{
+    if(!knowledgeHelp||!knowledgeList)return;
+    knowledgeList.innerHTML='';
+    if(!Array.isArray(items)||items.length===0){knowledgeHelp.hidden=true;return;}
+    items.slice(0,3).forEach(item=>{
+      const details=document.createElement('details');
+      details.className='public-knowledge-item';
+      const summary=document.createElement('summary');
+      summary.textContent=(item.number?item.number+' · ':'')+(item.title||'Información útil');
+      const intro=document.createElement('p');
+      intro.textContent=item.summary||'';
+      const body=document.createElement('div');
+      body.className='public-knowledge-content';
+      body.textContent=item.content||'';
+      details.append(summary,intro,body);
+      knowledgeList.appendChild(details);
+    });
+    knowledgeHelp.hidden=false;
+  };
+  const loadKnowledge=()=>{
+    if(!knowledgeHelp||!knowledgeList)return;
+    const text=(description.value||'').trim();
+    const cat=(categoryId&&categoryId.value)||'';
+    if(text.length<12&&!cat){renderKnowledge([]);return;}
+    const params=new URLSearchParams({q:text,category_id:cat});
+    fetch('<?= APP_BASE_URL ?>/crear-ticket/sugerencias?'+params.toString(),{headers:{'Accept':'application/json'}})
+      .then(response=>response.ok?response.json():Promise.reject())
+      .then(data=>renderKnowledge(data.items||[]))
+      .catch(()=>renderKnowledge([]));
+  };
+  const scheduleKnowledge=()=>{clearTimeout(knowledgeTimer);knowledgeTimer=setTimeout(loadKnowledge,450);};
+  description.addEventListener('input',()=>{buildSubject();scheduleKnowledge();});
   form.addEventListener('submit',()=>{syncCategoryContext();buildSubject();},{capture:true});
-  if(category){category.addEventListener('change',syncCategoryContext);syncCategoryContext();}
+  if(category){category.addEventListener('change',()=>{syncCategoryContext();scheduleKnowledge();});syncCategoryContext();}
   if(locationFields&&locationToggle){
     locationToggle.addEventListener('click',()=>{
       const opening=locationFields.hidden;locationFields.hidden=!opening;
