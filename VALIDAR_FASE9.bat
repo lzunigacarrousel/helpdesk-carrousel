@@ -24,6 +24,7 @@ call :run tests\phase9_self_service_regression.php "Fase 9 - autoservicio public
 call :run tests\phase9_knowledge_history_regression.php "Fase 9 - historial y comparacion"
 call :run tests\phase9_knowledge_metrics_regression.php "Fase 9 - metricas de conocimiento"
 call :run tests\phase9_knowledge_ui_regression.php "Fase 9 - UI manual y tutorial"
+call :run tests\phase9_knowledge_legacy_read_regression.php "Fase 9 - lecturas transversales versionadas"
 call :run tests\phase9_closeout_regression.php "Fase 9 - cierre documental y CI"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
