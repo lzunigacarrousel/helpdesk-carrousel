@@ -46,7 +46,7 @@ ok(str_contains($bat,'git diff --check'),'BAT ejecuta git diff --check');
 ok(str_contains($bat,'git status --short'),'BAT muestra estado Git');
 ok(str_contains($ci,'= "43"'),'CI espera 43 tablas canónicas');
 ok(str_contains($changelog,'Fase 9 · Conocimiento versionado'),'CHANGELOG documenta Fase 9');
-ok(str_contains(mb_strtolower($changelog),'producción'),'CHANGELOG deja explícito estado de producción');
+ok(str_contains(strtolower($changelog),'producción'),'CHANGELOG deja explícito estado de producción');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
