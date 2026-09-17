@@ -119,6 +119,24 @@ final class KnowledgeReferenceService
                 json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
             ]);
 
+            try{
+                (new KnowledgeMetricsService())->recordUsedReference(
+                    $ticketId,
+                    $userId,
+                    [
+                        'type'=>$type,
+                        'article_id'=>$articleId,
+                        'revision_id'=>$revisionId,
+                        'problem_id'=>$problemId,
+                        'source_ticket_id'=>$sourceTicketId,
+                        'reference_trace_id'=>$traceId,
+                    ],
+                    'INTERNAL_TICKET'
+                );
+            }catch(\Throwable){
+                // La métrica no debe invalidar el uso funcional de la referencia.
+            }
+
             return[
                 'root_cause'=>$rootCause,
                 'solution'=>$solution,
