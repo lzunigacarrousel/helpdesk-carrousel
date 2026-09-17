@@ -28,6 +28,15 @@ if($body!==''){
         ok(method_exists($class,$method),"Expone {$method}");
     }
 
+    ok(
+        str_contains($body,"VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"),
+        'INSERT de artículo alinea 6 placeholders con 6 valores'
+    );
+    ok(
+        !str_contains($body,"VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"),
+        'No reaparece INSERT desalineado de artículos'
+    );
+
     if(class_exists($class)){
         ok($class::canTransition('DRAFT','IN_REVIEW'),'DRAFT -> IN_REVIEW permitido');
         ok($class::canTransition('IN_REVIEW','DRAFT'),'IN_REVIEW -> DRAFT permitido');
