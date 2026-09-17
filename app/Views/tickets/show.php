@@ -9,6 +9,7 @@ $isExternal=(($user['access_type']??'INTERNAL')==='EXTERNAL');
 $isRequester=!$isSupport&&!$isExternal;
 $eventLabels=['CREATED'=>'Solicitud creada','CLAIMED'=>'Caso tomado','REASSIGNED'=>'Responsable cambiado','RELEASED'=>'Devuelto a disponibles','STATUS_CHANGED'=>'Estado actualizado','PENDING_REASON_CHANGED'=>'Motivo de espera actualizado','COMMENTED'=>'Nueva respuesta','RESOLUTION_RECORDED'=>'Solución documentada','RESOLVED'=>'Caso resuelto','CLOSED'=>'Caso cerrado','REOPENED'=>'Caso reabierto','PROBLEM_LINKED'=>'Problema conocido relacionado','PROBLEM_UNLINKED'=>'Problema conocido desvinculado','KNOWLEDGE_CREATED'=>'Artículo creado desde el caso','LOCATION_CHANGED'=>'Ubicación del caso actualizada','CLASSIFICATION_CHANGED'=>'Clasificación actualizada','ACTIVITY_CREATED'=>'Actividad programada','ACTIVITY_RESCHEDULED'=>'Actividad reprogramada','ACTIVITY_STARTED'=>'Actividad iniciada','ACTIVITY_COMPLETED'=>'Actividad finalizada','ACTIVITY_CANCELLED'=>'Actividad cancelada'];
 $resolution=null;$similar=[];$comments=[];$attachmentsByComment=[];$looseAttachments=[];$relatedProblems=[];$problemOptions=[];$suggestions=[];$externalParticipants=[];
+$knowledgeCandidate=$knowledgeCandidate??['eligible'=>false,'reasons'=>[],'documentation_ok'=>false];
 try{
     $pdo=Database::pdo();
     $rq=$pdo->prepare("SELECT tr.*,u.full_name resolved_by_name FROM ticket_resolutions tr LEFT JOIN users u ON u.id=tr.resolved_by WHERE tr.ticket_id=? LIMIT 1");$rq->execute([(int)$ticket['id']]);$resolution=$rq->fetch()?:null;
@@ -91,6 +92,21 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </div></section><?php endif; ?>
 
   <?php if($isSupport&&Auth::can('problems.view')): ?><section class="card ticket-problem-link"><div class="card-body"><div class="case-section-head"><div><span class="ticket-kicker">Recurrencias</span><h2>Problema conocido</h2></div><?php if(Auth::can('problems.manage')): ?><a class="btn btn-outline-secondary btn-sm" href="<?= APP_BASE_URL ?>/problems/new?ticket_id=<?= (int)$ticket['id'] ?>">Crear desde este caso</a><?php endif; ?></div><?php if($relatedProblems): ?><div class="ticket-related-problems"><?php foreach($relatedProblems as $p): ?><a href="<?= APP_BASE_URL ?>/problems/view?id=<?= (int)$p['id'] ?>" class="ticket-related-problem"><div><strong><?= htmlspecialchars($p['problem_number'].' · '.$p['title']) ?></strong><small><?= htmlspecialchars($p['status']) ?> · <?= (int)$p['occurrence_count'] ?> caso(s)</small></div><?php if(!empty($p['workaround'])): ?><p><span>Solución temporal</span><?= htmlspecialchars(mb_strimwidth((string)$p['workaround'],0,240,'…')) ?></p><?php elseif(!empty($p['permanent_solution'])): ?><p><span>Solución documentada</span><?= htmlspecialchars(mb_strimwidth((string)$p['permanent_solution'],0,240,'…')) ?></p><?php endif; ?></a><?php endforeach; ?></div><?php else: ?><div class="itsm-inline-empty">Sin problema conocido relacionado.</div><?php endif; ?><?php if(Auth::can('problems.manage')&&$problemOptions): ?><form class="itsm-inline-form" method="post" action="<?= APP_BASE_URL ?>/problems/link-ticket" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$ticket['id'] ?>"><select class="form-control" name="problem_id" required><option value="">Relacionar con problema existente…</option><?php foreach($problemOptions as $p): ?><option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['problem_number'].' · '.$p['title']) ?></option><?php endforeach; ?></select><button class="btn btn-primary" type="submit">Relacionar</button></form><?php endif; ?></div></section><?php endif; ?>
+
+  <?php if($isSupport&&!empty($knowledgeCandidate['eligible'])&&Auth::can('knowledge.draft_manage')): ?>
+    <section class="card knowledge-candidate-card">
+      <div class="card-body">
+        <div class="case-section-head">
+          <div>
+            <span class="ticket-kicker">Conocimiento reutilizable</span>
+            <h2>Este caso puede convertirse en conocimiento reutilizable.</h2>
+            <p>La solución está documentada y contiene señales que pueden ayudar a resolver casos similares.</p>
+          </div>
+          <a class="btn btn-primary" href="<?= APP_BASE_URL ?>/knowledge/new?ticket_id=<?= (int)$ticket['id'] ?>">Crear borrador</a>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <?php if($isSupport&&$suggestions): ?><section class="card suggested-solutions"><div class="card-body"><div class="case-section-head"><div><span class="ticket-kicker">Experiencia previa</span><h2>Posibles soluciones</h2></div></div><div class="suggestion-list"><?php foreach($suggestions as $s): ?><a class="suggestion-item" href="<?= htmlspecialchars($s['url']) ?>"><div class="suggestion-type"><span><?= $s['type']==='ARTICLE'?'Artículo':($s['type']==='PROBLEM'?'Problema conocido':'Caso resuelto') ?></span><b><?= (int)$s['score'] ?>%</b></div><strong><?= htmlspecialchars($s['number'].' · '.$s['title']) ?></strong><p><?= htmlspecialchars((string)$s['summary']) ?></p><small>Ver solución →</small></a><?php endforeach; ?></div></div></section><?php endif; ?>
 
