@@ -232,6 +232,82 @@ El plan queda dividido en 14 tareas ejecutables:
 
 Cada tarea incluye ciclo TDD: prueba en rojo -> implementación mínima -> prueba verde -> commit.
 
+## Progreso de implementación — 2026-09-17
+
+### Task 1 — Esquema y migración
+Estado: ✅ código/esquema preparado; ⏳ ejecución SQL pendiente en PC TEST.
+
+Implementado:
+- `tests/phase9_knowledge_schema_regression.php`;
+- `database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`;
+- `database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`;
+- esquema canónico actualizado en `database/INSTALAR.sql`;
+- verificador limpio actualizado en `database/VERIFICAR_INSTALACION.sql`;
+- FKs de punteros interno/público alineadas entre instalación limpia y migración;
+- permisos editoriales incluidos.
+
+Validación estática del contrato: GREEN.
+No se ha ejecutado todavía la migración contra una BD real.
+
+### Task 2 — KnowledgeRevisionService
+Estado: ✅ núcleo implementado; ⏳ operaciones PDO pendientes de integración PC TEST.
+
+Archivos:
+- `tests/phase9_knowledge_revision_service_regression.php`;
+- `app/Services/KnowledgeRevisionService.php`.
+
+Incluye:
+- creación de artículo + REV 1;
+- creación de nueva revisión desde versión previa;
+- actualización solo de DRAFT;
+- DRAFT -> IN_REVIEW;
+- IN_REVIEW -> DRAFT;
+- IN_REVIEW -> PUBLISHED;
+- publicación interna;
+- publicación pública separada;
+- restauración como revisión nueva;
+- archivo de artículo;
+- numeración monotónica.
+
+Las reglas puras de transición/numeración fueron ejecutadas con PHP CLI y quedaron GREEN.
+
+### Task 3 — Permisos editoriales
+Estado: ✅ contrato preparado.
+
+Archivo:
+- `tests/phase9_knowledge_permissions_regression.php`.
+
+Resultado:
+- TECHNICIAN: `knowledge.view` + `knowledge.draft_manage`;
+- TECHNICIAN no recibe review/publicación/historial/restauración;
+- SEMIADMIN recibe gobierno editorial completo;
+- ADMIN enlaza permisos nuevos en migración.
+
+Validación estática: GREEN.
+
+### Task 4 — KnowledgeController versionado
+Estado: ✅ refactor de escrituras/rutas preparado.
+
+Archivos:
+- `tests/phase9_knowledge_workflow_controller_regression.php`;
+- `app/Controllers/KnowledgeController.php`;
+- `public/index.php`.
+
+Rutas nuevas:
+- `POST /knowledge/submit-review`;
+- `POST /knowledge/return-draft`;
+- `POST /knowledge/publish-internal`;
+- `POST /knowledge/publish-public`;
+- `POST /knowledge/restore`.
+
+El controlador:
+- delega escrituras a `KnowledgeRevisionService`;
+- no sobrescribe directamente contenido publicado;
+- no publica mediante UPDATE directo;
+- mantiene `/knowledge/publish` solo como compatibilidad, pasando por permiso específico.
+
+Validación contractual: GREEN.
+
 ## Estado actual exacto
 
 - Diseño arquitectónico: ✅ aprobado.
@@ -239,8 +315,8 @@ Cada tarea incluye ciclo TDD: prueba en rojo -> implementación mínima -> prueb
 - Log de continuidad: ✅ actualizado.
 - Backlog transversal: ✅ registrado.
 - Plan de implementación TDD: ✅ escrito.
-- Código funcional Fase 9: ⏸️ no iniciado.
-- Migración Fase 9: ⏸️ no creada.
+- Código funcional Fase 9: 🟡 Tasks 1–4 implementadas a nivel de repositorio; integración/PC TEST pendiente.
+- Migración Fase 9: ✅ creada; ⏳ no ejecutada aún en PC TEST.
 - BD PC TEST: sin cambios de Fase 9.
 - Producción: sin cambios.
 
