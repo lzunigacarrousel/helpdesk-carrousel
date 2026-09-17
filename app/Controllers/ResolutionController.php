@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger};
-use App\Services\NotificationService;
+use App\Services\{NotificationService,KnowledgeReferenceService};
 use PDO;
 
 final class ResolutionController
@@ -21,6 +21,50 @@ final class ResolutionController
         Flash::set('Para resolver un caso, ábrelo y completa la sección “Documentar solución”.','info');
         if($ticketId>0)$this->redirectTicket($ticketId);
         $this->redirectQueue();
+    }
+
+    public function useReference(): void
+    {
+        Auth::requirePermission('tickets.resolve');
+        Csrf::verify($_POST['_csrf']??null);
+
+        $ticketId=(int)Http::post('ticket_id');
+        $type=strtoupper(trim(Http::post('reference_type')));
+        $referenceId=(int)Http::post('reference_id');
+        if($ticketId<=0||$referenceId<=0){
+            $this->fail($ticketId,'No pudimos identificar la referencia seleccionada.');
+        }
+
+        $pdo=Database::pdo();
+        $q=$pdo->prepare('SELECT id,status,assigned_to FROM tickets WHERE id=? AND deleted_at IS NULL LIMIT 1');
+        $q->execute([$ticketId]);
+        $ticket=$q->fetch();
+        if(!$ticket)$this->fail($ticketId,'No encontramos el caso.');
+
+        if(!Auth::can('tickets.reassign')&&(int)($ticket['assigned_to']??0)!==(int)Auth::id()){
+            $this->fail($ticketId,'Solo la persona responsable puede usar una referencia en este caso.','info');
+        }
+        if(in_array((string)$ticket['status'],['RESOLVED','CLOSED','CANCELLED'],true)){
+            $this->fail($ticketId,'Este caso ya no admite nuevas referencias.','info');
+        }
+
+        try{
+            $prefill=(new KnowledgeReferenceService())->useReference(
+                $ticketId,$type,$referenceId,(int)Auth::id()
+            );
+        }catch(\Throwable $e){
+            Logger::error($e);
+            $this->fail($ticketId,'No pudimos cargar esa referencia. Intenta con otra opción.','warning');
+        }
+
+        $_SESSION['resolution_prefill_'.$ticketId]=$prefill;
+        Audit::log(
+            'SOLUTION_REFERENCE_USED','ticket',$ticketId,null,
+            ['reference'=>$prefill['reference']??null],
+            ['reference_type'=>$type,'reference_id'=>$referenceId]
+        );
+        Flash::set('Referencia cargada. Revisa y ajusta la solución antes de guardarla.','success');
+        $this->redirectTicket($ticketId);
     }
 
     public function store(): void
