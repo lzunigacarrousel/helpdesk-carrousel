@@ -9,54 +9,93 @@ use PDO;
 
 final class KnowledgeController
 {
-    private const STATUSES=['DRAFT'=>'Borrador','PUBLISHED'=>'Publicado','ARCHIVED'=>'Archivado'];
-    private const VISIBILITY=['INTERNAL'=>'Interno','PUBLIC'=>'Público'];
+    private const STATUSES=['DRAFT'=>'Borrador','IN_REVIEW'=>'En revisión','PUBLISHED'=>'Publicado para soporte','ARCHIVED'=>'Archivado'];
 
     public function index(): void
     {
         Auth::requirePermission('knowledge.view');
         $pdo=Database::pdo();
-        $manage=$this->canEditKnowledge();
+        $editor=$this->canEditKnowledge();
         $internal=$this->canSeeInternal();
         $q=trim((string)($_GET['q']??''));
         $status=trim((string)($_GET['status']??''));
-        $visibility=trim((string)($_GET['visibility']??''));
         $category=(int)($_GET['category_id']??0);
-        $where=['1=1'];$params=[];
+        $params=[];
 
-        if(!$manage){
-            $where[]="ka.status='PUBLISHED'";
-            if(!$internal)$where[]="ka.visibility='PUBLIC'";
-        }
-        if($q!==''){
-            $like='%'.$q.'%';
-            $where[]='(ka.article_number LIKE ? OR ka.title LIKE ? OR ka.summary LIKE ? OR ka.content LIKE ?)';
-            array_push($params,$like,$like,$like,$like);
-        }
-        if($manage&&isset(self::STATUSES[$status])){$where[]='ka.status=?';$params[]=$status;}
-        if($manage&&isset(self::VISIBILITY[$visibility])){$where[]='ka.visibility=?';$params[]=$visibility;}
-        if($category>0){
-            $where[]='ka.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
-            $params[]=$category;$params[]=$category;
+        if($editor){
+            $workingExpr="COALESCE(wr.state,ir.state,lr.state,ka.status)";
+            $where=['1=1'];
+            if($q!==''){
+                $like='%'.$q.'%';
+                $where[]="(ka.article_number LIKE ? OR COALESCE(wr.title,ir.title,lr.title,ka.title) LIKE ? OR COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) LIKE ? OR COALESCE(wr.content,ir.content,lr.content,ka.content) LIKE ?)";
+                array_push($params,$like,$like,$like,$like);
+            }
+            if(isset(self::STATUSES[$status])){
+                if($status==='ARCHIVED')$where[]="ka.lifecycle_status='ARCHIVED'";
+                else{$where[]="ka.lifecycle_status='ACTIVE' AND {$workingExpr}=?";$params[]=$status;}
+            }
+            if($category>0){
+                $where[]='COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id) IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
+                $params[]=$category;$params[]=$category;
+            }
+            $sql="SELECT ka.*,
+                         COALESCE(wr.id,ir.id,lr.id) revision_id,
+                         COALESCE(wr.revision_number,ir.revision_number,lr.revision_number,1) revision_number,
+                         CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED' ELSE {$workingExpr} END status,
+                         COALESCE(wr.title,ir.title,lr.title,ka.title) title,
+                         COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) summary,
+                         COALESCE(wr.content,ir.content,lr.content,ka.content) content,
+                         COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id) category_id,
+                         c.name category_name,
+                         u.full_name author_name,
+                         (ka.current_public_revision_id IS NOT NULL) public_available
+                  FROM knowledge_articles ka
+                  LEFT JOIN knowledge_revisions wr ON wr.id=(
+                      SELECT x.id FROM knowledge_revisions x
+                      WHERE x.article_id=ka.id AND x.state IN('DRAFT','IN_REVIEW')
+                      ORDER BY x.revision_number DESC LIMIT 1
+                  )
+                  LEFT JOIN knowledge_revisions ir ON ir.id=ka.current_internal_revision_id
+                  LEFT JOIN knowledge_revisions lr ON lr.id=(
+                      SELECT y.id FROM knowledge_revisions y
+                      WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
+                  )
+                  LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id)
+                  LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                  WHERE ".implode(' AND ',$where)."
+                  ORDER BY (ka.lifecycle_status='ARCHIVED'),ka.updated_at DESC
+                  LIMIT 250";
+        }else{
+            $pointer=$internal?'current_internal_revision_id':'current_public_revision_id';
+            $where=["ka.lifecycle_status='ACTIVE'","ka.{$pointer} IS NOT NULL"];
+            if($q!==''){
+                $like='%'.$q.'%';
+                $where[]='(ka.article_number LIKE ? OR kr.title LIKE ? OR kr.summary LIKE ? OR kr.content LIKE ?)';
+                array_push($params,$like,$like,$like,$like);
+            }
+            if($category>0){
+                $where[]='kr.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
+                $params[]=$category;$params[]=$category;
+            }
+            $sql="SELECT ka.*,kr.id revision_id,kr.revision_number,kr.state status,
+                         kr.title,kr.summary,kr.content,kr.category_id,c.name category_name,
+                         u.full_name author_name,(ka.current_public_revision_id IS NOT NULL) public_available
+                  FROM knowledge_articles ka
+                  JOIN knowledge_revisions kr ON kr.id=ka.{$pointer}
+                  LEFT JOIN ticket_categories c ON c.id=kr.category_id
+                  LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                  WHERE ".implode(' AND ',$where)."
+                  ORDER BY ka.updated_at DESC LIMIT 250";
         }
 
-        $sql="SELECT ka.*,c.name category_name,u.full_name author_name
-              FROM knowledge_articles ka
-              LEFT JOIN ticket_categories c ON c.id=ka.category_id
-              LEFT JOIN users u ON u.id=COALESCE(ka.created_by_user_id,ka.author_user_id)
-              WHERE ".implode(' AND ',$where)."
-              ORDER BY FIELD(ka.status,'DRAFT','PUBLISHED','ARCHIVED'),ka.updated_at DESC
-              LIMIT 250";
         $s=$pdo->prepare($sql);$s->execute($params);
-
         View::render('knowledge/index',[
             'user'=>Auth::user(),
             'articles'=>$s->fetchAll(),
-            'filters'=>compact('q','status','visibility','category'),
+            'filters'=>compact('q','status','category'),
             'statuses'=>self::STATUSES,
-            'visibility'=>self::VISIBILITY,
             'categories'=>$this->categories(),
-            'canManage'=>$manage,
+            'canManage'=>$editor,
             'flash'=>Flash::pull(),
         ]);
     }
@@ -68,8 +107,8 @@ final class KnowledgeController
         $id=(int)($_GET['id']??0);
         $article=null;
         $prefill=[
-            'title'=>'','summary'=>'','content'=>'','category_id'=>null,'visibility'=>'INTERNAL',
-            'source_ticket_id'=>0,'source_problem_id'=>0
+            'title'=>'','summary'=>'','content'=>'','category_id'=>null,
+            'source_ticket_id'=>0,'source_problem_id'=>0,'change_note'=>''
         ];
 
         $oldForm=$_SESSION['knowledge_form_old']??null;
@@ -78,12 +117,14 @@ final class KnowledgeController
 
         if($id>0){
             $q=$pdo->prepare(
-                "SELECT ka.*,
-                        COALESCE(d.id,ci.id) editing_revision_id,
-                        COALESCE(d.title,ci.title,ka.title) title,
-                        COALESCE(d.summary,ci.summary,ka.summary) summary,
-                        COALESCE(d.content,ci.content,ka.content) content,
-                        COALESCE(d.category_id,ci.category_id,ka.category_id) category_id
+                "SELECT ka.id,ka.article_number,ka.lifecycle_status,
+                        COALESCE(d.id,ci.id,lr.id) editing_revision_id,
+                        COALESCE(d.revision_number,ci.revision_number,lr.revision_number,1) revision_number,
+                        COALESCE(d.title,ci.title,lr.title,ka.title) title,
+                        COALESCE(d.summary,ci.summary,lr.summary,ka.summary) summary,
+                        COALESCE(d.content,ci.content,lr.content,ka.content) content,
+                        COALESCE(d.category_id,ci.category_id,lr.category_id,ka.category_id) category_id,
+                        COALESCE(d.change_note,'') change_note
                  FROM knowledge_articles ka
                  LEFT JOIN knowledge_revisions d ON d.id=(
                      SELECT kr.id FROM knowledge_revisions kr
@@ -91,11 +132,18 @@ final class KnowledgeController
                      ORDER BY kr.revision_number DESC LIMIT 1
                  )
                  LEFT JOIN knowledge_revisions ci ON ci.id=ka.current_internal_revision_id
+                 LEFT JOIN knowledge_revisions lr ON lr.id=(
+                     SELECT x.id FROM knowledge_revisions x
+                     WHERE x.article_id=ka.id ORDER BY x.revision_number DESC LIMIT 1
+                 )
                  WHERE ka.id=? LIMIT 1"
             );
             $q->execute([$id]);
             $article=$q->fetch();
             if(!$article)throw new \RuntimeException('Artículo no encontrado.');
+            if(($article['lifecycle_status']??'ACTIVE')==='ARCHIVED'){
+                throw new \RuntimeException('Un artículo archivado debe restaurarse antes de editarse.');
+            }
         }
 
         $ticketId=(int)($_GET['ticket_id']??0);
@@ -119,9 +167,9 @@ final class KnowledgeController
                     'summary'=>mb_strimwidth((string)$t['description'],0,280,'…'),
                     'content'=>$this->ticketTemplate($t),
                     'category_id'=>$t['category_id'],
-                    'visibility'=>'INTERNAL',
                     'source_ticket_id'=>$ticketId,
                     'source_problem_id'=>$linkedProblem,
+                    'change_note'=>'',
                 ];
             }
         }
@@ -134,9 +182,9 @@ final class KnowledgeController
                     'summary'=>mb_strimwidth((string)$p['description'],0,280,'…'),
                     'content'=>$this->problemTemplate($p),
                     'category_id'=>$p['category_id'],
-                    'visibility'=>'INTERNAL',
                     'source_ticket_id'=>0,
                     'source_problem_id'=>$problemId,
+                    'change_note'=>'',
                 ];
             }
         }
@@ -145,7 +193,6 @@ final class KnowledgeController
             'user'=>Auth::user(),
             'article'=>$article,
             'prefill'=>$prefill,
-            'visibility'=>self::VISIBILITY,
             'categories'=>$this->categories(),
             'flash'=>Flash::pull(),
         ]);
@@ -346,22 +393,77 @@ final class KnowledgeController
         Auth::requirePermission('knowledge.view');
         $id=(int)($_GET['id']??0);
         $pdo=Database::pdo();
+
         $q=$pdo->prepare(
-            "SELECT ka.*,c.name category_name,u.full_name author_name
+            "SELECT ka.*,creator.full_name article_creator_name
              FROM knowledge_articles ka
-             LEFT JOIN ticket_categories c ON c.id=ka.category_id
-             LEFT JOIN users u ON u.id=COALESCE(ka.created_by_user_id,ka.author_user_id)
+             LEFT JOIN users creator ON creator.id=COALESCE(ka.created_by_user_id,ka.author_user_id)
              WHERE ka.id=? LIMIT 1"
         );
         $q->execute([$id]);
-        $article=$q->fetch();
-        if(!$article)throw new \RuntimeException('Artículo no encontrado.');
+        $identity=$q->fetch();
+        if(!$identity)throw new \RuntimeException('Artículo no encontrado.');
 
-        $manage=$this->canEditKnowledge();
-        if(!$manage&&($article['status']!=='PUBLISHED'||(!$this->canSeeInternal()&&$article['visibility']!=='PUBLIC'))){
+        $editor=$this->canEditKnowledge();
+        $internal=$this->canSeeInternal();
+        if(($identity['lifecycle_status']??'ACTIVE')==='ARCHIVED'&&!$editor&&!Auth::can('knowledge.history')){
             Flash::set('Ese artículo no está disponible para tu perfil.','info');
             header('Location: '.APP_BASE_URL.'/knowledge');exit;
         }
+
+        $rq=$pdo->prepare(
+            "SELECT kr.*,c.name category_name,
+                    creator.full_name created_by_name,
+                    reviewer.full_name reviewed_by_name,
+                    internal_pub.full_name internal_published_by_name,
+                    public_pub.full_name public_published_by_name
+             FROM knowledge_revisions kr
+             LEFT JOIN ticket_categories c ON c.id=kr.category_id
+             LEFT JOIN users creator ON creator.id=kr.created_by_user_id
+             LEFT JOIN users reviewer ON reviewer.id=kr.reviewed_by_user_id
+             LEFT JOIN users internal_pub ON internal_pub.id=kr.internal_published_by_user_id
+             LEFT JOIN users public_pub ON public_pub.id=kr.public_published_by_user_id
+             WHERE kr.article_id=?
+             ORDER BY kr.revision_number DESC"
+        );
+        $rq->execute([$id]);
+        $allRevisions=$rq->fetchAll();
+
+        $byId=[];
+        $working=null;
+        foreach($allRevisions as $revision){
+            $byId[(int)$revision['id']]=$revision;
+            if($working===null&&in_array($revision['state'],['DRAFT','IN_REVIEW'],true))$working=$revision;
+        }
+        $currentInternal=$byId[(int)($identity['current_internal_revision_id']??0)]??null;
+        $currentPublic=$byId[(int)($identity['current_public_revision_id']??0)]??null;
+
+        if($editor){
+            $display=$working?:($currentInternal?:($allRevisions[0]??null));
+        }elseif($internal){
+            $display=$currentInternal;
+        }else{
+            $display=$currentPublic;
+        }
+
+        if(!$display){
+            Flash::set('Ese artículo todavía no está disponible para tu perfil.','info');
+            header('Location: '.APP_BASE_URL.'/knowledge');exit;
+        }
+
+        $article=array_merge($identity,[
+            'revision_id'=>(int)$display['id'],
+            'revision_number'=>(int)$display['revision_number'],
+            'title'=>$display['title'],
+            'summary'=>$display['summary'],
+            'content'=>$display['content'],
+            'category_id'=>$display['category_id'],
+            'category_name'=>$display['category_name'],
+            'status'=>($identity['lifecycle_status']??'ACTIVE')==='ARCHIVED'?'ARCHIVED':$display['state'],
+            'author_name'=>$display['created_by_name']?:($identity['article_creator_name']??null),
+            'updated_at'=>$display['updated_at'],
+            'published_at'=>$display['internal_published_at'],
+        ]);
 
         $p=$pdo->prepare(
             "SELECT kp.id,kp.problem_number,kp.title,ps.is_primary
@@ -372,27 +474,21 @@ final class KnowledgeController
         );
         $p->execute([$id]);
 
-        $revisions=$pdo->prepare(
-            "SELECT kr.*,creator.full_name created_by_name,reviewer.full_name reviewed_by_name
-             FROM knowledge_revisions kr
-             LEFT JOIN users creator ON creator.id=kr.created_by_user_id
-             LEFT JOIN users reviewer ON reviewer.id=kr.reviewed_by_user_id
-             WHERE kr.article_id=?
-             ORDER BY kr.revision_number DESC"
-        );
-        $revisions->execute([$id]);
-
         View::render('knowledge/show',[
             'user'=>Auth::user(),
             'article'=>$article,
             'problems'=>$p->fetchAll(),
-            'revisions'=>$revisions->fetchAll(),
+            'revisions'=>Auth::can('knowledge.history')?$allRevisions:[],
+            'workingRevision'=>$working,
+            'currentInternal'=>$currentInternal,
+            'currentPublic'=>$currentPublic,
             'statuses'=>self::STATUSES,
-            'visibility'=>self::VISIBILITY,
-            'canManage'=>$manage,
+            'canManage'=>$editor,
+            'canEdit'=>Auth::can('knowledge.draft_manage'),
             'canReview'=>Auth::can('knowledge.review'),
             'canPublishInternal'=>Auth::can('knowledge.publish_internal'),
             'canPublishPublic'=>Auth::can('knowledge.publish_public'),
+            'canHistory'=>Auth::can('knowledge.history'),
             'canRestore'=>Auth::can('knowledge.restore'),
             'flash'=>Flash::pull(),
         ]);
