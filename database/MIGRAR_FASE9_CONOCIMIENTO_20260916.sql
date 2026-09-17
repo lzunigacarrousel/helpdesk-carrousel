@@ -59,6 +59,42 @@ ALTER TABLE knowledge_articles
 CREATE INDEX IF NOT EXISTS idx_ka_lifecycle_internal ON knowledge_articles(lifecycle_status,current_internal_revision_id);
 CREATE INDEX IF NOT EXISTS idx_ka_lifecycle_public ON knowledge_articles(lifecycle_status,current_public_revision_id);
 
+-- Alinear integridad referencial de instalaciones migradas con INSTALAR.sql.
+DROP PROCEDURE IF EXISTS add_fase9_knowledge_fks;
+DELIMITER $
+CREATE PROCEDURE add_fase9_knowledge_fks()
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.REFERENTIAL_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME='fk_article_created_by'
+    ) THEN
+        ALTER TABLE knowledge_articles
+            ADD CONSTRAINT fk_article_created_by
+            FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.REFERENTIAL_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME='fk_ka_current_internal_revision'
+    ) THEN
+        ALTER TABLE knowledge_articles
+            ADD CONSTRAINT fk_ka_current_internal_revision
+            FOREIGN KEY (current_internal_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.REFERENTIAL_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME='fk_ka_current_public_revision'
+    ) THEN
+        ALTER TABLE knowledge_articles
+            ADD CONSTRAINT fk_ka_current_public_revision
+            FOREIGN KEY (current_public_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL;
+    END IF;
+END$
+DELIMITER ;
+CALL add_fase9_knowledge_fks();
+DROP PROCEDURE add_fase9_knowledge_fks;
+
 UPDATE knowledge_articles
 SET created_by_user_id=COALESCE(created_by_user_id,author_user_id),
     lifecycle_status=CASE WHEN status='ARCHIVED' THEN 'ARCHIVED' ELSE 'ACTIVE' END,
