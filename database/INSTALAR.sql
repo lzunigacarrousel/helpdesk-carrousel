@@ -490,6 +490,10 @@ CREATE TABLE known_problem_tags (
 CREATE TABLE knowledge_articles (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     article_number VARCHAR(30) NOT NULL UNIQUE,
+    lifecycle_status ENUM('ACTIVE','ARCHIVED') NOT NULL DEFAULT 'ACTIVE',
+    current_internal_revision_id BIGINT UNSIGNED NULL,
+    current_public_revision_id BIGINT UNSIGNED NULL,
+    created_by_user_id BIGINT UNSIGNED NULL,
     title VARCHAR(220) NOT NULL,
     summary TEXT NULL,
     content LONGTEXT NOT NULL,
@@ -498,11 +502,125 @@ CREATE TABLE knowledge_articles (
     category_id BIGINT UNSIGNED NULL,
     author_user_id BIGINT UNSIGNED NULL,
     published_at DATETIME NULL,
+    archived_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_article_category FOREIGN KEY (category_id) REFERENCES ticket_categories(id) ON DELETE SET NULL,
     CONSTRAINT fk_article_author FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_article_status_visibility (status, visibility)
+    CONSTRAINT fk_article_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_article_status_visibility (status, visibility),
+    INDEX idx_ka_lifecycle_internal (lifecycle_status,current_internal_revision_id),
+    INDEX idx_ka_lifecycle_public (lifecycle_status,current_public_revision_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE knowledge_revisions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    article_id BIGINT UNSIGNED NOT NULL,
+    revision_number INT UNSIGNED NOT NULL,
+    state ENUM('DRAFT','IN_REVIEW','PUBLISHED') NOT NULL DEFAULT 'DRAFT',
+    title VARCHAR(220) NOT NULL,
+    summary TEXT NULL,
+    content LONGTEXT NOT NULL,
+    category_id BIGINT UNSIGNED NULL,
+    based_on_revision_id BIGINT UNSIGNED NULL,
+    created_by_user_id BIGINT UNSIGNED NULL,
+    change_note VARCHAR(500) NULL,
+    submitted_by_user_id BIGINT UNSIGNED NULL,
+    submitted_at DATETIME NULL,
+    reviewed_by_user_id BIGINT UNSIGNED NULL,
+    reviewed_at DATETIME NULL,
+    review_note VARCHAR(500) NULL,
+    internal_published_by_user_id BIGINT UNSIGNED NULL,
+    internal_published_at DATETIME NULL,
+    public_published_by_user_id BIGINT UNSIGNED NULL,
+    public_published_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_kr_article FOREIGN KEY (article_id) REFERENCES knowledge_articles(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kr_category FOREIGN KEY (category_id) REFERENCES ticket_categories(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_based_on FOREIGN KEY (based_on_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_submitted_by FOREIGN KEY (submitted_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_reviewed_by FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_internal_published_by FOREIGN KEY (internal_published_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kr_public_published_by FOREIGN KEY (public_published_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    UNIQUE KEY uq_kr_article_revision (article_id,revision_number),
+    INDEX idx_kr_article_state (article_id,state,revision_number),
+    INDEX idx_kr_category_state (category_id,state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE knowledge_articles
+    ADD CONSTRAINT fk_ka_current_internal_revision FOREIGN KEY (current_internal_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL,
+    ADD CONSTRAINT fk_ka_current_public_revision FOREIGN KEY (current_public_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL;
+
+CREATE TABLE knowledge_article_sources (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    article_id BIGINT UNSIGNED NOT NULL,
+    source_type ENUM('TICKET','PROBLEM','MANUAL') NOT NULL DEFAULT 'MANUAL',
+    source_ticket_id BIGINT UNSIGNED NULL,
+    source_problem_id BIGINT UNSIGNED NULL,
+    created_by_user_id BIGINT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_kas_article FOREIGN KEY (article_id) REFERENCES knowledge_articles(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kas_ticket FOREIGN KEY (source_ticket_id) REFERENCES tickets(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kas_problem FOREIGN KEY (source_problem_id) REFERENCES known_problems(id) ON DELETE SET NULL,
+    CONSTRAINT fk_kas_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_kas_article_created (article_id,created_at),
+    INDEX idx_kas_ticket (source_ticket_id),
+    INDEX idx_kas_problem (source_problem_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE ticket_resolution_references (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ticket_id BIGINT UNSIGNED NOT NULL,
+    reference_type ENUM('KNOWLEDGE','PROBLEM','TICKET') NOT NULL,
+    knowledge_article_id BIGINT UNSIGNED NULL,
+    knowledge_revision_id BIGINT UNSIGNED NULL,
+    problem_id BIGINT UNSIGNED NULL,
+    source_ticket_id BIGINT UNSIGNED NULL,
+    used_by_user_id BIGINT UNSIGNED NULL,
+    used_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    applied_root_cause TINYINT(1) NOT NULL DEFAULT 0,
+    applied_solution TINYINT(1) NOT NULL DEFAULT 0,
+    applied_prevention TINYINT(1) NOT NULL DEFAULT 0,
+    CONSTRAINT fk_trr_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_trr_article FOREIGN KEY (knowledge_article_id) REFERENCES knowledge_articles(id) ON DELETE SET NULL,
+    CONSTRAINT fk_trr_revision FOREIGN KEY (knowledge_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_trr_problem FOREIGN KEY (problem_id) REFERENCES known_problems(id) ON DELETE SET NULL,
+    CONSTRAINT fk_trr_source_ticket FOREIGN KEY (source_ticket_id) REFERENCES tickets(id) ON DELETE SET NULL,
+    CONSTRAINT fk_trr_used_by FOREIGN KEY (used_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_trr_ticket_used (ticket_id,used_at),
+    INDEX idx_trr_article_revision (knowledge_article_id,knowledge_revision_id),
+    INDEX idx_trr_problem (problem_id),
+    INDEX idx_trr_source_ticket (source_ticket_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE solution_suggestion_events (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ticket_id BIGINT UNSIGNED NULL,
+    actor_user_id BIGINT UNSIGNED NULL,
+    context ENUM('INTERNAL_TICKET','SELF_SERVICE') NOT NULL,
+    event_type ENUM('SUGGESTED','OPENED','USED_REFERENCE') NOT NULL,
+    reference_type ENUM('KNOWLEDGE','PROBLEM','TICKET') NOT NULL,
+    knowledge_article_id BIGINT UNSIGNED NULL,
+    knowledge_revision_id BIGINT UNSIGNED NULL,
+    problem_id BIGINT UNSIGNED NULL,
+    source_ticket_id BIGINT UNSIGNED NULL,
+    rank_position SMALLINT UNSIGNED NULL,
+    score SMALLINT UNSIGNED NULL,
+    metadata_json LONGTEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_sse_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sse_actor FOREIGN KEY (actor_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_sse_article FOREIGN KEY (knowledge_article_id) REFERENCES knowledge_articles(id) ON DELETE SET NULL,
+    CONSTRAINT fk_sse_revision FOREIGN KEY (knowledge_revision_id) REFERENCES knowledge_revisions(id) ON DELETE SET NULL,
+    CONSTRAINT fk_sse_problem FOREIGN KEY (problem_id) REFERENCES known_problems(id) ON DELETE SET NULL,
+    CONSTRAINT fk_sse_source_ticket FOREIGN KEY (source_ticket_id) REFERENCES tickets(id) ON DELETE SET NULL,
+    INDEX idx_sse_ticket_created (ticket_id,created_at),
+    INDEX idx_sse_context_event (context,event_type,created_at),
+    INDEX idx_sse_article_revision (knowledge_article_id,knowledge_revision_id),
+    INDEX idx_sse_problem (problem_id),
+    INDEX idx_sse_source_ticket (source_ticket_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE problem_solutions (
@@ -643,7 +761,13 @@ INSERT INTO permissions (code, name, module, description) VALUES
 ('problems.view','Ver problemas conocidos','problems','Consulta de recurrencia'),
 ('problems.manage','Administrar problemas conocidos','problems','Crear, investigar y resolver problemas recurrentes'),
 ('knowledge.view','Ver conocimiento','knowledge','Consulta de articulos permitidos'),
-('knowledge.manage','Administrar conocimiento','knowledge','Crear, editar y publicar articulos'),
+('knowledge.manage','Administrar conocimiento','knowledge','Permiso legacy conservado temporalmente por compatibilidad.'),
+('knowledge.draft_manage','Crear y editar borradores','knowledge','Permite crear y mejorar revisiones borrador de conocimiento.'),
+('knowledge.review','Revisar conocimiento','knowledge','Permite revisar borradores enviados y devolverlos con observaciones.'),
+('knowledge.publish_internal','Publicar para soporte','knowledge','Permite publicar una revision como vigente para uso interno.'),
+('knowledge.publish_public','Habilitar para solicitantes','knowledge','Permite habilitar una revision ya publicada internamente para autoservicio.'),
+('knowledge.history','Ver historial de conocimiento','knowledge','Permite consultar y comparar todas las revisiones.'),
+('knowledge.restore','Restaurar conocimiento','knowledge','Permite crear un nuevo borrador a partir de una revision historica.'),
 ('audit.view','Ver auditoria','audit','Consulta de trazabilidad del sistema'),
 ('sla.manage','Administrar SLA','sla','Gestion de politicas de primera respuesta y resolucion');
 
@@ -658,7 +782,8 @@ WHERE r.code='SEMIADMIN' AND p.code IN(
     'tickets.view_own','tickets.view_queue','tickets.claim','tickets.reassign','tickets.change_status',
     'tickets.comment_public','tickets.comment_internal','tickets.view_all','tickets.manage_special','tickets.resolve','tickets.classify',
     'users.view','assignments.view','assignments.manage','catalogs.manage','reports.view','reports.global',
-    'management.view','external.manage','problems.view','problems.manage','knowledge.view','knowledge.manage','sla.manage'
+    'management.view','external.manage','problems.view','problems.manage','knowledge.view','knowledge.manage',
+    'knowledge.draft_manage','knowledge.review','knowledge.publish_internal','knowledge.publish_public','knowledge.history','knowledge.restore','sla.manage'
 );
 
 -- Tecnico: atencion de tickets y consulta operativa.
@@ -666,7 +791,7 @@ INSERT INTO role_permissions(role_id,permission_id)
 SELECT r.id,p.id FROM roles r JOIN permissions p
 WHERE r.code='TECHNICIAN' AND p.code IN(
     'tickets.view_own','tickets.view_queue','tickets.claim','tickets.change_status','tickets.resolve','tickets.classify',
-    'tickets.comment_public','tickets.comment_internal','reports.view','problems.view','knowledge.view'
+    'tickets.comment_public','tickets.comment_internal','reports.view','problems.view','knowledge.view','knowledge.draft_manage'
 );
 
 -- Gerencia: consulta ejecutiva.
@@ -1043,7 +1168,8 @@ INSERT INTO support_scopes(team_id,park_id,area_id,scope_type,is_active)
 SELECT @it_team_id,NULL,NULL,'GLOBAL',1 WHERE @it_team_id IS NOT NULL;
 
 INSERT INTO schema_migrations(version,name) VALUES
-('2026-09-09-clean-schema-v2.4','Esquema canonico Helpdesk Carrousel para instalacion limpia');
+('2026-09-09-clean-schema-v2.4','Esquema canonico Helpdesk Carrousel para instalacion limpia'),
+('2026-09-16-fase9-conocimiento','Fase 9 - Conocimiento versionado');
 
 SET FOREIGN_KEY_CHECKS = 1;
 
