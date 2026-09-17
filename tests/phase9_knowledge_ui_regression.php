@@ -6,6 +6,9 @@ $controller=(string)file_get_contents($root.'/app/Controllers/KnowledgeControlle
 $index=(string)file_get_contents($root.'/app/Views/knowledge/index.php');
 $form=(string)file_get_contents($root.'/app/Views/knowledge/form.php');
 $show=(string)file_get_contents($root.'/app/Views/knowledge/show.php');
+$manual=(string)file_get_contents($root.'/app/Views/help/manual.php');
+$helpController=(string)file_get_contents($root.'/app/Controllers/HelpController.php');
+$tour=(string)file_get_contents($root.'/public/assets/js/help-tour.js');
 $errors=0;
 
 function ok(bool $condition,string $message):void
@@ -28,6 +31,38 @@ ok(str_contains($form,'Guardar borrador'),'Formulario conserva acción principal
 ok(str_contains($index,'Disponible para solicitantes'),'Listado identifica disponibilidad pública con copy legible');
 ok(!str_contains($index,'Toda visibilidad'),'Listado elimina filtro legacy de visibilidad');
 ok(str_contains($show,'Más acciones'),'Acciones secundarias se agrupan');
+
+foreach([
+    'Crear borrador',
+    'Enviar a revisión',
+    'Publicado para soporte',
+    'Disponible para solicitantes',
+    'Comparar versiones',
+    'Restaurar versión',
+    'Usar como referencia',
+] as $concept){
+    ok(str_contains($manual,$concept),"Manual explica {$concept}");
+}
+foreach([
+    'canKnowledgeDraft',
+    'canKnowledgeReview',
+    'canKnowledgePublishInternal',
+    'canKnowledgePublishPublic',
+    'canKnowledgeHistory',
+    'canKnowledgeRestore',
+] as $capability){
+    ok(str_contains($helpController,$capability),"HelpController expone {$capability}");
+}
+ok(str_contains($manual,'$canKnowledge&&!$canKnowledgeDraft'),'Solicitante recibe ayuda sin instrucciones editoriales');
+ok(str_contains($manual,'$canKnowledgeDraft'),'Crear borrador depende de capacidad editorial');
+ok(str_contains($manual,'$canKnowledgePublishPublic'),'Publicación para solicitantes depende de capacidad administrativa');
+ok(str_contains($manual,'$canKnowledgeRestore'),'Restauración depende de capacidad administrativa');
+ok(str_contains($tour,'Crear borrador'),'Tutorial explica borradores');
+ok(str_contains($tour,'Enviar a revisión'),'Tutorial explica revisión');
+ok(str_contains($tour,'Publicado para soporte'),'Tutorial explica publicación interna');
+ok(str_contains($tour,'Disponible para solicitantes'),'Tutorial explica publicación pública');
+ok(str_contains($tour,'Usar como referencia'),'Tutorial de ticket explica referencias');
+ok(!str_contains($tour,'estado, visibilidad, categoría'),'Tutorial elimina copy legacy de visibilidad');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
