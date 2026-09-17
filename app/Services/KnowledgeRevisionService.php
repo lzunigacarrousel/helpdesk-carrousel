@@ -23,7 +23,7 @@ final class KnowledgeRevisionService
     public static function nextRevisionNumber(array $revisionNumbers): int
     {
         if($revisionNumbers===[])return 1;
-        $numbers=array_map(static fn($n):(int)=>(int)$n,$revisionNumbers);
+        $numbers=array_map(static fn($n): int => (int)$n,$revisionNumbers);
         return max($numbers)+1;
     }
 
