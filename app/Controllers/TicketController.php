@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService,SolutionSuggestionService};
 use PDO;
 
 final class TicketController
@@ -47,6 +47,20 @@ final class TicketController
 
         ]);
 
+    }
+
+    public function publicKnowledgeSuggestions(): void
+    {
+        $query=trim((string)($_GET['q']??''));
+        $categoryId=(int)($_GET['category_id']??0);
+        $items=(new SolutionSuggestionService())->forRequesterDraft([
+            'description'=>$query,
+            'category_id'=>$categoryId,
+        ],3);
+
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, max-age=0');
+        echo json_encode(['items'=>$items],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
 
     public function publicStore():void{
