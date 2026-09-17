@@ -12,12 +12,24 @@ final class SolutionSuggestionService
         $terms=$this->terms((string)($ticket['subject']??'').' '.(string)($ticket['description']??''));
         $category=(int)($ticket['category_id']??0);$park=(int)($ticket['park_id']??0);$items=[];
 
-        $q=$pdo->query("SELECT ka.id,ka.article_number,ka.title,ka.summary,ka.content,ka.category_id,ka.visibility,ka.updated_at
-            FROM knowledge_articles ka WHERE ka.status='PUBLISHED' ORDER BY ka.updated_at DESC LIMIT 80");
+        $q=$pdo->query("SELECT ka.id,ka.article_number,kr.id revision_id,kr.title,kr.summary,kr.content,kr.category_id,kr.updated_at
+            FROM knowledge_articles ka
+            JOIN knowledge_revisions kr ON kr.id=ka.current_internal_revision_id
+            WHERE ka.lifecycle_status='ACTIVE'
+            ORDER BY kr.updated_at DESC LIMIT 80");
         foreach($q->fetchAll() as $r){
             $score=$this->score($r['title'].' '.($r['summary']??'').' '.strip_tags((string)$r['content']),$terms,$category,(int)($r['category_id']??0),$park,0);
             if($score<18)continue;
-            $items[]=['type'=>'ARTICLE','id'=>(int)$r['id'],'number'=>$r['article_number'],'title'=>$r['title'],'summary'=>$r['summary']?:mb_strimwidth(strip_tags((string)$r['content']),0,180,'…'),'score'=>$score,'url'=>APP_BASE_URL.'/knowledge/view?id='.(int)$r['id']];
+            $items[]=[
+                'type'=>'ARTICLE',
+                'id'=>(int)$r['id'],
+                'revision_id'=>(int)$r['revision_id'],
+                'number'=>$r['article_number'],
+                'title'=>$r['title'],
+                'summary'=>$r['summary']?:mb_strimwidth(strip_tags((string)$r['content']),0,180,'…'),
+                'score'=>$score,
+                'url'=>APP_BASE_URL.'/knowledge/view?id='.(int)$r['id'],
+            ];
         }
 
         $q=$pdo->query("SELECT kp.id,kp.problem_number,kp.title,kp.description,kp.root_cause,kp.workaround,kp.permanent_solution,kp.category_id,kp.park_id,kp.occurrence_count,kp.updated_at,
