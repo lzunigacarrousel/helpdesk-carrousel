@@ -308,6 +308,73 @@ El controlador:
 
 Validación contractual: GREEN.
 
+### Tasks 5–12 — Integración funcional y pulido
+Estado: ✅ implementadas a nivel de repositorio; ⏳ validación integral pendiente en PC TEST.
+
+#### Task 5 — Lectura/UI versionada
+- lectura interna mediante `current_internal_revision_id`;
+- lectura para solicitantes mediante `current_public_revision_id`;
+- borradores/revisión visibles solo para perfiles editoriales;
+- formulario sin selector legacy de visibilidad;
+- copy: `Borrador`, `En revisión`, `Publicado para soporte`, `Disponible para solicitantes`;
+- acciones secundarias agrupadas en `Más acciones`.
+
+#### Task 6 — Historial, comparación y restauración
+- rutas `/knowledge/history` y `/knowledge/compare`;
+- comparación de Título, Resumen, Contenido y Categoría;
+- restauración crea revisión borrador nueva;
+- comparar no muta revisiones ni punteros.
+
+#### Task 7 — Candidatos a conocimiento
+- `KnowledgeCandidateService`;
+- solo casos `RESOLVED/CLOSED`;
+- exige solución útil + contexto estructurado;
+- señales: causa raíz, problema conocido, recurrencia o reapertura;
+- CTA `Crear borrador` nunca publica automáticamente.
+
+#### Task 8 — Usar como referencia
+- `KnowledgeReferenceService`;
+- soporta conocimiento, problema conocido y ticket resuelto;
+- registra `ticket_resolution_references`;
+- registra evento de ticket por tipo de referencia;
+- precarga causa, solución y prevención;
+- el contenido permanece editable;
+- usar referencia no cambia el estado del ticket.
+
+#### Task 9 — Sugerencias internas
+- `SolutionSuggestionService` usa revisión interna vigente;
+- solo artículos activos;
+- conserva problemas conocidos y tickets resueltos como fuentes;
+- no muestra score numérico crudo;
+- ofrece `Usar como referencia`.
+
+#### Task 10 — Autoservicio
+- máximo 3 artículos;
+- solo `current_public_revision_id`;
+- bloque dinámico `Esto podría ayudarte`;
+- el solicitante puede abrir contenido público sin abandonar el formulario;
+- `Enviar solicitud` siempre permanece disponible.
+
+#### Task 11 — Métricas
+- `KnowledgeMetricsService`;
+- eventos append-only `SUGGESTED`, `OPENED`, `USED_REFERENCE`;
+- impresiones internas y públicas registradas;
+- aperturas internas y públicas registradas;
+- uso de referencia registrado;
+- efectividad = referencia usada -> resolución posterior -> sin reapertura posterior;
+- no se duplican `RESOLVED/REOPENED` como eventos de métrica.
+
+#### Task 12 — Manual/tutorial
+- manual segmentado por capacidades del perfil;
+- solicitante solo recibe ayuda de autoservicio;
+- técnico recibe borradores, envío a revisión y uso como referencia;
+- Admin/Semiadmin reciben revisión, publicación, historial y restauración;
+- tutorial actualizado con el workflow versionado;
+- eliminada terminología legacy de visibilidad en la ayuda de conocimiento.
+
+Validaciones contractuales realizadas mediante lectura del repositorio: GREEN.
+Pruebas que requieren entorno completo, MariaDB, CSS/runtime y navegación real: pendientes de PC TEST/gate final.
+
 ## Estado actual exacto
 
 - Diseño arquitectónico: ✅ aprobado.
@@ -315,7 +382,7 @@ Validación contractual: GREEN.
 - Log de continuidad: ✅ actualizado.
 - Backlog transversal: ✅ registrado.
 - Plan de implementación TDD: ✅ escrito.
-- Código funcional Fase 9: 🟡 Tasks 1–4 implementadas a nivel de repositorio; integración/PC TEST pendiente.
+- Código funcional Fase 9: 🟡 Tasks 1–12 implementadas a nivel de repositorio; PC TEST y gate final pendientes.
 - Migración Fase 9: ✅ creada; ⏳ no ejecutada aún en PC TEST.
 - BD PC TEST: sin cambios de Fase 9.
 - Producción: sin cambios.
