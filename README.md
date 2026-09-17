@@ -46,12 +46,14 @@ Migraciones incrementales actualmente conservadas para instalaciones existentes:
 - `MIGRAR_TICKET_WORK_REPORTS_20260912.sql`
 - `MIGRAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`
 - `MIGRAR_FASE5_ACTIVIDADES_20260913.sql`
+- `MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`
 
 Verificadores asociados:
 
 - `VERIFICAR_TICKET_WORK_REPORTS_20260912.sql`
 - `VERIFICAR_EXTERNAL_REPORT_TEMPLATES_20260912.sql`
 - `VERIFICAR_FASE5_ACTIVIDADES_20260913.sql`
+- `VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`
 
 Una instalación nueva debe construirse desde `database/INSTALAR.sql`. Las migraciones incrementales existen para actualizar una instalación previa sin reconstruirla.
 
@@ -148,7 +150,7 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
 | 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
 | 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
-| 9 | Conocimiento | **Siguiente fase** |
+| 9 | Conocimiento | **Implementada en código — pendiente validación PC TEST** |
 | 10 | Reportes | Parcialmente adelantada; falta consolidación final |
 | 11 | Manual | Parcialmente adelantada; consolidación final pendiente |
 | 12 | Validación integral | Pendiente |
@@ -218,6 +220,37 @@ La Fase 8 incorpora una valoración interna de IT sobre cada ciclo finalizado de
 - esta valoración es independiente de `ticket_feedback.nps_score`, que corresponde al feedback del solicitante.
 
 **BD: sin cambios.** La fase reutiliza `ticket_events` como fuente de verdad y no crea tablas, columnas, índices ni migraciones.
+
+### Fase 9 — Conocimiento versionado
+
+Estado: **IMPLEMENTADA EN CÓDIGO — pendiente validación integral en PC TEST**.
+
+La Fase 9 convierte Conocimiento en un flujo versionado y reutilizable:
+
+- `knowledge_articles` conserva la identidad estable del artículo;
+- `knowledge_revisions` conserva cada versión editorial;
+- publicación para soporte y disponibilidad para solicitantes usan punteros independientes;
+- TECHNICIAN puede crear/mejorar borradores; revisión y publicación usan permisos separados;
+- restaurar una versión crea un borrador nuevo y no sobrescribe una publicación vigente;
+- tickets resueltos pueden sugerir crear conocimiento cuando existe documentación útil;
+- sugerencias internas permiten **Usar como referencia** sin resolver automáticamente el caso;
+- autoservicio muestra hasta tres artículos públicos relacionados y nunca bloquea la creación del ticket;
+- métricas de conocimiento registran sugerido, abierto y usado, mientras la efectividad se deriva del historial real de resolución/reapertura;
+- búsqueda global, Problemas conocidos y Dashboard consumen también el modelo versionado.
+
+Migración incremental:
+
+`database/MIGRAR_FASE9_CONOCIMIENTO_20260916.sql`
+
+Verificación:
+
+`database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql`
+
+Gate local:
+
+`VALIDAR_FASE9.bat`
+
+**Producción no ha sido migrada a Fase 9. La migración debe validarse primero en PC TEST.**
 
 ## Flujo Git oficial
 
