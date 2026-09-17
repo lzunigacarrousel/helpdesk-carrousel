@@ -55,10 +55,79 @@ final class ProblemController
         Auth::requirePermission('problems.view');$id=(int)($_GET['id']??0);$pdo=Database::pdo();
         $q=$pdo->prepare("SELECT kp.*,c.name category_name,p.name park_name,u.full_name owner_name,cb.full_name created_by_name FROM known_problems kp LEFT JOIN ticket_categories c ON c.id=kp.category_id LEFT JOIN parks p ON p.id=kp.park_id LEFT JOIN users u ON u.id=kp.owner_user_id LEFT JOIN users cb ON cb.id=kp.created_by WHERE kp.id=? LIMIT 1");$q->execute([$id]);$problem=$q->fetch();if(!$problem)throw new \RuntimeException('Problema conocido no encontrado.');
         $o=$pdo->prepare("SELECT t.id,t.ticket_number,t.subject,t.status,t.priority,t.created_at,t.updated_at,p.name park_name,c.name category_name FROM problem_occurrences po JOIN tickets t ON t.id=po.ticket_id LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN ticket_categories c ON c.id=t.category_id WHERE po.problem_id=? AND t.deleted_at IS NULL ORDER BY t.created_at DESC");$o->execute([$id]);
-        $a=$pdo->prepare("SELECT ka.*,ps.is_primary,u.full_name author_name FROM problem_solutions ps JOIN knowledge_articles ka ON ka.id=ps.article_id LEFT JOIN users u ON u.id=ka.author_user_id WHERE ps.problem_id=? ORDER BY ps.is_primary DESC,ka.updated_at DESC");$a->execute([$id]);
+        $knowledgeEditor=Auth::can('knowledge.draft_manage')
+            ||Auth::can('knowledge.review')
+            ||Auth::can('knowledge.publish_internal')
+            ||Auth::can('knowledge.publish_public')
+            ||Auth::can('knowledge.history')
+            ||Auth::can('knowledge.restore');
+
+        if($knowledgeEditor){
+            $a=$pdo->prepare(
+                "SELECT ka.id,ka.article_number,ps.is_primary,
+                        COALESCE(wr.title,ir.title,lr.title,ka.title) title,
+                        CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED'
+                             ELSE COALESCE(wr.state,ir.state,lr.state,ka.status) END status,
+                        (ka.current_public_revision_id IS NOT NULL) public_available,
+                        u.full_name author_name
+                 FROM problem_solutions ps
+                 JOIN knowledge_articles ka ON ka.id=ps.article_id
+                 LEFT JOIN knowledge_revisions wr ON wr.id=(
+                     SELECT x.id FROM knowledge_revisions x
+                     WHERE x.article_id=ka.id AND x.state IN('DRAFT','IN_REVIEW')
+                     ORDER BY x.revision_number DESC LIMIT 1
+                 )
+                 LEFT JOIN knowledge_revisions ir ON ir.id=ka.current_internal_revision_id
+                 LEFT JOIN knowledge_revisions lr ON lr.id=(
+                     SELECT y.id FROM knowledge_revisions y
+                     WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
+                 )
+                 LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                 WHERE ps.problem_id=?
+                 ORDER BY ps.is_primary DESC,ka.updated_at DESC"
+            );
+        }else{
+            $a=$pdo->prepare(
+                "SELECT ka.id,ka.article_number,ps.is_primary,kr.title,kr.state status,
+                        (ka.current_public_revision_id IS NOT NULL) public_available,
+                        u.full_name author_name
+                 FROM problem_solutions ps
+                 JOIN knowledge_articles ka ON ka.id=ps.article_id
+                 JOIN knowledge_revisions kr ON kr.id=ka.current_internal_revision_id
+                 LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                 WHERE ps.problem_id=? AND ka.lifecycle_status='ACTIVE'
+                 ORDER BY ps.is_primary DESC,kr.updated_at DESC"
+            );
+        }
+        $a->execute([$id]);
         $tl=$pdo->prepare("SELECT al.*,u.full_name actor_name FROM audit_logs al LEFT JOIN users u ON u.id=al.actor_user_id WHERE al.entity_type='problem' AND al.entity_id=? ORDER BY al.created_at DESC LIMIT 40");$tl->execute([(string)$id]);
         $availableTickets=Auth::can('problems.manage')?$this->availableTickets($pdo,$id):[];
-        $availableArticles=[];if(Auth::can('problems.manage')&&Auth::can('knowledge.view')){$s=$pdo->prepare("SELECT ka.id,ka.article_number,ka.title FROM knowledge_articles ka WHERE ka.status<>'ARCHIVED' AND NOT EXISTS(SELECT 1 FROM problem_solutions ps WHERE ps.problem_id=? AND ps.article_id=ka.id) ORDER BY ka.updated_at DESC LIMIT 100");$s->execute([$id]);$availableArticles=$s->fetchAll();}
+        $availableArticles=[];
+        if(Auth::can('problems.manage')&&Auth::can('knowledge.view')){
+            $s=$pdo->prepare(
+                "SELECT ka.id,ka.article_number,COALESCE(wr.title,ir.title,lr.title,ka.title) title
+                 FROM knowledge_articles ka
+                 LEFT JOIN knowledge_revisions wr ON wr.id=(
+                     SELECT x.id FROM knowledge_revisions x
+                     WHERE x.article_id=ka.id AND x.state IN('DRAFT','IN_REVIEW')
+                     ORDER BY x.revision_number DESC LIMIT 1
+                 )
+                 LEFT JOIN knowledge_revisions ir ON ir.id=ka.current_internal_revision_id
+                 LEFT JOIN knowledge_revisions lr ON lr.id=(
+                     SELECT y.id FROM knowledge_revisions y
+                     WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
+                 )
+                 WHERE ka.lifecycle_status='ACTIVE'
+                   AND NOT EXISTS(
+                       SELECT 1 FROM problem_solutions ps
+                       WHERE ps.problem_id=? AND ps.article_id=ka.id
+                   )
+                 ORDER BY ka.updated_at DESC
+                 LIMIT 100"
+            );
+            $s->execute([$id]);
+            $availableArticles=$s->fetchAll();
+        }
         View::render('problems/show',['user'=>Auth::user(),'problem'=>$problem,'occurrences'=>$o->fetchAll(),'articles'=>$a->fetchAll(),'timeline'=>$tl->fetchAll(),'availableArticles'=>$availableArticles,'availableTickets'=>$availableTickets,'statuses'=>self::STATUSES,'categories'=>$this->categories(),'parks'=>$this->parks(),'owners'=>$this->owners(),'flash'=>Flash::pull()]);
     }
 
@@ -87,7 +156,7 @@ final class ProblemController
     public function linkArticle(): void
     {
         Auth::requirePermission('problems.manage');Csrf::verify($_POST['_csrf']??null);$problemId=(int)($_POST['problem_id']??0);$articleId=(int)($_POST['article_id']??0);$primary=!empty($_POST['is_primary'])?1:0;if($problemId<=0||$articleId<=0)throw new \RuntimeException('Selecciona un artículo válido.');$pdo=Database::pdo();
-        $check=$pdo->prepare("SELECT COUNT(*) FROM knowledge_articles WHERE id=? AND status<>'ARCHIVED'");$check->execute([$articleId]);if((int)$check->fetchColumn()!==1)throw new \RuntimeException('El artículo seleccionado no está disponible.');
+        $check=$pdo->prepare("SELECT COUNT(*) FROM knowledge_articles WHERE id=? AND lifecycle_status='ACTIVE'");$check->execute([$articleId]);if((int)$check->fetchColumn()!==1)throw new \RuntimeException('El artículo seleccionado no está disponible.');
         if($primary)$pdo->prepare('UPDATE problem_solutions SET is_primary=0 WHERE problem_id=?')->execute([$problemId]);$s=$pdo->prepare('INSERT INTO problem_solutions(problem_id,article_id,is_primary,linked_at) VALUES(?,?,?,NOW()) ON DUPLICATE KEY UPDATE is_primary=VALUES(is_primary)');$s->execute([$problemId,$articleId,$primary]);Audit::log('PROBLEM_ARTICLE_LINKED','problem',$problemId,null,['article_id'=>$articleId,'is_primary'=>$primary]);Flash::set('Artículo relacionado.','success');header('Location: '.APP_BASE_URL.'/problems/view?id='.$problemId);exit;
     }
 
