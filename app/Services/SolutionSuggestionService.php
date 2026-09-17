@@ -61,7 +61,15 @@ final class SolutionSuggestionService
 
         usort($items,fn($a,$b)=>$b['score']<=>$a['score']);
         $dedup=[];$out=[];
-        foreach($items as $item){$key=$item['type'].'-'.$item['id'];if(isset($dedup[$key]))continue;$dedup[$key]=1;$item['score']=min(99,max(1,(int)$item['score']));$out[]=$item;if(count($out)>=$limit)break;}
+        foreach($items as $item){
+            $key=$item['type'].'-'.$item['id'];
+            if(isset($dedup[$key]))continue;
+            $dedup[$key]=1;
+            $item['score']=min(99,max(1,(int)$item['score']));
+            $out[]=$item;
+            if(count($out)>=$limit)break;
+        }
+        $this->recordSuggestedBatch($out,(int)($ticket['id']??0)?:null,'INTERNAL_TICKET');
         return $out;
     }
 
@@ -105,7 +113,46 @@ final class SolutionSuggestionService
         }
 
         usort($items,static fn(array $a,array $b):int=>$b['score']<=>$a['score']);
-        return array_slice($items,0,$limit);
+        $out=array_slice($items,0,$limit);
+        $this->recordSuggestedBatch($out,null,'SELF_SERVICE');
+        return $out;
+    }
+
+    private function recordSuggestedBatch(array $items,?int $ticketId,string $context): void
+    {
+        try{
+            $metrics=new KnowledgeMetricsService();
+            foreach($items as $index=>$item){
+                $type=(string)($item['type']??'');
+                $reference=match($type){
+                    'ARTICLE'=>[
+                        'type'=>'KNOWLEDGE',
+                        'article_id'=>(int)($item['id']??0),
+                        'revision_id'=>(int)($item['revision_id']??0),
+                    ],
+                    'PROBLEM'=>[
+                        'type'=>'PROBLEM',
+                        'problem_id'=>(int)($item['id']??0),
+                    ],
+                    'TICKET'=>[
+                        'type'=>'TICKET',
+                        'source_ticket_id'=>(int)($item['id']??0),
+                    ],
+                    default=>null,
+                };
+                if($reference===null)continue;
+                $metrics->recordSuggested(
+                    $ticketId,
+                    null,
+                    $context,
+                    $reference,
+                    $index+1,
+                    isset($item['score'])?(int)$item['score']:null
+                );
+            }
+        }catch(\Throwable){
+            // La telemetría nunca debe bloquear sugerencias ni autoservicio.
+        }
     }
 
     private function score(string $text,array $terms,int $ticketCategory,int $candidateCategory,int $ticketPark,int $candidatePark): int
