@@ -88,15 +88,64 @@ final class SearchController
             }
 
             if(Auth::can('knowledge.view')&&!$isExternal){
-                $manage=Auth::can('knowledge.manage');
+                $editor=Auth::can('knowledge.draft_manage')
+                    ||Auth::can('knowledge.review')
+                    ||Auth::can('knowledge.publish_internal')
+                    ||Auth::can('knowledge.publish_public')
+                    ||Auth::can('knowledge.history')
+                    ||Auth::can('knowledge.restore');
                 $internal=(($user['access_type']??'INTERNAL')==='INTERNAL'&&Auth::role()!=='REQUESTER');
-                $visibilityWhere=$manage?'1=1':($internal?"ka.status='PUBLISHED'":"ka.status='PUBLISHED' AND ka.visibility='PUBLIC'");
-                $s=$pdo->prepare("SELECT ka.id,ka.article_number,ka.title,ka.summary,ka.content,ka.status,ka.visibility,ka.updated_at,c.name category_name
-                    FROM knowledge_articles ka
-                    LEFT JOIN ticket_categories c ON c.id=ka.category_id
-                    WHERE {$visibilityWhere} AND (ka.title LIKE ? OR ka.summary LIKE ? OR ka.content LIKE ? OR ka.article_number LIKE ? OR c.name LIKE ?)
-                    ORDER BY (ka.status='PUBLISHED') DESC,ka.updated_at DESC LIMIT 20");
-                $s->execute(array_fill(0,5,$like));$articles=$s->fetchAll();
+
+                if($editor){
+                    $s=$pdo->prepare(
+                        "SELECT ka.id,ka.article_number,
+                                COALESCE(wr.title,ir.title,lr.title,ka.title) title,
+                                COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) summary,
+                                COALESCE(wr.content,ir.content,lr.content,ka.content) content,
+                                CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED'
+                                     ELSE COALESCE(wr.state,ir.state,lr.state,ka.status) END status,
+                                COALESCE(wr.updated_at,ir.updated_at,lr.updated_at,ka.updated_at) updated_at,
+                                c.name category_name,
+                                (ka.current_public_revision_id IS NOT NULL) public_available
+                         FROM knowledge_articles ka
+                         LEFT JOIN knowledge_revisions wr ON wr.id=(
+                             SELECT x.id FROM knowledge_revisions x
+                             WHERE x.article_id=ka.id AND x.state IN('DRAFT','IN_REVIEW')
+                             ORDER BY x.revision_number DESC LIMIT 1
+                         )
+                         LEFT JOIN knowledge_revisions ir ON ir.id=ka.current_internal_revision_id
+                         LEFT JOIN knowledge_revisions lr ON lr.id=(
+                             SELECT y.id FROM knowledge_revisions y
+                             WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
+                         )
+                         LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id)
+                         WHERE (
+                             COALESCE(wr.title,ir.title,lr.title,ka.title) LIKE ?
+                             OR COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) LIKE ?
+                             OR COALESCE(wr.content,ir.content,lr.content,ka.content) LIKE ?
+                             OR ka.article_number LIKE ?
+                             OR c.name LIKE ?
+                         )
+                         ORDER BY (ka.lifecycle_status='ARCHIVED'),COALESCE(wr.updated_at,ir.updated_at,lr.updated_at,ka.updated_at) DESC
+                         LIMIT 20"
+                    );
+                }else{
+                    $pointer=$internal?'current_internal_revision_id':'current_public_revision_id';
+                    $s=$pdo->prepare(
+                        "SELECT ka.id,ka.article_number,kr.title,kr.summary,kr.content,
+                                kr.state status,kr.updated_at,c.name category_name,
+                                (ka.current_public_revision_id IS NOT NULL) public_available
+                         FROM knowledge_articles ka
+                         JOIN knowledge_revisions kr ON kr.id=ka.{$pointer}
+                         LEFT JOIN ticket_categories c ON c.id=kr.category_id
+                         WHERE ka.lifecycle_status='ACTIVE'
+                           AND (kr.title LIKE ? OR kr.summary LIKE ? OR kr.content LIKE ? OR ka.article_number LIKE ? OR c.name LIKE ?)
+                         ORDER BY kr.updated_at DESC
+                         LIMIT 20"
+                    );
+                }
+                $s->execute(array_fill(0,5,$like));
+                $articles=$s->fetchAll();
             }
         }
 
