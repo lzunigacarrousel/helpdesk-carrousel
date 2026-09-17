@@ -106,7 +106,96 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <?php endif; ?>
 <?php if($isSupport): ?><section class="manual-section" id="soporte" data-manual-section><div class="manual-section-head"><span>03</span><div><h2>Centro de soporte</h2><p>Prioriza por alcance y tiempo, continúa la conversación y documenta correctamente esperas y solución.</p></div></div><div class="manual-cards"><article><strong>Cola de trabajo</strong><p><b>Todos</b> reúne los casos activos que puedes consultar según tu alcance. Usa <b>Míos</b>, <b>Sin asignar</b>, <b>Por vencer</b>, <b>Vencidos</b>, <b>En espera</b>, <b>Reabiertos</b> o <b>Críticos</b> para concentrarte.</p></article><article><strong>Clasificación ITSM</strong><p>El Helpdesk propone automáticamente Incidente o Solicitud de servicio, Impacto y Urgencia a partir de la categoría y lo descrito por el usuario. Impacto + Urgencia producen la prioridad inicial. Soporte debe validar la clasificación y, si ajusta manualmente la prioridad, dejar motivo y auditoría.</p></article><article><strong>Resolución objetivo</strong><p>El SLA muestra el tiempo restante, cuánto del objetivo ya se utilizó y una lectura operativa: Dentro de objetivo, Atención requerida, Próximo a vencer o Vencido.</p></article><article><strong>Tomar un caso</strong><p>Usa <b>Tomar</b> cuando realmente puedas iniciar trabajo. Solo puedes tomar casos disponibles dentro de tu alcance.</p></article><article><strong>En espera</strong><p>Selecciona la razón real: usuario, proveedor, compra, visita, aprobación u otra dependencia. Los informes conservan cuánto tiempo se acumuló en cada motivo aunque cambie durante el mismo caso.</p></article><article><strong>Respuesta y conversación interna</strong><p><b>Respuesta al usuario</b> es visible para el solicitante. <b>Conversación interna</b> es solo para el equipo de soporte.</p></article><article><strong>Resolver</strong><p>Registra qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Al resolver, el cierre final queda pendiente de confirmación del solicitante; IT puede reabrir si detecta que aún falta trabajo.</p></article></div></section><?php endif; ?>
 
-  <?php if($canProblems||$canKnowledge): ?><section class="manual-section" id="conocimiento" data-manual-section><div class="manual-section-head"><span><?= $isSupport?'04':'03' ?></span><div><h2>Problemas y conocimiento</h2><p>Convierte recurrencias y buenas resoluciones en información útil para futuros casos.</p></div></div><div class="manual-cards"><?php if($canProblems): ?><article><strong>Problemas conocidos</strong><p>Relaciona tickets recurrentes y documenta causa, solución temporal y solución permanente.</p><a href="<?= APP_BASE_URL ?>/problems">Abrir problemas →</a></article><?php endif; ?><?php if($canKnowledge): ?><article><strong>Base de conocimiento</strong><p>Crea artículos en borrador, revísalos y publícalos cuando estén listos.</p><a href="<?= APP_BASE_URL ?>/knowledge">Abrir conocimiento →</a></article><?php endif; ?><article><strong>Posibles soluciones</strong><p>El ticket puede sugerir conocimiento, problemas conocidos y casos anteriores para evitar empezar desde cero.</p></article></div></section><?php endif; ?>
+  <?php if($canProblems||$canKnowledge): ?>
+  <section class="manual-section" id="conocimiento" data-manual-section>
+    <div class="manual-section-head">
+      <span><?= $isSupport?'04':'03' ?></span>
+      <div>
+        <h2>Problemas y conocimiento</h2>
+        <p>Convierte recurrencias y buenas resoluciones en información útil sin exponer borradores o detalles internos a quien no corresponda.</p>
+      </div>
+    </div>
+
+    <div class="manual-cards">
+      <?php if($canProblems): ?>
+        <article>
+          <strong>Problemas conocidos</strong>
+          <p>Relaciona casos recurrentes y documenta causa, solución temporal y solución permanente. Úsalo cuando el mismo problema aparece varias veces.</p>
+          <a href="<?= APP_BASE_URL ?>/problems">Abrir problemas →</a>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledge&&!$canKnowledgeDraft): ?>
+        <article>
+          <strong>Información útil durante tu solicitud</strong>
+          <p>Mientras describes un problema, el Helpdesk puede mostrar hasta tres artículos disponibles para solicitantes. Puedes abrirlos y, si todavía necesitas ayuda, continuar con la solicitud normalmente.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgeDraft): ?>
+        <article>
+          <strong>Crear borrador</strong>
+          <p>Desde Conocimiento crea una solución nueva o inicia el borrador desde un caso resuelto. Guardar un borrador nunca lo publica automáticamente.</p>
+          <a href="<?= APP_BASE_URL ?>/knowledge/new">Crear borrador →</a>
+        </article>
+        <article>
+          <strong>Enviar a revisión</strong>
+          <p>Cuando el contenido esté claro y completo, usa <b>Enviar a revisión</b>. Después de enviarlo ya no debes tratarlo como una edición libre: espera la revisión o las observaciones.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($isSupport): ?>
+        <article>
+          <strong>Usar como referencia</strong>
+          <p>En un ticket revisa las soluciones sugeridas y usa <b>Usar como referencia</b> cuando una realmente aplique. El sistema precarga causa, solución y prevención cuando existan; todo sigue editable y el ticket no se resuelve por esa acción.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgeReview): ?>
+        <article>
+          <strong>Revisar antes de publicar</strong>
+          <p>Una revisión puede aprobarse o devolverse a borrador con una observación clara. La revisión editorial evita reemplazar silenciosamente conocimiento que ya está en uso.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgePublishInternal): ?>
+        <article>
+          <strong>Publicado para soporte</strong>
+          <p>La primera publicación convierte esa versión en la vigente para el equipo interno. Una versión publicada no se edita directamente: cualquier mejora crea un borrador nuevo.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgePublishPublic): ?>
+        <article>
+          <strong>Disponible para solicitantes</strong>
+          <p>Esta es una segunda acción separada. Solo una versión que ya fue publicada para soporte puede habilitarse para autoservicio; hacerlo no cambia automáticamente otros borradores o revisiones.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgeHistory): ?>
+        <article>
+          <strong>Comparar versiones</strong>
+          <p>Abre el historial para revisar versiones anteriores y comparar Título, Resumen, Contenido y Categoría antes de decidir qué recuperar.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledgeRestore): ?>
+        <article>
+          <strong>Restaurar versión</strong>
+          <p>Restaurar una versión antigua crea un borrador nuevo basado en ella. La versión vigente continúa activa hasta que el nuevo borrador complete revisión y publicación.</p>
+        </article>
+      <?php endif; ?>
+
+      <?php if($canKnowledge): ?>
+        <article>
+          <strong>Base de conocimiento</strong>
+          <p>Busca primero si ya existe una solución antes de documentar otra. Los artículos visibles siempre respetan el nivel de acceso de tu perfil.</p>
+          <a href="<?= APP_BASE_URL ?>/knowledge">Abrir conocimiento →</a>
+        </article>
+      <?php endif; ?>
+    </div>
+  </section>
+  <?php endif; ?>
 
   <?php if($canManagement): ?><section class="manual-section" id="gestion" data-manual-section><div class="manual-section-head"><span>05</span><div><h2>Dashboard e informes</h2><p>Usa métricas para entender qué está pasando y los informes para explicar el detalle.</p></div></div><div class="manual-cards"><article><strong>Dashboard</strong><p>Analiza volumen, tiempos, carga y tendencias dentro de tu alcance.</p><a href="<?= APP_BASE_URL ?>/gestion">Abrir Dashboard →</a></article><article><strong>Informes</strong><p>Consulta tiempos, cambios de estado, esperas y solución. La exportación oficial es Excel (.xlsx); la hoja de esperas conserva los minutos históricos por cada motivo.</p><a href="<?= APP_BASE_URL ?>/gestion/informes">Abrir Informes →</a></article></div></section><?php endif; ?>
 
