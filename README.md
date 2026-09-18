@@ -150,8 +150,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
 | 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
 | 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
-| 9 | Conocimiento | **Implementada en código — pendiente validación PC TEST** |
-| 10 | Reportes | Parcialmente adelantada; falta consolidación final |
+| 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |
+| 10 | Reportes | **EN CURSO — consolidación final** |
 | 11 | Manual | Parcialmente adelantada; consolidación final pendiente |
 | 12 | Validación integral | Pendiente |
 
