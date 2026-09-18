@@ -13,6 +13,7 @@ echo ============================================================
 echo.
 
 call :run tests\phase11_manual_profile_navigation_regression.php "Fase 11 - perfil y navegacion del manual"
+call :run tests\phase11_manual_profile_content_regression.php "Fase 11 - contenido por perfil"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
