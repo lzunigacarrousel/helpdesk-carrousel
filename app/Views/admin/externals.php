@@ -157,7 +157,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="Documentación"><span class="external-template-pill"><?= htmlspecialchars($templateLabels[$accessTemplate]??'Soporte general') ?></span></td>
         <td data-label="Permisos"><?= $x['can_comment']?'Responder':'' ?><?= $x['can_comment']&&$x['can_upload']?' · ':'' ?><?= $x['can_upload']?'Adjuntar':'' ?></td>
         <td data-label="Desde" class="data-table-nowrap"><?= htmlspecialchars(date('d/m/Y H:i',strtotime($x['granted_at']))) ?></td>
-        <td data-label="Acción"><div class="data-table-actions"><form method="post" action="<?= APP_BASE_URL ?>/admin/externos/revocar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$x['ticket_id'] ?>"><input type="hidden" name="user_id" value="<?= (int)$x['user_id'] ?>"><button class="btn btn-outline-secondary btn-sm">Revocar acceso</button></form></div></td>
+        <td data-label="Acción"><div class="data-table-actions"><form method="post" action="<?= APP_BASE_URL ?>/admin/externos/revocar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="ticket_id" value="<?= (int)$x['ticket_id'] ?>"><input type="hidden" name="user_id" value="<?= (int)$x['user_id'] ?>"><button class="btn btn-danger btn-sm">Revocar acceso</button></form></div></td>
       </tr>
     <?php endforeach; ?>
     <?php if(!$access): ?><tr><td class="data-table-empty" data-label="" colspan="6">No hay casos compartidos con proveedores.</td></tr><?php endif; ?>
