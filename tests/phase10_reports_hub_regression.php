@@ -15,7 +15,7 @@ $view=(string)file_get_contents($root.'/app/Views/management/reports.php');
 $readme=(string)file_get_contents($root.'/README.md');
 $router=(string)file_get_contents($root.'/public/index.php');
 
-ok(str_contains($readme,'| 10 | Reportes | **EN CURSO — consolidación final** |'),'Roadmap marca Fase 10 Reportes en curso');
+ok(str_contains($readme,'| 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |'),'Roadmap marca Fase 10 Reportes implementada');
 ok(str_contains($view,'report-catalog-grid'),'Informes expone hub compacto');
 ok(str_contains($view,'Tickets y SLA'),'Hub conserva informe principal');
 ok(str_contains($view,"APP_BASE_URL ?>/agenda"),'Hub enlaza Agenda y actividades');
