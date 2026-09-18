@@ -21,3 +21,19 @@ Rama: `main`
 ## Task 1 — Perfil + navegación por tareas
 
 Estado: en implementación.
+
+## Task 1 — Perfil + navegación por tareas · IMPLEMENTADA
+
+- `HelpController` define seis perfiles funcionales del Manual: Solicitante, Técnico, Supervisor, Gerencia, Administrador/Semiadmin y Colaborador.
+- El Manual muestra un bloque contextual con el perfil y una descripción breve de su alcance funcional.
+- Se agregaron filtros por tema combinables con la búsqueda existente: Todo, Solicitudes, Soporte, Actividades, Conocimiento, Gestión, Administración y Ayuda/FAQ según permisos.
+- Cada sección declara su tema; el índice se sincroniza con los resultados visibles.
+- Acción `Limpiar` restablece texto + tema y devuelve foco al buscador.
+- Filtros exponen `aria-pressed` y estilos focus visibles.
+- Responsive: filtros en 2 columnas en móvil y perfil apilado sin tratar tablet como móvil.
+- `tests/phase11_manual_profile_navigation_regression.php` creado.
+- `VALIDAR_FASE11.bat` creado.
+- CI incorpora la regresión inicial de Fase 11.
+- BD: sin cambios.
+
+Siguiente: Task 2 — consolidar contenido final por perfil y eliminar instrucciones que no correspondan a cada rol/capacidad.
