@@ -24,7 +24,11 @@ ok(str_contains($controller,'current_public_revision_id'),'Lectura solicitante u
 ok(str_contains($controller,'knowledge_revisions'),'Controller lee revisiones');
 ok(str_contains($show,'Publicado para soporte'),'UI distingue publicación interna');
 ok(str_contains($show,'Disponible para solicitantes'),'UI distingue publicación pública');
-ok(str_contains($show,'En revisión'),'UI muestra estado editorial legible');
+ok(
+    str_contains($controller,"'IN_REVIEW'=>'En revisión'")
+    && str_contains($show,'$stateLabel'),
+    'UI muestra estado editorial legible mediante el mapa de estados'
+);
 ok(!str_contains(strtolower($show),'visibility'),'Detalle no expone tecnicismo visibility');
 ok(!str_contains(strtolower($show),'scope'),'Detalle no expone tecnicismo scope');
 ok(!str_contains($form,'name="visibility"'),'Formulario ya no pide visibilidad legacy');
