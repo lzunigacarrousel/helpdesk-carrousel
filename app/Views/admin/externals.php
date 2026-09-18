@@ -133,7 +133,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
               </details>
               <?php endif; ?>
 
-              <?php if(($u['status']??'')!=='DISABLED'): ?><div class="external-provider-danger"><form method="post" action="<?= APP_BASE_URL ?>/admin/externos/desactivar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><button class="btn btn-outline-secondary btn-sm" type="submit">Desactivar proveedor</button></form><small class="external-form-note">Desactivar revoca todos sus casos compartidos y sesiones vigentes.</small></div><?php else: ?><small class="external-form-note">Proveedor desactivado. Ya no puede recibir casos nuevos.</small><?php endif; ?>
+              <?php if(($u['status']??'')!=='DISABLED'): ?><div class="external-provider-danger"><form method="post" action="<?= APP_BASE_URL ?>/admin/externos/desactivar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">Desactivar proveedor</button></form><small class="external-form-note">Desactivar revoca todos sus casos compartidos y sesiones vigentes.</small></div><?php else: ?><small class="external-form-note">Proveedor desactivado. Ya no puede recibir casos nuevos.</small><?php endif; ?>
             </div>
           </div>
         </td>
