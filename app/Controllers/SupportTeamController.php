@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,View};
-use App\Services\XlsxExportService;
+use App\Services\{SupportTeamReportService,XlsxExportService};
 use PDO;
 
 final class SupportTeamController
@@ -14,12 +14,13 @@ final class SupportTeamController
     {
         $this->requireAccess();
         $pdo=Database::pdo();
-        $teamId=$this->activeTeamId($pdo);
-        $members=$this->members($pdo,$teamId);
+        $teamService=new SupportTeamReportService($pdo);
+        $teamId=$teamService->activeTeamId();
+        $members=$teamService->members($teamId);
         View::render('management/support_team',[
             'user'=>Auth::user(),
             'members'=>$members,
-            'summary'=>$this->summary($members),
+            'summary'=>$teamService->summary($members),
             'candidates'=>$this->candidates($pdo,$teamId),
             'pendingSupport'=>$this->pendingSupport($pdo),
             'canManage'=>$this->canManage(),
@@ -34,7 +35,7 @@ final class SupportTeamController
         $userId=(int)Http::post('user_id');
         if($userId<=0)throw new \RuntimeException('Selecciona un integrante válido.');
 
-        $pdo=Database::pdo();$teamId=$this->activeTeamId($pdo);
+        $pdo=Database::pdo();$teamService=new SupportTeamReportService($pdo);$teamId=$teamService->activeTeamId();
         if($teamId<=0)throw new \RuntimeException('El equipo IT no está disponible.');
         $q=$pdo->prepare("SELECT u.id,u.full_name,u.email FROM users u JOIN roles r ON r.id=u.role_id WHERE u.id=? AND u.access_type='INTERNAL' AND u.status='ACTIVE' AND u.deleted_at IS NULL AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') LIMIT 1");
         $q->execute([$userId]);$member=$q->fetch();
@@ -54,7 +55,7 @@ final class SupportTeamController
         $userId=(int)Http::post('user_id');
         if($userId<=0)throw new \RuntimeException('Integrante no válido.');
 
-        $pdo=Database::pdo();$teamId=$this->activeTeamId($pdo);
+        $pdo=Database::pdo();$teamService=new SupportTeamReportService($pdo);$teamId=$teamService->activeTeamId();
         if($teamId<=0)throw new \RuntimeException('El equipo IT no está disponible.');
         $count=$pdo->prepare("SELECT COUNT(*) FROM support_team_members stm JOIN users u ON u.id=stm.user_id WHERE stm.team_id=? AND stm.is_active=1 AND stm.ended_at IS NULL AND u.status='ACTIVE' AND u.deleted_at IS NULL");
         $count->execute([$teamId]);
@@ -78,8 +79,9 @@ final class SupportTeamController
     {
         $this->requireAccess();
         $pdo=Database::pdo();
-        $members=$this->members($pdo,$this->activeTeamId($pdo));
-        $summary=$this->summary($members);
+        $teamService=new SupportTeamReportService($pdo);
+        $members=$teamService->members($teamService->activeTeamId());
+        $summary=$teamService->summary($members);
 
         $rows=[];
         foreach($members as $m){
@@ -117,44 +119,6 @@ final class SupportTeamController
         ]);
     }
 
-    private function members(PDO $pdo,int $teamId): array
-    {
-        if($teamId<=0)return[];
-        $sql="SELECT u.id,u.full_name,u.email,u.last_login_at,r.code role_code,r.name role_name,
-            COALESCE(pos.name,'') position_name,
-            COALESCE(p.name,a.name,rg.name,'') assignment_name,
-            stm.joined_at,
-            (SELECT COUNT(*) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.status NOT IN('RESOLVED','CLOSED','CANCELLED')) active_cases,
-            (SELECT COUNT(*) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.status='IN_PROGRESS') in_progress,
-            (SELECT COUNT(*) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.status='PENDING') pending_cases,
-            (SELECT COUNT(*) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.resolved_at>=DATE_SUB(NOW(),INTERVAL 30 DAY)) resolved_30,
-            (SELECT AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.first_response_at)) FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.first_response_at IS NOT NULL) avg_first_response_min,
-            (SELECT AVG(TIMESTAMPDIFF(MINUTE,t.created_at,t.resolved_at))/60 FROM tickets t WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND t.resolved_at IS NOT NULL) avg_resolution_hours,
-            (SELECT AVG(tf.nps_score) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) avg_rating,
-            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL) nps_responses,
-            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score>=9) nps_promoters,
-            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score BETWEEN 7 AND 8) nps_passives,
-            (SELECT COUNT(*) FROM tickets t JOIN ticket_feedback tf ON tf.ticket_id=t.id WHERE t.assigned_to=u.id AND t.deleted_at IS NULL AND tf.nps_score<=6) nps_detractors
-            FROM support_team_members stm
-            JOIN support_teams st ON st.id=stm.team_id AND st.is_active=1
-            JOIN users u ON u.id=stm.user_id AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND u.status='ACTIVE'
-            JOIN roles r ON r.id=u.role_id AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN')
-            LEFT JOIN user_assignments ua ON ua.id=(SELECT MAX(x.id) FROM user_assignments x WHERE x.user_id=u.id AND x.status='ACTIVE' AND x.ends_at IS NULL)
-            LEFT JOIN positions pos ON pos.id=ua.position_id
-            LEFT JOIN parks p ON p.id=ua.park_id
-            LEFT JOIN areas a ON a.id=ua.area_id
-            LEFT JOIN regions rg ON rg.id=ua.region_id
-            WHERE stm.team_id=? AND stm.is_active=1 AND stm.ended_at IS NULL
-            ORDER BY FIELD(r.code,'TECHNICIAN','SEMIADMIN','ADMIN'),u.full_name";
-        $q=$pdo->prepare($sql);$q->execute([$teamId]);$rows=$q->fetchAll()?:[];
-        foreach($rows as &$row){
-            $responses=(int)$row['nps_responses'];
-            $row['nps_value']=$responses>0?(int)round((((int)$row['nps_promoters']-(int)$row['nps_detractors'])/$responses)*100):null;
-        }
-        unset($row);
-        return $rows;
-    }
-
     private function candidates(PDO $pdo,int $teamId): array
     {
         if($teamId<=0)return[];
@@ -172,35 +136,6 @@ final class SupportTeamController
             ORDER BY u.full_name");
         return $q->fetchAll()?:[];
     }
-    private function activeTeamId(PDO $pdo): int
-    {
-        $q=$pdo->prepare('SELECT id FROM support_teams WHERE code=? AND is_active=1 LIMIT 1');$q->execute([self::TEAM_CODE]);return(int)($q->fetchColumn()?:0);
-    }
-
-    private function summary(array $members): array
-    {
-        $s=[
-            'members'=>count($members),'active_cases'=>0,'in_progress'=>0,'pending_cases'=>0,'resolved_30'=>0,
-            'nps_responses'=>0,'nps_promoters'=>0,'nps_passives'=>0,'nps_detractors'=>0,'nps_value'=>null,'avg_rating'=>null
-        ];
-        $ratingTotal=0.0;$ratingCount=0;
-        foreach($members as $m){
-            $s['active_cases']+=(int)$m['active_cases'];
-            $s['in_progress']+=(int)$m['in_progress'];
-            $s['pending_cases']+=(int)$m['pending_cases'];
-            $s['resolved_30']+=(int)$m['resolved_30'];
-            $responses=(int)$m['nps_responses'];
-            $s['nps_responses']+=$responses;
-            $s['nps_promoters']+=(int)$m['nps_promoters'];
-            $s['nps_passives']+=(int)$m['nps_passives'];
-            $s['nps_detractors']+=(int)$m['nps_detractors'];
-            if($responses>0&&$m['avg_rating']!==null){$ratingTotal+=(float)$m['avg_rating']*$responses;$ratingCount+=$responses;}
-        }
-        if($s['nps_responses']>0)$s['nps_value']=(int)round((($s['nps_promoters']-$s['nps_detractors'])/$s['nps_responses'])*100);
-        $s['avg_rating']=$ratingCount>0?round($ratingTotal/$ratingCount,1):null;
-        return $s;
-    }
-
     private function canManage(): bool
     {
         return in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('users.manage');
