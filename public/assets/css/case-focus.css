@@ -11,6 +11,69 @@
 @media(max-width:900px){.case-focus-workspace{grid-template-columns:1fr}.case-problem-card,.case-status-card,.case-action-card,.case-conversation-card,.case-secondary-grid,.similar-solutions,.ticket-problem-link,.suggested-solutions{grid-column:1}.case-status-card{position:static}.case-status-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}.case-status-list>div:nth-last-child(-n+2){border-bottom:0}.case-problem-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.case-pending-control{grid-template-columns:1fr}.case-pending-control form{grid-template-columns:1fr 1fr auto}.similar-item{grid-template-columns:1fr}.similar-open{justify-self:start}.problem-summary-grid,.knowledge-layout{grid-template-columns:1fr}.itsm-learning-grid{grid-template-columns:1fr}.itsm-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.case-focus-head{flex-direction:column}.case-focus-head>.btn{width:100%}.case-head-meta{gap:6px 8px}.case-problem-card h2{font-size:16px}.case-problem-description{font-size:16px;padding:15px 14px}.case-problem-meta{grid-template-columns:1fr}.case-status-list{grid-template-columns:1fr}.case-status-list>div{border-bottom:1px solid var(--border)!important}.case-status-list>div:last-child{border-bottom:0!important}.case-action-bar{display:grid;grid-template-columns:1fr}.case-action-bar form,.case-action-bar .btn{width:100%}.case-pending-control form{grid-template-columns:1fr}.case-pending-control .btn{width:100%}.case-assign-details .ticket-assign-form{grid-template-columns:1fr}.resolution-grid{grid-template-columns:1fr}.resolution-full{grid-column:auto}.conversation-message{max-width:100%}.conversation-meta{flex-direction:column;gap:2px}.conversation-mode{width:100%;display:grid;grid-template-columns:1fr 1fr}.conversation-mode label{justify-content:center;text-align:center}.case-secondary-grid{grid-template-columns:1fr}.resolution-read-grid{grid-template-columns:1fr}.similar-item{grid-template-columns:1fr}.itsm-filter-grid,.knowledge-grid,.suggestion-list{grid-template-columns:1fr}.itsm-inline-form{flex-direction:column;align-items:stretch}.knowledge-state-bar .card-body{align-items:flex-start;flex-direction:column}.dashboard-itsm-stats{grid-template-columns:1fr}}
 
+/* Fase 9 · alineación visual de conocimiento */
+.knowledge-article-page .page-heading{align-items:flex-start}
+.knowledge-article-page .page-heading>div:first-child{min-width:0;flex:1 1 auto;max-width:1180px}
+.knowledge-article-page .page-heading>.topbar-actions{flex:0 0 auto;align-self:flex-start}
+.knowledge-article-page .page-title{font-size:clamp(24px,2vw,34px);line-height:1.14;overflow-wrap:anywhere;text-wrap:balance}
+.knowledge-article-page .page-subtitle{line-height:1.4}
+.knowledge-state-bar{position:relative}
+.knowledge-state-bar .card-body{min-height:82px;padding:16px 18px;align-items:center}
+.knowledge-state-bar .card-body>div:first-child{min-width:170px}
+.knowledge-state-bar .topbar-actions{margin-left:auto;justify-content:flex-end;flex-wrap:wrap}
+.knowledge-state-bar form{margin:0}
+.knowledge-actions-menu{position:relative}
+.knowledge-actions-menu>summary{list-style:none;white-space:nowrap}
+.knowledge-actions-menu>summary::-webkit-details-marker{display:none}
+.knowledge-actions-menu>.card{position:absolute;right:0;top:calc(100% + 8px);z-index:60;width:min(390px,calc(100vw - 48px));margin:0;box-shadow:var(--shadow-lg)}
+.knowledge-actions-menu>.card>.card-body{display:grid;gap:10px;min-height:0;padding:14px;align-items:stretch}
+.knowledge-actions-menu form{display:grid;gap:8px;width:100%}
+.knowledge-actions-menu label{display:grid;gap:6px;font-size:12px;font-weight:800}
+.knowledge-actions-menu textarea{min-height:76px;resize:vertical}
+.knowledge-actions-menu .btn{width:100%}
+.knowledge-layout{grid-template-columns:minmax(0,1fr) minmax(320px,380px);gap:16px}
+.knowledge-layout>.card{margin:0;min-width:0}
+.knowledge-layout>aside.card{position:sticky;top:84px}
+.knowledge-layout .case-status-list>div{align-items:center}
+.knowledge-layout .case-status-list dt{line-height:1.35}
+.knowledge-layout .case-status-list dd{line-height:1.35}
+.knowledge-related span{overflow-wrap:anywhere}
+.knowledge-grid{grid-auto-rows:1fr;align-items:stretch}
+.knowledge-card{height:100%;min-width:0}
+.knowledge-card .card-body{height:100%;display:flex;flex-direction:column;min-width:0}
+.knowledge-card h2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.28;overflow-wrap:anywhere}
+.knowledge-card p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin-bottom:12px}
+.knowledge-card .ticket-list-meta{margin-top:auto}
+.knowledge-filter-grid{align-items:stretch}
+.knowledge-filter-grid .form-control,.knowledge-filter-grid .btn{min-height:46px}
+.knowledge-filter-grid:has(select[name="status"]){grid-template-columns:minmax(280px,1.55fr) minmax(180px,.75fr) minmax(190px,.8fr) minmax(140px,.55fr)}
+.knowledge-filter-grid:not(:has(select[name="status"])){grid-template-columns:minmax(280px,1.55fr) minmax(190px,.8fr) minmax(140px,.55fr)}
+@media(max-width:1180px){
+  .knowledge-layout{grid-template-columns:minmax(0,1.35fr) minmax(290px,.65fr)}
+  .knowledge-filter-grid:has(select[name="status"]){grid-template-columns:minmax(240px,1.4fr) repeat(2,minmax(160px,.8fr)) minmax(130px,.55fr)}
+}
+@media(max-width:900px){
+  .knowledge-layout{grid-template-columns:1fr}
+  .knowledge-layout>aside.card{position:static}
+  .knowledge-filter-grid,.knowledge-filter-grid:has(select[name="status"]),.knowledge-filter-grid:not(:has(select[name="status"])){grid-template-columns:repeat(2,minmax(0,1fr))}
+  .knowledge-filter-grid>input:first-child{grid-column:1/-1}
+  .knowledge-state-bar .card-body{align-items:flex-start}
+}
+@media(max-width:760px){
+  .knowledge-article-page .page-heading>.topbar-actions{width:100%}
+  .knowledge-article-page .page-heading>.topbar-actions .btn{flex:1}
+  .knowledge-state-bar .card-body{min-height:0}
+  .knowledge-state-bar .topbar-actions{width:100%;display:grid;grid-template-columns:1fr}
+  .knowledge-state-bar .topbar-actions>.btn,
+  .knowledge-state-bar .topbar-actions>form,
+  .knowledge-state-bar .topbar-actions>details{width:100%}
+  .knowledge-state-bar .topbar-actions form .btn,
+  .knowledge-actions-menu>summary{width:100%}
+  .knowledge-actions-menu>.card{position:static;width:100%;margin-top:8px;box-shadow:none}
+  .knowledge-filter-grid,.knowledge-filter-grid:has(select[name="status"]),.knowledge-filter-grid:not(:has(select[name="status"])){grid-template-columns:1fr}
+  .knowledge-filter-grid>input:first-child{grid-column:auto}
+}
+
 /* Fase 8 · calidad proveedor */
 .provider-rating-registration strong,.provider-rating-registration small{display:block}
 .provider-rating-registration small{margin-top:4px;color:var(--muted);font-weight:500;line-height:1.35}
