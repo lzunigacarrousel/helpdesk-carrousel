@@ -1,8 +1,8 @@
 <?php
 $pageTitle='Informes';$pageSection='Informes';$activeNav='reports';$helpContext='reports';
 require APP_ROOT.'/app/Views/shared/app_start.php';
-$statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
-$priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
+$statusLabels=\App\Services\TicketReportFilterService::STATUS_LABELS;
+$priorityLabels=\App\Services\TicketReportFilterService::PRIORITY_LABELS;
 $resolutionLabels=['CONFIGURATION'=>'Configuración','RESTART'=>'Reinicio','REPLACEMENT'=>'Cambio / reemplazo','PROVIDER'=>'Gestión con proveedor','USER_GUIDANCE'=>'Orientación al usuario','SOFTWARE'=>'Software','NETWORK'=>'Red / conectividad','HARDWARE'=>'Hardware','PERMISSION'=>'Acceso / permisos','MAINTENANCE'=>'Mantenimiento','OTHER'=>'Otro'];
 $pendingReasons=$pendingReasons??[];
 $q=http_build_query($filters);
