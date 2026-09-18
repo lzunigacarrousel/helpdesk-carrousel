@@ -19,6 +19,8 @@ call :run tests\phase10_ticket_sla_xlsx_regression.php "Fase 10 - tickets, SLA y
 call :run tests\phase10_provider_report_regression.php "Fase 10 - resumen de proveedores"
 call :run tests\phase10_support_team_report_regression.php "Fase 10 - resumen del equipo"
 call :run tests\phase10_specialized_exports_regression.php "Fase 10 - exportaciones especializadas"
+call :run tests\phase10_ui_responsive_regression.php "Fase 10 - UI y responsive"
+call :run tests\phase10_closeout_regression.php "Fase 10 - closeout documental"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
@@ -45,8 +47,9 @@ if "%FAILED%"=="1" goto :fail
 echo.
 echo ============================================================
 echo [OK] GATE FASE 10 COMPLETADO SIN FALLOS
-echo Este gate crecera con cada Task de Reportes.
-echo Produccion sigue fuera de alcance.
+echo Gate final de Fase 10 Reportes.
+echo Siguiente fase funcional: Fase 11 Manual.
+echo Produccion sigue fuera de alcance hasta Fase 12 y aprobacion explicita.
 echo ============================================================
 exit /b 0
 
