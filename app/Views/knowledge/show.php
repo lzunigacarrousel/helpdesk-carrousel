@@ -82,7 +82,7 @@ $hasSecondaryActions=$canReturnDraft||$canExposePublic||$canArchiveNow||$hasHist
                   <form method="post" action="<?= APP_BASE_URL ?>/knowledge/archive" data-single-submit>
                     <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
                     <input type="hidden" name="article_id" value="<?= (int)$article['id'] ?>">
-                    <button class="btn btn-outline-secondary" type="submit">Archivar artículo</button>
+                    <button class="btn btn-danger" type="submit">Archivar artículo</button>
                   </form>
                 <?php endif; ?>
 
