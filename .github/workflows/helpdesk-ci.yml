@@ -197,6 +197,9 @@ jobs:
       - name: Phase 10 reports - support team summary
         run: php tests/phase10_support_team_report_regression.php
 
+      - name: Phase 10 reports - specialized exports
+        run: php tests/phase10_specialized_exports_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
