@@ -130,6 +130,73 @@ final class KnowledgeMetricsService
         ];
     }
 
+    public function reportSummary(string $from,string $to): array
+    {
+        $pdo=Database::pdo();
+
+        $articles=$pdo->query(
+            "SELECT
+                COUNT(*) total_articles,
+                COALESCE(SUM(lifecycle_status='ACTIVE'),0) active_articles,
+                COALESCE(SUM(lifecycle_status='ARCHIVED'),0) archived_articles,
+                COALESCE(SUM(lifecycle_status='ACTIVE' AND current_internal_revision_id IS NOT NULL),0) internal_published,
+                COALESCE(SUM(lifecycle_status='ACTIVE' AND current_public_revision_id IS NOT NULL),0) public_available
+             FROM knowledge_articles"
+        )->fetch()?:[];
+
+        $editorial=$pdo->query(
+            "SELECT
+                COALESCE(SUM(state='DRAFT'),0) drafts,
+                COALESCE(SUM(state='IN_REVIEW'),0) in_review
+             FROM knowledge_revisions kr
+             JOIN knowledge_articles ka ON ka.id=kr.article_id
+             WHERE ka.lifecycle_status='ACTIVE'"
+        )->fetch()?:[];
+
+        $scope=new ScopeService();
+        [$scopeSql,$scopeParams]=$scope->ticketConstraint('t');
+
+        $where=[
+            "sse.reference_type='KNOWLEDGE'",
+            'sse.created_at>=?',
+            'sse.created_at<DATE_ADD(?,INTERVAL 1 DAY)',
+        ];
+        $params=[$from,$to];
+
+        if($scopeSql!=='1=1'){
+            $where[]="sse.ticket_id IS NOT NULL";
+            $where[]=$scopeSql;
+            array_push($params,...$scopeParams);
+        }
+
+        $usage=$pdo->prepare(
+            "SELECT
+                COALESCE(SUM(sse.event_type='SUGGESTED'),0) suggested,
+                COALESCE(SUM(sse.event_type='OPENED'),0) opened,
+                COALESCE(SUM(sse.event_type='USED_REFERENCE'),0) used_reference,
+                COUNT(DISTINCT CASE WHEN sse.event_type='USED_REFERENCE' THEN sse.ticket_id END) tickets_with_reference
+             FROM solution_suggestion_events sse
+             LEFT JOIN tickets t ON t.id=sse.ticket_id
+             WHERE ".implode(' AND ',$where)
+        );
+        $usage->execute($params);
+        $usageRow=$usage->fetch()?:[];
+
+        return[
+            'total_articles'=>(int)($articles['total_articles']??0),
+            'active_articles'=>(int)($articles['active_articles']??0),
+            'archived_articles'=>(int)($articles['archived_articles']??0),
+            'internal_published'=>(int)($articles['internal_published']??0),
+            'public_available'=>(int)($articles['public_available']??0),
+            'drafts'=>(int)($editorial['drafts']??0),
+            'in_review'=>(int)($editorial['in_review']??0),
+            'suggested'=>(int)($usageRow['suggested']??0),
+            'opened'=>(int)($usageRow['opened']??0),
+            'used_reference'=>(int)($usageRow['used_reference']??0),
+            'tickets_with_reference'=>(int)($usageRow['tickets_with_reference']??0),
+        ];
+    }
+
     private function record(
         string $eventType,
         ?int $ticketId,
