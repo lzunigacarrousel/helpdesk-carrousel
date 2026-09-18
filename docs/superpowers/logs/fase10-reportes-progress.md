@@ -45,3 +45,17 @@ Objetivo:
 - BD: sin cambios.
 
 Siguiente: Task 2 — resumen de Conocimiento dentro del Centro de informes.
+
+## Task 2 — Resumen de Conocimiento · IMPLEMENTADA
+
+- Reutiliza `KnowledgeMetricsService`; no crea dataset paralelo.
+- Estado actual: artículos activos/archivados, publicados para soporte, disponibles para solicitantes, borradores y en revisión.
+- Actividad del período: sugerencias, aperturas, usos como referencia y tickets con referencia.
+- Las métricas operativas vinculadas a tickets respetan `ScopeService`.
+- El bloque solo aparece con capacidad `knowledge.view` o perfil administrativo equivalente.
+- La UI usa un panel compacto de 4 indicadores principales + actividad secundaria; no agrega un dashboard saturado.
+- Responsive integrado para escritorio/tablet/móvil.
+- `tests/phase10_knowledge_report_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 3 — resumen de Actividades / Agenda dentro del Centro de informes, reutilizando `ticket_activities` y `AgendaService`.
