@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Database,View};
-use App\Services\{AgendaService,KnowledgeMetricsService,ScopeService,TicketLifecycleService};
+use App\Services\{AgendaService,KnowledgeMetricsService,ScopeService,TicketLifecycleService,TicketReportFilterService};
 use PDO;
 
 final class ManagementController
@@ -32,7 +32,7 @@ final class ManagementController
     public function dashboard(): void
     {
         $this->requireManagement();
-        $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
+        $pdo=Database::pdo();$reportFilters=new TicketReportFilterService();$filters=$reportFilters->filters($_GET);[$where,$params]=$reportFilters->where($filters);
 
         $k=$pdo->prepare("SELECT
             COUNT(*) total,
@@ -75,7 +75,7 @@ final class ManagementController
     public function reports(): void
     {
         $this->requireReports();
-        $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
+        $pdo=Database::pdo();$reportFilters=new TicketReportFilterService();$filters=$reportFilters->filters($_GET);[$where,$params]=$reportFilters->where($filters);
 
         $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,COALESCE(req.full_name,t.requester_name) requester_name,COALESCE(req.email,t.requester_email) requester_email,COALESCE(req.phone,t.requester_phone) requester_phone,t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,
             p.name park_name,a.name area_name,c.name category_name,u.full_name assigned_name,t.assigned_at,
@@ -84,13 +84,16 @@ final class ManagementController
             FROM tickets t
             LEFT JOIN parks p ON p.id=t.park_id LEFT JOIN areas a ON a.id=t.area_id LEFT JOIN ticket_categories c ON c.id=t.category_id
             LEFT JOIN users u ON u.id=t.assigned_to LEFT JOIN ticket_resolutions tr ON tr.ticket_id=t.id LEFT JOIN users ru ON ru.id=tr.resolved_by LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
-            {$where} ORDER BY t.created_at DESC LIMIT 500");
-        $q->execute($params);$rows=$q->fetchAll();
-        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$rows));
-        foreach($rows as &$row)$row['lifecycle']=TicketLifecycleService::analyze($row,$events[(int)$row['id']]??[]);
+            {$where} ORDER BY t.created_at DESC");
+        $q->execute($params);$allRows=$q->fetchAll();
+        $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$allRows));
+        foreach($allRows as &$row)$row['lifecycle']=TicketLifecycleService::analyze($row,$events[(int)$row['id']]??[]);
         unset($row);
 
-        $reportStats=$this->reportStats($rows);$catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
+        $reportStats=$this->reportStats($allRows);
+        $reportStats['detail_total']=count($allRows);
+        $reportStats['detail_visible']=min(500,count($allRows));
+        $rows=array_slice($allRows,0,500);$catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
         $canKnowledge=in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('knowledge.view');
         $knowledgeReport=$canKnowledge?(new KnowledgeMetricsService())->reportSummary($filters['from'],$filters['to']):null;
         $canActivities=in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('activities.view');
@@ -141,21 +144,6 @@ final class ManagementController
             $parks=array_values(array_filter($parks,static fn(array $p):bool=>$scope->canAccessOrganization((int)($p['region_id']??0),(int)$p['id'],null)));
         }
         return['parks'=>$parks,'categories'=>$pdo->query("SELECT c.id,c.code,c.parent_id,CASE WHEN p.id IS NULL THEN c.name ELSE CONCAT(p.name,' · ',c.name) END name FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.is_active=1 ORDER BY COALESCE(p.sort_order,c.sort_order),p.id IS NULL DESC,c.sort_order,c.name")->fetchAll(),'supportUsers'=>$pdo->query("SELECT u.id,u.full_name FROM users u JOIN roles r ON r.id=u.role_id WHERE u.status='ACTIVE' AND u.deleted_at IS NULL AND u.access_type='INTERNAL' AND r.code IN('ADMIN','SEMIADMIN','TECHNICIAN') ORDER BY u.full_name")->fetchAll()];
-    }
-
-    private function filters():array
-    {
-        return['from'=>preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)($_GET['from']??''))?(string)$_GET['from']:date('Y-m-01'),'to'=>preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)($_GET['to']??''))?(string)$_GET['to']:date('Y-m-d'),'park_id'=>(int)($_GET['park_id']??0),'category_id'=>(int)($_GET['category_id']??0),'assigned_to'=>(int)($_GET['assigned_to']??0),'status'=>strtoupper(trim((string)($_GET['status']??''))),'priority'=>strtoupper(trim((string)($_GET['priority']??'')))];
-    }
-
-    private function where(array $f):array
-    {
-        $w=['t.deleted_at IS NULL','t.created_at>=?','t.created_at<DATE_ADD(?,INTERVAL 1 DAY)'];$p=[$f['from'],$f['to']];
-        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
-        if($scopeSql!=='1=1'){$w[]=$scopeSql;array_push($p,...$scopeParams);}
-        if($f['park_id']>0){$w[]='t.park_id=?';$p[]=$f['park_id'];}if($f['category_id']>0){$w[]='t.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';$p[]=$f['category_id'];$p[]=$f['category_id'];}if($f['assigned_to']>0){$w[]='t.assigned_to=?';$p[]=$f['assigned_to'];}
-        if(in_array($f['status'],array_keys(self::STATUS_LABELS),true)){$w[]='t.status=?';$p[]=$f['status'];}if(in_array($f['priority'],['LOW','MEDIUM','HIGH','CRITICAL'],true)){$w[]='t.priority=?';$p[]=$f['priority'];}
-        return[' WHERE '.implode(' AND ',$w),$p];
     }
 
     private function group(PDO $pdo,string $sql,array $params):array{$q=$pdo->prepare($sql);$q->execute($params);return$q->fetchAll();}
