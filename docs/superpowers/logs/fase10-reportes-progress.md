@@ -131,3 +131,28 @@ Siguiente: Task 7 — cierre de exportaciones y consistencia de los informes esp
 - BD: sin cambios.
 
 Siguiente: Task 8 — UI/responsive, documentación de cierre y gate final de Fase 10.
+
+## Task 8 — UI / responsive / closeout · IMPLEMENTADA EN CÓDIGO
+
+- Centro de informes conserva tablet en 2 columnas cuando aporta y pasa métricas a 1 columna en móvil pequeño (<=430px).
+- Equipo de soporte pasa filtros/resumen/botonera a 1 columna en móvil pequeño.
+- Informe de proveedores apila resumen, acciones y filtros en móvil pequeño.
+- Paneles anclados del Centro usan `scroll-margin-top` para no quedar ocultos por el topbar.
+- Se mantiene contrato global de botones; no se crean variantes locales.
+- README marca Fase 10 como implementada y Fase 11 Manual como siguiente.
+- CHANGELOG incorpora Fase 10 canónica y aclara el uso actual de `2.4.0-dev` frente al bloque histórico archivado.
+- `tests/phase10_ui_responsive_regression.php` y `tests/phase10_closeout_regression.php` agregados a gate y CI.
+- `VALIDAR_FASE10.bat` pasa a ser gate final de la fase.
+- BD: sin cambios.
+- Producción: sin cambios.
+
+### Estado para cierre
+
+Pendiente únicamente:
+1. sincronizar PC TEST;
+2. ejecutar regresiones nuevas;
+3. ejecutar `VALIDAR_FASE10.bat` completo;
+4. registrar evidencia GREEN;
+5. iniciar Fase 11 — Manual.
+
+La validación transversal claro/oscuro + 1920 + 1366 + iPad H/V + móvil se consolida finalmente en Fase 12, sin reabrir funcionalidad de Reportes salvo defecto real.
