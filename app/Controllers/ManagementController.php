@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Database,View};
-use App\Services\{AgendaService,KnowledgeMetricsService,ProviderParticipationService,ProviderRatingService,ScopeService,TicketLifecycleService,TicketReportFilterService};
+use App\Services\{AgendaService,KnowledgeMetricsService,ProviderParticipationService,ProviderRatingService,ScopeService,SupportTeamReportService,TicketLifecycleService,TicketReportFilterService};
 use PDO;
 
 final class ManagementController
@@ -107,12 +107,15 @@ final class ManagementController
             $providerRows=ProviderParticipationService::applyFilters($providerRows,['from'=>$filters['from'],'to'=>$filters['to']]);
             $providerReport=ProviderParticipationService::summary($providerRows);
         }
+        $canTeam=in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('users.manage')||Auth::can('management.view');
+        $teamReport=$canTeam?(new SupportTeamReportService($pdo))->reportSummary($filters):null;
         View::render('management/reports',[
             'user'=>Auth::user(),'filters'=>$filters,'rows'=>$rows,'reportStats'=>$reportStats,
             'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,'scopeLabel'=>$scopeLabel,
             'canKnowledge'=>$canKnowledge,'knowledgeReport'=>$knowledgeReport,
             'canActivities'=>$canActivities,'activityReport'=>$activityReport,
             'canProviders'=>$canProviders,'providerReport'=>$providerReport,
+            'canTeam'=>$canTeam,'teamReport'=>$teamReport,
         ]);
     }
 
