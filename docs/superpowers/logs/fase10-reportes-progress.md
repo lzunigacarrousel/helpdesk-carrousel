@@ -89,3 +89,17 @@ Siguiente: Task 4 — consolidación de Tickets / SLA y consistencia pantalla �
 - BD: sin cambios.
 
 Siguiente: Task 5 — consolidación de Proveedores dentro del Centro de informes sin duplicar el informe especializado.
+
+## Task 5 — Resumen de Proveedores · IMPLEMENTADA
+
+- El Centro de informes incorpora un resumen ejecutivo sin duplicar la tabla especializada.
+- Indicadores: proveedores, participaciones, activas, sin respuesta, calidad promedio y devoluciones.
+- Contexto secundario: entregas, respuestas, archivos y primera respuesta promedio.
+- El acceso al informe especializado conserva el mismo rango de fechas.
+- `ProviderParticipationService::scopedRows()` aplica `ScopeService` sobre los tickets relacionados.
+- El informe especializado de proveedores también respeta alcance tanto en pantalla como en XLSX.
+- Calidad reutiliza `ProviderRatingService`; no se crea otro modelo de valoración.
+- `tests/phase10_provider_report_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 6 — consolidación de Equipo de soporte dentro del Centro de informes sin duplicar `/gestion/equipo`.
