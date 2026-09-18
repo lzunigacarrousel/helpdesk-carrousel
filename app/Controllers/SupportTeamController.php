@@ -8,8 +8,6 @@ use PDO;
 
 final class SupportTeamController
 {
-    private const TEAM_CODE='IT';
-
     public function index(): void
     {
         $this->requireAccess();
