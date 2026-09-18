@@ -279,12 +279,16 @@ final class ProviderParticipationService
             'no_response'=>0,
             'avg_first_response_minutes'=>null,
             'returns'=>0,
+            'deliveries'=>0,
             'closed'=>0,
             'providers'=>0,
             'responses'=>0,
             'attachments'=>0,
+            'rated_cycles'=>0,
+            'unrated_cycles'=>0,
+            'average_quality'=>null,
         ];
-        $responseMinutes=[];$providerIds=[];
+        $responseMinutes=[];$providerIds=[];$qualityScores=[];
         foreach($rows as $row){
             if(($row['revoked_at']??null)===null)$summary['active']++;else $summary['closed']++;
             if(($row['first_response_minutes']??null)===null){
@@ -293,8 +297,16 @@ final class ProviderParticipationService
                 $responseMinutes[]=(int)$row['first_response_minutes'];
             }
             $summary['returns']+=(int)($row['returns']??0);
+            $summary['deliveries']+=(int)($row['deliveries']??0);
             $summary['responses']+=(int)($row['responses']??0);
             $summary['attachments']+=(int)($row['attachments']??0);
+            $score=$row['provider_rating_score']??null;
+            if($score===null){
+                $summary['unrated_cycles']++;
+            }else{
+                $summary['rated_cycles']++;
+                $qualityScores[]=(int)$score;
+            }
             $userId=(int)($row['user_id']??0);
             if($userId>0)$providerIds[$userId]=true;
         }
@@ -302,7 +314,42 @@ final class ProviderParticipationService
         if($responseMinutes!==[]){
             $summary['avg_first_response_minutes']=(int)round(array_sum($responseMinutes)/count($responseMinutes));
         }
+        if($qualityScores!==[]){
+            $summary['average_quality']=round(array_sum($qualityScores)/count($qualityScores),2);
+        }
         return $summary;
+    }
+
+    public function scopedRows(array $rows): array
+    {
+        if($rows===[])return[];
+
+        $ticketIds=[];
+        foreach($rows as $row){
+            $ticketId=(int)($row['ticket_id']??0);
+            if($ticketId>0)$ticketIds[$ticketId]=$ticketId;
+        }
+        if($ticketIds===[])return[];
+
+        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
+        if($scopeSql==='1=1')return $rows;
+        if($scopeSql==='0=1')return[];
+
+        $ids=array_values($ticketIds);
+        $ph=implode(',',array_fill(0,count($ids),'?'));
+        $q=$this->pdo()->prepare(
+            "SELECT t.id FROM tickets t
+             WHERE t.id IN ({$ph}) AND t.deleted_at IS NULL AND {$scopeSql}"
+        );
+        $q->execute(array_merge($ids,$scopeParams));
+
+        $allowed=[];
+        foreach($q->fetchAll() as $row)$allowed[(int)$row['id']]=true;
+
+        return array_values(array_filter(
+            $rows,
+            static fn(array $row):bool=>isset($allowed[(int)($row['ticket_id']??0)])
+        ));
     }
 
     public function registeredProviders(): array
