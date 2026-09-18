@@ -188,6 +188,9 @@ jobs:
       - name: Phase 10 reports - activity summary
         run: php tests/phase10_activity_report_regression.php
 
+      - name: Phase 10 reports - ticket SLA XLSX parity
+        run: php tests/phase10_ticket_sla_xlsx_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
