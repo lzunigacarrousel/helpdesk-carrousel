@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Auth,Database,View};
-use App\Services\{KnowledgeMetricsService,ScopeService,TicketLifecycleService};
+use App\Services\{AgendaService,KnowledgeMetricsService,ScopeService,TicketLifecycleService};
 use PDO;
 
 final class ManagementController
@@ -93,10 +93,13 @@ final class ManagementController
         $reportStats=$this->reportStats($rows);$catalogs=$this->catalogs($pdo);$scopeLabel=(new ScopeService())->scopeLabel();
         $canKnowledge=in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('knowledge.view');
         $knowledgeReport=$canKnowledge?(new KnowledgeMetricsService())->reportSummary($filters['from'],$filters['to']):null;
+        $canActivities=in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)||Auth::can('activities.view');
+        $activityReport=$canActivities?(new AgendaService())->reportSummary($filters):null;
         View::render('management/reports',[
             'user'=>Auth::user(),'filters'=>$filters,'rows'=>$rows,'reportStats'=>$reportStats,
             'parks'=>$catalogs['parks'],'categories'=>$catalogs['categories'],'supportUsers'=>$catalogs['supportUsers'],'pendingReasons'=>WorkflowController::PENDING_REASONS,'scopeLabel'=>$scopeLabel,
             'canKnowledge'=>$canKnowledge,'knowledgeReport'=>$knowledgeReport,
+            'canActivities'=>$canActivities,'activityReport'=>$activityReport,
         ]);
     }
 
