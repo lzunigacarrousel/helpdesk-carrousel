@@ -151,8 +151,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
 | 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
 | 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |
-| 10 | Reportes | **EN CURSO — consolidación final** |
-| 11 | Manual | Parcialmente adelantada; consolidación final pendiente |
+| 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |
+| 11 | Manual | **SIGUIENTE — consolidación final pendiente** |
 | 12 | Validación integral | Pendiente |
 
 La validación responsive acumulada, revisión claro/oscuro y cierre transversal se consolidan en Fase 12 aunque las fases previas ya tengan validaciones parciales.
@@ -223,7 +223,7 @@ La Fase 8 incorpora una valoración interna de IT sobre cada ciclo finalizado de
 
 ### Fase 9 — Conocimiento versionado
 
-Estado: **IMPLEMENTADA EN CÓDIGO — pendiente validación integral en PC TEST**.
+Estado: **IMPLEMENTADA — gate PC TEST GREEN; pendiente validación transversal Fase 12**.
 
 La Fase 9 convierte Conocimiento en un flujo versionado y reutilizable:
 
@@ -251,6 +251,25 @@ Gate local:
 `VALIDAR_FASE9.bat`
 
 **Producción no ha sido migrada a Fase 9. La migración debe validarse primero en PC TEST.**
+
+### Fase 10 — Reportes consolidados
+
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+
+La Fase 10 consolida los informes existentes sin crear un sistema paralelo:
+
+- `/gestion/informes` funciona como Centro de informes para Tickets/SLA, Agenda/Actividades, Proveedores, Equipo de soporte y Conocimiento según capacidad;
+- `TicketReportFilterService` unifica período, parque, categoría/subcategorías, responsable, estado, prioridad, etiquetas y `ScopeService` entre pantalla y XLSX;
+- los KPIs usan todo el conjunto filtrado; la tabla web limita únicamente el detalle visual a 500 registros y Excel conserva todo el filtro;
+- Conocimiento aporta publicación, autoservicio y reutilización; Agenda aporta programadas/en curso/finalizadas/canceladas/atrasadas;
+- Proveedores resume participación, respuesta, entregas, devoluciones y calidad sin duplicar el informe especializado;
+- `SupportTeamReportService` unifica carga/desempeño del equipo y mantiene separada la administración de integrantes;
+- informes especializados General, Proveedores y Equipo documentan período/filtros/alcance y reutilizan `XlsxExportService`;
+- responsive conserva grids de escritorio/tablet y pasa a una columna clara en móvil pequeño;
+- Gerencia y Supervisión continúan en modo consulta y no reciben acciones operativas desde Reportes;
+- gate local `VALIDAR_FASE10.bat` y CI cubren hub, conocimiento, actividades, tickets/SLA, proveedores, equipo, exportaciones, UI y closeout.
+
+**BD: sin cambios.** Fase 10 reutiliza el esquema existente y no requiere migración.
 
 ## Flujo Git oficial
 
