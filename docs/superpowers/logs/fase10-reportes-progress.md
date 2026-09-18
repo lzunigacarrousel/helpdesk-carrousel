@@ -74,3 +74,18 @@ Siguiente: Task 3 — resumen de Actividades / Agenda dentro del Centro de infor
 - BD: sin cambios.
 
 Siguiente: Task 4 — consolidación de Tickets / SLA y consistencia pantalla ↔ XLSX.
+
+## Task 4 — Tickets / SLA / XLSX · IMPLEMENTADA
+
+- Se creó `TicketReportFilterService` como fuente única de filtros, alcance, etiquetas y descripción del reporte.
+- Pantalla y XLSX comparten exactamente período, parque, categoría, responsable, estado y prioridad.
+- El filtro de categoría padre incluye sus subcategorías tanto en pantalla como en Excel.
+- `ScopeService` se aplica desde el mismo servicio compartido.
+- Los KPIs de pantalla se calculan sobre todo el conjunto filtrado; solo la tabla visual limita a 500 filas.
+- La UI informa cuando el detalle visual está limitado y aclara que Excel contiene todo el filtro.
+- XLSX incorpora Documentados %, primera respuesta, resolución, trabajo efectivo, espera y cambios de estado.
+- Estado/prioridad usan catálogos canónicos compartidos.
+- `tests/phase10_ticket_sla_xlsx_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 5 — consolidación de Proveedores dentro del Centro de informes sin duplicar el informe especializado.
