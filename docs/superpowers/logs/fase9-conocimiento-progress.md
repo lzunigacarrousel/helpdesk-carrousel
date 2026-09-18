@@ -633,6 +633,33 @@ Pendiente para cierre definitivo:
 3. CI remoto GREEN o evidencia equivalente de ejecución;
 4. aprobación explícita antes de producción.
 
+## Matriz manual final preparada — 2026-09-18
+
+Documento:
+- `docs/superpowers/checklists/fase9-conocimiento-validacion-manual.md`
+
+Cubre:
+- visual/responsive PC + iPad + móvil;
+- workflow editorial completo;
+- permisos TECHNICIAN / ADMIN / SEMIADMIN / solicitante;
+- acceso directo por URL;
+- autoservicio público;
+- CSRF/acciones mutantes;
+- usar como referencia;
+- candidatos a conocimiento;
+- evidencia mínima para cierre.
+
+Último gate global aportado desde PC TEST:
+- `VALIDAR_FASE9.bat`: ✅ GREEN completo;
+- working tree: limpio;
+- resultado final: `[OK] GATE FINAL FASE 9 COMPLETADO SIN FALLOS`.
+
+Pendiente de cierre:
+1. ejecutar matriz manual;
+2. registrar capturas/evidencia;
+3. resolver CI remoto sin workflow run;
+4. aprobación explícita antes de producción.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
