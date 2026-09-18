@@ -80,6 +80,76 @@ $help = [
 ];
 $current = $help[$helpContext] ?? $help['general'];
 $canOpenManual = \App\Core\Auth::check();
+
+$manualTargets=[
+    'requester_home'=>['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'solicitud'],
+    'external_home'=>['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'casos'],
+    'my_tickets'=>['anchor'=>'solicitudes','topic'=>'solicitudes'],
+    'support_dashboard'=>['anchor'=>'soporte','topic'=>'soporte','faq'=>'SLA'],
+    'support_center'=>['anchor'=>'soporte','topic'=>'soporte','faq'=>'espera'],
+    'ticket'=>['anchor'=>'solicitudes','topic'=>'solicitudes'],
+    'search'=>['anchor'=>'inicio','topic'=>'all'],
+    'management'=>['anchor'=>'gestion','topic'=>'gestion'],
+    'reports'=>['anchor'=>'gestion','topic'=>'gestion'],
+    'problems'=>['anchor'=>'conocimiento','topic'=>'conocimiento','faq'=>'problema conocido'],
+    'knowledge'=>['anchor'=>'conocimiento','topic'=>'conocimiento'],
+    'externals'=>['anchor'=>'administracion','topic'=>'administracion'],
+    'users'=>['anchor'=>'administracion','topic'=>'administracion','faq'=>'Perfil, asignación'],
+    'audit'=>['anchor'=>'administracion','topic'=>'administracion'],
+    'mail'=>['anchor'=>'administracion','topic'=>'administracion','faq'=>'correo'],
+    'manual'=>['anchor'=>'inicio','topic'=>'all'],
+    'agenda'=>['anchor'=>'agenda','topic'=>'actividades'],
+    'general'=>['anchor'=>'inicio','topic'=>'all'],
+];
+
+$manualTarget=$manualTargets[$helpContext]??$manualTargets['general'];
+$role=(string)\App\Core\Auth::role();
+$isExternalHelp=$canOpenManual&&((\App\Core\Auth::user()['access_type']??'INTERNAL')==='EXTERNAL');
+$isSupportHelp=$canOpenManual&&\App\Core\Auth::isSupportOperator();
+$isManagementHelp=$canOpenManual&&\App\Core\Auth::isManagementViewer();
+
+if($helpContext==='ticket'){
+    if($isSupportHelp){
+        $manualTarget=['anchor'=>'soporte','topic'=>'soporte','faq'=>'conversación interna'];
+    }elseif($isExternalHelp){
+        $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'notas internas'];
+    }else{
+        $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'cierra'];
+    }
+}elseif($helpContext==='my_tickets'&&$isExternalHelp){
+    $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'casos'];
+}elseif(in_array($helpContext,['management','reports','agenda'],true)&&$isManagementHelp){
+    if($role==='SUPERVISOR'){
+        $manualTarget['faq']='botones';
+        $manualTarget['topic']='gestion';
+    }elseif($role==='MANAGEMENT'){
+        $manualTarget['faq']='Gerencia';
+        $manualTarget['topic']='gestion';
+    }
+}
+
+if(($activeNav??'')==='external-report'){
+    $manualTarget=['anchor'=>'proveedores','topic'=>'gestion'];
+}elseif(($activeNav??'')==='support-team'){
+    $manualTarget=['anchor'=>'gestion','topic'=>'gestion'];
+}
+
+if($helpContext==='knowledge'&&\App\Core\Auth::can('knowledge.draft_manage')){
+    $manualTarget['faq']='artículo';
+}
+
+$manualHref='';
+$faqHref='';
+if($canOpenManual){
+    $manualParams=[];
+    if(($manualTarget['topic']??'all')!=='all')$manualParams['topic']=$manualTarget['topic'];
+    $manualHref=APP_BASE_URL.'/manual'.($manualParams?'?'.http_build_query($manualParams):'').'#'.rawurlencode((string)($manualTarget['anchor']??'inicio'));
+
+    if(!empty($manualTarget['faq'])){
+        $faqParams=['topic'=>'ayuda','q'=>(string)$manualTarget['faq']];
+        $faqHref=APP_BASE_URL.'/manual?'.http_build_query($faqParams).'#preguntas';
+    }
+}
 ?>
 <button class="help-fab" type="button" data-help-open aria-label="Abrir ayuda" title="Ayuda">?</button>
 <div class="help-backdrop" data-help-backdrop hidden></div>
@@ -94,7 +164,8 @@ $canOpenManual = \App\Core\Auth::check();
     </ol>
     <div class="help-actions">
         <button class="btn btn-primary" type="button" data-tour-start>Iniciar tutorial</button>
-        <?php if($canOpenManual): ?><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/manual">Abrir manual</a><?php endif; ?>
+        <?php if($canOpenManual): ?><a class="btn btn-outline-secondary" href="<?= htmlspecialchars($manualHref) ?>">Abrir manual aquí</a><?php endif; ?>
+        <?php if($canOpenManual&&$faqHref!==''): ?><a class="btn btn-outline-secondary" href="<?= htmlspecialchars($faqHref) ?>">Preguntas de esta pantalla</a><?php endif; ?>
     </div>
     <div class="help-shortcuts"><span><kbd>Ctrl K</kbd> Buscar</span><span><kbd>Esc</kbd> Cerrar</span></div>
     <div class="help-contact">¿Aún necesitas ayuda? <strong>sistemas@carrousel.com.gt</strong></div>
