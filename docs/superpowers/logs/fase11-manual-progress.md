@@ -71,3 +71,11 @@ Siguiente: Task 3 — FAQ contextual + accesos directos por pantalla/tarea, cone
 - BD: sin cambios.
 
 Siguiente: Task 4 — tutoriales flotantes completos con la estructura de 7 puntos y cobertura de Agenda/Reportes especializados sin convertirlos en textos permanentes.
+
+### Corrección de gate posterior a Task 3
+
+- PC TEST confirmó que la funcionalidad contextual cargó sin errores de sintaxis.
+- El gate falló por dos regresiones desactualizadas, no por la implementación.
+- `phase11_contextual_help_regression.php` escapaba incorrectamente nombres de variables PHP dentro de strings de prueba, provocando warnings y falsos negativos.
+- `phase11_manual_profile_navigation_regression.php` todavía esperaba `let activeTopic='all'`, anterior al soporte de deep-links `?topic=`.
+- Ambos tests fueron alineados con el comportamiento canónico actual; código funcional, BD y producción no fueron modificados.
