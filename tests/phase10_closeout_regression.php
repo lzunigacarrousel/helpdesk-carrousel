@@ -40,14 +40,15 @@ ok(str_contains($readme,'**BD: sin cambios.** Fase 10'),'README confirma BD sin 
 
 ok(str_contains($changelog,'## Fase 10 · Reportes consolidados · 2026-09-18'),'CHANGELOG registra Fase 10');
 ok(str_contains($changelog,'**BD: sin cambios. Producción: sin cambios.'),'CHANGELOG preserva límite de producción');
-ok(str_contains($config,"define('APP_VERSION','2.4.0-dev')")||str_contains($config,"APP_VERSION','2.4.0-dev"),'Versión de desarrollo permanece 2.4.0-dev');
+ok((bool)preg_match("/define\\(\\s*['\"]APP_VERSION['\"]\\s*,\\s*['\"]2\\.4\\.0-dev['\"]\\s*\\)/",$config),'Versión de desarrollo permanece 2.4.0-dev');
 
 foreach($required as $file){
     ok(str_contains($gate,'tests\\'.$file),"Gate incluye {$file}");
     ok(str_contains($ci,'tests/'.$file),"CI incluye {$file}");
 }
 
-ok(str_contains($log,'Task 7 — Exportaciones especializadas · IMPLEMENTADA'),'Log conserva avance hasta Task 7');
+ok(str_contains($log,'Task 7 — Exportaciones especializadas · IMPLEMENTADA'),'Log conserva Task 7');
+ok(str_contains($log,'Task 8 — UI / responsive / closeout · IMPLEMENTADA EN CÓDIGO'),'Log registra Task 8 y closeout');
 ok(!is_file($root.'/database/MIGRAR_FASE10_REPORTES.sql'),'Fase 10 no introduce migración de BD');
 ok(!is_file($root.'/database/ACTUALIZAR_FASE10_REPORTES.sql'),'Fase 10 no introduce parche de BD');
 
