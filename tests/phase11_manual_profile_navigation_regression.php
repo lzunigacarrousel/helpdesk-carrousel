@@ -45,7 +45,8 @@ foreach(['inicio','notificaciones','solicitudes','actividades','agenda','soporte
     ok(str_contains($view,'id="'.$section.'" data-manual-section data-manual-topics='),"Sección {$section} declara tema");
 }
 
-ok(str_contains($view,"let activeTopic='all'"),'JS mantiene tema activo');
+ok(str_contains($view,"const requestedTopic=(params.get('topic')||'all').trim()"),'JS acepta tema inicial desde enlace profundo');
+ok(str_contains($view,"let activeTopic=topicButtons.some(el=>el.dataset.manualTopic===requestedTopic)?requestedTopic:'all'"),'JS mantiene tema activo con fallback Todo');
 ok(str_contains($view,"topics.includes(activeTopic)"),'JS combina sección y tema');
 ok(str_contains($view,'normalize(section.textContent).includes(q)'),'JS combina búsqueda textual');
 ok(str_contains($view,"item.setAttribute('aria-pressed'"),'Filtro expone estado accesible');
