@@ -18,6 +18,7 @@ call :run tests\phase10_activity_report_regression.php "Fase 10 - resumen de act
 call :run tests\phase10_ticket_sla_xlsx_regression.php "Fase 10 - tickets, SLA y XLSX"
 call :run tests\phase10_provider_report_regression.php "Fase 10 - resumen de proveedores"
 call :run tests\phase10_support_team_report_regression.php "Fase 10 - resumen del equipo"
+call :run tests\phase10_specialized_exports_regression.php "Fase 10 - exportaciones especializadas"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
