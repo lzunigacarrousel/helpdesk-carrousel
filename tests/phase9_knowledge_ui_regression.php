@@ -35,7 +35,7 @@ ok(str_contains($show,'Más acciones'),'Acciones secundarias se agrupan');
 ok(str_contains($show,'No disponible (archivado)'),'Artículo archivado no aparenta seguir publicado');
 ok(str_contains($show,'$hasSecondaryActions'),'Menú secundario solo aparece cuando tiene acciones');
 ok(str_contains($show,'Ver historial'),'Detalle ofrece acceso real al historial');
-ok(!str_contains($show,"<?php if($workingState==='IN_REVIEW'): ?> · En revisión<?php endif; ?>"),'Estado En revisión no se duplica');
+ok(!str_contains($show,"<?php if(\$workingState==='IN_REVIEW'): ?> · En revisión<?php endif; ?>"),'Estado En revisión no se duplica');
 ok(str_contains($controller,"ka.lifecycle_status='ACTIVE' AND ka.current_public_revision_id IS NOT NULL"),'Listado no marca archivados como disponibles públicamente');
 ok(str_contains($index,'knowledge-filter-grid'),'Listado usa grid de filtros propio de conocimiento');
 foreach([
@@ -53,7 +53,7 @@ foreach([
 ok(str_contains($caseFocus,'position:absolute;right:0;top:calc(100% + 8px)'), 'Más acciones funciona como popover sin deformar la barra editorial');
 ok(str_contains($caseFocus,'grid-auto-rows:1fr'), 'Cards de conocimiento mantienen altura alineada');
 ok(str_contains($caseFocus,'position:sticky;top:84px'), 'Panel lateral permanece alineado en escritorio');
-ok(str_contains((string)file_get_contents($root.'/app/Views/knowledge/history.php'),"($article['lifecycle_status']??'ACTIVE')!=='ARCHIVED'"),'Historial no ofrece restauración directa de artículo archivado');
+ok(str_contains((string)file_get_contents($root.'/app/Views/knowledge/history.php'),"(\$article['lifecycle_status']??'ACTIVE')!=='ARCHIVED'"),'Historial no ofrece restauración directa de artículo archivado');
 
 foreach([
     'Crear borrador',
