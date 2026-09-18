@@ -87,7 +87,7 @@ $k=$knowledgeReport??null;
       <h2>Carga y desempeño</h2>
       <p>Tickets creados entre <?= htmlspecialchars($filters['from']) ?> y <?= htmlspecialchars($filters['to']) ?> dentro de tu alcance y filtros actuales.</p>
     </div>
-    <div class="report-team-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/equipo">Abrir equipo de soporte</a></div>
+    <div class="report-team-actions"><a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/gestion/equipo?from=<?= urlencode($filters['from']) ?>&to=<?= urlencode($filters['to']) ?>">Abrir equipo de soporte</a></div>
   </div>
   <div class="report-team-grid">
     <article class="report-team-metric">
