@@ -1,6 +1,9 @@
 <?php
 $pageTitle='Manual';$pageSection='Ayuda';$activeNav='manual';$helpContext='manual';
 $manualProfile=$manualProfile??['key'=>'requester','label'=>'Solicitante','summary'=>'Guía de uso según tus permisos.'];
+$manualGuide=$manualGuide??['start'=>'Empieza por la función principal de tu perfil.','workspace_label'=>'Inicio','workspace_href'=>APP_BASE_URL.'/dashboard','workspace'=>'Usa únicamente las funciones visibles para tu cuenta.','after'=>'Consulta la ayuda contextual cuando necesites más detalle.'];
+$isRequesterProfile=(bool)($isRequesterProfile??false);$isTechnicianProfile=(bool)($isTechnicianProfile??false);$isSupervisorProfile=(bool)($isSupervisorProfile??false);$isManagementProfile=(bool)($isManagementProfile??false);$isAdminProfile=(bool)($isAdminProfile??false);$isCollaboratorProfile=(bool)($isCollaboratorProfile??false);
+$canReports=(bool)($canReports??false);$canProviderReport=(bool)($canProviderReport??false);$canUsersManage=(bool)($canUsersManage??false);$canExternalManage=(bool)($canExternalManage??false);$canAudit=(bool)($canAudit??false);$canMailAdmin=(bool)($canMailAdmin??false);
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="manual-page">
@@ -13,6 +16,11 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div><span class="manual-profile-kicker">Guía para tu perfil</span><strong>Manual para <?= htmlspecialchars($manualProfile['label']) ?></strong><p><?= htmlspecialchars($manualProfile['summary']) ?></p></div>
     <span class="manual-profile-badge"><?= htmlspecialchars($manualProfile['label']) ?></span>
   </section>
+  <section class="manual-profile-guide" aria-label="Cómo empezar">
+    <article><span>1</span><div><strong>Empieza aquí</strong><p><?= htmlspecialchars($manualGuide['start']) ?></p></div></article>
+    <article><span>2</span><div><strong>Tu espacio principal</strong><p><?= htmlspecialchars($manualGuide['workspace']) ?></p><a href="<?= htmlspecialchars($manualGuide['workspace_href']) ?>"><?= htmlspecialchars($manualGuide['workspace_label']) ?> →</a></div></article>
+    <article><span>3</span><div><strong>Después</strong><p><?= htmlspecialchars($manualGuide['after']) ?></p></div></article>
+  </section>
 
   <div class="manual-search" role="search">
     <input class="form-control" type="search" placeholder="Buscar: resolver, proveedor, espera, informe…" data-manual-search aria-label="Buscar en el manual">
@@ -22,7 +30,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   <nav class="manual-topic-filter" aria-label="Filtrar manual por tema" data-manual-topics>
     <button type="button" class="manual-topic is-active" data-manual-topic="all" aria-pressed="true">Todo</button>
-    <button type="button" class="manual-topic" data-manual-topic="solicitudes" aria-pressed="false">Solicitudes</button>
+    <?php if(!$isSupervisorProfile&&!$isManagementProfile): ?><button type="button" class="manual-topic" data-manual-topic="solicitudes" aria-pressed="false">Solicitudes</button><?php endif; ?>
     <?php if($isSupport): ?><button type="button" class="manual-topic" data-manual-topic="soporte" aria-pressed="false">Soporte</button><?php endif; ?>
     <?php if(!$isExternal): ?><button type="button" class="manual-topic" data-manual-topic="actividades" aria-pressed="false">Actividades</button><?php endif; ?>
     <?php if($canProblems||$canKnowledge): ?><button type="button" class="manual-topic" data-manual-topic="conocimiento" aria-pressed="false">Conocimiento</button><?php endif; ?>
@@ -34,25 +42,30 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <section aria-label="Accesos rápidos del manual">
     <div class="manual-quick-grid" data-manual-quick>
       <?php if($isSupport): ?>
-        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/tickets/queue"><span>Trabajo diario</span><strong>Atender casos</strong><small>Revisa los casos visibles dentro de tu alcance, usa Míos o Sin asignar y prioriza lo que esté por vencer.</small></a>
+        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/tickets/queue"><span>Trabajo diario</span><strong>Atender casos</strong><small>Prioriza por SLA, responsabilidad y estado dentro de tu alcance.</small></a>
         <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/buscar"><span>Encontrar información</span><strong>Buscar una solución</strong><small>Busca tickets, problemas conocidos y artículos desde un solo lugar.</small></a>
-        <?php if($canProblems): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/problems"><span>Recurrencias</span><strong>Problemas conocidos</strong><small>Agrupa fallas repetidas y documenta qué hacer mientras se resuelven.</small></a><?php endif; ?>
-        <?php if($canKnowledge): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/knowledge"><span>Aprendizaje</span><strong>Base de conocimiento</strong><small>Consulta y documenta soluciones que puedan reutilizarse.</small></a><?php endif; ?>
-      <?php elseif($isExternal): ?>
-        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/mis-tickets"><span>Seguimiento</span><strong>Ver mis casos</strong><small>Abre los casos asignados a tu cuenta y continúa la conversación.</small></a>
-        <a class="manual-quick-card" href="#solicitudes"><span>Participación</span><strong>Responder y adjuntar</strong><small>Envía avances, consultas o evidencia desde el caso.</small></a>
+        <?php if($canProblems): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/problems"><span>Recurrencias</span><strong>Problemas conocidos</strong><small>Agrupa fallas repetidas y documenta causa, alternativa y solución.</small></a><?php endif; ?>
+        <?php if($canKnowledge): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/knowledge"><span>Aprendizaje</span><strong>Base de conocimiento</strong><small>Consulta y documenta soluciones reutilizables según tu capacidad editorial.</small></a><?php endif; ?>
+      <?php elseif($isCollaboratorProfile): ?>
+        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/mis-tickets"><span>Seguimiento</span><strong>Mis casos</strong><small>Revisa únicamente los casos compartidos con tu cuenta.</small></a>
+        <a class="manual-quick-card" href="#solicitudes"><span>Participación</span><strong>Responder y adjuntar</strong><small>Envía avances, preguntas o evidencia dentro del caso.</small></a>
+      <?php elseif($isSupervisorProfile||$isManagementProfile): ?>
+        <?php if($canManagement): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/gestion"><span>Consulta</span><strong>Dashboard interno</strong><small>Revisa volumen, tiempos y tendencias dentro de tu alcance.</small></a><?php endif; ?>
+        <?php if($canReports): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/gestion/informes"><span>Análisis</span><strong>Centro de informes</strong><small>Profundiza en tickets, SLA, agenda, equipo, proveedores y conocimiento según permisos.</small></a><?php endif; ?>
+        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/agenda"><span>Planificación</span><strong>Agenda</strong><small>Consulta actividades, atrasos y conflictos sin operar la atención.</small></a>
+        <?php if($canKnowledge): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/knowledge"><span>Consulta</span><strong>Conocimiento</strong><small>Revisa soluciones y procedimientos visibles para tu perfil.</small></a><?php endif; ?>
       <?php else: ?>
-        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/crear-ticket"><span>Nueva solicitud</span><strong>Solicitar ayuda</strong><small>Elige en qué necesitas ayuda y cuéntanos qué está pasando, sin lenguaje técnico.</small></a>
-        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/mis-tickets"><span>Seguimiento</span><strong>Ver mis solicitudes</strong><small>Consulta respuestas, archivos, estado y solución.</small></a>
+        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/crear-ticket"><span>Nueva solicitud</span><strong>Solicitar ayuda</strong><small>Elige en qué necesitas ayuda y cuéntanos qué está pasando.</small></a>
+        <a class="manual-quick-card" href="<?= APP_BASE_URL ?>/mis-tickets"><span>Seguimiento</span><strong>Mis solicitudes</strong><small>Consulta respuestas, archivos, estado y solución.</small></a>
       <?php endif; ?>
-      <a class="manual-quick-card" href="#notificaciones"><span>Novedades</span><strong>Notificaciones y campanita</strong><small>Abre una novedad para ir directamente al caso o acción relacionada y usa Marcar leídas cuando ya revisaste todo.</small></a>
-      <?php if($canManagement): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/gestion"><span>Consulta</span><strong>Dashboard e informes</strong><small>Analiza volumen, tiempos, carga y tendencias según tu alcance.</small></a><?php endif; ?>
-      <?php if($canAdmin): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/admin/correo"><span>Operación</span><strong>Correo y notificaciones</strong><small>Prueba el canal y revisa entregas o fallos.</small></a><?php endif; ?>
+      <a class="manual-quick-card" href="#notificaciones"><span>Novedades</span><strong>Notificaciones</strong><small>Abre una novedad para ir al caso o acción relacionada.</small></a>
+      <?php if($canManagement&&!$isSupervisorProfile&&!$isManagementProfile): ?><a class="manual-quick-card" href="<?= APP_BASE_URL ?>/gestion"><span>Gestión</span><strong>Dashboard e informes</strong><small>Analiza operación y tendencias dentro de tu alcance.</small></a><?php endif; ?>
+      <?php if($canAdmin): ?><a class="manual-quick-card" href="#administracion"><span>Administración</span><strong>Funciones habilitadas</strong><small>Usuarios, proveedores, auditoría y correo aparecen únicamente si tu cuenta tiene la capacidad correspondiente.</small></a><?php endif; ?>
     </div>
   </section>
 
   <nav class="manual-index" aria-label="Índice del manual">
-    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><?php if(!$isSupervisorProfile&&!$isManagementProfile): ?><a href="#solicitudes">Solicitudes</a><?php endif; ?><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
   </nav>
 
   <section class="manual-section" id="inicio" data-manual-section data-manual-topics="ayuda">
@@ -64,6 +77,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div class="manual-section-head"><span>N</span><div><h2>Notificaciones y campanita</h2><p>La campanita concentra novedades que requieren contexto: respuestas, cambios de estado, asignaciones, resoluciones y otras acciones relacionadas con tu cuenta.</p></div></div>
     <div class="manual-cards"><article><strong>Abrir una notificación</strong><p>Haz clic sobre la novedad. El Helpdesk reconstruye el destino contra la instancia que tienes abierta y, cuando pertenece a un ticket, usa el número interno del caso como respaldo si el enlace guardado ya no es válido.</p></article><article><strong>Leída no significa resuelta</strong><p>Al abrirla se marca como revisada, pero el ticket conserva su estado real. Usa <b>Marcar leídas</b> únicamente para limpiar la bandeja de novedades.</p></article><article><strong>Si un destino cambió</strong><p>El sistema evita enviar una notificación interna a otro host o entorno. Si no puede recuperar una ruta válida, vuelve a un destino seguro del Helpdesk.</p></article></div>
   </section>
+  <?php if(!$isSupervisorProfile&&!$isManagementProfile): ?>
   <section class="manual-section" id="solicitudes" data-manual-section data-manual-topics="solicitudes">
     <div class="manual-section-head"><span>02</span><div><h2><?= $isExternal?'Casos compartidos':'Solicitudes y seguimiento' ?></h2><p><?= $isExternal?'Trabaja únicamente los casos asignados a tu cuenta.':'Elige en qué necesitas ayuda, describe lo que ocurre y sigue las respuestas desde el mismo caso.' ?></p></div></div>
     <div class="manual-flow">
@@ -71,6 +85,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <?php else: ?><div><b>1</b><strong>Elige la ayuda</strong><span>Selecciona la opción del catálogo que más se parezca a lo que necesitas. El catálogo se mantiene actualizado y la ayuda cambia según tu selección, por lo que no necesitas memorizar categorías.</span></div><div><b>2</b><strong>Cuéntanos qué pasa</strong><span>Describe los hechos con tus propias palabras. Si iniciaste sesión, tus datos se usan automáticamente y tu ubicación asignada se propone cuando es inequívoca; puedes cambiarla si reportas otro lugar.</span></div><div><b>3</b><strong>Da seguimiento</strong><span>Consulta respuestas, archivos, cambios relevantes y la solución desde Mis solicitudes.</span></div><?php endif; ?>
     </div>
   </section>
+  <?php endif; ?>
 
   <?php if($isSupport): ?>
   <section class="manual-section" id="actividades" data-manual-section data-manual-topics="actividades">
@@ -84,7 +99,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <article><strong>Información para el solicitante</strong><p>Activa la visibilidad solo cuando quieras publicar una actualización. Escribe un resumen claro para el usuario; preparación, responsable interno, proveedor, trabajo técnico y otros detalles privados permanecen dentro de soporte.</p></article>
     </div>
   </section>
-  <?php elseif(!$isExternal): ?>
+  <?php elseif($isRequesterProfile): ?>
   <section class="manual-section" id="actividades" data-manual-section data-manual-topics="actividades">
     <div class="manual-section-head"><span>A</span><div><h2>Actividades y visitas</h2><p>Cuando soporte publique una atención programada para tu solicitud, aparecerá dentro del caso como <b>Próxima atención</b>.</p></div></div>
     <div class="manual-cards">
@@ -97,16 +112,25 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   <?php if($isSupport||$canManagement): ?>
   <section class="manual-section" id="agenda" data-manual-section data-manual-topics="actividades gestion">
-    <div class="manual-section-head"><span>AG</span><div><h2>Agenda</h2><p>Consulta actividades programadas desde Calendario o Lista, siempre con el alcance que autoriza el sistema.</p></div></div>
+    <div class="manual-section-head"><span>AG</span><div><h2>Agenda</h2><p>Consulta actividades programadas desde Calendario o Lista con el alcance autorizado para tu perfil.</p></div></div>
     <div class="manual-cards">
-      <?php if($isSupport): ?>
-      <article><strong>Técnico</strong><p>Usa <b>Mis actividades</b> para tu carga directa y <b>Todo mi alcance</b> para revisar actividades visibles según parque, región, área o equipo. Filtra por responsable, parque, tipo, estado y rango de fechas.</p></article>
-      <article><strong>Atrasadas y conflictos</strong><p>Las actividades atrasadas y los conflictos de horario se calculan a partir de <b>ticket_activities</b>; son señales para priorizar, no estados nuevos ni una agenda separada.</p></article>
-      <article><strong>Abrir ticket y programar</strong><p>Cada elemento abre el ticket en <b>Actividades</b>. La programación operativa se hace vía ticket con <b>+ Programar actividad</b>; el ticket sigue siendo el espacio de trabajo.</p></article>
-      <article><strong>Admin/Semiadmin</strong><p>Agenda muestra una consulta global visible dentro del alcance autorizado y conserva los mismos filtros para responsable, parque, tipo, estado, Calendario y Lista.</p></article>
+      <?php if($isTechnicianProfile): ?>
+      <article><strong>Mi trabajo y mi alcance</strong><p>Usa <b>Mis actividades</b> para tu carga directa y <b>Todo mi alcance</b> para revisar actividades visibles por parque, región, área o equipo.</p></article>
       <?php endif; ?>
-      <?php if($canManagement): ?>
-      <article><strong>Gerencia/Supervisión</strong><p>Agenda es de consulta sin operar: puedes revisar carga, atrasos y conflictos dentro de tu alcance, pero no programar, iniciar, finalizar, cancelar ni reprogramar actividades.</p></article>
+      <?php if($isAdminProfile): ?>
+      <article><strong>Vista operativa del equipo</strong><p>Consulta la agenda global permitida por alcance y usa filtros de responsable, parque, tipo, estado y fecha para coordinar trabajo.</p></article>
+      <?php endif; ?>
+      <?php if($isSupport): ?>
+      <article><strong>Atrasadas y conflictos</strong><p>Son señales para priorizar. No crean estados nuevos ni sustituyen el estado del ticket.</p></article>
+      <article><strong>La operación ocurre en el ticket</strong><p>Abre el caso para programar, reprogramar, iniciar, finalizar o cancelar una actividad. La Agenda es la vista de planificación.</p></article>
+      <?php endif; ?>
+      <?php if($isSupervisorProfile): ?>
+      <article><strong>Seguimiento por alcance</strong><p>Consulta carga, atrasos y conflictos dentro del parque, región o área asignada. Usa Agenda para coordinación y seguimiento.</p></article>
+      <article><strong>Perfil de consulta</strong><p>Supervisor no programa, inicia, finaliza, cancela ni reprograma actividades salvo que tenga otro perfil técnico explícito.</p></article>
+      <?php endif; ?>
+      <?php if($isManagementProfile): ?>
+      <article><strong>Lectura ejecutiva</strong><p>Consulta carga programada, atrasos y conflictos como contexto de operación. Profundiza desde Informes cuando necesites explicar tendencias.</p></article>
+      <article><strong>Sin operación de soporte</strong><p>Gerencia consulta Agenda y tickets; la ejecución continúa a cargo del equipo de soporte.</p></article>
       <?php endif; ?>
     </div>
   </section>
@@ -218,10 +242,20 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
 
-  <?php if($canManagement): ?><section class="manual-section" id="gestion" data-manual-section data-manual-topics="gestion"><div class="manual-section-head"><span>05</span><div><h2>Dashboard e informes</h2><p>Usa métricas para entender qué está pasando y los informes para explicar el detalle.</p></div></div><div class="manual-cards"><article><strong>Dashboard</strong><p>Analiza volumen, tiempos, carga y tendencias dentro de tu alcance.</p><a href="<?= APP_BASE_URL ?>/gestion">Abrir Dashboard →</a></article><article><strong>Informes</strong><p>Consulta tiempos, cambios de estado, esperas y solución. La exportación oficial es Excel (.xlsx); la hoja de esperas conserva los minutos históricos por cada motivo.</p><a href="<?= APP_BASE_URL ?>/gestion/informes">Abrir Informes →</a></article></div></section><?php endif; ?>
+  <?php if($canManagement): ?>
+  <section class="manual-section" id="gestion" data-manual-section data-manual-topics="gestion">
+    <div class="manual-section-head"><span>05</span><div><h2>Dashboard e informes</h2><p><?= $isSupervisorProfile?'Consulta lo que ocurre dentro de tu alcance organizacional.':($isManagementProfile?'Lee la operación a nivel ejecutivo sin intervenir en la atención.':'Usa métricas para entender qué ocurre y el detalle para tomar decisiones operativas.') ?></p></div></div>
+    <div class="manual-cards">
+      <article><strong>Dashboard</strong><p><?= $isSupervisorProfile?'Revisa volumen, tiempos, carga y tendencias del parque, región o área que tienes asignada.':($isManagementProfile?'Usa indicadores para detectar tendencias, carga, tiempos y excepciones que requieran seguimiento.':'Analiza volumen, tiempos, carga y tendencias dentro del alcance autorizado.') ?></p><a href="<?= APP_BASE_URL ?>/gestion">Abrir Dashboard →</a></article>
+      <?php if($canReports): ?><article><strong>Centro de informes</strong><p>Aplica período y filtros para explicar el detalle de Tickets/SLA, Agenda, Proveedores, Equipo y Conocimiento según tus capacidades. Excel conserva el mismo conjunto filtrado.</p><a href="<?= APP_BASE_URL ?>/gestion/informes">Abrir Informes →</a></article><?php endif; ?>
+      <?php if($isSupervisorProfile): ?><article><strong>Seguimiento, no atención</strong><p>Usa la información para coordinar y escalar. Tomar, reasignar, responder, poner en espera o resolver corresponde al perfil técnico.</p></article><?php endif; ?>
+      <?php if($isManagementProfile): ?><article><strong>Lectura ejecutiva</strong><p>Profundiza solo cuando un indicador requiera contexto. Gerencia no necesita entrar a operar tickets para entender el estado del servicio.</p></article><?php endif; ?>
+    </div>
+  </section>
+  <?php endif; ?>
 
-  <?php if($canManagement||$canAdmin): ?>
-  <section class="manual-section" id="proveedores" data-manual-section>
+  <?php if($canProviderReport): ?>
+  <section class="manual-section" id="proveedores" data-manual-section data-manual-topics="gestion">
     <div class="manual-section-head"><span>PR</span><div><h2>Informe de proveedores</h2><p>Consulta cómo participó cada colaborador externo en los casos compartidos sin mezclar administración de accesos con rendimiento operativo.</p></div></div>
     <div class="manual-cards">
       <article><strong>Participación por ciclo</strong><p>Cada vez que un proveedor recibe acceso a un ticket inicia un ciclo nuevo. El informe muestra asignación, primera respuesta, duración, actividad actual, tiempo declarado, respuestas, archivos e informes de ese ciclo.</p></article>
@@ -231,19 +265,51 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </section>
   <?php endif; ?>
-  <?php if($canAdmin): ?><section class="manual-section" id="administracion" data-manual-section data-manual-topics="administracion"><div class="manual-section-head"><span>06</span><div><h2>Administración</h2><p>Gestiona perfiles, alcance, proveedores, correo y trazabilidad sin exponer detalles técnicos al usuario final.</p></div></div><div class="manual-cards"><article><strong>Usuarios</strong><p>El perfil define qué puede hacer y la asignación indica dónde trabaja. <b>Responsable directo</b> representa a quién reporta organizacionalmente: no asigna tickets, no cambia permisos ni modifica el alcance.</p></article><article><strong>Proveedores</strong><p><b>Convertir entre usuario interno y proveedor externo</b> reutiliza la misma identidad y conserva historial. Comparte únicamente casos específicos mientras la persona actúe como proveedor y retira el acceso cuando termine su participación.</p></article><article><strong>Auditoría</strong><p>Consulta quién cambió qué y cuándo cuando necesites reconstruir una acción.</p></article><article><strong>Correo y notificaciones</strong><p>Comprueba el canal, envía una prueba y revisa entregas fallidas o pendientes.</p><a href="<?= APP_BASE_URL ?>/admin/correo">Abrir correo →</a></article></div></section><?php endif; ?>
+  <?php if($canAdmin): ?>
+  <section class="manual-section" id="administracion" data-manual-section data-manual-topics="administracion">
+    <div class="manual-section-head"><span>06</span><div><h2>Administración</h2><p>Solo aparecen las funciones administrativas habilitadas para tu cuenta.</p></div></div>
+    <div class="manual-cards">
+      <?php if($canUsersManage): ?><article><strong>Usuarios y asignaciones</strong><p>El perfil define capacidades y la asignación define dónde trabaja la persona. <b>Responsable directo</b> es una relación organizacional: no asigna tickets ni cambia permisos.</p><a href="<?= APP_BASE_URL ?>/admin/users">Abrir Usuarios →</a></article><?php endif; ?>
+      <?php if($canExternalManage): ?><article><strong>Proveedores y accesos</strong><p>Administra colaboradores externos, comparte únicamente casos concretos y retira el acceso cuando termine su participación.</p><a href="<?= APP_BASE_URL ?>/admin/externos">Abrir Proveedores →</a></article><?php endif; ?>
+      <?php if($canAudit): ?><article><strong>Auditoría</strong><p>Reconstruye quién realizó una acción y cuándo. La auditoría es para trazabilidad, no para el usuario final.</p><a href="<?= APP_BASE_URL ?>/admin/audit">Abrir Auditoría →</a></article><?php endif; ?>
+      <?php if($canMailAdmin): ?><article><strong>Correo y notificaciones</strong><p>Comprueba el canal, envía una prueba y revisa enviados, fallidos, pendientes e intentos sin exponer credenciales.</p><a href="<?= APP_BASE_URL ?>/admin/correo">Abrir Correo →</a></article><?php endif; ?>
+    </div>
+  </section>
+  <?php endif; ?>
 
-  <section class="manual-section" id="preguntas" data-manual-section data-manual-topics="ayuda"><div class="manual-section-head"><span>?</span><div><h2>Preguntas frecuentes</h2><p>Abre únicamente la respuesta que necesites.</p></div></div><div class="manual-faq">
-    <details><summary>No sé dónde registrar o buscar un caso</summary><div>Para un caso nuevo usa <b>Solicitar ayuda</b>. Para algo ya registrado usa <b>Mis solicitudes</b> o el buscador global. Si trabajas en soporte, usa el Centro de soporte.</div></details>
-    <details><summary>¿Cómo obtengo acceso para ver mis solicitudes?</summary><div>Las cuentas de acceso las crea Administración. Puedes reportar una solicitud sin iniciar sesión; cuando tu cuenta esté habilitada, entrarás con tu correo y un código OTP para consultar tu historial.</div></details>
-    <details><summary>¿Qué información es importante al reportar?</summary><div>El formulario te da una sugerencia y un ejemplo según el tipo de ayuda. En general basta con indicar qué sucede, desde cuándo, dónde ocurre y a quién o qué equipo afecta. No necesitas conocer la causa técnica y nunca debes escribir tu contraseña.</div></details>
-    <details><summary>¿Por qué ya aparece mi ubicación?</summary><div>Si tu cuenta tiene una única asignación activa a un parque, el Helpdesk la propone automáticamente. Usa <b>Reportar en otro lugar</b> únicamente cuando la solicitud corresponda a otra ubicación.</div></details>
-    <?php if($isSupport): ?><details><summary>¿Qué significan los estados del SLA?</summary><div><b>Dentro de objetivo</b> indica que existe margen normal. <b>Atención requerida</b> aparece cuando ya se utilizó una parte importante del tiempo. <b>Próximo a vencer</b> marca los casos que deben priorizarse. <b>Vencido</b> indica que el objetivo de resolución ya fue superado.</div></details><details><summary>¿Cuándo debo poner un caso en espera?</summary><div>Solo cuando exista una dependencia real que impida continuar: respuesta del usuario, proveedor, compra, visita, aprobación u otra causa documentable. Si cambia la dependencia, actualiza el motivo; el historial conserva el tiempo de cada etapa.</div></details><details><summary>¿Quién cierra un caso resuelto?</summary><div>IT documenta la solución y marca el caso como resuelto. El cierre final se produce con la confirmación del solicitante. Si IT detecta que todavía falta trabajo, puede reabrir el caso.</div></details><details><summary>¿Respuesta al usuario o conversación interna?</summary><div>La respuesta al usuario forma parte del seguimiento visible. La conversación interna es exclusivamente para el equipo de soporte.</div></details><?php endif; ?>
-    <?php if($canProblems): ?><details><summary>¿Cuándo conviene crear un problema conocido?</summary><div>Cuando varios tickets representan la misma falla o necesitas investigar una causa que trasciende un solo caso.</div></details><?php endif; ?>
-    <?php if($canKnowledge): ?><details><summary>¿Cuándo debo crear un artículo?</summary><div>Cuando una solución o procedimiento sea claro y reutilizable. Créalo como borrador y publícalo después de revisarlo.</div></details><?php endif; ?>
-    <?php if($canManagement): ?><details><summary>¿Por qué Gerencia o Supervisión no ven botones para atender?</summary><div>Porque consultar información y atender soporte son responsabilidades distintas.</div></details><?php endif; ?>
-    <?php if($canAdmin): ?><details><summary>¿Cómo sé si un correo realmente salió?</summary><div>Abre <b>Correo y notificaciones</b>. Enviado significa que SMTP aceptó la entrega; Falló requiere revisión; Pendiente no ha terminado; Modo prueba no salió a Internet.</div></details><?php endif; ?>
-  </div></section>
+  <section class="manual-section" id="preguntas" data-manual-section data-manual-topics="ayuda">
+    <div class="manual-section-head"><span>?</span><div><h2>Preguntas frecuentes</h2><p>Respuestas breves según las funciones de tu perfil.</p></div></div>
+    <div class="manual-faq">
+      <?php if($isRequesterProfile): ?>
+        <details><summary>¿Qué información debo incluir al reportar?</summary><div>Indica qué sucede, desde cuándo, dónde ocurre y a quién o qué equipo afecta. No necesitas conocer la causa técnica y nunca debes escribir tu contraseña.</div></details>
+        <details><summary>¿Dónde veo lo que respondió soporte?</summary><div>Abre <b>Mis solicitudes</b>. Allí encontrarás conversación, archivos, estado, próximas atenciones publicadas y solución.</div></details>
+        <details><summary>¿Quién cierra una solicitud resuelta?</summary><div>Soporte documenta la solución y la marca como resuelta. Después puedes confirmar que quedó solucionada o devolverla a soporte si todavía existe el problema.</div></details>
+      <?php endif; ?>
+      <?php if($isCollaboratorProfile): ?>
+        <details><summary>¿Qué casos puedo ver?</summary><div>Solo los casos que el equipo interno compartió de forma explícita con tu cuenta y mientras ese acceso siga vigente.</div></details>
+        <details><summary>¿Puedo ver notas internas?</summary><div>No. Tu espacio contiene únicamente el contexto, conversación, archivos y solución que corresponden a la colaboración externa.</div></details>
+        <details><summary>¿Qué significa Listo para revisión?</summary><div>Indica que tu intervención está lista para que el equipo interno la valide. No resuelve ni cierra automáticamente el ticket.</div></details>
+      <?php endif; ?>
+      <?php if($isSupport): ?>
+        <details><summary>¿Qué significan los estados del SLA?</summary><div><b>Dentro de objetivo</b> conserva margen normal; <b>Atención requerida</b> indica consumo relevante; <b>Próximo a vencer</b> requiere prioridad; <b>Vencido</b> superó el objetivo.</div></details>
+        <details><summary>¿Cuándo debo poner un caso en espera?</summary><div>Solo cuando una dependencia real impida continuar: usuario, proveedor, compra, visita, aprobación u otra causa documentable.</div></details>
+        <details><summary>¿Respuesta al usuario o conversación interna?</summary><div>La respuesta al usuario forma parte del seguimiento visible. La conversación interna es exclusivamente del equipo de soporte.</div></details>
+        <details><summary>¿Qué debo documentar al resolver?</summary><div>Qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Usa referencias cuando una solución previa realmente aplique.</div></details>
+      <?php endif; ?>
+      <?php if($isSupervisorProfile): ?>
+        <details><summary>¿Por qué no veo botones para atender?</summary><div>Supervisor es un perfil de consulta y seguimiento por alcance. La atención requiere un perfil técnico explícito.</div></details>
+        <details><summary>¿Qué determina lo que puedo consultar?</summary><div>Tu asignación organizacional define el alcance visible: parque, región, área u otra relación configurada.</div></details>
+      <?php endif; ?>
+      <?php if($isManagementProfile): ?>
+        <details><summary>¿Por qué Gerencia no opera tickets?</summary><div>El perfil está diseñado para consulta ejecutiva. Dashboard, Informes, Problemas y Conocimiento permiten entender la operación sin intervenir en el flujo técnico.</div></details>
+        <details><summary>¿Cuándo conviene abrir el detalle de un informe?</summary><div>Cuando un indicador requiera explicar volumen, tiempo, espera, recurrencia, proveedor, equipo o conocimiento detrás del dato agregado.</div></details>
+      <?php endif; ?>
+      <?php if($canProblems): ?><details><summary>¿Cuándo conviene crear un problema conocido?</summary><div>Cuando varios tickets representan la misma falla o la causa requiere investigación más allá de un solo caso.</div></details><?php endif; ?>
+      <?php if($canKnowledgeDraft): ?><details><summary>¿Cuándo debo crear un artículo?</summary><div>Cuando una solución o procedimiento sea claro y reutilizable. Empieza como borrador; la publicación requiere el flujo editorial correspondiente.</div></details><?php endif; ?>
+      <?php if($canUsersManage): ?><details><summary>¿Perfil, asignación y responsable directo son lo mismo?</summary><div>No. Perfil define capacidades; asignación define dónde trabaja; responsable directo representa a quién reporta organizacionalmente.</div></details><?php endif; ?>
+      <?php if($canMailAdmin): ?><details><summary>¿Cómo sé si un correo realmente salió?</summary><div>En <b>Correo y notificaciones</b>, Enviado significa que SMTP aceptó la entrega; Falló requiere revisión; Pendiente no terminó; Modo prueba no salió a Internet.</div></details><?php endif; ?>
+    </div>
+  </section>n>
 </div>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (function(){
