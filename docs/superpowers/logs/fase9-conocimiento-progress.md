@@ -517,6 +517,35 @@ Validación PC TEST:
 Pendiente inmediato:
 - repetir creación de artículo en navegador y continuar smoke editorial.
 
+## Smoke editorial en navegador — 2026-09-18
+
+Validado en PC TEST con capturas:
+- crear artículo nuevo -> `KB-2026-0002`: ✅;
+- estado inicial `Borrador`: ✅;
+- `Enviar a revisión` -> `En revisión`: ✅;
+- `Devolver a borrador` con observación: ✅;
+- volver a enviar y `Publicar para soporte`: ✅;
+- habilitar `Disponible para solicitantes`: ✅;
+- archivar artículo: ✅;
+- listado general refleja artículo archivado: ✅.
+
+Hallazgos visuales del smoke:
+- `En revisión · En revisión` aparecía duplicado;
+- un artículo archivado todavía mostraba versiones internas/públicas como si siguieran disponibles;
+- el listado marcaba el archivado como `Disponible para solicitantes`;
+- `Más acciones` podía quedar vacío tras archivar.
+
+Correcciones:
+- `0f6f0e2`: listado público respeta lifecycle activo;
+- `984aff2`: detalle archivado muestra `No disponible (archivado)`, evita duplicación de estado y oculta menú vacío;
+- `17c3a68`: historial no ofrece restauración directa de artículo archivado;
+- `cfbcd31`: regresión UI cubre estos hallazgos.
+
+Pendiente inmediato:
+- sincronizar PC TEST;
+- reabrir el artículo archivado y el listado;
+- confirmar visualmente que no se muestra disponibilidad pública activa y que el menú secundario contiene `Ver historial`.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
