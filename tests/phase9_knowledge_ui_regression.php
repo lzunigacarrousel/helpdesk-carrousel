@@ -31,6 +31,12 @@ ok(str_contains($form,'Guardar borrador'),'Formulario conserva acción principal
 ok(str_contains($index,'Disponible para solicitantes'),'Listado identifica disponibilidad pública con copy legible');
 ok(!str_contains($index,'Toda visibilidad'),'Listado elimina filtro legacy de visibilidad');
 ok(str_contains($show,'Más acciones'),'Acciones secundarias se agrupan');
+ok(str_contains($show,'No disponible (archivado)'),'Artículo archivado no aparenta seguir publicado');
+ok(str_contains($show,'$hasSecondaryActions'),'Menú secundario solo aparece cuando tiene acciones');
+ok(str_contains($show,'Ver historial'),'Detalle ofrece acceso real al historial');
+ok(!str_contains($show,"<?php if($workingState==='IN_REVIEW'): ?> · En revisión<?php endif; ?>"),'Estado En revisión no se duplica');
+ok(str_contains($controller,"ka.lifecycle_status='ACTIVE' AND ka.current_public_revision_id IS NOT NULL"),'Listado no marca archivados como disponibles públicamente');
+ok(str_contains((string)file_get_contents($root.'/app/Views/knowledge/history.php'),"($article['lifecycle_status']??'ACTIVE')!=='ARCHIVED'"),'Historial no ofrece restauración directa de artículo archivado');
 
 foreach([
     'Crear borrador',
