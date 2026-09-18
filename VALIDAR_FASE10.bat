@@ -14,6 +14,7 @@ echo.
 
 call :run tests\phase10_reports_hub_regression.php "Fase 10 - hub de reportes"
 call :run tests\phase10_knowledge_report_regression.php "Fase 10 - resumen de conocimiento"
+call :run tests\phase10_activity_report_regression.php "Fase 10 - resumen de actividades"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
