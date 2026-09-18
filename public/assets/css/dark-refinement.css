@@ -147,6 +147,8 @@ html[data-theme="dark"] .btn-outline-secondary:hover,
 html[data-theme="dark"] .btn-outline-primary:hover{background:#1d2734;border-color:#53657d;color:#fff}
 html[data-theme="dark"] .btn-primary{background:#346fd1;border-color:#346fd1;color:#fff}
 html[data-theme="dark"] .btn-primary:hover{background:#417cdf;border-color:#417cdf}
+html[data-theme="dark"] .btn-danger{background:#b42318;border-color:#b42318;color:#fff}
+html[data-theme="dark"] .btn-danger:hover{background:#d92d20;border-color:#d92d20;color:#fff}
 html[data-theme="dark"] .btn:hover{box-shadow:var(--dark-motion-shadow-soft)}
 html[data-theme="dark"] .btn:disabled{opacity:.55}
 
