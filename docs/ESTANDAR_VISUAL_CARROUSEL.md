@@ -27,6 +27,18 @@ Esto significa reutilizar su **gramática visual y de interacción**, no copiar 
 - Responsive: panel de marca se oculta en pantallas pequeñas y aparece marca compacta dentro del formulario.
 - Helpdesk conserva correo + OTP; no se introducen contraseñas permanentes.
 
+## Patrón de botones y acciones
+
+La aplicación usa una sola jerarquía de botones. No crear variantes visuales por módulo.
+
+- `btn-primary`: acción principal que hace avanzar el flujo (Crear, Guardar, Enviar a revisión, Publicar, Confirmar).
+- `btn-outline-secondary`: navegación o acción secundaria no destructiva (Volver, Ver historial, Comparar, Más acciones, Devolver a borrador).
+- `btn-danger`: acción destructiva o de retiro (Archivar, Eliminar, Retirar acceso, Revocar).
+- `btn-sm`: únicamente para controles compactos donde la densidad lo exige; no sustituye la jerarquía semántica.
+- Los botones de acción normales comparten altura, radio, padding, tipografía y estados hover/focus.
+- Dentro de un menú de acciones, las opciones deben ocupar el mismo ancho y conservar su color semántico.
+- No usar un botón neutro para una acción destructiva ni inventar colores/medidas locales.
+
 ## Patrón de administración
 
 - Encabezado de página alineado al contenido.
