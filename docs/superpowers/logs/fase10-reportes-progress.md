@@ -103,3 +103,17 @@ Siguiente: Task 5 — consolidación de Proveedores dentro del Centro de informe
 - BD: sin cambios.
 
 Siguiente: Task 6 — consolidación de Equipo de soporte dentro del Centro de informes sin duplicar `/gestion/equipo`.
+
+## Task 6 — Resumen de Equipo de soporte · IMPLEMENTADA
+
+- Se creó `SupportTeamReportService` como fuente compartida de integrantes, resumen especializado y resumen del Centro de informes.
+- `SupportTeamController` ya no duplica las consultas de integrantes ni la agregación principal.
+- Centro de informes: integrantes, tickets del período, resueltos, primera respuesta y NPS.
+- Contexto secundario: activos, en proceso, en espera, resolución promedio y calificación promedio.
+- El resumen usa `TicketReportFilterService`, por lo que hereda período, filtros y `ScopeService`.
+- La pantalla especializada `/gestion/equipo` conserva gestión de integrantes y exportación XLSX; el Centro no duplica su tabla.
+- Responsive integrado mediante el mismo patrón visual de Reportes.
+- `tests/phase10_support_team_report_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 7 — cierre de exportaciones y consistencia de los informes especializados (general, proveedores y equipo), seguido por Task 8 UI/responsive y closeout de Fase 10.
