@@ -182,6 +182,9 @@ jobs:
       - name: Phase 10 reports - hub
         run: php tests/phase10_reports_hub_regression.php
 
+      - name: Phase 10 reports - knowledge summary
+        run: php tests/phase10_knowledge_report_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
