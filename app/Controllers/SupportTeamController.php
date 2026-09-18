@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,View};
-use App\Services\{SupportTeamReportService,XlsxExportService};
+use App\Services\{SupportTeamReportService,TicketReportFilterService,XlsxExportService};
 use PDO;
 
 final class SupportTeamController
@@ -15,10 +15,14 @@ final class SupportTeamController
         $teamService=new SupportTeamReportService($pdo);
         $teamId=$teamService->activeTeamId();
         $members=$teamService->members($teamId);
+        $periodFilters=(new TicketReportFilterService())->filters($_GET);
+        $periodSummary=$teamService->reportSummary($periodFilters);
         View::render('management/support_team',[
             'user'=>Auth::user(),
             'members'=>$members,
             'summary'=>$teamService->summary($members),
+            'periodFilters'=>$periodFilters,
+            'periodSummary'=>$periodSummary,
             'candidates'=>$this->candidates($pdo,$teamId),
             'pendingSupport'=>$this->pendingSupport($pdo),
             'canManage'=>$this->canManage(),
@@ -80,6 +84,9 @@ final class SupportTeamController
         $teamService=new SupportTeamReportService($pdo);
         $members=$teamService->members($teamService->activeTeamId());
         $summary=$teamService->summary($members);
+        $periodFilters=(new TicketReportFilterService())->filters($_GET);
+        $periodSummary=$teamService->reportSummary($periodFilters);
+        $periodLabel='Período '.$periodFilters['from'].' a '.$periodFilters['to'];
 
         $rows=[];
         foreach($members as $m){
@@ -95,22 +102,24 @@ final class SupportTeamController
             ];
         }
 
-        Audit::log('SUPPORT_TEAM_EXPORTED_XLSX','report',null,null,null,['rows'=>count($rows)]);
+        Audit::log('SUPPORT_TEAM_EXPORTED_XLSX','report',null,null,null,['rows'=>count($rows),'filters'=>$periodFilters]);
         XlsxExportService::download('helpdesk_equipo_soporte_'.date('Ymd_His').'.xlsx',[
-            ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Equipo de soporte','subtitle'=>'Generado '.date('d/m/Y H:i:s'),'headers'=>['Indicador','Valor'],'rows'=>[
-                ['Integrantes',(int)$summary['members']],
-                ['Casos activos',(int)$summary['active_cases']],
-                ['En proceso',(int)$summary['in_progress']],
-                ['En espera',(int)$summary['pending_cases']],
+            ['name'=>'Resumen','title'=>'Helpdesk Carrousel · Equipo de soporte','subtitle'=>$periodLabel.' · Generado '.date('d/m/Y H:i:s'),'headers'=>['Indicador','Valor'],'rows'=>[
+                ['Período',$periodFilters['from'].' a '.$periodFilters['to']],
+                ['Integrantes',(int)$periodSummary['members']],
+                ['Tickets del período',(int)$periodSummary['tickets_period']],
+                ['Resueltos del período',(int)$periodSummary['resolved_period']],
+                ['Primera respuesta promedio (min)',$periodSummary['avg_first_response_min']??''],
+                ['Resolución promedio (h)',$periodSummary['avg_resolution_hours']??''],
+                ['Respuestas NPS del período',(int)$periodSummary['nps_responses']],
+                ['NPS del período',$periodSummary['nps_value']!==null?(int)$periodSummary['nps_value']:''],
+                ['Calificación promedio del período',$periodSummary['avg_rating']!==null?round((float)$periodSummary['avg_rating'],1).'/10':''],
+                ['Carga actual - casos activos',(int)$summary['active_cases']],
+                ['Carga actual - en proceso',(int)$summary['in_progress']],
+                ['Carga actual - en espera',(int)$summary['pending_cases']],
                 ['Resueltos últimos 30 días',(int)$summary['resolved_30']],
-                ['Respuestas NPS',(int)$summary['nps_responses']],
-                ['Promotores (9-10)',(int)$summary['nps_promoters']],
-                ['Pasivos (7-8)',(int)$summary['nps_passives']],
-                ['Detractores (0-6)',(int)$summary['nps_detractors']],
-                ['NPS',$summary['nps_value']!==null?(int)$summary['nps_value']:''],
-                ['Calificación promedio',$summary['avg_rating']!==null?round((float)$summary['avg_rating'],1).'/10':''],
             ]],
-            ['name'=>'Tecnicos','title'=>'Helpdesk Carrousel · Carga y desempeño del equipo','subtitle'=>'Integrantes activos del equipo IT','headers'=>[
+            ['name'=>'Tecnicos','title'=>'Helpdesk Carrousel · Carga y desempeño del equipo','subtitle'=>'Integrantes activos del equipo IT · carga actual e histórico por integrante','headers'=>[
                 'Nombre','Correo','Perfil','Puesto','Ubicación / área','Casos activos','En proceso','En espera','Resueltos 30 días',
                 'Primera respuesta prom. (min)','Resolución prom. (h)','NPS','Calificación prom. (0-10)','Respuestas NPS','Promotores','Pasivos','Detractores','Último acceso'
             ],'rows'=>$rows],
