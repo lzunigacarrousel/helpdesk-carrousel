@@ -573,6 +573,30 @@ Commits:
 Validación contractual de selectores/alineación: ✅ GREEN.
 Pendiente: confirmación visual real en PC TEST, iPad y móvil.
 
+## Regresión UI/alineación — GREEN · 2026-09-18
+
+Validación ejecutada en PC TEST:
+- sintaxis de `tests/phase9_knowledge_ui_regression.php`: ✅;
+- lectura por punteros interno/público: ✅;
+- estados editoriales legibles: ✅;
+- sin tecnicismos legacy de visibilidad/scope: ✅;
+- artículo archivado no aparenta seguir publicado: ✅;
+- menú secundario condicionado a acciones reales: ✅;
+- acceso a historial: ✅;
+- estado `En revisión` sin duplicación: ✅;
+- listado no marca archivados como públicos: ✅;
+- grid propio de filtros: ✅;
+- alineación de encabezado, barra editorial, popover, layout, cards y responsive: ✅;
+- manual/tutorial por perfil: ✅.
+
+Resultado final:
+`[OK] UI de conocimiento usa modelo versionado y copy simplificado.`
+
+Pendiente:
+- confirmación visual con capturas en PC TEST;
+- repetir gate global `VALIDAR_FASE9.bat` después de estos últimos ajustes;
+- smoke en iPad/móvil.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
