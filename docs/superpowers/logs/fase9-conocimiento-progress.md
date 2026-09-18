@@ -597,6 +597,42 @@ Pendiente:
 - repetir gate global `VALIDAR_FASE9.bat` después de estos últimos ajustes;
 - smoke en iPad/móvil.
 
+## Gate global posterior a pulido UI — GREEN · 2026-09-18
+
+Evidencia ejecutada en PC TEST después de los últimos ajustes visuales:
+- `VALIDAR_FASE9.bat`: ✅ GREEN;
+- esquema/migración: ✅;
+- núcleo de revisiones: ✅;
+- permisos editoriales: ✅;
+- workflow controller: ✅;
+- candidatos a conocimiento: ✅;
+- referencias de solución: ✅;
+- sugerencias versionadas: ✅;
+- autoservicio público: ✅;
+- historial/comparación: ✅;
+- métricas: ✅;
+- UI/manual/tutorial: ✅;
+- lecturas transversales: ✅;
+- closeout documental/CI: ✅;
+- static checks: ✅;
+- calidad de rutas/vistas/CSS: ✅;
+- XLSX smoke: ✅;
+- `git diff --check`: ✅;
+- working tree: limpio.
+
+Resultado final:
+`[OK] GATE FINAL FASE 9 COMPLETADO SIN FALLOS`
+
+GitHub remoto:
+- commit actual validado: `cd5243c`;
+- no hay workflow run ni status remoto asociado a este commit al momento de la revisión.
+
+Pendiente para cierre definitivo:
+1. matriz visual/responsive en PC + iPad + móvil;
+2. smoke de seguridad/perfiles;
+3. CI remoto GREEN o evidencia equivalente de ejecución;
+4. aprobación explícita antes de producción.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
