@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Database,View};
-use App\Services\{ProviderParticipationService,ProviderRatingService,XlsxExportService};
+use App\Services\{ProviderParticipationService,ProviderRatingService,ScopeService,XlsxExportService};
 
 final class ExternalReportController
 {
@@ -40,6 +40,8 @@ final class ExternalReportController
         $rows=ProviderParticipationService::applyFilters($service->scopedRows($ratingService->enrichRows($service->rows())),$filters);
         $summary=ProviderParticipationService::summary($rows);
         $providerRatingSummary=ProviderRatingService::providerSummary($rows);
+        $providers=$service->registeredProviders();
+        $filterText=$this->filterDescription($filters,$providers).' · '.(new ScopeService())->scopeLabel();
         $data=[];
 
         foreach($rows as $r){
@@ -89,27 +91,34 @@ final class ExternalReportController
         Audit::log('EXTERNAL_REPORT_EXPORTED_XLSX','report',null,null,null,[
             'rows'=>count($data),
             'filters'=>$filters,
+            'scope'=>(new ScopeService())->scopeLabel(),
         ]);
 
         XlsxExportService::download('helpdesk_proveedores_'.date('Ymd_His').'.xlsx',[
             [
                 'name'=>'Resumen',
                 'title'=>'Helpdesk Carrousel · Proveedores',
-                'subtitle'=>'Participación operativa de proveedores externos',
+                'subtitle'=>$filterText,
                 'headers'=>['Indicador','Valor'],
                 'rows'=>[
+                    ['Proveedores',(int)$summary['providers']],
                     ['Participaciones',(int)$summary['participations']],
                     ['Activas',(int)$summary['active']],
                     ['Sin respuesta',(int)$summary['no_response']],
                     ['Promedio primera respuesta (min)',$summary['avg_first_response_minutes']??''],
+                    ['Entregas listas',(int)$summary['deliveries']],
                     ['Devoluciones',(int)$summary['returns']],
+                    ['Ciclos evaluados',(int)$summary['rated_cycles']],
+                    ['Ciclos sin evaluar',(int)$summary['unrated_cycles']],
+                    ['Calidad promedio',$summary['average_quality']!==null?number_format((float)$summary['average_quality'],2).'/5':''],
+                    ['Filtros aplicados',$filterText],
                     ['Generado',date('d/m/Y H:i:s')],
                 ],
             ],
             [
                 'name'=>'Participaciones',
                 'title'=>'Helpdesk Carrousel · Historial de proveedores',
-                'subtitle'=>'La exportación respeta los filtros aplicados en pantalla',
+                'subtitle'=>$filterText,
                 'headers'=>[
                     'Proveedor','Contacto','Correo','Ticket','Asunto','Asignado','Asignado por',
                     'Revocado','Revocado por','Duración (min)','Primera respuesta','T. primera respuesta (min)',
@@ -154,6 +163,25 @@ final class ExternalReportController
             'from'=>$this->validDate((string)($_GET['from']??'')),
             'to'=>$this->validDate((string)($_GET['to']??'')),
         ];
+    }
+
+    private function filterDescription(array $filters,array $providers): string
+    {
+        $parts=[];
+
+        if((string)($filters['from']??'')!==''||(string)($filters['to']??'')!==''){
+            $parts[]='Período '.((string)($filters['from']??'')!==''?$filters['from']:'inicio').' a '.((string)($filters['to']??'')!==''?$filters['to']:'hoy');
+        }else{
+            $parts[]='Todos los períodos';
+        }
+
+        if((int)($filters['provider']??0)>0)$parts[]='Proveedor '.($providers[(int)$filters['provider']]??$filters['provider']);
+        if((string)($filters['state']??'')!=='')$parts[]='Estado '.(($filters['state']==='active')?'Activas':'Finalizadas');
+        if((string)($filters['activity']??'')!=='')$parts[]='Actividad '.(ProviderParticipationService::activityOptions()[$filters['activity']]??$filters['activity']);
+        if((string)($filters['rating']??'')!=='')$parts[]='Valoración '.(ProviderRatingService::ratingOptions()[$filters['rating']]??$filters['rating']);
+        if(trim((string)($filters['q']??''))!=='')$parts[]='Búsqueda '.trim((string)$filters['q']);
+
+        return implode(' · ',$parts);
     }
 
     private function ticketStatusLabel(string $status): string
