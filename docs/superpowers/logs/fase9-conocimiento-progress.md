@@ -690,6 +690,37 @@ Protección:
 
 Regla futura: no crear una variante visual de botón por módulo; reutilizar el contrato canónico.
 
+## Gate final posterior a estandarización de botones — GREEN · 2026-09-18
+
+Evidencia PC TEST:
+- `tests/button_semantics_regression.php`: ✅ GREEN;
+- `VALIDAR_FASE9.bat`: ✅ GREEN completo;
+- semántica canónica de botones: ✅;
+- esquema/migración: ✅;
+- núcleo de revisiones: ✅;
+- permisos/editorial: ✅;
+- workflow controller: ✅;
+- candidatos/referencias/sugerencias: ✅;
+- autoservicio público: ✅;
+- historial/comparación: ✅;
+- métricas: ✅;
+- UI/manual/tutorial: ✅;
+- lecturas transversales: ✅;
+- closeout documental/CI: ✅;
+- checks estáticos: ✅;
+- rutas/vistas/CSS: ✅;
+- XLSX smoke: ✅;
+- `git diff --check`: ✅;
+- working tree: limpio.
+
+Resultado:
+`[OK] GATE FINAL FASE 9 COMPLETADO SIN FALLOS`
+
+Este resultado no autoriza producción. Pendientes:
+1. matriz manual responsive/seguridad;
+2. CI remoto GREEN;
+3. aprobación explícita.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
