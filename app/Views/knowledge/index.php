@@ -16,7 +16,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   <section class="card">
     <div class="card-body">
-      <form class="itsm-filter-grid" method="get" action="<?= APP_BASE_URL ?>/knowledge">
+      <form class="itsm-filter-grid knowledge-filter-grid" method="get" action="<?= APP_BASE_URL ?>/knowledge">
         <input class="form-control" type="search" name="q" value="<?= htmlspecialchars((string)$filters['q']) ?>" placeholder="Buscar por número, título o contenido">
         <?php if($canManage): ?>
           <select class="form-control" name="status">
