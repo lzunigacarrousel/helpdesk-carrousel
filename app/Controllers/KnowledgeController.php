@@ -48,7 +48,7 @@ final class KnowledgeController
                          COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id) category_id,
                          c.name category_name,
                          u.full_name author_name,
-                         (ka.current_public_revision_id IS NOT NULL) public_available
+                         (ka.lifecycle_status='ACTIVE' AND ka.current_public_revision_id IS NOT NULL) public_available
                   FROM knowledge_articles ka
                   LEFT JOIN knowledge_revisions wr ON wr.id=(
                       SELECT x.id FROM knowledge_revisions x
