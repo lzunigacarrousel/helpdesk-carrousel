@@ -117,3 +117,17 @@ Siguiente: Task 6 — consolidación de Equipo de soporte dentro del Centro de i
 - BD: sin cambios.
 
 Siguiente: Task 7 — cierre de exportaciones y consistencia de los informes especializados (general, proveedores y equipo), seguido por Task 8 UI/responsive y closeout de Fase 10.
+
+## Task 7 — Exportaciones especializadas · IMPLEMENTADA
+
+- Se revisó como una sola familia: informe general, Proveedores y Equipo de soporte.
+- General mantiene filtros/Scope compartidos y documenta filtros en el XLSX.
+- Proveedores ahora documenta filtros + alcance en el archivo y alinea el resumen con pantalla: proveedores, participaciones, activas, sin respuesta, primera respuesta, entregas, devoluciones y calidad.
+- Equipo de soporte incorpora `from/to` en pantalla especializada, conserva el período al exportar y separa claramente métricas del período de carga actual.
+- El Centro de informes conserva el período al abrir `/gestion/equipo`.
+- Auditoría de exportación de Equipo registra filtros; Proveedores registra filtros y alcance.
+- Todas las exportaciones siguen usando `XlsxExportService` y el smoke OOXML común.
+- `tests/phase10_specialized_exports_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 8 — UI/responsive, documentación de cierre y gate final de Fase 10.
