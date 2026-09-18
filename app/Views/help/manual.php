@@ -1,5 +1,6 @@
 <?php
 $pageTitle='Manual';$pageSection='Ayuda';$activeNav='manual';$helpContext='manual';
+$manualProfile=$manualProfile??['key'=>'requester','label'=>'Solicitante','summary'=>'Guía de uso según tus permisos.'];
 require APP_ROOT.'/app/Views/shared/app_start.php';
 ?>
 <div class="manual-page">
@@ -8,7 +9,27 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <button class="btn btn-primary" type="button" data-tour-start>Ver recorrido guiado</button>
   </div>
 
-  <div class="manual-search" role="search"><input class="form-control" type="search" placeholder="Buscar: resolver, proveedor, espera, informe…" data-manual-search aria-label="Buscar en el manual"><span class="manual-search-status" data-manual-search-status>Escribe para filtrar la guía</span></div>
+  <section class="manual-profile-card" aria-label="Perfil del manual">
+    <div><span class="manual-profile-kicker">Guía para tu perfil</span><strong>Manual para <?= htmlspecialchars($manualProfile['label']) ?></strong><p><?= htmlspecialchars($manualProfile['summary']) ?></p></div>
+    <span class="manual-profile-badge"><?= htmlspecialchars($manualProfile['label']) ?></span>
+  </section>
+
+  <div class="manual-search" role="search">
+    <input class="form-control" type="search" placeholder="Buscar: resolver, proveedor, espera, informe…" data-manual-search aria-label="Buscar en el manual">
+    <button class="btn btn-outline-secondary" type="button" data-manual-clear>Limpiar</button>
+    <span class="manual-search-status" data-manual-search-status>Busca una tarea o elige un tema</span>
+  </div>
+
+  <nav class="manual-topic-filter" aria-label="Filtrar manual por tema" data-manual-topics>
+    <button type="button" class="manual-topic is-active" data-manual-topic="all" aria-pressed="true">Todo</button>
+    <button type="button" class="manual-topic" data-manual-topic="solicitudes" aria-pressed="false">Solicitudes</button>
+    <?php if($isSupport): ?><button type="button" class="manual-topic" data-manual-topic="soporte" aria-pressed="false">Soporte</button><?php endif; ?>
+    <?php if(!$isExternal): ?><button type="button" class="manual-topic" data-manual-topic="actividades" aria-pressed="false">Actividades</button><?php endif; ?>
+    <?php if($canProblems||$canKnowledge): ?><button type="button" class="manual-topic" data-manual-topic="conocimiento" aria-pressed="false">Conocimiento</button><?php endif; ?>
+    <?php if($canManagement): ?><button type="button" class="manual-topic" data-manual-topic="gestion" aria-pressed="false">Gestión</button><?php endif; ?>
+    <?php if($canAdmin): ?><button type="button" class="manual-topic" data-manual-topic="administracion" aria-pressed="false">Administración</button><?php endif; ?>
+    <button type="button" class="manual-topic" data-manual-topic="ayuda" aria-pressed="false">Ayuda y FAQ</button>
+  </nav>
 
   <section aria-label="Accesos rápidos del manual">
     <div class="manual-quick-grid" data-manual-quick>
@@ -34,16 +55,16 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><a href="#solicitudes">Solicitudes</a><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
   </nav>
 
-  <section class="manual-section" id="inicio" data-manual-section>
+  <section class="manual-section" id="inicio" data-manual-section data-manual-topics="ayuda">
     <div class="manual-section-head"><span>01</span><div><h2>Inicio y navegación</h2><p>Ubica rápidamente lo que requiere atención y usa el buscador global cuando necesites encontrar un caso o una solución.</p></div></div>
     <div class="manual-cards"><article><strong>Buscador global</strong><p>Usa la barra superior o <kbd>Ctrl K</kbd>. Los resultados se agrupan según el tipo de información y tus permisos.</p></article><article><strong>Menú lateral</strong><p>Las opciones cambian según tu perfil. Si una función no corresponde a tu cuenta, no aparece.</p></article><article><strong>Ayuda flotante</strong><p>El botón <b>?</b> abre ayuda de la pantalla y permite iniciar un tutorial guiado.</p></article></div>
   </section>
 
-  <section class="manual-section" id="notificaciones" data-manual-section>
+  <section class="manual-section" id="notificaciones" data-manual-section data-manual-topics="ayuda">
     <div class="manual-section-head"><span>N</span><div><h2>Notificaciones y campanita</h2><p>La campanita concentra novedades que requieren contexto: respuestas, cambios de estado, asignaciones, resoluciones y otras acciones relacionadas con tu cuenta.</p></div></div>
     <div class="manual-cards"><article><strong>Abrir una notificación</strong><p>Haz clic sobre la novedad. El Helpdesk reconstruye el destino contra la instancia que tienes abierta y, cuando pertenece a un ticket, usa el número interno del caso como respaldo si el enlace guardado ya no es válido.</p></article><article><strong>Leída no significa resuelta</strong><p>Al abrirla se marca como revisada, pero el ticket conserva su estado real. Usa <b>Marcar leídas</b> únicamente para limpiar la bandeja de novedades.</p></article><article><strong>Si un destino cambió</strong><p>El sistema evita enviar una notificación interna a otro host o entorno. Si no puede recuperar una ruta válida, vuelve a un destino seguro del Helpdesk.</p></article></div>
   </section>
-  <section class="manual-section" id="solicitudes" data-manual-section>
+  <section class="manual-section" id="solicitudes" data-manual-section data-manual-topics="solicitudes">
     <div class="manual-section-head"><span>02</span><div><h2><?= $isExternal?'Casos compartidos':'Solicitudes y seguimiento' ?></h2><p><?= $isExternal?'Trabaja únicamente los casos asignados a tu cuenta.':'Elige en qué necesitas ayuda, describe lo que ocurre y sigue las respuestas desde el mismo caso.' ?></p></div></div>
     <div class="manual-flow">
       <?php if($isExternal): ?><div><b>1</b><strong>Abre el caso</strong><span>Lee primero qué apoyo se necesita.</span></div><div><b>2</b><strong>Actualiza</strong><span>Responde, pide información o adjunta evidencia.</span></div><div><b>3</b><strong>Espera validación</strong><span>El equipo interno continúa la gestión y cierre.</span></div>
@@ -52,7 +73,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
 
   <?php if($isSupport): ?>
-  <section class="manual-section" id="actividades" data-manual-section>
+  <section class="manual-section" id="actividades" data-manual-section data-manual-topics="actividades">
     <div class="manual-section-head"><span>A</span><div><h2>Actividades y visitas</h2><p>Programa y documenta trabajo operativo ligado al caso sin confundir la actividad con el estado del ticket.</p></div></div>
     <div class="manual-cards">
       <article><strong>Programar</strong><p>Dentro del caso usa <b>+ Programar actividad</b>. Elige visita en sitio, soporte remoto, seguimiento, intervención de proveedor u otra atención; define responsable, fecha de inicio, fin estimado y objetivo.</p></article>
@@ -64,7 +85,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </section>
   <?php elseif(!$isExternal): ?>
-  <section class="manual-section" id="actividades" data-manual-section>
+  <section class="manual-section" id="actividades" data-manual-section data-manual-topics="actividades">
     <div class="manual-section-head"><span>A</span><div><h2>Actividades y visitas</h2><p>Cuando soporte publique una atención programada para tu solicitud, aparecerá dentro del caso como <b>Próxima atención</b>.</p></div></div>
     <div class="manual-cards">
       <article><strong>Próxima atención</strong><p>Puede indicar el tipo de atención, estado, fecha programada, fin estimado, ubicación y el resumen que soporte preparó para ti.</p></article>
@@ -75,7 +96,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <?php endif; ?>
 
   <?php if($isSupport||$canManagement): ?>
-  <section class="manual-section" id="agenda" data-manual-section>
+  <section class="manual-section" id="agenda" data-manual-section data-manual-topics="actividades gestion">
     <div class="manual-section-head"><span>AG</span><div><h2>Agenda</h2><p>Consulta actividades programadas desde Calendario o Lista, siempre con el alcance que autoriza el sistema.</p></div></div>
     <div class="manual-cards">
       <?php if($isSupport): ?>
@@ -91,7 +112,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
   <?php if($isSupport): ?>
-  <section class="manual-section" id="calidad-proveedor" data-manual-section>
+  <section class="manual-section" id="calidad-proveedor" data-manual-section data-manual-topics="soporte">
     <div class="manual-section-head"><span>QP</span><div><h2>Calidad del proveedor</h2><p>Registra una valoración interna de IT cuando la participación del proveedor haya finalizado mediante revocación explícita.</p></div></div>
     <div class="manual-cards">
       <article><strong>Escala 1–5</strong><p>1★ Muy deficiente, 2★ Deficiente, 3★ Adecuado, 4★ Bueno y 5★ Excelente. La valoración describe la calidad observada por IT en ese ciclo concreto.</p></article>
@@ -104,10 +125,10 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </section>
   <?php endif; ?>
-<?php if($isSupport): ?><section class="manual-section" id="soporte" data-manual-section><div class="manual-section-head"><span>03</span><div><h2>Centro de soporte</h2><p>Prioriza por alcance y tiempo, continúa la conversación y documenta correctamente esperas y solución.</p></div></div><div class="manual-cards"><article><strong>Cola de trabajo</strong><p><b>Todos</b> reúne los casos activos que puedes consultar según tu alcance. Usa <b>Míos</b>, <b>Sin asignar</b>, <b>Por vencer</b>, <b>Vencidos</b>, <b>En espera</b>, <b>Reabiertos</b> o <b>Críticos</b> para concentrarte.</p></article><article><strong>Clasificación ITSM</strong><p>El Helpdesk propone automáticamente Incidente o Solicitud de servicio, Impacto y Urgencia a partir de la categoría y lo descrito por el usuario. Impacto + Urgencia producen la prioridad inicial. Soporte debe validar la clasificación y, si ajusta manualmente la prioridad, dejar motivo y auditoría.</p></article><article><strong>Resolución objetivo</strong><p>El SLA muestra el tiempo restante, cuánto del objetivo ya se utilizó y una lectura operativa: Dentro de objetivo, Atención requerida, Próximo a vencer o Vencido.</p></article><article><strong>Tomar un caso</strong><p>Usa <b>Tomar</b> cuando realmente puedas iniciar trabajo. Solo puedes tomar casos disponibles dentro de tu alcance.</p></article><article><strong>En espera</strong><p>Selecciona la razón real: usuario, proveedor, compra, visita, aprobación u otra dependencia. Los informes conservan cuánto tiempo se acumuló en cada motivo aunque cambie durante el mismo caso.</p></article><article><strong>Respuesta y conversación interna</strong><p><b>Respuesta al usuario</b> es visible para el solicitante. <b>Conversación interna</b> es solo para el equipo de soporte.</p></article><article><strong>Resolver</strong><p>Registra qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Al resolver, el cierre final queda pendiente de confirmación del solicitante; IT puede reabrir si detecta que aún falta trabajo.</p></article></div></section><?php endif; ?>
+<?php if($isSupport): ?><section class="manual-section" id="soporte" data-manual-section data-manual-topics="soporte"><div class="manual-section-head"><span>03</span><div><h2>Centro de soporte</h2><p>Prioriza por alcance y tiempo, continúa la conversación y documenta correctamente esperas y solución.</p></div></div><div class="manual-cards"><article><strong>Cola de trabajo</strong><p><b>Todos</b> reúne los casos activos que puedes consultar según tu alcance. Usa <b>Míos</b>, <b>Sin asignar</b>, <b>Por vencer</b>, <b>Vencidos</b>, <b>En espera</b>, <b>Reabiertos</b> o <b>Críticos</b> para concentrarte.</p></article><article><strong>Clasificación ITSM</strong><p>El Helpdesk propone automáticamente Incidente o Solicitud de servicio, Impacto y Urgencia a partir de la categoría y lo descrito por el usuario. Impacto + Urgencia producen la prioridad inicial. Soporte debe validar la clasificación y, si ajusta manualmente la prioridad, dejar motivo y auditoría.</p></article><article><strong>Resolución objetivo</strong><p>El SLA muestra el tiempo restante, cuánto del objetivo ya se utilizó y una lectura operativa: Dentro de objetivo, Atención requerida, Próximo a vencer o Vencido.</p></article><article><strong>Tomar un caso</strong><p>Usa <b>Tomar</b> cuando realmente puedas iniciar trabajo. Solo puedes tomar casos disponibles dentro de tu alcance.</p></article><article><strong>En espera</strong><p>Selecciona la razón real: usuario, proveedor, compra, visita, aprobación u otra dependencia. Los informes conservan cuánto tiempo se acumuló en cada motivo aunque cambie durante el mismo caso.</p></article><article><strong>Respuesta y conversación interna</strong><p><b>Respuesta al usuario</b> es visible para el solicitante. <b>Conversación interna</b> es solo para el equipo de soporte.</p></article><article><strong>Resolver</strong><p>Registra qué encontraste, qué hiciste y cómo evitar que vuelva a ocurrir. Al resolver, el cierre final queda pendiente de confirmación del solicitante; IT puede reabrir si detecta que aún falta trabajo.</p></article></div></section><?php endif; ?>
 
   <?php if($canProblems||$canKnowledge): ?>
-  <section class="manual-section" id="conocimiento" data-manual-section>
+  <section class="manual-section" id="conocimiento" data-manual-section data-manual-topics="conocimiento">
     <div class="manual-section-head">
       <span><?= $isSupport?'04':'03' ?></span>
       <div>
@@ -197,7 +218,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
   <?php endif; ?>
 
-  <?php if($canManagement): ?><section class="manual-section" id="gestion" data-manual-section><div class="manual-section-head"><span>05</span><div><h2>Dashboard e informes</h2><p>Usa métricas para entender qué está pasando y los informes para explicar el detalle.</p></div></div><div class="manual-cards"><article><strong>Dashboard</strong><p>Analiza volumen, tiempos, carga y tendencias dentro de tu alcance.</p><a href="<?= APP_BASE_URL ?>/gestion">Abrir Dashboard →</a></article><article><strong>Informes</strong><p>Consulta tiempos, cambios de estado, esperas y solución. La exportación oficial es Excel (.xlsx); la hoja de esperas conserva los minutos históricos por cada motivo.</p><a href="<?= APP_BASE_URL ?>/gestion/informes">Abrir Informes →</a></article></div></section><?php endif; ?>
+  <?php if($canManagement): ?><section class="manual-section" id="gestion" data-manual-section data-manual-topics="gestion"><div class="manual-section-head"><span>05</span><div><h2>Dashboard e informes</h2><p>Usa métricas para entender qué está pasando y los informes para explicar el detalle.</p></div></div><div class="manual-cards"><article><strong>Dashboard</strong><p>Analiza volumen, tiempos, carga y tendencias dentro de tu alcance.</p><a href="<?= APP_BASE_URL ?>/gestion">Abrir Dashboard →</a></article><article><strong>Informes</strong><p>Consulta tiempos, cambios de estado, esperas y solución. La exportación oficial es Excel (.xlsx); la hoja de esperas conserva los minutos históricos por cada motivo.</p><a href="<?= APP_BASE_URL ?>/gestion/informes">Abrir Informes →</a></article></div></section><?php endif; ?>
 
   <?php if($canManagement||$canAdmin): ?>
   <section class="manual-section" id="proveedores" data-manual-section>
@@ -210,9 +231,9 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     </div>
   </section>
   <?php endif; ?>
-  <?php if($canAdmin): ?><section class="manual-section" id="administracion" data-manual-section><div class="manual-section-head"><span>06</span><div><h2>Administración</h2><p>Gestiona perfiles, alcance, proveedores, correo y trazabilidad sin exponer detalles técnicos al usuario final.</p></div></div><div class="manual-cards"><article><strong>Usuarios</strong><p>El perfil define qué puede hacer y la asignación indica dónde trabaja. <b>Responsable directo</b> representa a quién reporta organizacionalmente: no asigna tickets, no cambia permisos ni modifica el alcance.</p></article><article><strong>Proveedores</strong><p><b>Convertir entre usuario interno y proveedor externo</b> reutiliza la misma identidad y conserva historial. Comparte únicamente casos específicos mientras la persona actúe como proveedor y retira el acceso cuando termine su participación.</p></article><article><strong>Auditoría</strong><p>Consulta quién cambió qué y cuándo cuando necesites reconstruir una acción.</p></article><article><strong>Correo y notificaciones</strong><p>Comprueba el canal, envía una prueba y revisa entregas fallidas o pendientes.</p><a href="<?= APP_BASE_URL ?>/admin/correo">Abrir correo →</a></article></div></section><?php endif; ?>
+  <?php if($canAdmin): ?><section class="manual-section" id="administracion" data-manual-section data-manual-topics="administracion"><div class="manual-section-head"><span>06</span><div><h2>Administración</h2><p>Gestiona perfiles, alcance, proveedores, correo y trazabilidad sin exponer detalles técnicos al usuario final.</p></div></div><div class="manual-cards"><article><strong>Usuarios</strong><p>El perfil define qué puede hacer y la asignación indica dónde trabaja. <b>Responsable directo</b> representa a quién reporta organizacionalmente: no asigna tickets, no cambia permisos ni modifica el alcance.</p></article><article><strong>Proveedores</strong><p><b>Convertir entre usuario interno y proveedor externo</b> reutiliza la misma identidad y conserva historial. Comparte únicamente casos específicos mientras la persona actúe como proveedor y retira el acceso cuando termine su participación.</p></article><article><strong>Auditoría</strong><p>Consulta quién cambió qué y cuándo cuando necesites reconstruir una acción.</p></article><article><strong>Correo y notificaciones</strong><p>Comprueba el canal, envía una prueba y revisa entregas fallidas o pendientes.</p><a href="<?= APP_BASE_URL ?>/admin/correo">Abrir correo →</a></article></div></section><?php endif; ?>
 
-  <section class="manual-section" id="preguntas" data-manual-section><div class="manual-section-head"><span>?</span><div><h2>Preguntas frecuentes</h2><p>Abre únicamente la respuesta que necesites.</p></div></div><div class="manual-faq">
+  <section class="manual-section" id="preguntas" data-manual-section data-manual-topics="ayuda"><div class="manual-section-head"><span>?</span><div><h2>Preguntas frecuentes</h2><p>Abre únicamente la respuesta que necesites.</p></div></div><div class="manual-faq">
     <details><summary>No sé dónde registrar o buscar un caso</summary><div>Para un caso nuevo usa <b>Solicitar ayuda</b>. Para algo ya registrado usa <b>Mis solicitudes</b> o el buscador global. Si trabajas en soporte, usa el Centro de soporte.</div></details>
     <details><summary>¿Cómo obtengo acceso para ver mis solicitudes?</summary><div>Las cuentas de acceso las crea Administración. Puedes reportar una solicitud sin iniciar sesión; cuando tu cuenta esté habilitada, entrarás con tu correo y un código OTP para consultar tu historial.</div></details>
     <details><summary>¿Qué información es importante al reportar?</summary><div>El formulario te da una sugerencia y un ejemplo según el tipo de ayuda. En general basta con indicar qué sucede, desde cuándo, dónde ocurre y a quién o qué equipo afecta. No necesitas conocer la causa técnica y nunca debes escribir tu contraseña.</div></details>
@@ -228,15 +249,92 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 (function(){
   const input=document.querySelector('[data-manual-search]');
   const status=document.querySelector('[data-manual-search-status]');
+  const clear=document.querySelector('[data-manual-clear]');
+  const topicButtons=[...document.querySelectorAll('[data-manual-topic]')];
   if(!input)return;
+
+  let activeTopic='all';
   const normalize=v=>(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-  const run=()=>{
-    const q=normalize(input.value);let visible=0;
-    document.querySelectorAll('.manual-quick-card').forEach(el=>{const ok=!q||normalize(el.textContent).includes(q);el.classList.toggle('is-hidden',!ok);});
-    document.querySelectorAll('[data-manual-section]').forEach(section=>{const faq=section.querySelectorAll('details');if(faq.length){let faqVisible=0;faq.forEach(el=>{const ok=!q||normalize(el.textContent).includes(q);el.classList.toggle('is-hidden',!ok);if(ok)faqVisible++;});const own=normalize(section.querySelector('.manual-section-head')?.textContent||'').includes(q);const ok=!q||own||faqVisible>0;section.classList.toggle('is-hidden',!ok);if(ok)visible++;}else{const ok=!q||normalize(section.textContent).includes(q);section.classList.toggle('is-hidden',!ok);if(ok)visible++;}});
-    if(status)status.textContent=q?(visible?visible+' sección(es) con resultados':'No encontramos coincidencias'):'Escribe para filtrar la guía';
+  const labelForTopic=topic=>{
+    const button=topicButtons.find(el=>el.dataset.manualTopic===topic);
+    return button?button.textContent.trim():'Todo';
   };
+
+  const run=()=>{
+    const q=normalize(input.value);
+    let visible=0;
+
+    document.querySelectorAll('.manual-quick-card').forEach(el=>{
+      const textMatch=!q||normalize(el.textContent).includes(q);
+      el.classList.toggle('is-hidden',!textMatch);
+    });
+
+    document.querySelectorAll('[data-manual-section]').forEach(section=>{
+      const topics=(section.dataset.manualTopics||'').split(/\s+/).filter(Boolean);
+      const topicMatch=activeTopic==='all'||topics.includes(activeTopic);
+      let queryMatch=!q;
+
+      const faq=[...section.querySelectorAll('details')];
+      if(faq.length){
+        let faqVisible=0;
+        faq.forEach(el=>{
+          const match=!q||normalize(el.textContent).includes(q);
+          el.classList.toggle('is-hidden',!(topicMatch&&match));
+          if(match)faqVisible++;
+        });
+        const own=normalize(section.querySelector('.manual-section-head')?.textContent||'').includes(q);
+        queryMatch=!q||own||faqVisible>0;
+      }else if(q){
+        queryMatch=normalize(section.textContent).includes(q);
+      }
+
+      const show=topicMatch&&queryMatch;
+      section.classList.toggle('is-hidden',!show);
+      if(show)visible++;
+    });
+
+    document.querySelectorAll('.manual-index a[href^="#"]').forEach(link=>{
+      const target=document.querySelector(link.getAttribute('href'));
+      link.classList.toggle('is-hidden',!!target&&target.classList.contains('is-hidden'));
+    });
+
+    if(status){
+      if(q||activeTopic!=='all'){
+        status.textContent=visible
+          ? visible+' sección(es) · '+labelForTopic(activeTopic)
+          : 'No encontramos coincidencias';
+      }else{
+        status.textContent='Busca una tarea o elige un tema';
+      }
+    }
+  };
+
+  topicButtons.forEach(button=>{
+    button.addEventListener('click',()=>{
+      activeTopic=button.dataset.manualTopic||'all';
+      topicButtons.forEach(item=>{
+        const active=item===button;
+        item.classList.toggle('is-active',active);
+        item.setAttribute('aria-pressed',active?'true':'false');
+      });
+      run();
+      document.querySelector('.manual-search')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+  });
+
   input.addEventListener('input',run);
+  clear?.addEventListener('click',()=>{
+    input.value='';
+    activeTopic='all';
+    topicButtons.forEach(item=>{
+      const active=item.dataset.manualTopic==='all';
+      item.classList.toggle('is-active',active);
+      item.setAttribute('aria-pressed',active?'true':'false');
+    });
+    run();
+    input.focus();
+  });
+  run();
 })();
 </script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
