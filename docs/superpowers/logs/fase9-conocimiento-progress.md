@@ -546,6 +546,33 @@ Pendiente inmediato:
 - reabrir el artículo archivado y el listado;
 - confirmar visualmente que no se muestra disponibilidad pública activa y que el menú secundario contiene `Ver historial`.
 
+## Pulido de alineación visual — 2026-09-18
+
+A partir de las capturas del smoke editorial se amplió la validación visual de Fase 9.
+
+Objetivos cerrados en código:
+- encabezado de artículo con título largo controlado y sin desplazar acciones;
+- barra editorial con altura/espaciado consistente entre estados;
+- `Más acciones` convertido en popover en escritorio para no deformar la card;
+- panel lateral de metadatos alineado y sticky en escritorio;
+- cards del listado con altura consistente, título/resumen limitados visualmente y metadata al fondo;
+- filtros de Conocimiento con grid propio;
+- comportamiento responsive específico para <=900px y <=760px;
+- menú secundario apilado en móvil, sin overflow horizontal.
+
+Archivos:
+- `app/Views/knowledge/index.php`;
+- `public/assets/css/case-focus.css`;
+- `tests/phase9_knowledge_ui_regression.php`.
+
+Commits:
+- `0b900f1`: clase propia de filtros;
+- `81f81ce`: alineación visual del módulo;
+- `0d4c2c1`: regresión visual/alineación.
+
+Validación contractual de selectores/alineación: ✅ GREEN.
+Pendiente: confirmación visual real en PC TEST, iPad y móvil.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
