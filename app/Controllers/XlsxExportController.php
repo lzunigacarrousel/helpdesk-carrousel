@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Database};
-use App\Services\{ScopeService,TicketLifecycleService,XlsxExportService};
+use App\Services\{ScopeService,TicketLifecycleService,TicketReportFilterService,XlsxExportService};
 use PDO;
 
 final class XlsxExportController
@@ -15,7 +15,7 @@ final class XlsxExportController
     public function export(): void
     {
         $this->requireManagement();
-        $pdo=Database::pdo();$filters=$this->filters();[$where,$params]=$this->where($filters);
+        $pdo=Database::pdo();$reportFilters=new TicketReportFilterService();$filters=$reportFilters->filters($_GET);[$where,$params]=$reportFilters->where($filters);
         $q=$pdo->prepare("SELECT t.id,t.ticket_number,t.created_at,COALESCE(req.full_name,t.requester_name) requester_name,COALESCE(req.email,t.requester_email) requester_email,COALESCE(req.phone,t.requester_phone) requester_phone,
             COALESCE(p.name,'') park_name,COALESCE(a.name,'') area_name,COALESCE(c.name,'') category_name,
             t.subject,t.description,t.priority,t.status,t.pending_reason_code,t.pending_note,COALESCE(u.full_name,'') assigned_name,t.assigned_at,
@@ -34,7 +34,7 @@ final class XlsxExportController
         $events=$this->eventsByTicket($pdo,array_map(static fn(array $r):int=>(int)$r['id'],$records));
 
         $headers=['Ticket','Creado','Solicitante','Correo','Teléfono','Parque','Área','Categoría','Asunto','Descripción','Prioridad','Estado actual','Motivo de espera','Detalle de espera','Responsable','Asignado','Primera respuesta','Resuelto','Cerrado','Calificación (0-10)','Comentario de servicio','Fecha de calificación','Límite primera respuesta','Límite resolución','Min. hasta asignación','Min. primera respuesta','Min. en cola','Min. trabajando','Min. en espera','Min. resuelto antes de cierre','Min. hasta resolución','Min. totales del caso','Cambios de estado','Historial de estados','Tipo de solución','Causa encontrada','Solución aplicada','Prevención / seguimiento','Documentado por'];
-        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$statusChanges=0;$pendingReasonCounts=[];$pendingReasonMinutes=[];
+        $rows=[];$documented=0;$resolved=0;$totalFirst=0;$countFirst=0;$totalResolution=0;$countResolution=0;$totalWork=0;$countWork=0;$totalPending=0;$countPending=0;$statusChanges=0;$pendingReasonCounts=[];$pendingReasonMinutes=[];
         $npsResponses=0;$npsPromoters=0;$npsDetractors=0;$npsSum=0;
 
         foreach($records as $r){
@@ -45,6 +45,8 @@ final class XlsxExportController
             if(in_array((string)$r['status'],['RESOLVED','CLOSED'],true))$resolved++;
             if($life['first_response_minutes']!==null){$totalFirst+=(int)$life['first_response_minutes'];$countFirst++;}
             if($life['resolution_minutes']!==null){$totalResolution+=(int)$life['resolution_minutes'];$countResolution++;}
+            if(isset($life['work_minutes'])){$totalWork+=(int)$life['work_minutes'];$countWork++;}
+            if(isset($life['pending_minutes'])){$totalPending+=(int)$life['pending_minutes'];$countPending++;}
             $statusChanges+=count($life['transitions']);
             if(!empty($r['pending_reason_code']))$pendingReasonCounts[$r['pending_reason_code']]=($pendingReasonCounts[$r['pending_reason_code']]??0)+1;
             foreach(($life['pending_reason_minutes']??[]) as $code=>$minutes)$pendingReasonMinutes[$code]=($pendingReasonMinutes[$code]??0)+(int)$minutes;
@@ -63,11 +65,16 @@ final class XlsxExportController
 
         $nps=$npsResponses>0?round((($npsPromoters-$npsDetractors)/$npsResponses)*100):'';
         $avgScore=$npsResponses>0?round($npsSum/$npsResponses,1):'';
-        $filterText=$this->filterDescription($pdo,$filters).' · '.(new ScopeService())->scopeLabel();
+        $filterText=$reportFilters->description($pdo,$filters).' · '.(new ScopeService())->scopeLabel();
+        $documentedPct=count($records)>0?round(($documented/count($records))*100,1):0;
         $summaryRows=[
-            ['Tickets exportados',count($records)],['Resueltos / cerrados',$resolved],['Con solución documentada',$documented],['Sin solución documentada',max(0,count($records)-$documented)],
+            ['Tickets exportados',count($records)],['Resueltos / cerrados',$resolved],['Con solución documentada',$documented],['Documentados (%)',$documentedPct],['Sin solución documentada',max(0,count($records)-$documented)],
             ['Respuestas de satisfacción',$npsResponses],['NPS',$nps],['Calificación promedio',$avgScore!==''?$avgScore.'/10':''],
-            ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
+            ['Primera respuesta promedio (min)',$countFirst?round($totalFirst/$countFirst,1):''],
+            ['Hasta resolución promedio (min)',$countResolution?round($totalResolution/$countResolution,1):''],
+            ['Trabajo efectivo promedio (min)',$countWork?round($totalWork/$countWork,1):''],
+            ['En espera promedio (min)',$countPending?round($totalPending/$countPending,1):''],
+            ['Cambios de estado registrados',$statusChanges],['Casos actualmente en espera',array_sum($pendingReasonCounts)],['Filtros aplicados',$filterText],['Generado',date('d/m/Y H:i:s')]
         ];
         $pendingRows=[];
         foreach(WorkflowController::PENDING_REASONS as $code=>$label)$pendingRows[]=[$label,(int)($pendingReasonCounts[$code]??0),(int)($pendingReasonMinutes[$code]??0)];
@@ -89,27 +96,6 @@ final class XlsxExportController
         if(!in_array(Auth::role(),['ADMIN','SEMIADMIN'],true)&&!Auth::can('reports.view')&&!Auth::can('management.view')){header('Location: '.APP_BASE_URL.'/dashboard');exit;}
     }
 
-    private function filters():array
-    {
-        $today=date('Y-m-d');$monthStart=date('Y-m-01');
-        $from=trim((string)($_GET['from']??$monthStart));$to=trim((string)($_GET['to']??$today));
-        if(!preg_match('/^\d{4}-\d{2}-\d{2}$/',$from))$from=$monthStart;if(!preg_match('/^\d{4}-\d{2}-\d{2}$/',$to))$to=$today;
-        return['from'=>$from,'to'=>$to,'park_id'=>max(0,(int)($_GET['park_id']??0)),'category_id'=>max(0,(int)($_GET['category_id']??0)),'assigned_to'=>max(0,(int)($_GET['assigned_to']??0)),'status'=>strtoupper(trim((string)($_GET['status']??''))),'priority'=>strtoupper(trim((string)($_GET['priority']??'')))];
-    }
-
-    private function where(array $f):array
-    {
-        $clauses=['t.deleted_at IS NULL','t.created_at>=?','t.created_at<DATE_ADD(?,INTERVAL 1 DAY)'];$params=[$f['from'],$f['to']];
-        [$scopeSql,$scopeParams]=(new ScopeService())->ticketConstraint('t');
-        if($scopeSql!=='1=1'){$clauses[]=$scopeSql;array_push($params,...$scopeParams);}
-        if($f['park_id']>0){$clauses[]='t.park_id=?';$params[]=$f['park_id'];}
-        if($f['category_id']>0){$clauses[]='t.category_id=?';$params[]=$f['category_id'];}
-        if($f['assigned_to']>0){$clauses[]='t.assigned_to=?';$params[]=$f['assigned_to'];}
-        if(array_key_exists($f['status'],self::STATUS_LABELS)){$clauses[]='t.status=?';$params[]=$f['status'];}
-        if(array_key_exists($f['priority'],self::PRIORITY_LABELS)){$clauses[]='t.priority=?';$params[]=$f['priority'];}
-        return[' WHERE '.implode(' AND ',$clauses),$params];
-    }
-
     private function eventsByTicket(PDO $pdo,array $ticketIds):array
     {
         $ticketIds=array_values(array_unique(array_filter(array_map('intval',$ticketIds),static fn(int $id):bool=>$id>0)));if(!$ticketIds)return[];
@@ -119,14 +105,5 @@ final class XlsxExportController
     }
 
     private function date($value):string{$ts=empty($value)?false:strtotime((string)$value);return$ts?date('d/m/Y H:i',$ts):'';}
-    private function filterDescription(PDO $pdo,array $f):string
-    {
-        $parts=['Período '.$f['from'].' a '.$f['to']];
-        if($f['park_id']>0){$q=$pdo->prepare('SELECT name FROM parks WHERE id=? LIMIT 1');$q->execute([$f['park_id']]);$parts[]='Parque '.($q->fetchColumn()?:$f['park_id']);}
-        if($f['category_id']>0){$q=$pdo->prepare('SELECT name FROM ticket_categories WHERE id=? LIMIT 1');$q->execute([$f['category_id']]);$parts[]='Categoría '.($q->fetchColumn()?:$f['category_id']);}
-        if($f['assigned_to']>0){$q=$pdo->prepare('SELECT full_name FROM users WHERE id=? LIMIT 1');$q->execute([$f['assigned_to']]);$parts[]='Responsable '.($q->fetchColumn()?:$f['assigned_to']);}
-        if($f['status']!=='')$parts[]='Estado '.(self::STATUS_LABELS[$f['status']]??$f['status']);
-        if($f['priority']!=='')$parts[]='Prioridad '.(self::PRIORITY_LABELS[$f['priority']]??$f['priority']);
-        return implode(' · ',$parts);
-    }
+
 }
