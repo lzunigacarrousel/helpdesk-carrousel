@@ -32,8 +32,8 @@ ok(!str_contains($service,"ka.visibility='PUBLIC'"),'Resumen no depende de visib
 
 ok(str_contains($controller,'KnowledgeMetricsService'),'ManagementController reutiliza servicio de métricas');
 ok(str_contains($controller,"Auth::can('knowledge.view')"),'Bloque de conocimiento exige capacidad');
-ok(str_contains($controller,"reportSummary($filters['from'],$filters['to'])"),'Resumen usa período del informe');
-ok(str_contains($controller,"'knowledgeReport'=>$knowledgeReport"),'Controller entrega resumen a la vista');
+ok(str_contains($controller,'reportSummary($filters[\'from\'],$filters[\'to\'])'),'Resumen usa período del informe');
+ok(str_contains($controller,"'knowledgeReport'=>\$knowledgeReport"),'Controller entrega resumen a la vista');
 
 ok(str_contains($view,'id="informe-conocimiento"'),'Vista incorpora sección de conocimiento');
 ok(str_contains($view,'Artículos activos'),'Vista muestra artículos activos');
