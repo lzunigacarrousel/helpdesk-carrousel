@@ -319,11 +319,23 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   const topicButtons=[...document.querySelectorAll('[data-manual-topic]')];
   if(!input)return;
 
-  let activeTopic='all';
+  const params=new URLSearchParams(window.location.search);
+  const requestedTopic=(params.get('topic')||'all').trim();
+  const requestedQuery=(params.get('q')||'').trim();
+  let activeTopic=topicButtons.some(el=>el.dataset.manualTopic===requestedTopic)?requestedTopic:'all';
+  if(requestedQuery)input.value=requestedQuery;
+
   const normalize=v=>(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
   const labelForTopic=topic=>{
     const button=topicButtons.find(el=>el.dataset.manualTopic===topic);
     return button?button.textContent.trim():'Todo';
+  };
+  const syncTopicButtons=()=>{
+    topicButtons.forEach(item=>{
+      const active=item.dataset.manualTopic===activeTopic;
+      item.classList.toggle('is-active',active);
+      item.setAttribute('aria-pressed',active?'true':'false');
+    });
   };
 
   const run=()=>{
@@ -378,11 +390,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   topicButtons.forEach(button=>{
     button.addEventListener('click',()=>{
       activeTopic=button.dataset.manualTopic||'all';
-      topicButtons.forEach(item=>{
-        const active=item===button;
-        item.classList.toggle('is-active',active);
-        item.setAttribute('aria-pressed',active?'true':'false');
-      });
+      syncTopicButtons();
       run();
       document.querySelector('.manual-search')?.scrollIntoView({behavior:'smooth',block:'nearest'});
     });
@@ -392,15 +400,25 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   clear?.addEventListener('click',()=>{
     input.value='';
     activeTopic='all';
-    topicButtons.forEach(item=>{
-      const active=item.dataset.manualTopic==='all';
-      item.classList.toggle('is-active',active);
-      item.setAttribute('aria-pressed',active?'true':'false');
-    });
+    syncTopicButtons();
     run();
     input.focus();
   });
+  syncTopicButtons();
   run();
+
+  const focusDeepLink=()=>{
+    const hash=window.location.hash;
+    const target=hash&&hash!=='#'?document.querySelector(hash):null;
+    if(target&&!target.classList.contains('is-hidden')){
+      target.scrollIntoView({behavior:'auto',block:'start'});
+    }
+    if(hash==='#preguntas'&&normalize(input.value)!==''){
+      const firstVisible=document.querySelector('#preguntas details:not(.is-hidden)');
+      if(firstVisible instanceof HTMLDetailsElement)firstVisible.open=true;
+    }
+  };
+  window.requestAnimationFrame(focusDeepLink);
 })();
 </script>
 <?php require APP_ROOT.'/app/Views/shared/app_end.php'; ?>
