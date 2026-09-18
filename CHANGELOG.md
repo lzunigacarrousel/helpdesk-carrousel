@@ -2,7 +2,19 @@
 
 > **Estado canónico · 2026-09-13**
 >
-> La rama estable y fuente de verdad es `main`. La entrada `v2.4.0-dev` documenta trabajo experimental que quedó preservado en el tag `archive/v2-rebuild-20260913` y **no fue integrado en `main`**. Se conserva aquí como referencia histórica. Las entradas anteriores permanecen como historial del desarrollo integrado antes del checkpoint estable actual.
+> La rama estable y fuente de verdad es `main`. El bloque histórico `v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN` documenta trabajo preservado en `archive/v2-rebuild-20260913`; no debe confundirse con las fases canónicas integradas después del checkpoint. La aplicación mantiene `2.4.0-dev` como versión de desarrollo mientras se completa el roadmap de 12 fases.
+
+## Fase 10 · Reportes consolidados · 2026-09-18
+- `/gestion/informes` se consolida como Centro de informes con navegación compacta a Tickets/SLA, Agenda/Actividades, Proveedores, Equipo de soporte y Conocimiento según permisos.
+- `TicketReportFilterService` centraliza filtros, etiquetas y `ScopeService`, eliminando divergencias entre pantalla y exportación XLSX.
+- KPIs del informe general se calculan sobre todo el conjunto filtrado; solo el detalle web se limita a 500 filas y la interfaz lo explica cuando aplica.
+- Conocimiento incorpora métricas de publicación, autoservicio y reutilización; Actividades resume programadas, en curso, finalizadas, canceladas, atrasadas y conflictos.
+- El informe de Proveedores respeta alcance tanto en pantalla como en exportación e incorpora entregas y calidad promedio en el resumen.
+- `SupportTeamReportService` centraliza integrantes y desempeño; Equipo permite período explícito y conserva ese período al exportar.
+- Exportaciones General, Proveedores y Equipo documentan filtros/período/alcance y reutilizan `XlsxExportService`.
+- Responsive de Reportes mantiene tablet en 2 columnas cuando aporta y usa una columna clara en móvil pequeño; acciones y filtros permanecen táctiles.
+- `VALIDAR_FASE10.bat` y CI incluyen regresiones de hub, conocimiento, actividades, Tickets/SLA/XLSX, Proveedores, Equipo, exportaciones y closeout.
+- **BD: sin cambios. Producción: sin cambios. Validación transversal final queda en Fase 12.**
 
 ## Fase 9 · Conocimiento versionado · 2026-09-17
 - `knowledge_articles` conserva la identidad estable `KB-*` y el contenido pasa a revisiones en `knowledge_revisions`; una versión publicada ya no se sobrescribe directamente.
