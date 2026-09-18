@@ -40,9 +40,10 @@ $targets=[
 
 foreach($targets as $file=>$expectations){
     $body=(string)file_get_contents($file);
+    $scan=(string)preg_replace('/<\\?(?:php|=)?[\\s\\S]*?\\?>/u','',$body);
     foreach($expectations as $label=>$requiredClass){
         $pattern='/<(?:button|a)\b[^>]*class="([^"]*)"[^>]*>\s*'.preg_quote($label,'/').'\s*<\/(?:button|a)>/ui';
-        if(!preg_match($pattern,$body,$m)){
+        if(!preg_match($pattern,$scan,$m)){
             ok(false,basename($file)." contiene acción {$label}");
             continue;
         }
