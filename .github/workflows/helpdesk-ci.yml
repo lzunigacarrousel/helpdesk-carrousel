@@ -173,6 +173,9 @@ jobs:
       - name: Phase 9 knowledge - UI and help
         run: php tests/phase9_knowledge_ui_regression.php
 
+      - name: UI - canonical button semantics
+        run: php tests/button_semantics_regression.php
+
       - name: Phase 9 knowledge - transversal legacy reads
         run: php tests/phase9_knowledge_legacy_read_regression.php
 
