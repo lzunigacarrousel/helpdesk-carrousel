@@ -97,6 +97,14 @@
   outline-offset:2px;
 }
 
+/* Menús de acciones: geometría consistente */
+.knowledge-actions-menu>.card>.card-body{justify-items:stretch}
+.knowledge-actions-menu>.card>.card-body>.btn,
+.knowledge-actions-menu>.card>.card-body>form,
+.knowledge-actions-menu>.card>.card-body>form>.btn{width:100%!important}
+.knowledge-actions-menu>.card>.card-body>form{margin:0}
+.knowledge-actions-menu>.card>.card-body .btn{text-align:center}
+
 /* Formulario publico: centrado real y lectura simple */
 .public-form-page{display:flex!important;justify-content:center!important;align-items:flex-start!important;min-height:100dvh!important;padding:18px 24px 32px!important;overflow-x:hidden!important}
 .public-form-shell{width:min(1320px,100%)!important;max-width:1320px!important;margin:0 auto!important;justify-self:auto!important}
