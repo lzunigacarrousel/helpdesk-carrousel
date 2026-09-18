@@ -27,6 +27,43 @@ final class AgendaService
         return $this->normalizeRows($query->fetchAll());
     }
 
+    public function reportSummary(array $filters): array
+    {
+        $reportFilters=[
+            'from'=>(string)($filters['from']??date('Y-m-01')),
+            'to'=>(string)($filters['to']??date('Y-m-d')),
+            'status'=>'all',
+            'scope_mode'=>'all',
+            'responsible_user_id'=>0,
+            'park_id'=>(int)($filters['park_id']??0),
+            'activity_type'=>'',
+        ];
+
+        $rows=$this->activities($reportFilters);
+        $summary=[
+            'total'=>count($rows),
+            'scheduled'=>0,
+            'in_progress'=>0,
+            'completed'=>0,
+            'cancelled'=>0,
+            'overdue'=>0,
+            'conflicts'=>0,
+        ];
+
+        foreach($rows as $row){
+            $status=(string)($row['status']??'');
+            if($status==='PROGRAMADA')$summary['scheduled']++;
+            elseif($status==='EN_CURSO')$summary['in_progress']++;
+            elseif($status==='FINALIZADA')$summary['completed']++;
+            elseif($status==='CANCELADA')$summary['cancelled']++;
+
+            if(!empty($row['is_overdue']))$summary['overdue']++;
+            if(!empty($row['has_conflict']))$summary['conflicts']++;
+        }
+
+        return $summary;
+    }
+
     public function overdueBefore(string $from,array $filters): array
     {
         $status=(string)($filters['status']??'active');
