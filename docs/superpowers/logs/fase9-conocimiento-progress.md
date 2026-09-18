@@ -660,6 +660,36 @@ Pendiente de cierre:
 3. resolver CI remoto sin workflow run;
 4. aprobación explícita antes de producción.
 
+## Estandarización global de botones — 2026-09-18
+
+A partir de la revisión visual de Conocimiento se detectó que distintas pantallas reutilizaban `.btn` pero no siempre respetaban la misma semántica.
+
+Contrato canónico:
+- `btn-primary`: acción principal que hace avanzar el flujo;
+- `btn-outline-secondary`: navegación/consulta/acción secundaria no destructiva;
+- `btn-danger`: archivar, eliminar, desactivar, retirar o revocar;
+- `btn-sm`: variante compacta, sin cambiar la semántica;
+- geometría normalizada globalmente: altura, radio, padding, peso y focus;
+- menús de acciones usan opciones del mismo ancho;
+- modo oscuro conserva la variante destructiva.
+
+Correcciones aplicadas:
+- Conocimiento: `Archivar artículo` -> `btn-danger`;
+- Proveedores: `Desactivar proveedor` -> `btn-danger`;
+- Proveedores: `Revocar acceso` -> `btn-danger`;
+- Equipo de soporte: `Retirar` -> `btn-danger`;
+- `Retirar acceso` de usuarios ya cumplía el patrón;
+- desvincular relaciones en Problemas se mantiene secundario porque no elimina/desactiva el registro.
+
+Protección:
+- `docs/ESTANDAR_VISUAL_CARROUSEL.md` documenta el patrón;
+- `tests/button_semantics_regression.php`;
+- regresión incluida en `VALIDAR_FASE9.bat`;
+- regresión incluida en CI;
+- closeout exige la regresión.
+
+Regla futura: no crear una variante visual de botón por módulo; reutilizar el contrato canónico.
+
 ## Regla para futuros chats
 
 Si se cambia de chat, continuar desde este archivo, la spec y el plan de implementación.
