@@ -13,7 +13,7 @@ final class ExternalReportController
         $pdo=Database::pdo();
         $service=new ProviderParticipationService($pdo);
         $ratingService=new ProviderRatingService($pdo);
-        $allRows=$ratingService->enrichRows($service->rows());
+        $allRows=$service->scopedRows($ratingService->enrichRows($service->rows()));
         $filters=$this->filters();
         $rows=ProviderParticipationService::applyFilters($allRows,$filters);
         $providerRatingSummary=ProviderRatingService::providerSummary($rows);
@@ -37,7 +37,7 @@ final class ExternalReportController
         $service=new ProviderParticipationService($pdo);
         $ratingService=new ProviderRatingService($pdo);
         $filters=$this->filters();
-        $rows=ProviderParticipationService::applyFilters($ratingService->enrichRows($service->rows()),$filters);
+        $rows=ProviderParticipationService::applyFilters($service->scopedRows($ratingService->enrichRows($service->rows())),$filters);
         $summary=ProviderParticipationService::summary($rows);
         $providerRatingSummary=ProviderRatingService::providerSummary($rows);
         $data=[];
