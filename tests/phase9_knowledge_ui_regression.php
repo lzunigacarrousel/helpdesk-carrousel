@@ -10,6 +10,9 @@ $manual=(string)file_get_contents($root.'/app/Views/help/manual.php');
 $helpController=(string)file_get_contents($root.'/app/Controllers/HelpController.php');
 $tour=(string)file_get_contents($root.'/public/assets/js/help-tour.js');
 $caseFocus=(string)file_get_contents($root.'/public/assets/css/case-focus.css');
+$visualSystem=(string)file_get_contents($root.'/public/assets/css/visual-system.css');
+$darkRefinement=(string)file_get_contents($root.'/public/assets/css/dark-refinement.css');
+$visualStandard=(string)file_get_contents($root.'/docs/ESTANDAR_VISUAL_CARROUSEL.md');
 $errors=0;
 
 function ok(bool $condition,string $message):void
@@ -57,6 +60,13 @@ foreach([
 ok(str_contains($caseFocus,'position:absolute;right:0;top:calc(100% + 8px)'), 'Más acciones funciona como popover sin deformar la barra editorial');
 ok(str_contains($caseFocus,'grid-auto-rows:1fr'), 'Cards de conocimiento mantienen altura alineada');
 ok(str_contains($caseFocus,'position:sticky;top:84px'), 'Panel lateral permanece alineado en escritorio');
+ok(str_contains($visualStandard,'## Patrón de botones y acciones'),'Estándar visual define jerarquía canónica de botones');
+ok(str_contains($visualStandard,'btn-danger'),'Estándar visual reserva danger para acciones destructivas');
+ok(str_contains($visualSystem,'.btn:not(.btn-sm):not(.theme-btn)'),'Sistema visual unifica geometría de botones');
+ok(str_contains($visualSystem,'.btn.btn-danger'),'Sistema visual define variante destructiva');
+ok(str_contains($visualSystem,'.knowledge-actions-menu>.card>.card-body>form>.btn{width:100%!important}'),'Menú de acciones usa ancho uniforme');
+ok(str_contains($darkRefinement,'html[data-theme="dark"] .btn-danger'),'Modo oscuro conserva variante destructiva');
+ok(str_contains($show,'class="btn btn-danger" type="submit">Archivar artículo</button>'),'Archivar usa botón destructivo y no neutro');
 ok(str_contains((string)file_get_contents($root.'/app/Views/knowledge/history.php'),"(\$article['lifecycle_status']??'ACTIVE')!=='ARCHIVED'"),'Historial no ofrece restauración directa de artículo archivado');
 
 foreach([
