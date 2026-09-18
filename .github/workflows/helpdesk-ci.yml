@@ -209,6 +209,9 @@ jobs:
       - name: Phase 11 manual - profile and task navigation
         run: php tests/phase11_manual_profile_navigation_regression.php
 
+      - name: Phase 11 manual - profile content
+        run: php tests/phase11_manual_profile_content_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
