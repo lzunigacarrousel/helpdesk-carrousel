@@ -130,6 +130,50 @@ Los bloques de mayor alcance que permanecen explícitamente pendientes son:
 - tutoriales flotantes ampliados;
 - revisión visual/responsive completa de toda la aplicación.
 
+## Actualización de estado real · 2026-09-18
+
+El prompt original de pulido mencionaba la rama `v2-rebuild`, pero esa regla quedó obsoleta. La fuente de verdad vigente es `main`; no volver a `v2-rebuild`.
+
+### Implementado en `main`
+
+- Formulario público con un solo campo visible para describir el problema; `subject` se genera internamente para conservar compatibilidad.
+- Jerarquía visual del formulario público, superficies suaves y mejor uso del ancho.
+- Dashboard compacto de colaboración externa: casos activos, esperando proveedor, proveedores activos y respuestas recientes.
+- Experiencia de proveedor/colaborador separada del portal interno.
+- Conversación de ticket con tres canales: respuesta al usuario, colaboración con proveedor y conversación interna.
+- Notas internas reutilizadas como conversación interna privada del equipo de soporte.
+- Hilo profesional con autor, fecha, canal, mensaje y adjuntos.
+- Logo de correo embebido por CID con PHPMailer y URL canónica como respaldo.
+- Diseño/copy de correo simplificado y administración de correo con prueba, estados, intentos y reintento.
+- Manual interactivo con buscador, accesos por tarea, FAQ y contenido condicionado por perfil.
+- Tutorial flotante y ayuda rápida con acceso a tutorial/manual.
+- Superficies visuales suaves, mejor tipografía y reglas responsive existentes.
+- Dashboard/roles de Gerencia y Supervisión separados de la operación de soporte mediante permisos.
+- Conocimiento versionado Fase 9, autoservicio, referencias, métricas y gobierno editorial.
+- Contrato visual canónico de botones: principal, secundario y destructivo; integrado a gate/CI.
+- Regla de BD aditiva/idempotente y preservación de auditoría/trazabilidad.
+- Sin frameworks JS nuevos ni WebSockets.
+
+### Parcial / requiere cierre transversal
+
+- Copy global: gran parte fue simplificada, pero todavía debe revisarse cualquier tecnicismo o duplicación que aparezca durante smoke real.
+- Redundancia global: queda revisión visual puntual de badges/tags/metadata en pantallas no recorridas recientemente.
+- Correos por movimiento: infraestructura y eventos principales existen; falta smoke completo de la matriz funcional con SMTP real.
+- Anti-spam: audiencias por solicitante/asignado/proveedor/soporte están implementadas; falta validar la matriz completa con casos reales de prueba.
+- Responsive: CSS existe, pero falta evidencia manual de iPad horizontal/vertical y móvil para el cierre actual.
+- Seguridad por perfil: permisos están automatizados, pero falta smoke manual TECHNICIAN / ADMIN-SEMIADMIN / solicitante / colaborador.
+- CI remoto: gate local está disponible, pero debe quedar una ejecución remota GREEN o evidencia equivalente aprobada.
+
+### Pendiente real
+
+- Agrupación de notificaciones internas cuando múltiples eventos menores pertenecen al mismo caso. Actualmente las entregas in-app se registran individualmente.
+- Pruebas reales de correo/logo en Gmail y Outlook cuando sea posible.
+- Completar matriz manual de Fase 9 en iPad/móvil y acceso directo por URL.
+- Reejecutar `VALIDAR_FASE9.bat` después de la estandarización global de botones.
+- Resolver CI remoto.
+- Emitir cierre final estructurado de Fase 9 con evidencia, commit y comandos PC TEST.
+- Producción sigue fuera de alcance hasta aprobación explícita.
+
 ## Criterio final
 
 El objetivo transversal se mantiene:
