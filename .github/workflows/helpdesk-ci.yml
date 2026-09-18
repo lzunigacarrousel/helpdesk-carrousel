@@ -200,6 +200,12 @@ jobs:
       - name: Phase 10 reports - specialized exports
         run: php tests/phase10_specialized_exports_regression.php
 
+      - name: Phase 10 reports - UI responsive
+        run: php tests/phase10_ui_responsive_regression.php
+
+      - name: Phase 10 reports - closeout
+        run: php tests/phase10_closeout_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
