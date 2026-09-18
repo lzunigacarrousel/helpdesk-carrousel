@@ -8,8 +8,6 @@ use PDO;
 
 final class XlsxExportController
 {
-    private const STATUS_LABELS=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
-    private const PRIORITY_LABELS=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
     private const RESOLUTION_LABELS=['CONFIGURATION'=>'Configuración','RESTART'=>'Reinicio / restablecimiento','REPLACEMENT'=>'Cambio / reemplazo','PROVIDER'=>'Gestión con proveedor','USER_GUIDANCE'=>'Orientación al usuario','SOFTWARE'=>'Software / aplicación','NETWORK'=>'Red / conectividad','HARDWARE'=>'Hardware / equipo','PERMISSION'=>'Acceso / permisos','MAINTENANCE'=>'Mantenimiento','OTHER'=>'Otro'];
 
     public function export(): void
@@ -56,7 +54,7 @@ final class XlsxExportController
             }
             $rows[]=[
                 $r['ticket_number'],$this->date($r['created_at']),$r['requester_name'],$r['requester_email'],$r['requester_phone'],$r['park_name'],$r['area_name'],$r['category_name'],$r['subject'],$r['description'],
-                self::PRIORITY_LABELS[$r['priority']]??$r['priority'],self::STATUS_LABELS[$r['status']]??$r['status'],WorkflowController::PENDING_REASONS[$r['pending_reason_code']]??($r['pending_reason_code']?:''),$r['pending_note'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),
+                TicketReportFilterService::PRIORITY_LABELS[$r['priority']]??$r['priority'],TicketReportFilterService::STATUS_LABELS[$r['status']]??$r['status'],WorkflowController::PENDING_REASONS[$r['pending_reason_code']]??($r['pending_reason_code']?:''),$r['pending_note'],$r['assigned_name'],$this->date($r['assigned_at']),$this->date($r['first_response_at']),$this->date($r['resolved_at']),$this->date($r['closed_at']),
                 $r['nps_score']??'',$r['feedback_comment'],$this->date($r['feedback_at']),$this->date($r['first_response_due_at']),$this->date($r['resolution_due_at']),
                 $life['assignment_minutes']??'', $life['first_response_minutes']??'',(int)$life['queue_minutes'],(int)$life['work_minutes'],(int)$life['pending_minutes'],(int)$life['resolved_wait_minutes'],$life['resolution_minutes']??'', $life['total_minutes']??'',count($life['transitions']),implode("\n",$history),
                 self::RESOLUTION_LABELS[$r['resolution_type']]??$r['resolution_type'],$r['root_cause'],$r['solution_applied'],$r['preventive_action'],$r['resolution_author']
