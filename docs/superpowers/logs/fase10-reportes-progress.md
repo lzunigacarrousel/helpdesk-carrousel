@@ -30,3 +30,18 @@ Objetivo:
 - evitar navegación dispersa;
 - conservar una sola acción principal por bloque;
 - respetar permisos.
+
+## Task 1 — Hub de reportes · IMPLEMENTADA
+
+- `/gestion/informes` incorpora hub compacto.
+- Accesos: Tickets y SLA, Agenda/Actividades, Proveedores, Equipo de soporte.
+- Los accesos se muestran según rol/capacidad.
+- Gerencia/Supervisión siguen en modo consulta; no se agregaron acciones operativas.
+- Responsive: 4 columnas escritorio, 2 tablet, 1 móvil.
+- Se conserva exportación XLSX del informe general.
+- `tests/phase10_reports_hub_regression.php` creado.
+- `VALIDAR_FASE10.bat` creado.
+- CI incorpora la regresión inicial de Fase 10.
+- BD: sin cambios.
+
+Siguiente: Task 2 — resumen de Conocimiento dentro del Centro de informes.
