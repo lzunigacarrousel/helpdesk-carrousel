@@ -69,6 +69,10 @@ $help = [
         'title' => 'Correo y notificaciones',
         'steps' => ['Comprueba primero si el canal está en SMTP activo o en modo de prueba.', 'Usa Enviar correo de prueba para validar conexión y entrega antes de depender del correo en operación.', 'Los estados Enviado, Falló, Pendiente y Modo prueba permiten distinguir una entrega real de un registro local.', 'Reintenta solo correos fallidos o pendientes; los códigos OTP siempre deben solicitarse nuevamente.'],
     ],
+    'agenda' => [
+        'title' => 'Agenda',
+        'steps' => ['Consulta actividades programadas dentro de tu alcance.', 'Usa Calendario o Lista según el nivel de detalle que necesites.', 'Atrasos y conflictos ayudan a priorizar; la operación se realiza desde el ticket cuando tu perfil puede hacerlo.'],
+    ],
     'manual' => [
         'title' => 'Manual del Helpdesk',
         'steps' => ['Empieza por las tarjetas de tareas frecuentes o usa el índice.', 'Abre solo las preguntas frecuentes que necesites; no es necesario leer todo el manual.', 'El contenido se adapta a las funciones disponibles para tu perfil.', 'Puedes volver al tutorial flotante desde el botón de ayuda en cualquier pantalla.'],
@@ -110,14 +114,40 @@ $isManagementHelp=$canOpenManual&&\App\Core\Auth::isManagementViewer();
 
 if($helpContext==='ticket'){
     if($isSupportHelp){
+        $current=[
+            'title'=>'Atención del caso',
+            'steps'=>['Lee primero el problema reportado y el contexto disponible.', 'Usa respuesta al usuario, conversación interna y colaboración externa en el canal correcto.', 'Revisa referencias antes de documentar causa, solución y prevención.', 'Resuelve solo cuando el trabajo esté documentado y listo para confirmación.'],
+        ];
+    }elseif($isExternalHelp){
+        $current=[
+            'title'=>'Seguimiento del caso compartido',
+            'steps'=>['Revisa qué apoyo necesita el equipo y el contexto visible para tu colaboración.', 'Responde o adjunta evidencia desde el caso.', 'Las notas internas del equipo no forman parte de tu acceso.', 'Listo para revisión informa que tu trabajo puede ser validado; no cierra el ticket.'],
+        ];
+    }elseif($isManagementHelp){
+        $current=[
+            'title'=>'Consulta del caso',
+            'steps'=>['Revisa problema, estado, tiempos y seguimiento para entender qué ocurre.', 'Usa el historial y la solución como contexto de gestión.', 'Tu perfil consulta el caso; la atención y los cambios operativos corresponden al equipo de soporte.'],
+        ];
+    }else{
+        $current=[
+            'title'=>'Tu solicitud',
+            'steps'=>['Revisa el problema reportado, estado y respuestas del equipo.', 'Usa la conversación visible para aportar información adicional cuando sea necesario.', 'Consulta la solución registrada antes de confirmar el cierre o devolver el caso a soporte.'],
+        ];
+    }
+}
+
+if($helpContext==='ticket'){
+    if($isSupportHelp){
         $manualTarget=['anchor'=>'soporte','topic'=>'soporte','faq'=>'conversación interna'];
     }elseif($isExternalHelp){
         $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'notas internas'];
     }else{
         $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'cierra'];
     }
-}elseif($helpContext==='my_tickets'&&$isExternalHelp){
-    $manualTarget=['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'casos'];
+}elseif($helpContext==='my_tickets'){
+    $manualTarget=$isExternalHelp
+        ?['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'casos']
+        :['anchor'=>'solicitudes','topic'=>'solicitudes','faq'=>'cierra'];
 }elseif(in_array($helpContext,['management','reports','agenda'],true)&&$isManagementHelp){
     if($role==='SUPERVISOR'){
         $manualTarget['faq']='botones';
