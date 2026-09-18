@@ -59,3 +59,18 @@ Siguiente: Task 2 — resumen de Conocimiento dentro del Centro de informes.
 - BD: sin cambios.
 
 Siguiente: Task 3 — resumen de Actividades / Agenda dentro del Centro de informes, reutilizando `ticket_activities` y `AgendaService`.
+
+## Task 3 — Resumen de Actividades / Agenda · IMPLEMENTADA
+
+- Reutiliza `AgendaService::activities()`; no duplica la lógica de Agenda.
+- Resume actividades que coinciden con el período seleccionado.
+- Indicadores: programadas, en curso, finalizadas, canceladas y atrasadas.
+- Contexto secundario: total de actividades y conflictos de horario.
+- Respeta `ScopeService` heredado desde Agenda y el filtro de parque del Centro de informes.
+- El bloque solo aparece con capacidad `activities.view` o perfil administrativo equivalente.
+- El hub dirige primero al resumen y desde ahí ofrece `Abrir agenda` con el mismo rango de fechas.
+- Responsive integrado para escritorio/tablet/móvil.
+- `tests/phase10_activity_report_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 4 — consolidación de Tickets / SLA y consistencia pantalla ↔ XLSX.
