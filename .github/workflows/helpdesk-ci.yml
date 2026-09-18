@@ -179,6 +179,9 @@ jobs:
       - name: Phase 9 knowledge - transversal legacy reads
         run: php tests/phase9_knowledge_legacy_read_regression.php
 
+      - name: Phase 10 reports - hub
+        run: php tests/phase10_reports_hub_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
