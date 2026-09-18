@@ -65,7 +65,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   </section>
 
   <nav class="manual-index" aria-label="Índice del manual">
-    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><?php if(!$isSupervisorProfile&&!$isManagementProfile): ?><a href="#solicitudes">Solicitudes</a><?php endif; ?><?php if(!$isExternal): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
+    <a href="#inicio">Inicio</a><a href="#notificaciones">Notificaciones</a><?php if(!$isSupervisorProfile&&!$isManagementProfile): ?><a href="#solicitudes">Solicitudes</a><?php endif; ?><?php if($isSupport||$isRequesterProfile): ?><a href="#actividades">Actividades</a><?php endif; ?><?php if($isSupport||$canManagement): ?><a href="#agenda">Agenda</a><?php endif; ?><?php if($isSupport): ?><a href="#soporte">Soporte</a><?php endif; ?><?php if($canProblems||$canKnowledge): ?><a href="#conocimiento">Conocimiento</a><?php endif; ?><?php if($canManagement): ?><a href="#gestion">Gestión</a><?php endif; ?><?php if($canProviderReport): ?><a href="#proveedores">Proveedores</a><?php endif; ?><?php if($canAdmin): ?><a href="#administracion">Administración</a><?php endif; ?><a href="#preguntas">Preguntas frecuentes</a>
   </nav>
 
   <section class="manual-section" id="inicio" data-manual-section data-manual-topics="ayuda">
@@ -309,7 +309,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       <?php if($canUsersManage): ?><details><summary>¿Perfil, asignación y responsable directo son lo mismo?</summary><div>No. Perfil define capacidades; asignación define dónde trabaja; responsable directo representa a quién reporta organizacionalmente.</div></details><?php endif; ?>
       <?php if($canMailAdmin): ?><details><summary>¿Cómo sé si un correo realmente salió?</summary><div>En <b>Correo y notificaciones</b>, Enviado significa que SMTP aceptó la entrega; Falló requiere revisión; Pendiente no terminó; Modo prueba no salió a Internet.</div></details><?php endif; ?>
     </div>
-  </section>n>
+  </section>
 </div>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (function(){
