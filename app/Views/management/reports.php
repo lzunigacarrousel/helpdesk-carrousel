@@ -197,7 +197,13 @@ $k=$knowledgeReport??null;
 
 <section class="report-table-card data-table-shell" data-report-table>
   <div class="report-table-head">
-    <div><span class="mgmt-kicker">Detalle</span><h2><?= count($rows) ?> tickets</h2></div>
+    <div>
+      <span class="mgmt-kicker">Detalle</span>
+      <h2><?= (int)($s['detail_total']??count($rows)) ?> tickets</h2>
+      <?php if((int)($s['detail_total']??count($rows))>(int)($s['detail_visible']??count($rows))): ?>
+        <small>La pantalla muestra los <?= (int)($s['detail_visible']??count($rows)) ?> más recientes; Excel incluye todo el filtro.</small>
+      <?php endif; ?>
+    </div>
     <?php if($rows): ?><div class="report-table-tools"><input class="form-control report-table-search" type="search" placeholder="Buscar dentro del informe…" data-report-search><select class="form-control report-page-size" data-report-page-size aria-label="Filas por página"><option value="10">10 filas</option><option value="25" selected>25 filas</option><option value="50">50 filas</option><option value="100">100 filas</option></select></div><?php endif; ?>
   </div>
 
