@@ -55,3 +55,19 @@ Siguiente: Task 2 — consolidar contenido final por perfil y eliminar instrucci
 - BD: sin cambios.
 
 Siguiente: Task 3 — FAQ contextual + accesos directos por pantalla/tarea, conectando el Manual con la ayuda flotante sin duplicar contenido.
+
+## Task 3 — FAQ contextual + accesos directos · IMPLEMENTADA
+
+- El botón flotante `?` conserva tres niveles máximos: Iniciar tutorial, Abrir manual aquí y Preguntas de esta pantalla cuando aplica.
+- `help_widget.php` mapea cada contexto a una sección/tema del Manual en lugar de enviar siempre al inicio.
+- Tickets adaptan la ayuda rápida a Solicitante, Colaborador, Gerencia/Supervisión o Soporte.
+- Agenda deja de caer en ayuda genérica y recibe guía rápida propia.
+- Contextos con FAQ útil generan un deep-link `/manual?topic=ayuda&q=...#preguntas`.
+- El Manual lee `topic` y `q`, sincroniza filtros, navega al ancla y abre la primera FAQ coincidente.
+- Proveedores especializados y Equipo siguen entrando por el contexto de Reportes, pero el destino del Manual se ajusta por `activeNav` a Proveedores/Gestión.
+- Usuarios, Correo, Problemas y Conocimiento enlazan a su guía contextual según capacidad.
+- Usuarios no autenticados siguen sin acceso al Manual interno.
+- `tests/phase11_contextual_help_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 4 — tutoriales flotantes completos con la estructura de 7 puntos y cobertura de Agenda/Reportes especializados sin convertirlos en textos permanentes.
