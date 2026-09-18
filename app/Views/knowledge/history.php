@@ -41,7 +41,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
               <a class="btn btn-outline-secondary" href="<?= APP_BASE_URL ?>/knowledge/compare?id=<?= (int)$article['id'] ?>&from=<?= (int)$revision['id'] ?>&to=<?= (int)$article['current_internal_revision_id'] ?>">Comparar con vigente</a>
             <?php endif; ?>
 
-            <?php if($canRestore): ?>
+            <?php if($canRestore && ($article['lifecycle_status']??'ACTIVE')!=='ARCHIVED'): ?>
               <details>
                 <summary class="btn btn-outline-secondary">Restaurar como borrador</summary>
                 <form method="post" action="<?= APP_BASE_URL ?>/knowledge/restore" data-single-submit class="itsm-editor-form">
