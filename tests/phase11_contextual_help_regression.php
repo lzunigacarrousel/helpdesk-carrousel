@@ -35,7 +35,7 @@ ok(str_contains($widget,"'faq'=>'problema conocido'"),'Problemas enlaza FAQ cont
 ok(str_contains($widget,"'faq'=>'Perfil, asignación'"),'Usuarios enlaza FAQ de perfiles');
 ok(str_contains($widget,"'faq'=>'correo'"),'Correo enlaza FAQ contextual');
 
-ok(str_contains($widget,"$helpContext==='ticket'"),'Ticket adapta ayuda según perfil');
+ok(str_contains($widget,"\$helpContext==='ticket'"),'Ticket adapta ayuda según perfil');
 ok(str_contains($widget,"'title'=>'Seguimiento del caso compartido'"),'Colaborador recibe ayuda específica de ticket');
 ok(str_contains($widget,"'title'=>'Consulta del caso'"),'Gerencia/Supervisión reciben ayuda de consulta');
 ok(str_contains($widget,"'title'=>'Tu solicitud'"),'Solicitante recibe ayuda propia');
@@ -46,10 +46,10 @@ ok(str_contains($widget,'la atención y los cambios operativos corresponden al e
 ok(str_contains($widget,"'agenda' => ["),'Agenda tiene ayuda rápida propia');
 ok(str_contains($widget,'Abrir manual aquí'),'Widget ofrece acceso contextual al Manual');
 ok(str_contains($widget,'Preguntas de esta pantalla'),'Widget ofrece FAQ solo cuando aplica');
-ok(str_contains($widget,"http_build_query($manualParams)"),'Enlace al Manual conserva tema contextual');
-ok(str_contains($widget,"http_build_query($faqParams)"),'Enlace FAQ pasa búsqueda contextual');
+ok(str_contains($widget,"http_build_query(\$manualParams)"),'Enlace al Manual conserva tema contextual');
+ok(str_contains($widget,"http_build_query(\$faqParams)"),'Enlace FAQ pasa búsqueda contextual');
 ok(str_contains($widget,"#preguntas"),'FAQ aterriza en sección de preguntas');
-ok(str_contains($widget,"if($canOpenManual)"),'Manual sigue oculto sin sesión');
+ok(str_contains($widget,"if(\$canOpenManual)"),'Manual sigue oculto sin sesión');
 
 ok(str_contains($manual,'new URLSearchParams(window.location.search)'),'Manual lee parámetros de enlace profundo');
 ok(str_contains($manual,"params.get('topic')"),'Manual lee tema solicitado');
