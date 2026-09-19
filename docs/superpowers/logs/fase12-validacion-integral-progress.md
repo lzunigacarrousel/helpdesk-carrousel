@@ -58,3 +58,34 @@ Siguiente: Task 2 — integridad de BD, instalación limpia, verificadores e ide
 - El assert se actualizó para validar el estado canónico actual: Fase 9 implementada y pendiente únicamente de la validación transversal de Fase 12.
 - Se mejoró `VALIDAR_FASE12.bat` para acumular y mostrar un **RESUMEN DE FALLOS** al final; así, aunque la salida larga del terminal se trunque, el bloque final indicará exactamente qué sección falló.
 - No se modificó funcionalidad, BD ni producción.
+
+
+## Task 1 — Preflight y baseline · CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12.bat` completamente GREEN.
+- Se corrigieron únicamente asserts históricos de roadmap en closeouts de Fase 8, 10 y 11.
+- No se detectaron defectos funcionales en el baseline transversal.
+- Producción permanece bloqueada.
+
+## Task 2 — Integridad de BD · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `database/VERIFICAR_FASE12_BD_20260919.sql` como verificador final de Fase 5 + Fase 9 + conocimiento versionado.
+- Se creó `VALIDAR_FASE12_BD.bat`.
+- El gate:
+  1. exige `carrousel_helpdesk`;
+  2. protege `helpdesk_carrousel`;
+  3. crea backup previo;
+  4. ejecuta verificación canónica;
+  5. ejecuta estabilidad V2;
+  6. valida Fase 5 y Fase 9;
+  7. toma snapshot de conteos sensibles;
+  8. reejecuta Fase 5 dos veces;
+  9. reejecuta Fase 9 dos veces;
+  10. compara snapshot antes/después;
+  11. compara fingerprint estructural de la base histórica;
+  12. vuelve a ejecutar verificadores y exige PASS.
+- Los controles de estabilidad previos a los totales deben quedar en 0; cualquier hallazgo detiene el gate.
+- Se creó `tests/phase12_database_integrity_regression.php` y se agregó a CI + gate transversal.
+- BD de producción: sin cambios.
+
+Pendiente: ejecutar `VALIDAR_FASE12_BD.bat` en PC TEST y registrar evidencia GREEN o defectos reales.
