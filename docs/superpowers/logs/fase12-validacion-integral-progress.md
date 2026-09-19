@@ -300,3 +300,13 @@ Pendiente: ejecutar regresión y `VALIDAR_FASE12_VISUAL.bat` en PC TEST; despué
 - Producción: sin cambios.
 
 Pendiente: ejecutar regresión + health + `VALIDAR_FASE12_ESTABILIDAD.bat` en PC TEST y completar checklist manual de aceptación.
+
+### Ajuste Task 7 — primer intento PC TEST
+
+- `phase12_runtime_health.php`: GREEN; extensiones PHP, storage, ticket_uploads, conexión DB y consultas básicas dentro de umbrales.
+- El fallo SHA-256 provenía del propio test: el literal `$target` se interpolaba accidentalmente dentro de una cadena doble.
+- `static_checks.php` detectó como no autorizados los tres verificadores canónicos creados en Fase 12; se añadieron explícitamente a la allowlist.
+- La sección JavaScript del BAT dependía del estado global del gate para imprimir `[OK]`; ahora usa `JS_FAILED` separado y reporta su resultado aunque otra sección haya fallado.
+- No se corrigió funcionalidad de negocio porque no se detectó defecto funcional.
+- BD: sin cambios.
+- Producción: sin cambios.
