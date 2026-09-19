@@ -25,6 +25,7 @@ call :run tests\phase8_external_case_export_regression.php "Exportacion historia
 echo.
 echo ------------------------------------------------------------
 echo Sintaxis JavaScript
+set "JS_FAILED=0"
 where node >nul 2>&1
 if errorlevel 1 (
   echo [AVISO] Node.js no esta disponible en PC TEST.
@@ -34,10 +35,11 @@ if errorlevel 1 (
     node --check "%%F" >nul 2>&1
     if errorlevel 1 (
       echo [FALLO] JavaScript: %%F
+      set "JS_FAILED=1"
       set "FAILED=1"
     )
   )
-  if "!FAILED!"=="0" echo [OK] Sintaxis JavaScript.
+  if "!JS_FAILED!"=="0" echo [OK] Sintaxis JavaScript.
 )
 
 echo.
