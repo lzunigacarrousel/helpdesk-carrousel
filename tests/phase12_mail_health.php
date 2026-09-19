@@ -33,6 +33,10 @@ if($health['mode']==='smtp'){
         ok(class_exists('PHPMailer\\PHPMailer\\PHPMailer'),'PHPMailer disponible');
     }
     ok(APP_CANONICAL_CONFIGURED,'SMTP real exige URL canónica configurada');
+    if(!APP_CANONICAL_CONFIGURED){
+        echo "[ACCION] Configura 'app_url' en config/local.php con la URL estable del Helpdesk que abrirán los destinatarios.".PHP_EOL;
+        echo "[ACCION] No uses localhost ni una IP privada/LAN para una prueba SMTP real.".PHP_EOL;
+    }
 }else{
     echo '[OK] Modo prueba activo: este health check no envía correo.'.PHP_EOL;
 }
