@@ -5,6 +5,7 @@
 > La rama estable y fuente de verdad es `main`. El bloque histórico `v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN` documenta trabajo preservado en `archive/v2-rebuild-20260913`; no debe confundirse con las fases canónicas integradas después del checkpoint. El roadmap funcional de 12 fases está técnicamente integrado en PC TEST, pero la aplicación mantiene `2.4.0-dev` hasta completar aceptación manual preproducción y despliegue controlado.
 
 ## Fase 12 · Validación integral y readiness · 2026-09-19
+- Closeout técnico final `VALIDAR_FASE12_CLOSEOUT.bat`: GREEN en PC TEST; las 12 fases quedan integradas y validadas técnicamente, con producción aún bloqueada.
 - Gate transversal `VALIDAR_FASE12.bat` consolida Fases 5–11, seguridad, conocimiento, reportes, manual, navegación, dark mode, botones, checks estáticos, rutas/CSS y XLSX.
 - Integridad de BD validada en `carrousel_helpdesk`: instalación canónica, estabilidad, Fase 5/Fase 9 e idempotencia de migraciones; `helpdesk_carrousel` permanece protegida.
 - Matriz de perfiles/scopes validada para ADMIN, SEMIADMIN, TECHNICIAN, MANAGEMENT, SUPERVISOR, REQUESTER y EXTERNAL.
