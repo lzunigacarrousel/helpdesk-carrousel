@@ -19,6 +19,8 @@ call :run tests\phase12_release_baseline_regression.php "Fase 12 - preflight y b
 call :run tests\phase12_database_integrity_regression.php "Fase 12 - seguridad e idempotencia BD"
 call :run tests\phase12_security_scope_regression.php "Fase 12 - perfiles permisos y scopes"
 call :run tests\phase12_e2e_contract_regression.php "Fase 12 - contrato E2E transversal"
+call :run tests\phase12_communication_regression.php "Fase 12 - correo y notificaciones"
+call :run tests\phase12_mail_health.php "Fase 12 - salud correo"
 call :run tests\installer_safety_smoke.php "Instalacion - seguridad"
 call :run tests\requester_ux_smoke.php "Solicitante - UX base"
 call :run tests\phase3_operational_smoke.php "Tickets y SLA - operacion base"
