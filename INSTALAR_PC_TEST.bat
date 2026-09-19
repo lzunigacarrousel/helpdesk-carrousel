@@ -40,6 +40,7 @@ echo  1. Respaldar SOLO %DB_NAME% si existe.
 echo  2. Eliminar SOLO %DB_NAME%.
 echo  3. Crear TODO desde database\INSTALAR.sql.
 echo  4. Instalar dependencias y ejecutar validaciones.
+echo  5. Confirmar que la BD queda espejo limpio de produccion.
 echo.
 echo IMPORTANTE: %PROTECTED_DB% pertenece al Helpdesk anterior y NO se toca.
 echo ADVERTENCIA: se perderan los datos actuales de %DB_NAME%
@@ -68,6 +69,11 @@ if not exist "database\INSTALAR.sql" (
 )
 if not exist "database\VERIFICAR_INSTALACION.sql" (
   echo [ERROR] Falta database\VERIFICAR_INSTALACION.sql
+  pause
+  exit /b 1
+)
+if not exist "database\VERIFICAR_PRODUCCION_LIMPIA.sql" (
+  echo [ERROR] Falta database\VERIFICAR_PRODUCCION_LIMPIA.sql
   pause
   exit /b 1
 )
@@ -119,7 +125,7 @@ for /f "usebackq delims=" %%A in ("%TEMP%\helpdesk_db_exists.txt") do set "DB_EX
 
 if /I "%DB_EXISTS%"=="%DB_NAME%" (
   echo.
-  echo [1/4] Creando respaldo previo de %DB_NAME%...
+  echo [1/5] Creando respaldo previo de %DB_NAME%...
   "%MYSQLDUMP%" %MYSQL_AUTH% --single-transaction --routines --triggers --events --default-character-set=utf8mb4 "%DB_NAME%" > "backups\%DB_NAME%_antes_reinstalar_%STAMP%.sql"
   if errorlevel 1 (
     echo [ERROR] No se pudo crear el respaldo. Se cancela la reinstalacion.
@@ -129,17 +135,17 @@ if /I "%DB_EXISTS%"=="%DB_NAME%" (
   echo [OK] Respaldo creado.
 ) else (
   echo.
-  echo [1/4] %DB_NAME% no existe. No hay nada que respaldar.
+  echo [1/5] %DB_NAME% no existe. No hay nada que respaldar.
 )
 
 echo.
-echo [2/4] Creando base V2 canonica desde cero...
+echo [2/5] Creando base V2 canonica desde cero...
 "%MYSQL%" %MYSQL_AUTH% -e "DROP DATABASE IF EXISTS `%DB_NAME%`;" || goto :sql_error
 "%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "database\INSTALAR.sql" || goto :sql_error
 echo [OK] INSTALAR.sql ejecutado.
 
 echo.
-echo [3/4] Preparando dependencias PHP...
+echo [3/5] Preparando dependencias PHP...
 where composer >nul 2>&1
 if not errorlevel 1 (
   call composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -156,7 +162,7 @@ if not errorlevel 1 (
 )
 
 echo.
-echo [4/4] Ejecutando validaciones...
+echo [4/5] Ejecutando validaciones...
 "%PHP%" tests\static_checks.php
 if errorlevel 1 goto :test_error
 "%PHP%" tests\installer_safety_smoke.php
@@ -167,6 +173,19 @@ if errorlevel 1 goto :test_error
 if errorlevel 1 goto :test_error
 "%MYSQL%" %MYSQL_AUTH% --default-character-set=utf8mb4 < "database\VERIFICAR_INSTALACION.sql"
 if errorlevel 1 goto :sql_error
+
+echo.
+echo [5/5] Verificando espejo limpio de produccion...
+"%MYSQL%" %MYSQL_AUTH% -N -B --default-character-set=utf8mb4 < "database\VERIFICAR_PRODUCCION_LIMPIA.sql" > "%TEMP%\helpdesk_pc_test_clean.txt"
+if errorlevel 1 goto :sql_error
+type "%TEMP%\helpdesk_pc_test_clean.txt"
+findstr /X /C:"PASS" "%TEMP%\helpdesk_pc_test_clean.txt" >nul
+if errorlevel 1 (
+  echo [ERROR] La BD de PC TEST contiene datos operativos o legado.
+  pause
+  exit /b 1
+)
+echo [OK] PC TEST replica una produccion nueva sin datos operativos.
 
 echo.
 echo ============================================================
