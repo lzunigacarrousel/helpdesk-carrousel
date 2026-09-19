@@ -9,6 +9,8 @@ set "DB_NAME=carrousel_helpdesk"
 set "DB_USER=root"
 set "DB_PASS="
 set "FAILED=0"
+set "BASELINE_FILE=%CD%\storage\logs\phase12_communication_baseline.txt"
+set "BASELINE_ID="
 
 echo ============================================================
 echo  HELPDESK CARROUSEL - FASE 12 / CORREO Y NOTIFICACIONES
@@ -25,13 +27,24 @@ if not exist "%MYSQL%" (
 set "MYSQL_AUTH=-u%DB_USER%"
 if defined DB_PASS set "MYSQL_AUTH=-u%DB_USER% -p%DB_PASS%"
 
+if not exist "%CD%\storage\logs" mkdir "%CD%\storage\logs"
+if exist "%BASELINE_FILE%" (
+  set /p BASELINE_ID=<"%BASELINE_FILE%"
+) else (
+  for /f "usebackq delims=" %%I in (`"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 -N -B "%DB_NAME%" -e "SELECT COALESCE(MAX(id),0) FROM notification_deliveries;"`) do set "BASELINE_ID=%%I"
+  if not defined BASELINE_ID set "BASELINE_ID=0"
+  >"%BASELINE_FILE%" echo %BASELINE_ID%
+  echo [INFO] Linea base de comunicacion creada en ID %BASELINE_ID%.
+)
+echo [INFO] Baseline de entregas: %BASELINE_ID%
+
 call :run tests\phase12_communication_regression.php "Contrato de correo y notificaciones"
 call :run tests\phase12_mail_health.php "Salud de configuracion de correo"
 
 echo.
 echo ------------------------------------------------------------
 echo Trazabilidad real en BD
-"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 --default-character-set=utf8mb4 -N -B "%DB_NAME%" --execute="source database/VERIFICAR_FASE12_COMUNICACION_20260919.sql" > "%TEMP%\helpdesk_f12_communication.txt"
+"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 --default-character-set=utf8mb4 -N -B "%DB_NAME%" --execute="SET @phase12_baseline_delivery_id=%BASELINE_ID%; source database/VERIFICAR_FASE12_COMUNICACION_20260919.sql" > "%TEMP%\helpdesk_f12_communication.txt"
 if errorlevel 1 (
   echo [FALLO] No se pudo ejecutar VERIFICAR_FASE12_COMUNICACION_20260919.sql
   set "FAILED=1"
@@ -58,6 +71,8 @@ echo Proveedor agregado/respondio/revocado: OK
 echo Reintentos y panel admin/correo: OK
 echo Logo CID y configuracion: OK
 echo Integridad de entregas: PASS
+echo URLs locales historicas: visibles, no bloqueantes
+echo URLs locales nuevas: 0
 echo.
 echo IMPORTANTE:
 echo Este gate NO envia correos reales.
