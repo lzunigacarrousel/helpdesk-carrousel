@@ -94,3 +94,19 @@ Siguiente: Task 4 — tutoriales flotantes completos con la estructura de 7 punt
 - BD: sin cambios.
 
 Siguiente: Task 5 — UI/responsive/accesibilidad final del Manual y ayuda flotante antes del closeout de Fase 11.
+
+## Task 5 — UI / responsive / accesibilidad · IMPLEMENTADA
+
+- Ayuda flotante usa semántica de diálogo con `aria-controls`, `aria-expanded`, `aria-modal` y título asociado.
+- Al abrir ayuda el foco pasa al botón Cerrar; al cerrar vuelve al control que la abrió.
+- Tab/Shift+Tab permanecen dentro del panel de ayuda mientras está abierto.
+- Buscador del Manual anuncia resultados mediante `role=status` + `aria-live=polite`.
+- Deep-links del Manual enfocan la sección destino además de desplazarla visualmente.
+- Temas, FAQ y acciones principales cumplen tamaño táctil mínimo y foco visible.
+- En móvil pequeño (<=430px) los temas pasan a una columna y la acción principal del encabezado ocupa todo el ancho.
+- Tutorial conserva foco dentro del diálogo, devuelve foco al salir, soporta Tab/Shift+Tab/Escape y sincroniza el estado del botón de ayuda cuando se inicia desde el panel.
+- Acciones del tutorial usan altura táctil, una columna en móvil pequeño y respetan `prefers-reduced-motion`.
+- `tests/phase11_manual_accessibility_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 6 — closeout final de Fase 11: README, CHANGELOG, gate final y transición a Fase 12 Validación integral.
