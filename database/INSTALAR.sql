@@ -357,6 +357,7 @@ CREATE TABLE ticket_attachments (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ticket_id BIGINT UNSIGNED NOT NULL,
     comment_id BIGINT UNSIGNED NULL,
+    activity_id BIGINT UNSIGNED NULL,
     uploaded_by_user_id BIGINT UNSIGNED NULL,
     visibility ENUM('PUBLIC','INTERNAL','EXTERNAL') NOT NULL DEFAULT 'PUBLIC',
     original_name VARCHAR(255) NOT NULL,
@@ -411,6 +412,9 @@ CREATE TABLE external_ticket_access (
     user_id BIGINT UNSIGNED NOT NULL,
     can_comment TINYINT(1) NOT NULL DEFAULT 1,
     can_upload TINYINT(1) NOT NULL DEFAULT 1,
+    report_template ENUM(
+        'GENERAL_SUPPORT','SOFTWARE_SUPPORT','SOFTWARE_DEVELOPMENT','AUDIT_ADVISORY'
+    ) NULL,
     granted_by BIGINT UNSIGNED NULL,
     granted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     revoked_at DATETIME NULL,
@@ -425,6 +429,9 @@ CREATE TABLE external_profiles (
     user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     organization_name VARCHAR(190) NOT NULL,
     external_type ENUM('PROVIDER','PARTNER','OTHER') NOT NULL DEFAULT 'PROVIDER',
+    report_template ENUM(
+        'GENERAL_SUPPORT','SOFTWARE_SUPPORT','SOFTWARE_DEVELOPMENT','AUDIT_ADVISORY'
+    ) NOT NULL DEFAULT 'GENERAL_SUPPORT',
     notes VARCHAR(500) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -494,21 +501,10 @@ CREATE TABLE knowledge_articles (
     current_internal_revision_id BIGINT UNSIGNED NULL,
     current_public_revision_id BIGINT UNSIGNED NULL,
     created_by_user_id BIGINT UNSIGNED NULL,
-    title VARCHAR(220) NOT NULL,
-    summary TEXT NULL,
-    content LONGTEXT NOT NULL,
-    status ENUM('DRAFT','PUBLISHED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
-    visibility ENUM('INTERNAL','PUBLIC') NOT NULL DEFAULT 'INTERNAL',
-    category_id BIGINT UNSIGNED NULL,
-    author_user_id BIGINT UNSIGNED NULL,
-    published_at DATETIME NULL,
     archived_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_article_category FOREIGN KEY (category_id) REFERENCES ticket_categories(id) ON DELETE SET NULL,
-    CONSTRAINT fk_article_author FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_article_created_by FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_article_status_visibility (status, visibility),
     INDEX idx_ka_lifecycle_internal (lifecycle_status,current_internal_revision_id),
     INDEX idx_ka_lifecycle_public (lifecycle_status,current_public_revision_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -633,20 +629,6 @@ CREATE TABLE problem_solutions (
     CONSTRAINT fk_ps_article FOREIGN KEY (article_id) REFERENCES knowledge_articles(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE problem_attachments (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    problem_id BIGINT UNSIGNED NOT NULL,
-    uploaded_by_user_id BIGINT UNSIGNED NULL,
-    original_name VARCHAR(255) NOT NULL,
-    stored_name VARCHAR(255) NOT NULL,
-    storage_path VARCHAR(500) NOT NULL,
-    mime_type VARCHAR(120) NOT NULL,
-    size_bytes BIGINT UNSIGNED NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_pa_problem FOREIGN KEY (problem_id) REFERENCES known_problems(id) ON DELETE CASCADE,
-    CONSTRAINT fk_pa_uploader FOREIGN KEY (uploaded_by_user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- =========================================================
 -- NOTIFICACIONES Y AUDITORIA
 -- =========================================================
@@ -761,7 +743,6 @@ INSERT INTO permissions (code, name, module, description) VALUES
 ('problems.view','Ver problemas conocidos','problems','Consulta de recurrencia'),
 ('problems.manage','Administrar problemas conocidos','problems','Crear, investigar y resolver problemas recurrentes'),
 ('knowledge.view','Ver conocimiento','knowledge','Consulta de articulos permitidos'),
-('knowledge.manage','Administrar conocimiento','knowledge','Permiso legacy conservado temporalmente por compatibilidad.'),
 ('knowledge.draft_manage','Crear y editar borradores','knowledge','Permite crear y mejorar revisiones borrador de conocimiento.'),
 ('knowledge.review','Revisar conocimiento','knowledge','Permite revisar borradores enviados y devolverlos con observaciones.'),
 ('knowledge.publish_internal','Publicar para soporte','knowledge','Permite publicar una revision como vigente para uso interno.'),
@@ -782,7 +763,7 @@ WHERE r.code='SEMIADMIN' AND p.code IN(
     'tickets.view_own','tickets.view_queue','tickets.claim','tickets.reassign','tickets.change_status',
     'tickets.comment_public','tickets.comment_internal','tickets.view_all','tickets.manage_special','tickets.resolve','tickets.classify',
     'users.view','assignments.view','assignments.manage','catalogs.manage','reports.view','reports.global',
-    'management.view','external.manage','problems.view','problems.manage','knowledge.view','knowledge.manage',
+    'management.view','external.manage','problems.view','problems.manage','knowledge.view',
     'knowledge.draft_manage','knowledge.review','knowledge.publish_internal','knowledge.publish_public','knowledge.history','knowledge.restore','sla.manage'
 );
 
@@ -820,16 +801,6 @@ WHERE r.code='EXTERNAL' AND p.code IN('tickets.comment_public');
 -- FASE 5 - BASELINE CANONICA Y ACTIVIDADES
 -- =========================================================
 -- Normaliza funcionalidades externas ya vigentes y agrega Actividades / Visitas.
-
-ALTER TABLE external_profiles
-    ADD COLUMN report_template ENUM(
-        'GENERAL_SUPPORT','SOFTWARE_SUPPORT','SOFTWARE_DEVELOPMENT','AUDIT_ADVISORY'
-    ) NOT NULL DEFAULT 'GENERAL_SUPPORT' AFTER external_type;
-
-ALTER TABLE external_ticket_access
-    ADD COLUMN report_template ENUM(
-        'GENERAL_SUPPORT','SOFTWARE_SUPPORT','SOFTWARE_DEVELOPMENT','AUDIT_ADVISORY'
-    ) NULL AFTER can_upload;
 
 CREATE TABLE ticket_work_reports (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -938,7 +909,6 @@ CREATE TABLE ticket_activity_participants (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE ticket_attachments
-    ADD COLUMN activity_id BIGINT UNSIGNED NULL AFTER comment_id,
     ADD CONSTRAINT fk_ticket_attachment_activity FOREIGN KEY(activity_id) REFERENCES ticket_activities(id) ON DELETE SET NULL,
     ADD INDEX idx_ticket_attachments_activity(activity_id);
 
@@ -1169,7 +1139,8 @@ SELECT @it_team_id,NULL,NULL,'GLOBAL',1 WHERE @it_team_id IS NOT NULL;
 
 INSERT INTO schema_migrations(version,name) VALUES
 ('2026-09-09-clean-schema-v2.4','Esquema canonico Helpdesk Carrousel para instalacion limpia'),
-('2026-09-16-fase9-conocimiento','Fase 9 - Conocimiento versionado');
+('2026-09-16-fase9-conocimiento','Fase 9 - Conocimiento versionado'),
+('2026-09-19-preprod-clean-schema','Preproduccion - esquema canonico minimo y sin compatibilidad legacy');
 
 SET FOREIGN_KEY_CHECKS = 1;
 
