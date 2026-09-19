@@ -32,8 +32,8 @@ ok(str_contains($scope,"if((\$user['access_type']??'INTERNAL')==='EXTERNAL')retu
 ok(str_contains($scope,"in_array(\$role,['ADMIN','SEMIADMIN','MANAGEMENT'],true)"),'Admin/Semiadmin/Gerencia usan alcance global');
 ok(str_contains($scope,"if(\$role==='SUPERVISOR')"),'Supervisor tiene rama de alcance propia');
 ok(str_contains($scope,"park_id IN (SELECT id FROM parks WHERE region_id=?)"),'Supervisor puede quedar limitado por región');
-ok(str_contains($scope,"{$alias}.park_id=?")||str_contains($scope,'{$alias}.park_id=?'),'Supervisor puede quedar limitado por parque');
-ok(str_contains($scope,"{$alias}.area_id=?")||str_contains($scope,'{$alias}.area_id=?'),'Supervisor puede quedar limitado por área');
+ok(str_contains($scope,'{$alias}.park_id=?'),'Supervisor puede quedar limitado por parque');
+ok(str_contains($scope,'{$alias}.area_id=?'),'Supervisor puede quedar limitado por área');
 ok(str_contains($scope,"if(\$role==='TECHNICIAN')"),'Técnico usa scopes de soporte');
 ok(str_contains($scope,"scope_type']??'')==='GLOBAL'"),'Técnico reconoce scope global');
 ok(str_contains($scope,"requester_user_id=? OR LOWER({\$alias}.requester_email)=?")||str_contains($scope,'requester_user_id=? OR LOWER({$alias}.requester_email)=?'),'Solicitante queda limitado a información propia');
