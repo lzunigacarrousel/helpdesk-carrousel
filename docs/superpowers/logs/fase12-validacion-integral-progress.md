@@ -38,3 +38,14 @@ Estado: en implementación.
 - Producción: sin cambios.
 
 Siguiente: Task 2 — integridad de BD, instalación limpia, verificadores e idempotencia de migraciones vigentes en PC TEST.
+
+
+### Corrección de baseline — regresiones históricas de roadmap
+
+- Primer `VALIDAR_FASE12.bat` llegó hasta el final y solo reportó dos fallos:
+  - `phase10_closeout_regression.php` todavía exigía que Fase 11 fuera “SIGUIENTE”.
+  - `phase11_closeout_regression.php` todavía exigía que Fase 12 fuera “SIGUIENTE”.
+- Ambos fallos son expectativas históricas obsoletas: Fase 11 ya está implementada y Fase 12 está actualmente EN CURSO.
+- Se actualizaron únicamente los asserts de roadmap.
+- No se modificó funcionalidad, README, configuración, BD ni producción.
+- Debe repetirse primero ambos closeouts y después `VALIDAR_FASE12.bat`.
