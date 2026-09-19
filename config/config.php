@@ -35,14 +35,23 @@ define('SMTP_PASSWORD', (string)($local['smtp_password'] ?? ''));
 define('MAIL_FROM', strtolower(trim((string)($local['mail_from'] ?? 'no-reply@carrousel.local'))));
 define('MAIL_FROM_NAME', trim((string)($local['mail_from_name'] ?? APP_NAME)) ?: APP_NAME);
 
-$https = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
-$host = preg_replace('/:\\d+$/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
+$configuredAppUrl = rtrim(trim((string)($local['app_url'] ?? '')), '/');
+$canonicalConfigured = $configuredAppUrl !== '' && filter_var($configuredAppUrl, FILTER_VALIDATE_URL) !== false;
+$canonicalParts = $canonicalConfigured ? (parse_url($configuredAppUrl) ?: []) : [];
+$canonicalHost = strtolower((string)($canonicalParts['host'] ?? ''));
+$canonicalScheme = strtolower((string)($canonicalParts['scheme'] ?? ''));
+
+$host = preg_replace('/:\\d+$/', '', strtolower((string)($_SERVER['HTTP_HOST'] ?? 'localhost'))) ?: 'localhost';
+$nativeHttps = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+$forwardedProto = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0] ?? ''));
+$proxyHttps = $forwardedProto === 'https';
+$canonicalHttps = $canonicalConfigured && $canonicalScheme === 'https' && $canonicalHost === $host;
+$https = $nativeHttps || $proxyHttps || $canonicalHttps;
+
 $scheme = $https ? 'https' : 'http';
 $basePath = APP_PUBLIC_PATH === '/' ? '' : APP_PUBLIC_PATH;
 define('APP_BASE_URL', $scheme.'://'.$host.$basePath);
 
-$configuredAppUrl = rtrim(trim((string)($local['app_url'] ?? '')), '/');
-$canonicalConfigured = $configuredAppUrl !== '' && filter_var($configuredAppUrl, FILTER_VALIDATE_URL) !== false;
 define('APP_CANONICAL_CONFIGURED', $canonicalConfigured);
 define('APP_CANONICAL_URL', $canonicalConfigured ? $configuredAppUrl : APP_BASE_URL);
 define('APP_CAN_USE_SECURE_FEATURES', $https || in_array($host, ['localhost', '127.0.0.1'], true));

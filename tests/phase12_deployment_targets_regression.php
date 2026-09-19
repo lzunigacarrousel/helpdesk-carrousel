@@ -20,6 +20,8 @@ ok(str_contains($config,"$" . "host = preg_replace"),'APP_BASE_URL deriva del ho
 ok(str_contains($config,"$" . "basePath = APP_PUBLIC_PATH"),'APP_BASE_URL conserva subruta pública');
 ok(str_contains($config,"define('APP_BASE_URL', $" . "scheme.'://'.$" . "host.$" . "basePath)"),'APP_BASE_URL no hardcodea host del Helpdesk');
 ok(str_contains($config,"$" . "local['app_url']"),'URL canónica de correo es configurable por entorno');
+ok(str_contains($config,"HTTP_X_FORWARDED_PROTO"),'APP_BASE_URL reconoce HTTPS detrás de proxy/túnel');
+ok(str_contains($config,"$" . "canonicalHttps"),'Host canónico HTTPS conserva esquema externo aunque Apache reciba HTTP');
 ok(str_contains($config,'APP_CANONICAL_CONFIGURED'),'Configuración distingue URL canónica explícita');
 
 foreach([
