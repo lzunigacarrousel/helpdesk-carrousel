@@ -2,37 +2,32 @@
 setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
-set "APP_NAME=Helpdesk Carrousel 360"
+set "APP_NAME=Helpdesk Carrousel"
 set "DB_NAME=carrousel_helpdesk"
 set "DB_USER=root"
 set "DB_PASS="
 set "MYSQL=C:\xampp\mysql\bin\mysql.exe"
 set "MYSQLDUMP=C:\xampp\mysql\bin\mysqldump.exe"
-set "PHP=C:\xampp\php\php.exe"
 set "LOCAL_URL=http://localhost/HelpdeskCarrousel/public/"
-set "SERVER_IP_URL=http://94.74.71.96/HelpdeskCarrousel/public/"
-set "DOMAIN_URL=https://portal.carrousel-apps.com/HelpdeskCarrousel/public/"
 
 :menu
 cls
 echo ============================================================
-echo              %APP_NAME% - MAIN
+echo                     %APP_NAME%
 echo ============================================================
-echo Rama canonica: main
-echo Base canonica: %DB_NAME%
+echo Estado: PREPRODUCCION
+echo Rama: main
+echo Base: %DB_NAME%
 echo.
 echo [1] Abrir Helpdesk local
-echo [2] Estado Git + auditoria de seguridad
-echo [3] Actualizar main desde GitHub (pull --ff-only)
-echo [4] Ver cambios / diff
-echo [5] Validar PREPRODUCCION
-echo [6] Reinstalar BD en PC TEST
-echo [7] Respaldar BD actual
-echo [8] Instalar PRODUCCION (solo BD vacia)
-echo [9] Guardar cambios / Commit
-echo [10] Subir main a GitHub / Push
-echo [11] Historial Git
-echo [12] Mostrar URLs
+echo [2] Estado y cambios Git
+echo [3] Actualizar desde GitHub
+echo [4] Validar PREPRODUCCION
+echo [5] Reinstalar PC TEST
+echo [6] Respaldar BD
+echo [7] Guardar cambios ^(Commit^)
+echo [8] Subir a GitHub ^(Push^)
+echo [9] Instalar PRODUCCION
 echo [0] Salir
 echo.
 set /p "OP=Seleccione una opcion: "
@@ -40,15 +35,12 @@ set /p "OP=Seleccione una opcion: "
 if "%OP%"=="1" goto open_local
 if "%OP%"=="2" goto status
 if "%OP%"=="3" goto pull
-if "%OP%"=="4" goto diff
-if "%OP%"=="5" goto validate
-if "%OP%"=="6" goto install_test
-if "%OP%"=="7" goto backup
-if "%OP%"=="8" goto install_prod
-if "%OP%"=="9" goto commit
-if "%OP%"=="10" goto push
-if "%OP%"=="11" goto history
-if "%OP%"=="12" goto urls
+if "%OP%"=="4" goto validate
+if "%OP%"=="5" goto install_test
+if "%OP%"=="6" goto backup
+if "%OP%"=="7" goto commit
+if "%OP%"=="8" goto push
+if "%OP%"=="9" goto install_prod
 if "%OP%"=="0" exit /b 0
 goto menu
 
@@ -58,12 +50,13 @@ goto menu
 
 :status
 echo.
-git status
-echo.
 call :guard
 echo.
-echo Archivos raiz:
-for %%F in (*.bat *.php *.json *.md) do echo   %%F
+git status --short
+echo.
+git diff --check
+echo.
+git log -1 --oneline
 pause
 goto menu
 
@@ -72,16 +65,6 @@ call :require_main || goto menu
 call :require_clean || goto menu
 echo.
 git pull --ff-only origin main
-pause
-goto menu
-
-:diff
-echo.
-git status --short
-echo.
-git diff --check
-echo.
-git diff
 pause
 goto menu
 
@@ -99,8 +82,8 @@ goto menu
 
 :install_test
 echo.
-echo [ATENCION] Esta opcion reinstala carrousel_helpdesk en PC TEST.
-echo El instalador crea respaldo antes de eliminar la BD de pruebas.
+echo [ATENCION] Reinstala SOLO %DB_NAME% en PC TEST.
+echo El instalador crea un respaldo antes de reconstruir la base.
 set /p "CONF=Escriba TEST para continuar: "
 if /I not "%CONF%"=="TEST" goto menu
 call ".\INSTALAR_PC_TEST.bat"
@@ -128,17 +111,6 @@ if errorlevel 1 (
 pause
 goto menu
 
-:install_prod
-call :require_main || goto menu
-call :guard || goto menu
-if not exist "INSTALAR_PRODUCCION.bat" (
-  echo [ERROR] Falta INSTALAR_PRODUCCION.bat
-  pause
-  goto menu
-)
-call ".\INSTALAR_PRODUCCION.bat"
-goto menu
-
 :commit
 call :require_main || goto menu
 call :guard || goto menu
@@ -148,12 +120,12 @@ if errorlevel 1 (
   pause
   goto menu
 )
+echo.
 git status --short
 echo.
 set /p "MSG=Mensaje del commit: "
 if "%MSG%"=="" goto menu
-echo.
-set /p "CONF=Escriba COMMIT para guardar todos los cambios: "
+set /p "CONF=Escriba COMMIT para guardar los cambios: "
 if /I not "%CONF%"=="COMMIT" goto menu
 git add -A
 git commit -m "%MSG%"
@@ -168,18 +140,16 @@ git push origin main
 pause
 goto menu
 
-:history
-git log --oneline --decorate -25
-pause
-goto menu
-
-:urls
-echo.
-echo PC TEST : %LOCAL_URL%
-echo SERVER  : %SERVER_IP_URL%
-echo DOMINIO : %DOMAIN_URL%
-echo PORTAL  : https://portal.carrousel-apps.com/portal/
-pause
+:install_prod
+call :require_main || goto menu
+call :guard || goto menu
+call :require_clean || goto menu
+if not exist "INSTALAR_PRODUCCION.bat" (
+  echo [ERROR] Falta INSTALAR_PRODUCCION.bat
+  pause
+  goto menu
+)
+call ".\INSTALAR_PRODUCCION.bat"
 goto menu
 
 :require_main

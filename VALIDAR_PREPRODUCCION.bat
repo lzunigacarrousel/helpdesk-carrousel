@@ -35,6 +35,7 @@ if not "!STATUS_SIZE!"=="0" (
 )
 
 call :run tests\preprod_clean_schema_regression.php "Contrato de esquema limpio"
+call :run tests\release_repository_regression.php "Contrato de repositorio de release"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Rutas, vistas, CSS y CSRF"
 call :run tests\xlsx_smoke.php "XLSX"

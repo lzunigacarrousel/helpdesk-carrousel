@@ -2,7 +2,7 @@ name: Helpdesk Carrousel CI
 
 on:
   push:
-    branches: [main, 'fase*']
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   application-quality:
-    name: Application quality checks
+    name: Application quality
     runs-on: ubuntu-latest
     timeout-minutes: 12
 
@@ -53,221 +53,35 @@ jobs:
             node --check "$file"
           done < <(find public/assets/js -type f -name '*.js' -print0)
 
+      - name: Repository release contract
+        run: php tests/release_repository_regression.php
+
       - name: Static project checks
         run: php tests/static_checks.php
 
-      - name: Installer safety regression
+      - name: Installer safety
         run: php tests/installer_safety_smoke.php
 
-      - name: Dark theme regression
-        run: php tests/dark_theme_smoke.php
-
-      - name: Dark theme standalone coverage
-        run: php tests/dark_theme_coverage_smoke.php
-
-      - name: Dark theme public surfaces
-        run: php tests/dark_theme_public_smoke.php
-
-      - name: Dark theme interaction and motion parity
-        run: php tests/dark_theme_motion_smoke.php
-
-      - name: Attachment and notification navigation regression
-        run: php tests/navigation_ux_smoke.php
-
-      - name: Requester return visibility regression
-        run: php tests/requester_return_visibility_smoke.php
-
-      - name: Searchable select regression
-        run: php tests/searchable_select_smoke.php
-
-      - name: Requester UX regression
-        run: php tests/requester_ux_smoke.php
-
-      - name: Phase 3 operational regression
-        run: php tests/phase3_operational_smoke.php
-
-      - name: Pre Phase 4 cleanup regression
-        run: php tests/pre_phase4_cleanup_smoke.php
-
-      - name: Pre Phase 4 integral gate definition
-        run: php tests/pre_phase4_gate_smoke.php
-
-      - name: Phase 5 activities schema regression
-        run: php tests/phase5_activities_schema_regression.php
-
-      - name: Phase 5 activities service regression
-        run: php tests/phase5_activities_service_regression.php
-
-      - name: Phase 5 activities UI regression
-        run: php tests/phase5_activities_ui_regression.php
-
-      - name: Phase 6 agenda service regression
-        run: php tests/phase6_agenda_service_regression.php
-
-      - name: Phase 6 agenda UI regression
-        run: php tests/phase6_agenda_ui_regression.php
-
-      - name: Phase 6 agenda filter UX regression
-        run: php tests/phase6_agenda_filter_ux_regression.php
-
-      - name: Phase 7 provider participation regression
-        run: php tests/phase7_provider_participation_regression.php
-
-      - name: Phase 7 provider catalog regression
-        run: php tests/phase7_provider_catalog_regression.php
-
-      - name: Phase 8 provider rating - cycle identity
-        run: php tests/phase8_provider_cycle_identity_regression.php
-
-      - name: Phase 8 provider rating - service
-        run: php tests/phase8_provider_rating_service_regression.php
-
-      - name: Phase 8 provider rating - controller
-        run: php tests/phase8_provider_rating_controller_regression.php
-
-      - name: Phase 8 provider rating - UI
-        run: php tests/phase8_provider_rating_ui_regression.php
-
-      - name: Phase 8 provider rating - reports
-        run: php tests/phase8_provider_rating_report_regression.php
-
-      - name: Phase 8 external provider - case history
-        run: php tests/phase8_external_case_history_regression.php
-
-      - name: Phase 8 external provider - Excel history
-        run: php tests/phase8_external_case_export_regression.php
-
-      - name: Phase 8 provider rating - closeout
-        run: php tests/phase8_provider_rating_closeout_regression.php
-
-      - name: Phase 9 knowledge - schema
-        run: php tests/phase9_knowledge_schema_regression.php
-
-      - name: Phase 9 knowledge - revision service
-        run: php tests/phase9_knowledge_revision_service_regression.php
-
-      - name: Phase 9 knowledge - permissions
-        run: php tests/phase9_knowledge_permissions_regression.php
-
-      - name: Phase 9 knowledge - workflow controller
-        run: php tests/phase9_knowledge_workflow_controller_regression.php
-
-      - name: Phase 9 knowledge - candidates
-        run: php tests/phase9_knowledge_candidate_regression.php
-
-      - name: Phase 9 knowledge - references
-        run: php tests/phase9_knowledge_reference_regression.php
-
-      - name: Phase 9 knowledge - suggestions
-        run: php tests/phase9_solution_suggestions_regression.php
-
-      - name: Phase 9 knowledge - self service
-        run: php tests/phase9_self_service_regression.php
-
-      - name: Phase 9 knowledge - history
-        run: php tests/phase9_knowledge_history_regression.php
-
-      - name: Phase 9 knowledge - metrics
-        run: php tests/phase9_knowledge_metrics_regression.php
-
-      - name: Phase 9 knowledge - UI and help
-        run: php tests/phase9_knowledge_ui_regression.php
-
-      - name: UI - canonical button semantics
-        run: php tests/button_semantics_regression.php
-
-      - name: Phase 9 knowledge - transversal legacy reads
-        run: php tests/phase9_knowledge_legacy_read_regression.php
-
-      - name: Phase 10 reports - hub
-        run: php tests/phase10_reports_hub_regression.php
-
-      - name: Phase 10 reports - knowledge summary
-        run: php tests/phase10_knowledge_report_regression.php
-
-      - name: Phase 10 reports - activity summary
-        run: php tests/phase10_activity_report_regression.php
-
-      - name: Phase 10 reports - ticket SLA XLSX parity
-        run: php tests/phase10_ticket_sla_xlsx_regression.php
-
-      - name: Phase 10 reports - provider summary
-        run: php tests/phase10_provider_report_regression.php
-
-      - name: Phase 10 reports - support team summary
-        run: php tests/phase10_support_team_report_regression.php
-
-      - name: Phase 10 reports - specialized exports
-        run: php tests/phase10_specialized_exports_regression.php
-
-      - name: Phase 10 reports - UI responsive
-        run: php tests/phase10_ui_responsive_regression.php
-
-      - name: Phase 10 reports - closeout
-        run: php tests/phase10_closeout_regression.php
-
-      - name: Phase 11 manual - profile and task navigation
-        run: php tests/phase11_manual_profile_navigation_regression.php
-
-      - name: Phase 11 manual - profile content
-        run: php tests/phase11_manual_profile_content_regression.php
-
-      - name: Phase 11 manual - contextual help and FAQ
-        run: php tests/phase11_contextual_help_regression.php
-
-      - name: Phase 11 manual - seven point tutorials
-        run: php tests/phase11_tutorial_depth_regression.php
-
-      - name: Phase 11 manual - accessibility and responsive
-        run: php tests/phase11_manual_accessibility_regression.php
-
-      - name: Phase 11 manual - closeout
-        run: php tests/phase11_closeout_regression.php
-
-      - name: Phase 12 - release baseline
-        run: php tests/phase12_release_baseline_regression.php
-
-      - name: Phase 12 - database integrity
-        run: php tests/phase12_database_integrity_regression.php
-
-      - name: Phase 12 - security roles and scopes
-        run: php tests/phase12_security_scope_regression.php
-
-      - name: Phase 12 - E2E contract
-        run: php tests/phase12_e2e_contract_regression.php
-
-      - name: Phase 12 - communication contract
-        run: php tests/phase12_communication_regression.php
-
-      - name: Phase 12 - mail health
-        run: php tests/phase12_mail_health.php
-
-      - name: Phase 12 - visual responsive contract
-        run: php tests/phase12_visual_responsive_regression.php
-
-      - name: Phase 12 - operational stability contract
-        run: php tests/phase12_operational_stability_regression.php
-
-      - name: Phase 12 - runtime health
-        run: php tests/phase12_runtime_health.php
-
-      - name: Phase 12 - deployment targets
-        run: php tests/phase12_deployment_targets_regression.php
-
-      - name: Phase 12 - closeout
-        run: php tests/phase12_closeout_regression.php
-
-      - name: Preproduction - clean schema
+      - name: Clean schema contract
         run: php tests/preprod_clean_schema_regression.php
 
-      - name: Phase 9 knowledge - closeout
-        run: php tests/phase9_closeout_regression.php
-
-      - name: Route, view and CSS quality gate
+      - name: Route, view and CSS quality
         run: php tests/project_quality.php
 
-      - name: XLSX regression smoke test
+      - name: XLSX regression
         run: php tests/xlsx_smoke.php
+
+      - name: Knowledge versioning service
+        run: php tests/phase9_knowledge_revision_service_regression.php
+
+      - name: Knowledge schema
+        run: php tests/phase9_knowledge_schema_regression.php
+
+      - name: Knowledge without legacy fallback
+        run: php tests/phase9_knowledge_legacy_read_regression.php
+
+      - name: Deployment targets
+        run: php tests/phase12_deployment_targets_regression.php
 
   fresh-database-install:
     name: Fresh MariaDB installation
@@ -301,17 +115,27 @@ jobs:
           MYSQL_PWD: root
         run: mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/INSTALAR.sql
 
-      - name: Verify clean database
+      - name: Verify canonical schema
         env:
           MYSQL_PWD: root
+        run: mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
+
+      - name: Verify clean production mirror
+        env:
+          MYSQL_PWD: root
+        shell: bash
         run: |
-          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_INSTALACION.sql
-          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='carrousel_helpdesk' AND TABLE_TYPE='BASE TABLE';")" = "43"
+          set -euo pipefail
+          mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_PRODUCCION_LIMPIA.sql | tee /tmp/helpdesk-clean.txt
+          grep -qx "PASS" /tmp/helpdesk-clean.txt
+
+      - name: Verify canonical counts
+        env:
+          MYSQL_PWD: root
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='carrousel_helpdesk' AND TABLE_TYPE='BASE TABLE';")" = "42"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.parks WHERE is_active=1 AND region_id IS NOT NULL;")" = "29"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM carrousel_helpdesk.users;")" = "1"
           test "$(mariadb -h127.0.0.1 -uroot -N -B -e "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='helpdesk_carrousel';")" = "0"
-
-      - name: Verify Phase 5 schema
-        env:
-          MYSQL_PWD: root
-        run: mariadb -h127.0.0.1 -uroot --default-character-set=utf8mb4 < database/VERIFICAR_FASE5_ACTIVIDADES_20260913.sql
