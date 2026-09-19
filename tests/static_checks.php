@@ -49,6 +49,9 @@ $allowedSql=[
 'VERIFICAR_FASE5_ACTIVIDADES_20260913.sql',
 'MIGRAR_FASE9_CONOCIMIENTO_20260916.sql',
 'VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql',
+'VERIFICAR_FASE12_BD_20260919.sql',
+'VERIFICAR_FASE12_SEGURIDAD_20260919.sql',
+'VERIFICAR_FASE12_COMUNICACION_20260919.sql',
 ];
 $legacySql=[];
 foreach(glob($root.'/database/*.sql')?:[] as $file){$name=basename($file);if(!in_array($name,$allowedSql,true))$legacySql[]=$name;}
