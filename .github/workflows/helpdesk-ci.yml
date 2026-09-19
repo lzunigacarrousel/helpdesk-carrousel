@@ -236,6 +236,12 @@ jobs:
       - name: Phase 12 - E2E contract
         run: php tests/phase12_e2e_contract_regression.php
 
+      - name: Phase 12 - communication contract
+        run: php tests/phase12_communication_regression.php
+
+      - name: Phase 12 - mail health
+        run: php tests/phase12_mail_health.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
