@@ -232,3 +232,16 @@ Pendiente: ejecutar contrato, health check y `VALIDAR_FASE12_COMUNICACION.bat` e
 - La regresión de comunicación cubre estos comportamientos para evitar reincidencia.
 - No se borraron las 78 URLs locales históricas y no se modificó BD.
 - Producción: sin cambios.
+
+### Tercer ajuste Task 5 — parser CMD y separación health/readiness
+
+- PC TEST confirmó que `config/local.php` mantiene `mail_mode=smtp` y `app_url` vacía.
+- No se define una URL falsa: el repositorio no documenta todavía una URL pública canónica del Helpdesk.
+- El health check se divide en dos niveles:
+  - ejecución normal: valida SMTP/Composer/PHPMailer/logo sin enviar correo y deja URL canónica como PENDIENTE;
+  - `--require-canonical`: bloquea antes de una prueba SMTP real si `app_url` sigue vacía.
+- El error `No se esperaba de en este momento.` provenía de un `echo` con `MAX(id)` dentro de un bloque `IF (...)` del BAT; se reemplazó por texto sin paréntesis.
+- El bloque de reparación de baseline se anidó de forma explícita para evitar ambigüedades del parser CMD.
+- `config/local.php` permanece ignorado por Git.
+- No se registran credenciales locales en repositorio ni en documentación.
+- Producción: sin cambios.
