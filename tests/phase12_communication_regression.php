@@ -26,6 +26,7 @@ $shell=(string)file_get_contents($root.'/app/Views/shared/app_start.php');
 $router=(string)file_get_contents($root.'/public/index.php');
 $sql=(string)file_get_contents($root.'/database/VERIFICAR_FASE12_COMUNICACION_20260919.sql');
 $communicationGate=(string)file_get_contents($root.'/VALIDAR_FASE12_COMUNICACION.bat');
+$mailHealth=(string)file_get_contents($root.'/tests/phase12_mail_health.php');
 
 ok(str_contains($mail,"private const LOGO_CID='carrousel-logo'"),'Correo define CID estable del logo');
 ok(str_contains($mail,"'cid:'.self::LOGO_CID"),'HTML usa CID cuando existe logo local');
@@ -120,6 +121,10 @@ ok(str_contains($communicationGate,'Baseline invalido 0 detectado'),'Gate repara
 ok(str_contains($communicationGate,'helpdesk_f12_communication_run.sql'),'Gate compone SQL temporal');
 ok(str_contains($communicationGate,'< "%COMM_SQL_RUN%"'),'Gate ejecuta verificador SQL por stdin');
 ok(!str_contains($communicationGate,'source database/VERIFICAR_FASE12_COMUNICACION_20260919.sql" >'),'Gate no intenta source dentro de --execute');
+ok(str_contains($communicationGate,'ID maximo de notification_deliveries'),'Gate evita paréntesis problemáticos dentro de bloque CMD');
+ok(!str_contains($communicationGate,'MAX(id) de notification_deliveries'),'Gate no conserva echo que rompe parser de CMD');
+ok(str_contains($mailHealth,"--require-canonical"),'Health check separa validación técnica de readiness SMTP real');
+ok(str_contains($mailHealth,'URL canónica no configurada; la validación técnica puede continuar'),'Health técnico no bloquea cuando no envía correo');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
