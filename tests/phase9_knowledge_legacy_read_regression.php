@@ -17,13 +17,17 @@ function ok(bool $condition,string $message):void
 ok(str_contains($search,'current_internal_revision_id'),'Buscador contempla revisión interna vigente');
 ok(str_contains($search,'current_public_revision_id'),'Buscador contempla revisión pública vigente');
 ok(str_contains($search,'knowledge_revisions'),'Buscador lee contenido versionado');
-ok(!str_contains($search,"ka.status='PUBLISHED'"),'Buscador no usa status legacy como publicación');
-ok(!str_contains($search,"ka.visibility='PUBLIC'"),'Buscador no usa visibility legacy como publicación');
+foreach(['ka.title','ka.summary','ka.content','ka.status','ka.visibility','ka.category_id','ka.author_user_id','ka.published_at'] as $legacyRef){
+    ok(!str_contains($search,$legacyRef),'Buscador no usa columna legacy '.$legacyRef);
+}
 ok(!str_contains($search,"Auth::can('knowledge.manage')"),'Buscador no usa permiso legacy para edición');
 
 ok(str_contains($problem,'knowledge_revisions'),'Problemas muestran títulos desde revisiones');
 ok(str_contains($problem,"ka.lifecycle_status='ACTIVE'"),'Problemas excluyen artículos archivados por lifecycle');
 ok(!str_contains($problem,"status<>'ARCHIVED'"),'Problemas no dependen del status legacy de artículos');
+foreach(['ka.title','ka.status','ka.author_user_id'] as $legacyRef){
+    ok(!str_contains($problem,$legacyRef),'Problemas no usan columna legacy '.$legacyRef);
+}
 
 ok(str_contains($dashboard,'knowledge_revisions'),'Dashboard cuenta borradores/revisión desde revisiones');
 ok(str_contains($dashboard,"state IN('DRAFT','IN_REVIEW')"),'Dashboard usa estados editoriales nuevos');
@@ -34,4 +38,4 @@ if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
     exit(1);
 }
-echo '[OK] Lecturas transversales usan conocimiento versionado.'.PHP_EOL;
+echo '[OK] Runtime de conocimiento usa únicamente identidad + revisiones versionadas.'.PHP_EOL;
