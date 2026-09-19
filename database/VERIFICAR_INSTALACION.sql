@@ -14,7 +14,7 @@ INSERT INTO required_tables(name) VALUES
 ('tickets'),('ticket_events'),('ticket_comments'),('ticket_activities'),('ticket_activity_participants'),('ticket_attachments'),('external_ticket_access'),
 ('external_profiles'),('ticket_work_reports'),('ticket_resolutions'),('ticket_feedback'),('known_problems'),('problem_occurrences'),
 ('problem_tags'),('known_problem_tags'),('knowledge_articles'),('knowledge_revisions'),('knowledge_article_sources'),
-('ticket_resolution_references'),('solution_suggestion_events'),('problem_solutions'),('problem_attachments'),
+('ticket_resolution_references'),('solution_suggestion_events'),('problem_solutions'),
 ('notification_events'),('notification_deliveries'),('audit_logs'),('schema_migrations');
 
 DROP TEMPORARY TABLE IF EXISTS required_columns;
@@ -43,6 +43,18 @@ INSERT INTO required_columns(table_name,column_name) VALUES
 ('notification_deliveries','action_url'),('notification_deliveries','read_at'),
 ('schema_migrations','version'),('schema_migrations','name'),('schema_migrations','applied_at');
 
+DROP TEMPORARY TABLE IF EXISTS forbidden_columns;
+CREATE TEMPORARY TABLE forbidden_columns(table_name VARCHAR(100),column_name VARCHAR(100),PRIMARY KEY(table_name,column_name));
+INSERT INTO forbidden_columns(table_name,column_name) VALUES
+('knowledge_articles','title'),
+('knowledge_articles','summary'),
+('knowledge_articles','content'),
+('knowledge_articles','status'),
+('knowledge_articles','visibility'),
+('knowledge_articles','category_id'),
+('knowledge_articles','author_user_id'),
+('knowledge_articles','published_at');
+
 DROP PROCEDURE IF EXISTS verify_clean_helpdesk;
 DELIMITER $$
 CREATE PROCEDURE verify_clean_helpdesk()
@@ -58,6 +70,8 @@ BEGIN
     DECLARE missing_activity_fks INT DEFAULT 0;
     DECLARE missing_knowledge_fks INT DEFAULT 0;
     DECLARE bad_categories INT DEFAULT 0;
+    DECLARE legacy_columns INT DEFAULT 0;
+    DECLARE legacy_permissions INT DEFAULT 0;
 
     SELECT COUNT(*) INTO missing_tables
     FROM required_tables r
@@ -86,6 +100,21 @@ BEGIN
 
     IF missing_columns > 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: faltan columnas requeridas por la aplicacion';
+    END IF;
+
+    SELECT COUNT(*) INTO legacy_columns
+    FROM forbidden_columns f
+    JOIN information_schema.COLUMNS c
+      ON c.TABLE_SCHEMA=DATABASE() AND c.TABLE_NAME=f.table_name AND c.COLUMN_NAME=f.column_name;
+    IF legacy_columns > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: knowledge_articles conserva columnas legacy';
+    END IF;
+
+    SELECT COUNT(*) INTO legacy_permissions
+    FROM permissions
+    WHERE code='knowledge.manage';
+    IF legacy_permissions > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Instalacion invalida: permiso legacy knowledge.manage presente';
     END IF;
 
     SELECT COUNT(*) INTO bad_parks FROM parks WHERE is_active=1 AND region_id IS NULL;
