@@ -138,7 +138,7 @@ Gerencia y Supervisor son perfiles de consulta y seguimiento; no operan tickets 
 
 ## Roadmap funcional de 12 fases
 
-El roadmap de maduración se mantiene como guía funcional. El estado operativo antes de iniciar Fase 5 es:
+El roadmap de maduración se mantiene como guía funcional. El estado canónico actual es:
 
 | Fase | Tema | Estado |
 |---|---|---|
