@@ -4,6 +4,19 @@
 >
 > La rama estable y fuente de verdad es `main`. El bloque histórico `v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN` documenta trabajo preservado en `archive/v2-rebuild-20260913`; no debe confundirse con las fases canónicas integradas después del checkpoint. La aplicación mantiene `2.4.0-dev` como versión de desarrollo mientras se completa el roadmap de 12 fases.
 
+## Fase 11 · Manual consolidado e interactivo · 2026-09-19
+- `/manual` se consolida como guía única por perfil con navegación por tareas, buscador, filtros por tema, índice, accesos directos y FAQ.
+- Solicitante, Técnico, Supervisor, Gerencia, Administrador/Semiadmin y Colaborador reciben contenido funcional diferente según rol y capacidad real.
+- Gerencia/Supervisión permanecen en consulta; Colaborador recibe únicamente casos compartidos y contexto autorizado; Soporte conserva flujos operativos.
+- El botón `?` enlaza al punto exacto del Manual y agrega **Preguntas de esta pantalla** solo cuando existe contexto útil, sin duplicar otra base de ayuda.
+- Deep-links `topic` + `q` sincronizan filtro/búsqueda, enfocan la sección y abren la FAQ coincidente.
+- Tutoriales flotantes cubren siete puntos conceptuales y se adaptan a los elementos realmente visibles de cada pantalla.
+- Agenda, Centro de informes, Proveedores y Equipo de soporte incorporan recorridos especializados; ticket distingue Solicitante, Colaborador y Soporte.
+- Ayuda y tutoriales gestionan foco, Tab/Shift+Tab/Escape, `aria-expanded`, diálogo modal, `aria-live`, tamaños táctiles y `prefers-reduced-motion`.
+- Responsive conserva tablet/iPad y apila temas/acciones únicamente en móvil pequeño; modo claro/oscuro permanece cubierto.
+- `VALIDAR_FASE11.bat` y CI incluyen regresiones de perfil/navegación, contenido, ayuda contextual, tutoriales, UI/accesibilidad y closeout.
+- **BD: sin cambios. Producción: sin cambios. La validación transversal y decisión de despliegue quedan exclusivamente en Fase 12.**
+
 ## Fase 10 · Reportes consolidados · 2026-09-18
 - `/gestion/informes` se consolida como Centro de informes con navegación compacta a Tickets/SLA, Agenda/Actividades, Proveedores, Equipo de soporte y Conocimiento según permisos.
 - `TicketReportFilterService` centraliza filtros, etiquetas y `ScopeService`, eliminando divergencias entre pantalla y exportación XLSX.
