@@ -310,3 +310,25 @@ Pendiente: ejecutar regresión + health + `VALIDAR_FASE12_ESTABILIDAD.bat` en PC
 - No se corrigió funcionalidad de negocio porque no se detectó defecto funcional.
 - BD: sin cambios.
 - Producción: sin cambios.
+
+## Task 7 — Estabilidad operativa y aceptación · AUTOMATIZACIÓN CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12_ESTABILIDAD.bat` GREEN.
+- Contrato de estabilidad, runtime, static checks, project quality, navegación, XLSX y exportaciones: GREEN.
+- Sintaxis JavaScript: GREEN.
+- `git diff --check`: GREEN.
+- Runtime observado: DB y consultas básicas en milisegundos; storage y ticket_uploads escribibles.
+- No se detectaron defectos funcionales en Task 7.
+- Producción: sin cambios.
+
+## Decisión de despliegue para Task 8
+
+- El mismo código debe funcionar en localhost, acceso directo por `94.74.71.96` y publicación preferida mediante `https://portal.carrousel-apps.com/`.
+- `APP_BASE_URL` continúa derivándose del host/ruta actual; no se hardcodea la ubicación del Helpdesk.
+- El botón Portal conserva `https://portal.carrousel-apps.com/portal/`.
+- `config/local.php` define `app_url` por entorno únicamente para URLs canónicas de correo.
+- Para SMTP real, `app_url` debe ser la URL completa y alcanzable del Helpdesk; localhost no sirve para destinatarios en otros equipos.
+- La subruta final del Helpdesk no se inventa antes de configurar Apache/Portal.
+- Se creó `tests/phase12_deployment_targets_regression.php` y se conectó a gate/CI.
+
+Siguiente: Task 8 — closeout final, actualización de README/CHANGELOG, gate final y separación explícita entre cierre técnico y despliegue.
