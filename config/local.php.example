@@ -7,16 +7,15 @@ return [
     'db_pass' => '',
 
     // URL estable usada dentro de correos.
-    // Destinos previstos de la aplicación:
-    // - localhost para desarrollo/PC TEST;
-    // - 94.74.71.96 para acceso directo al servidor;
-    // - https://portal.carrousel-apps.com/ como publicación preferida vía Portal.
+    // La ruta del Helpdesk es SIEMPRE /HelpdeskCarrousel/public/
+    // y solo cambia el host:
+    // - http://localhost/HelpdeskCarrousel/public/
+    // - http://94.74.71.96/HelpdeskCarrousel/public/
+    // - https://portal.carrousel-apps.com/HelpdeskCarrousel/public/
     //
     // Puede dejarse vacía SOLO con mail_mode=log.
-    // Si mail_mode=smtp debe contener la URL COMPLETA real del Helpdesk
-    // en el entorno donde se está probando/publicando.
-    // No uses localhost para correos destinados a otros equipos.
-    // No inventes la subruta: usa la ruta exacta configurada en Apache/Portal.
+    // Con mail_mode=smtp usa la URL completa del entorno.
+    // No uses localhost para correos que abrirán personas desde otros equipos.
     'app_url' => '',
 
     'mail_mode' => 'log', // log | smtp
