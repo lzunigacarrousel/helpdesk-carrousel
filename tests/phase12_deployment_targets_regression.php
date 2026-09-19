@@ -22,15 +22,20 @@ ok(str_contains($config,"define('APP_BASE_URL', $" . "scheme.'://'.$" . "host.$"
 ok(str_contains($config,"$" . "local['app_url']"),'URL canónica de correo es configurable por entorno');
 ok(str_contains($config,'APP_CANONICAL_CONFIGURED'),'Configuración distingue URL canónica explícita');
 
-foreach(['localhost','94.74.71.96','https://portal.carrousel-apps.com/'] as $target){
-    ok(str_contains($readme,$target),'README documenta destino '.$target);
-    ok(str_contains($example,$target),'local.php.example documenta destino '.$target);
+foreach([
+    'http://localhost/HelpdeskCarrousel/public/',
+    'http://94.74.71.96/HelpdeskCarrousel/public/',
+    'https://portal.carrousel-apps.com/HelpdeskCarrousel/public/',
+] as $target){
+    ok(str_contains($readme,$target),'README documenta destino exacto '.$target);
+    ok(str_contains($example,$target),'local.php.example documenta destino exacto '.$target);
 }
 
-ok(str_contains($readme,'No asumir una subruta final del Helpdesk'),'README evita inventar ruta final');
-ok(str_contains($example,'No inventes la subruta'),'Ejemplo evita hardcodear montaje final');
+ok(str_contains($readme,'/HelpdeskCarrousel/public/'),'README fija la ruta pública del Helpdesk');
+ok(str_contains($example,'SIEMPRE /HelpdeskCarrousel/public/'),'Ejemplo fija la misma ruta en todos los entornos');
+ok(str_contains($config,"'/HelpdeskCarrousel/public/index.php'"),'Config conserva fallback con la ruta canónica');
 ok(str_contains($readme,'mail_mode=smtp'),'README diferencia SMTP real');
-ok(str_contains($readme,'no usar `localhost` como `app_url`'),'README evita localhost en correo a otros equipos');
+ok(str_contains($readme,'únicamente cambia `localhost`, `94.74.71.96` o `portal.carrousel-apps.com`'),'README deja claro que solo cambia el host');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
