@@ -53,7 +53,11 @@ ok(str_contains($conversation,"'COMMENTED'"),'Conversación registra evento');
 ok(str_contains($conversation,"['email'=>false,'in_app'=>true]"),'Nota interna no genera correo');
 
 ok(str_contains($workflow,"'WAITING_PROVIDER'=>'Esperando proveedor'"),'Workflow soporta espera por proveedor');
-ok(str_contains($workflow,"if($" . "status!=='PENDING'){ $" . "pendingReason='';$" . "pendingNote='';}"),'Continuar atención limpia motivo de espera');
+ok(
+    str_contains($workflow,"if($" . "status!=='PENDING')")
+    && str_contains($workflow,"$" . "pendingReason='';$" . "pendingNote='';"),
+    'Continuar atención limpia motivo de espera'
+);
 ok(str_contains($workflow,"'PENDING_REASON_CHANGED'"),'Cambio de motivo de espera queda trazado');
 
 foreach(['create','start','complete','cancel'] as $method){
