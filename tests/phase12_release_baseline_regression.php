@@ -17,11 +17,10 @@ $installer=(string)file_get_contents($root.'/INSTALAR_PC_TEST.bat');
 $gate=(string)file_get_contents($root.'/VALIDAR_FASE12.bat');
 $ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
 
-foreach([5,6,7,8,10,11] as $phase){
-    ok((bool)preg_match('/\\| '.$phase.' \\| .*\\| \\*\\*Implementada/', $readme),'Roadmap conserva Fase '.$phase.' implementada');
+foreach([5,6,7,8,9,10,11] as $phase){
+    ok((bool)preg_match('/\\| '.$phase.' \\| .*\\| \\*\\*Cerrada técnicamente en PC TEST\\*\\* \\|/', $readme),'Roadmap conserva Fase '.$phase.' cerrada técnicamente');
 }
-ok(str_contains($readme,'| 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |'),'Roadmap conserva Fase 9 implementada');
-ok(str_contains($readme,'| 12 | Validación integral | **EN CURSO — cierre transversal y readiness** |'),'Roadmap marca Fase 12 en curso');
+ok(str_contains($readme,'| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |'),'Roadmap marca Fase 12 en validación final');
 ok((bool)preg_match("/define\\(\\s*['\"]APP_VERSION['\"]\\s*,\\s*['\"]2\\.4\\.0-dev['\"]\\s*\\)/",$config),'Versión permanece 2.4.0-dev durante validación');
 
 foreach([
