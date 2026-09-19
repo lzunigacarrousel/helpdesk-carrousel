@@ -388,6 +388,7 @@
   let currentElement=null;
   let overlay=null;
   let popover=null;
+  let tourReturnFocus=null;
 
   function isVisible(el){
     if(!(el instanceof HTMLElement))return false;
@@ -437,6 +438,7 @@
     popover.setAttribute('role','dialog');
     popover.setAttribute('aria-modal','true');
     popover.setAttribute('aria-live','polite');
+    popover.setAttribute('aria-labelledby','helpdesk-tour-title');
     popover.tabIndex=-1;
     document.body.append(overlay,popover);
   }
@@ -471,7 +473,7 @@
     if(!popover)return;
     popover.innerHTML=`
       <div class="tour-progress">Paso ${index+1} de ${steps.length}</div>
-      <h3>${escapeHtml(step.title)}</h3>
+      <h3 id="helpdesk-tour-title">${escapeHtml(step.title)}</h3>
       <p>${escapeHtml(step.text)}</p>
       ${step.guideItems?.length?`<div class="tour-guide-notes">${step.guideItems.map(item=>`<div class="tour-guide-note"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.text)}</span></div>`).join('')}</div>`:''}
       ${step.tip?`<div class="tour-tip"><strong>Consejo</strong><span>${escapeHtml(step.tip)}</span></div>`:''}
@@ -489,7 +491,19 @@
     return String(value).replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
   }
 
-  function start(){
+  function start(trigger=null){
+    const activeElement=document.activeElement;
+    const fallbackTrigger=document.querySelector('[data-help-open]');
+    if(trigger instanceof HTMLElement&&trigger.closest('[data-help-panel]')&&fallbackTrigger instanceof HTMLElement){
+      tourReturnFocus=fallbackTrigger;
+    }else if(trigger instanceof HTMLElement){
+      tourReturnFocus=trigger;
+    }else if(activeElement instanceof HTMLElement){
+      tourReturnFocus=activeElement;
+    }else if(fallbackTrigger instanceof HTMLElement){
+      tourReturnFocus=fallbackTrigger;
+    }
+
     const resolved=resolveTour();
     steps=resolved.steps;
     if(!steps.length){window.HelpdeskUI?.notify?.('Esta pantalla no tiene pasos visibles para el recorrido guiado.','info');return;}
@@ -498,7 +512,13 @@
       window.HelpdeskUI?.notify?.('Recorrido adaptado: algunas partes no están disponibles en esta vista.','info',4200);
     }
     ensureUi();
-    document.querySelector('[data-help-panel]')?.classList.remove('open');
+    const helpPanel=document.querySelector('[data-help-panel]');
+    if(helpPanel instanceof HTMLElement){
+      helpPanel.classList.remove('open');
+      helpPanel.setAttribute('aria-hidden','true');
+    }
+    const helpTrigger=document.querySelector('[data-help-open]');
+    if(helpTrigger instanceof HTMLElement)helpTrigger.setAttribute('aria-expanded','false');
     const backdrop=document.querySelector('[data-help-backdrop]');if(backdrop instanceof HTMLElement)backdrop.hidden=true;
     document.body.classList.remove('help-open');
     active=true;index=0;
@@ -513,16 +533,31 @@
     currentElement?.classList.remove('tour-highlight');currentElement=null;
     overlay?.classList.remove('show');popover?.classList.remove('show');
     document.body.classList.remove('tour-open');
+    if(tourReturnFocus instanceof HTMLElement&&tourReturnFocus.isConnected){
+      const target=tourReturnFocus;
+      tourReturnFocus=null;
+      window.requestAnimationFrame(()=>target.focus({preventScroll:true}));
+    }
   }
 
   document.addEventListener('click',e=>{
     const target=e.target instanceof Element?e.target:null;if(!target)return;
-    if(target.closest('[data-tour-start]')){e.preventDefault();start();return;}
+    if(target.closest('[data-tour-start]')){e.preventDefault();start(target.closest('[data-tour-start]'));return;}
     if(target.closest('[data-tour-stop]')){stop();return;}
     if(target.closest('[data-tour-prev]')){index=Math.max(0,index-1);render();return;}
     if(target.closest('[data-tour-next]')){if(index>=steps.length-1){stop();return;}index+=1;render();return;}
   });
-  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape')stop();});
+  document.addEventListener('keydown',e=>{
+    if(!active)return;
+    if(e.key==='Escape'){e.preventDefault();stop();return;}
+    if(e.key!=='Tab'||!(popover instanceof HTMLElement))return;
+    const focusable=[...popover.querySelectorAll('button:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')]
+      .filter(el=>el instanceof HTMLElement&&el.offsetParent!==null);
+    if(!focusable.length){e.preventDefault();popover.focus();return;}
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  });
   const reposition=()=>{if(active&&currentElement)positionPopover(currentElement);};
   window.addEventListener('resize',reposition);
   window.addEventListener('scroll',reposition,{passive:true});
