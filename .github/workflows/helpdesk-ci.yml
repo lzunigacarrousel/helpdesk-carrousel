@@ -233,6 +233,9 @@ jobs:
       - name: Phase 12 - security roles and scopes
         run: php tests/phase12_security_scope_regression.php
 
+      - name: Phase 12 - E2E contract
+        run: php tests/phase12_e2e_contract_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
