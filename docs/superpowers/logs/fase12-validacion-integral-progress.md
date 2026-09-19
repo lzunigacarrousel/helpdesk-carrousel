@@ -220,3 +220,15 @@ Pendiente: ejecutar contrato, health check y `VALIDAR_FASE12_COMUNICACION.bat` e
 - La línea base se implementa sin cambios de esquema ni escritura en BD.
 - Se robusteció el BAT con `EnableDelayedExpansion` para Windows CMD.
 - Producción: sin cambios.
+
+### Segundo ajuste Task 5 — ejecución CMD + URL canónica
+
+- PC TEST confirmó SMTP, Composer y PHPMailer disponibles.
+- El único health check real pendiente es `APP_CANONICAL_CONFIGURED=false`: `config/local.php` tiene `app_url` vacía y la URL resultante es localhost.
+- Este bloqueo se mantiene intencional: con `mail_mode=smtp`, la URL canónica es obligatoria antes de enviar correo real.
+- El primer BAT corregido todavía falló al consultar MAX(id) mediante `for /f` con mysql y dejó baseline local en 0.
+- MariaDB también rechazó `source ...` dentro de `--execute`.
+- El BAT ahora consulta MAX(id) redirigiendo a archivo temporal, repara automáticamente baseline 0 y compone un SQL temporal que se ejecuta por stdin.
+- La regresión de comunicación cubre estos comportamientos para evitar reincidencia.
+- No se borraron las 78 URLs locales históricas y no se modificó BD.
+- Producción: sin cambios.
