@@ -25,6 +25,8 @@ ok(!str_contains($readme,'Roadmap funcional de 12 fases'),'README no conserva ro
 ok(!str_contains($readme,'VALIDAR_FASE'),'README no expone gates históricos');
 ok(str_contains($main,'Validar PREPRODUCCION'),'MAIN expone gate canónico');
 ok(str_contains($main,'Preparar configuracion PRODUCCION'),'MAIN permite preparar configuración privada de producción');
+$prodInstaller=(string)file_get_contents($root.'/INSTALAR_PRODUCCION.bat');
+ok(!preg_match('/^\s*echo\b[^\r\n]*[^\^]\([^\r\n]*\)/mi',$prodInstaller),'Instalador de producción no contiene paréntesis sin escapar en echo dentro de bloques');
 ok($prodConfigTool!=='','Existe preparador privado de configuración de producción');
 ok(str_contains($prodConfigTool,'dist\\production-config'),'Preparador escribe únicamente en dist/production-config');
 ok(str_contains($gitignore,'/dist/'),'dist/ permanece ignorado por Git');

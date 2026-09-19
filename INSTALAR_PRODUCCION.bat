@@ -84,7 +84,7 @@ set /p TABLE_COUNT=<"%TEMP%\helpdesk_prod_tables.txt"
 if not defined TABLE_COUNT set "TABLE_COUNT=0"
 
 if not "%TABLE_COUNT%"=="0" (
-  echo [BLOQUEADO] %DB_NAME% ya contiene %TABLE_COUNT% tabla(s).
+  echo [BLOQUEADO] %DB_NAME% ya contiene %TABLE_COUNT% tablas.
   echo Este instalador no modifica una produccion ya inicializada.
   pause
   exit /b 1
