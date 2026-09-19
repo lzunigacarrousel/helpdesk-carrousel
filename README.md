@@ -153,7 +153,7 @@ El roadmap de maduración se mantiene como guía funcional. El estado canónico 
 | 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |
 | 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |
 | 11 | Manual | **Implementada — pendiente validación integral Fase 12** |
-| 12 | Validación integral | **SIGUIENTE — validación transversal final** |
+| 12 | Validación integral | **EN CURSO — cierre transversal y readiness** |
 
 La validación responsive acumulada, revisión claro/oscuro y cierre transversal se consolidan en Fase 12 aunque las fases previas ya tengan validaciones parciales.
 
