@@ -79,3 +79,18 @@ Siguiente: Task 4 — tutoriales flotantes completos con la estructura de 7 punt
 - `phase11_contextual_help_regression.php` escapaba incorrectamente nombres de variables PHP dentro de strings de prueba, provocando warnings y falsos negativos.
 - `phase11_manual_profile_navigation_regression.php` todavía esperaba `let activeTopic='all'`, anterior al soporte de deep-links `?topic=`.
 - Ambos tests fueron alineados con el comportamiento canónico actual; código funcional, BD y producción no fueron modificados.
+
+## Task 4 — Tutoriales flotantes completos · IMPLEMENTADA
+
+- `help-tour.js` incorpora una guía conceptual obligatoria de siete puntos: qué estás viendo, para qué sirve, qué hacer primero, qué puede esperar, qué ocurre después, errores comunes y dónde obtener más ayuda.
+- Los siete conceptos se distribuyen entre los pasos visuales disponibles; no se fuerza un recorrido de siete popovers cuando una pantalla tiene menos zonas útiles.
+- Se agregaron guías específicas para Solicitante, Colaborador, Soporte, Gestión, Reportes, Agenda, Proveedores, Equipo, Problemas, Conocimiento, Usuarios, Correo, Auditoría, Manual y Búsqueda.
+- Ticket distingue tutorial de soporte, colaborador y solicitante según los elementos visibles.
+- `reports` detecta `external-report` y `support-team` para usar recorridos especializados.
+- Agenda incorpora recorrido propio de encabezado, vista, filtros, planificación y programación ligada al ticket.
+- Centro de informes amplía el recorrido a módulos, KPIs, filtros y detalle.
+- Popover muestra notas conceptuales con soporte claro/oscuro y una columna en móvil pequeño.
+- `tests/phase11_tutorial_depth_regression.php` agregado a gate y CI.
+- BD: sin cambios.
+
+Siguiente: Task 5 — UI/responsive/accesibilidad final del Manual y ayuda flotante antes del closeout de Fase 11.
