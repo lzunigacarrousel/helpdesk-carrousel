@@ -35,8 +35,8 @@ ok(str_contains($ciBody,'php tests/phase8_external_case_history_regression.php')
 ok(str_contains($ciBody,'php tests/phase8_external_case_export_regression.php'),'CI ejecuta Excel propio del proveedor');
 ok(str_contains($ciBody,'php tests/phase8_provider_rating_closeout_regression.php'),'CI ejecuta cierre Fase 8');
 
-ok(str_contains($readmeBody,'| 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |'),'README cierra Fase 8');
-ok(str_contains($readmeBody,'| 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |'),'README conserva Fase 9 implementada');
+ok(str_contains($readmeBody,'| 8 | Calidad IT → proveedor | **Cerrada técnicamente en PC TEST** |'),'README cierra técnicamente Fase 8');
+ok(str_contains($readmeBody,'| 9 | Conocimiento | **Cerrada técnicamente en PC TEST** |'),'README conserva Fase 9 cerrada técnicamente');
 ok(str_contains($readmeBody,'Calidad IT → proveedor'),'README documenta alcance de Fase 8');
 ok(str_contains($readmeBody,'BD: sin cambios'),'README confirma cero cambios de BD');
 ok(str_contains($readmeBody,'PROVIDER_RATED')&&str_contains($readmeBody,'PROVIDER_RATING_CORRECTED'),'README documenta eventos inmutables');
