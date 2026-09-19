@@ -1,0 +1,70 @@
+<?php
+declare(strict_types=1);
+
+$root=dirname(__DIR__);
+$errors=0;
+
+function ok(bool $condition,string $message):void
+{
+    global $errors;
+    echo ($condition?'[OK] ':'[FALLO] ').$message.PHP_EOL;
+    if(!$condition)$errors++;
+}
+
+$readme=(string)file_get_contents($root.'/README.md');
+$config=(string)file_get_contents($root.'/config/config.php');
+$installer=(string)file_get_contents($root.'/INSTALAR_PC_TEST.bat');
+
+foreach([5,6,7,8,10,11] as $phase){
+    ok((bool)preg_match('/\\| '.$phase.' \\| .*\\| \\*\\*Implementada/', $readme),'Roadmap conserva Fase '.$phase.' implementada');
+}
+ok(str_contains($readme,'| 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |'),'Roadmap conserva Fase 9 implementada');
+ok(str_contains($readme,'| 12 | Validación integral | **EN CURSO — cierre transversal y readiness** |'),'Roadmap marca Fase 12 en curso');
+ok((bool)preg_match("/define\\(\\s*['\"]APP_VERSION['\"]\\s*,\\s*['\"]2\\.4\\.0-dev['\"]\\s*\\)/",$config),'Versión permanece 2.4.0-dev durante validación');
+
+foreach([
+    'VALIDAR_FASE8.bat',
+    'VALIDAR_FASE9.bat',
+    'VALIDAR_FASE10.bat',
+    'VALIDAR_FASE11.bat',
+    'database/INSTALAR.sql',
+    'database/VERIFICAR_INSTALACION.sql',
+    'database/VERIFICAR_ESTABILIDAD_V2.sql',
+    'database/VERIFICAR_FASE5_ACTIVIDADES_20260913.sql',
+    'database/VERIFICAR_FASE9_CONOCIMIENTO_20260916.sql',
+    'docs/superpowers/specs/2026-09-19-fase12-validacion-integral-design.md',
+    'docs/superpowers/plans/2026-09-19-fase12-validacion-integral-implementation.md',
+    'docs/superpowers/logs/fase12-validacion-integral-progress.md',
+] as $path){
+    ok(is_file($root.'/'.$path),'Existe '.$path);
+}
+
+foreach([
+    'phase4_feedback_regression.php',
+    'phase5_activities_service_regression.php',
+    'phase6_agenda_service_regression.php',
+    'phase7_provider_participation_regression.php',
+    'phase8_provider_rating_closeout_regression.php',
+    'phase9_closeout_regression.php',
+    'phase10_closeout_regression.php',
+    'phase11_closeout_regression.php',
+    'dark_theme_smoke.php',
+    'dark_theme_public_smoke.php',
+    'project_quality.php',
+    'xlsx_smoke.php',
+] as $file){
+    ok(is_file($root.'/tests/'.$file),'Existe regresión transversal '.$file);
+}
+
+ok(str_contains($installer,'PROTECTED_DB=helpdesk_carrousel'),'Instalador protege base histórica');
+ok(str_contains($installer,'DB_NAME=carrousel_helpdesk'),'Instalador apunta a base V2');
+ok(str_contains($readme,'Producción')||str_contains($readme,'producción'),'README conserva referencias de producción controlada');
+ok(!is_file($root.'/database/MIGRAR_FASE12.sql'),'Task 1 no introduce migración de Fase 12');
+ok(!is_file($root.'/database/ACTUALIZAR_FASE12.sql'),'Task 1 no introduce parche de Fase 12');
+
+if($errors){
+    fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
+    exit(1);
+}
+
+echo '[OK] Preflight y baseline de liberación Fase 12 consolidados.'.PHP_EOL;
