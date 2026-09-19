@@ -227,6 +227,9 @@ jobs:
       - name: Phase 12 - release baseline
         run: php tests/phase12_release_baseline_regression.php
 
+      - name: Phase 12 - database integrity
+        run: php tests/phase12_database_integrity_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
