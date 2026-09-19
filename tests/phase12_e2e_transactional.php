@@ -9,8 +9,6 @@ require_once $root.'/config/config.php';
 require_once $root.'/app/Core/Database.php';
 
 use App\Core\Database;
-use PDO;
-use Throwable;
 
 $errors=0;
 function ok(bool $condition,string $message):void
@@ -19,7 +17,7 @@ function ok(bool $condition,string $message):void
     echo ($condition?'[OK] ':'[FALLO] ').$message.PHP_EOL;
     if(!$condition)$errors++;
 }
-function scalar(PDO $pdo,string $sql,array $params=[]):mixed
+function scalar(\PDO $pdo,string $sql,array $params=[]):mixed
 {
     $q=$pdo->prepare($sql);$q->execute($params);return $q->fetchColumn();
 }
@@ -134,7 +132,7 @@ try{
 
     $pdo->rollBack();
     ok((int)scalar($pdo,'SELECT COUNT(*) FROM tickets WHERE ticket_number=?',[$ticketNumber])===0,'15. ROLLBACK elimina caso temporal');
-}catch(Throwable $e){
+}catch(\Throwable $e){
     if($pdo->inTransaction())$pdo->rollBack();
     fwrite(STDERR,'[ERROR] Ensayo E2E: '.$e->getMessage().PHP_EOL);
     exit(1);
