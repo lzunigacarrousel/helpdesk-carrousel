@@ -171,20 +171,22 @@ El roadmap de maduración se mantiene como guía funcional. El estado canónico 
 | 2 | UX del solicitante | Cerrada funcionalmente |
 | 3 | Operación IT y SLA | Cerrada funcionalmente |
 | 4 | Feedback del solicitante | Cerrada |
-| 5 | Actividades / visitas | **Implementada — pendiente validación integral Fase 12** |
-| 6 | Agenda | **Implementada — pendiente validación integral Fase 12** |
-| 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |
-| 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
-| 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |
-| 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |
-| 11 | Manual | **Implementada — pendiente validación integral Fase 12** |
-| 12 | Validación integral | **EN CURSO — cierre transversal y readiness** |
+| 5 | Actividades / visitas | **Cerrada técnicamente en PC TEST** |
+| 6 | Agenda | **Cerrada técnicamente en PC TEST** |
+| 7 | Proveedores | **Cerrada técnicamente en PC TEST** |
+| 8 | Calidad IT → proveedor | **Cerrada técnicamente en PC TEST** |
+| 9 | Conocimiento | **Cerrada técnicamente en PC TEST** |
+| 10 | Reportes | **Cerrada técnicamente en PC TEST** |
+| 11 | Manual | **Cerrada técnicamente en PC TEST** |
+| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |
 
-La validación responsive acumulada, revisión claro/oscuro y cierre transversal se consolidan en Fase 12 aunque las fases previas ya tengan validaciones parciales.
+Las Fases 5–11 ya superaron sus gates específicos y la validación automatizada transversal de Fase 12 en PC TEST.
+
+El cierre técnico **no equivale a despliegue**. Antes de producción siguen pendientes la matriz visual manual real y la prueba SMTP real/Gmail/Outlook con la URL canónica del entorno final. `APP_VERSION` permanece en `2.4.0-dev` hasta completar esa aceptación preproducción.
 
 ### Fase 5 — Actividades / visitas
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 5 incorpora una entidad operativa reutilizable para trabajo ligado obligatoriamente a tickets:
 
@@ -200,7 +202,7 @@ La Fase 5 incorpora una entidad operativa reutilizable para trabajo ligado oblig
 
 ### Fase 6 — Agenda
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 6 incorpora una Agenda operativa sin crear tablas nuevas ni mover la operación fuera del ticket:
 
@@ -213,7 +215,7 @@ La Fase 6 incorpora una Agenda operativa sin crear tablas nuevas ni mover la ope
 - el ticket sigue siendo el workspace operativo para programar, reprogramar, iniciar, finalizar o cancelar actividades.
 ### Fase 7 — Proveedores
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 7 consolida la medición operativa de proveedores externos sobre la información que ya genera el Helpdesk:
 
@@ -229,7 +231,7 @@ La Fase 7 consolida la medición operativa de proveedores externos sobre la info
 **BD: sin cambios.** La fase reutiliza `ticket_events`, `ticket_comments`, `ticket_attachments`, `ticket_work_reports` y el control de acceso externo existente; no crea tablas, columnas ni migraciones.
 ### Fase 8 — Calidad IT → proveedor
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 8 incorpora una valoración interna de IT sobre cada ciclo finalizado de participación de proveedor, sin convertirla en ranking público ni mezclarla con la satisfacción del solicitante:
 
@@ -248,7 +250,7 @@ La Fase 8 incorpora una valoración interna de IT sobre cada ciclo finalizado de
 
 ### Fase 9 — Conocimiento versionado
 
-Estado: **IMPLEMENTADA — gate PC TEST GREEN; pendiente validación transversal Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — conocimiento versionado validado transversalmente; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 9 convierte Conocimiento en un flujo versionado y reutilizable:
 
@@ -279,7 +281,7 @@ Gate local:
 
 ### Fase 10 — Reportes consolidados
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 10 consolida los informes existentes sin crear un sistema paralelo:
 
@@ -298,7 +300,7 @@ La Fase 10 consolida los informes existentes sin crear un sistema paralelo:
 
 ### Fase 11 — Manual consolidado e interactivo
 
-Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+Estado: **CERRADA TÉCNICAMENTE EN PC TEST — validación automatizada transversal GREEN; revisión manual preproducción pendiente cuando aplique**.
 
 La Fase 11 consolida la ayuda existente sin crear un sistema paralelo:
 
