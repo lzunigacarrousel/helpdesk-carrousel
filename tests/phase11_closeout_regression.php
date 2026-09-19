@@ -40,7 +40,7 @@ ok(str_contains($changelog,'**BD: sin cambios. Producción: sin cambios.'),'CHAN
 ok((bool)preg_match("/define\\(\\s*['\"]APP_VERSION['\"]\\s*,\\s*['\"]2\\.4\\.0-dev['\"]\\s*\\)/",$config),'Versión de desarrollo permanece 2.4.0-dev');
 
 foreach($required as $file){
-    ok(str_contains($gate,'tests\\\\'.$file),"Gate incluye {$file}");
+    ok(str_contains($gate,'tests\\'.$file),"Gate incluye {$file}");
     ok(str_contains($ci,'tests/'.$file),"CI incluye {$file}");
 }
 
