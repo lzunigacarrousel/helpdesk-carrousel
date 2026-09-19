@@ -22,6 +22,8 @@ call :run tests\phase12_e2e_contract_regression.php "Fase 12 - contrato E2E tran
 call :run tests\phase12_communication_regression.php "Fase 12 - correo y notificaciones"
 call :run tests\phase12_mail_health.php "Fase 12 - salud correo"
 call :run tests\phase12_visual_responsive_regression.php "Fase 12 - visual y responsive"
+call :run tests\phase12_operational_stability_regression.php "Fase 12 - estabilidad operativa"
+call :run tests\phase12_runtime_health.php "Fase 12 - health runtime"
 call :run tests\installer_safety_smoke.php "Instalacion - seguridad"
 call :run tests\requester_ux_smoke.php "Solicitante - UX base"
 call :run tests\phase3_operational_smoke.php "Tickets y SLA - operacion base"
@@ -85,8 +87,9 @@ echo.
 echo ============================================================
 echo [OK] GATE AUTOMATIZADO FASE 12 COMPLETADO SIN FALLOS
 echo Este resultado es PRELIMINAR.
-echo Aun faltan: BD, perfiles/scopes, E2E, correo/notificaciones
-echo y matriz visual manual antes del closeout final.
+echo Gates de BD, seguridad, E2E, comunicacion, visual y estabilidad
+echo deben quedar GREEN. Permanecen pendientes las revisiones manuales
+echo documentadas antes del closeout final.
 echo Produccion NO queda autorizada.
 echo ============================================================
 del /q "%FAIL_LOG%" >nul 2>&1
