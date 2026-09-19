@@ -22,3 +22,19 @@ Rama: `main`
 ## Task 1 — Preflight y baseline
 
 Estado: en implementación.
+
+
+## Task 1 — Preflight y baseline · IMPLEMENTADA EN CÓDIGO
+
+- README marca Fase 12 como **EN CURSO — cierre transversal y readiness**.
+- Se creó spec, plan y log canónico de Fase 12.
+- `tests/phase12_release_baseline_regression.php` valida estado de fases 5–11, versión, artefactos SQL, protección de BD histórica y wiring del gate.
+- `VALIDAR_FASE12.bat` se creó como gate transversal inicial sin encadenar gates antiguos completos.
+- El gate cubre baseline, instalación, solicitante, tickets/SLA, feedback, Actividades, Agenda, Proveedores/Calidad, Conocimiento, Reportes, Manual, navegación, modo oscuro, botones, checks estáticos, rutas/CSS y XLSX.
+- El gate declara explícitamente que su resultado es preliminar y **no autoriza producción**.
+- CI incorpora el preflight de Fase 12.
+- APP_VERSION permanece en `2.4.0-dev`.
+- BD: sin cambios.
+- Producción: sin cambios.
+
+Siguiente: Task 2 — integridad de BD, instalación limpia, verificadores e idempotencia de migraciones vigentes en PC TEST.
