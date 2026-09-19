@@ -107,16 +107,19 @@ JOIN roles r ON r.id=rp.role_id
 WHERE r.code='EXTERNAL';
 
 SELECT 'SUPERVISORES_SIN_SCOPE_ACTIVO' control,COUNT(*) valor
-FROM users u
-JOIN roles r ON r.id=u.role_id AND r.code='SUPERVISOR'
-LEFT JOIN user_assignments ua
-  ON ua.user_id=u.id
- AND ua.status='ACTIVE'
- AND ua.ends_at IS NULL
-WHERE u.deleted_at IS NULL
-  AND u.status='ACTIVE'
-GROUP BY u.id
-HAVING COUNT(ua.id)=0;
+FROM (
+    SELECT u.id
+    FROM users u
+    JOIN roles r ON r.id=u.role_id AND r.code='SUPERVISOR'
+    LEFT JOIN user_assignments ua
+      ON ua.user_id=u.id
+     AND ua.status='ACTIVE'
+     AND ua.ends_at IS NULL
+    WHERE u.deleted_at IS NULL
+      AND u.status='ACTIVE'
+    GROUP BY u.id
+    HAVING COUNT(ua.id)=0
+) x;
 
 SELECT 'SUPERVISORES_SCOPE_VACIO' control,COUNT(*) valor
 FROM user_assignments ua
@@ -187,6 +190,16 @@ SELECT CASE
           'activities.manage','activities.cancel','knowledge.view','knowledge.draft_manage'))=13
    AND (SELECT COUNT(*) FROM role_permissions rp JOIN roles r ON r.id=rp.role_id WHERE r.code='REQUESTER')=3
    AND (SELECT COUNT(*) FROM role_permissions rp JOIN roles r ON r.id=rp.role_id WHERE r.code='EXTERNAL')=1
+   AND (SELECT COUNT(*) FROM (
+          SELECT u.id
+          FROM users u
+          JOIN roles r ON r.id=u.role_id AND r.code='SUPERVISOR'
+          LEFT JOIN user_assignments ua
+            ON ua.user_id=u.id AND ua.status='ACTIVE' AND ua.ends_at IS NULL
+          WHERE u.deleted_at IS NULL AND u.status='ACTIVE'
+          GROUP BY u.id
+          HAVING COUNT(ua.id)=0
+        ) sx)=0
    AND (SELECT COUNT(*) FROM user_assignments ua
         JOIN users u ON u.id=ua.user_id AND u.deleted_at IS NULL AND u.status='ACTIVE'
         JOIN roles r ON r.id=u.role_id AND r.code='SUPERVISOR'
