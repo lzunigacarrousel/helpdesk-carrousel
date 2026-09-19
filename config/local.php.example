@@ -6,8 +6,10 @@ return [
     'db_user' => 'root',
     'db_pass' => '',
 
-    // URL estable usada dentro de correos. En PC TEST puede dejarse vacía.
-    // En servidor debe apuntar al Helpdesk publicado para evitar enlaces localhost/LAN.
+    // URL estable usada dentro de correos.
+    // Puede dejarse vacía SOLO con mail_mode=log.
+    // Si mail_mode=smtp, incluso en PC TEST, debe apuntar a una URL estable
+    // que el destinatario pueda abrir; nunca localhost ni una IP privada/LAN.
     'app_url' => '',
 
     'mail_mode' => 'log', // log | smtp
