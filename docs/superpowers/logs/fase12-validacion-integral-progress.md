@@ -355,3 +355,16 @@ Siguiente: Task 8 — closeout final, actualización de README/CHANGELOG, gate f
 - Ruta fija: `/HelpdeskCarrousel/public/` con host variable `localhost`, `94.74.71.96` o `portal.carrousel-apps.com`.
 
 Pendiente: ejecutar `VALIDAR_FASE12_CLOSEOUT.bat` en PC TEST. Si queda GREEN, actualizar estado canónico de Fase 12 a cierre técnico completado.
+
+### Ajuste Task 8 — primer intento de closeout PC TEST
+
+- `VALIDAR_FASE12_CLOSEOUT.bat` llegó correctamente a ejecutar el gate transversal y detectó tres regresiones históricas de documentación:
+  - `phase5_activities_ui_regression.php` todavía esperaba el estado antiguo de Fase 5/Agenda;
+  - `phase6_agenda_ui_regression.php` todavía esperaba Agenda como `Implementada`;
+  - `phase7_provider_participation_regression.php` todavía esperaba Proveedores como `Implementada — pendiente Fase 12`.
+- La aplicación funcional, rutas, dark mode, checks estáticos, calidad y XLSX mostrados en la ejecución permanecieron GREEN.
+- `phase12_closeout_regression.php` tenía un error de sintaxis en el regex de `APP_VERSION` por comillas dobles sin escapar.
+- Se actualizaron únicamente los asserts documentales obsoletos al estado canónico `Cerrada técnicamente en PC TEST`.
+- Se corrigió la sintaxis del regex de versión en el closeout.
+- Búsqueda posterior en `tests/` no encontró referencias restantes a los textos antiguos del roadmap.
+- No se modificó lógica de negocio, BD ni producción.
