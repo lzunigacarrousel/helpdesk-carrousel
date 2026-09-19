@@ -23,11 +23,11 @@ final class KnowledgeController
         $params=[];
 
         if($editor){
-            $workingExpr="COALESCE(wr.state,ir.state,lr.state,ka.status)";
+            $workingExpr="COALESCE(wr.state,ir.state,lr.state)";
             $where=['1=1'];
             if($q!==''){
                 $like='%'.$q.'%';
-                $where[]="(ka.article_number LIKE ? OR COALESCE(wr.title,ir.title,lr.title,ka.title) LIKE ? OR COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) LIKE ? OR COALESCE(wr.content,ir.content,lr.content,ka.content) LIKE ?)";
+                $where[]="(ka.article_number LIKE ? OR COALESCE(wr.title,ir.title,lr.title) LIKE ? OR COALESCE(wr.summary,ir.summary,lr.summary) LIKE ? OR COALESCE(wr.content,ir.content,lr.content) LIKE ?)";
                 array_push($params,$like,$like,$like,$like);
             }
             if(isset(self::STATUSES[$status])){
@@ -35,17 +35,17 @@ final class KnowledgeController
                 else{$where[]="ka.lifecycle_status='ACTIVE' AND {$workingExpr}=?";$params[]=$status;}
             }
             if($category>0){
-                $where[]='COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id) IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
+                $where[]='COALESCE(wr.category_id,ir.category_id,lr.category_id) IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
                 $params[]=$category;$params[]=$category;
             }
             $sql="SELECT ka.*,
                          COALESCE(wr.id,ir.id,lr.id) revision_id,
                          COALESCE(wr.revision_number,ir.revision_number,lr.revision_number,1) revision_number,
                          CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED' ELSE {$workingExpr} END status,
-                         COALESCE(wr.title,ir.title,lr.title,ka.title) title,
-                         COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) summary,
-                         COALESCE(wr.content,ir.content,lr.content,ka.content) content,
-                         COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id) category_id,
+                         COALESCE(wr.title,ir.title,lr.title) title,
+                         COALESCE(wr.summary,ir.summary,lr.summary) summary,
+                         COALESCE(wr.content,ir.content,lr.content) content,
+                         COALESCE(wr.category_id,ir.category_id,lr.category_id) category_id,
                          c.name category_name,
                          u.full_name author_name,
                          (ka.lifecycle_status='ACTIVE' AND ka.current_public_revision_id IS NOT NULL) public_available
@@ -60,8 +60,8 @@ final class KnowledgeController
                       SELECT y.id FROM knowledge_revisions y
                       WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
                   )
-                  LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id)
-                  LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                  LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id)
+                  LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id)
                   WHERE ".implode(' AND ',$where)."
                   ORDER BY (ka.lifecycle_status='ARCHIVED'),ka.updated_at DESC
                   LIMIT 250";
@@ -83,7 +83,7 @@ final class KnowledgeController
                   FROM knowledge_articles ka
                   JOIN knowledge_revisions kr ON kr.id=ka.{$pointer}
                   LEFT JOIN ticket_categories c ON c.id=kr.category_id
-                  LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                  LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id)
                   WHERE ".implode(' AND ',$where)."
                   ORDER BY ka.updated_at DESC LIMIT 250";
         }
@@ -120,10 +120,10 @@ final class KnowledgeController
                 "SELECT ka.id,ka.article_number,ka.lifecycle_status,
                         COALESCE(d.id,ci.id,lr.id) editing_revision_id,
                         COALESCE(d.revision_number,ci.revision_number,lr.revision_number,1) revision_number,
-                        COALESCE(d.title,ci.title,lr.title,ka.title) title,
-                        COALESCE(d.summary,ci.summary,lr.summary,ka.summary) summary,
-                        COALESCE(d.content,ci.content,lr.content,ka.content) content,
-                        COALESCE(d.category_id,ci.category_id,lr.category_id,ka.category_id) category_id,
+                        COALESCE(d.title,ci.title,lr.title) title,
+                        COALESCE(d.summary,ci.summary,lr.summary) summary,
+                        COALESCE(d.content,ci.content,lr.content) content,
+                        COALESCE(d.category_id,ci.category_id,lr.category_id) category_id,
                         COALESCE(d.change_note,'') change_note
                  FROM knowledge_articles ka
                  LEFT JOIN knowledge_revisions d ON d.id=(
@@ -397,7 +397,7 @@ final class KnowledgeController
         $q=$pdo->prepare(
             "SELECT ka.*,creator.full_name article_creator_name
              FROM knowledge_articles ka
-             LEFT JOIN users creator ON creator.id=COALESCE(ka.created_by_user_id,ka.author_user_id)
+             LEFT JOIN users creator ON creator.id=ka.created_by_user_id
              WHERE ka.id=? LIMIT 1"
         );
         $q->execute([$id]);
