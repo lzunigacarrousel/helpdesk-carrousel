@@ -71,8 +71,11 @@ final class MailAdminController
             'OTP_REQUESTED'=>'Código de acceso','MAIL_TEST'=>'Prueba de correo','TICKET_CREATED_REQUESTER'=>'Solicitud recibida',
             'TICKET_CREATED_SUPPORT'=>'Nueva solicitud para soporte','TICKET_CLAIMED'=>'Caso tomado','TICKET_REASSIGNED'=>'Responsable actualizado',
             'TICKET_RELEASED'=>'Caso devuelto a cola','STATUS_CHANGED'=>'Cambio de estado','PENDING_REASON_CHANGED'=>'Motivo de espera actualizado',
-            'PUBLIC_RESPONSE_ADDED'=>'Nueva respuesta','INTERNAL_NOTE_ADDED'=>'Nota interna','RESOLUTION_RECORDED'=>'Caso resuelto',
-            'EXTERNAL_USER_CREATED'=>'Acceso de colaborador','EXTERNAL_GRANTED'=>'Caso compartido','EXTERNAL_REVOKED'=>'Participación finalizada',
+            'PUBLIC_RESPONSE_ADDED'=>'Nueva respuesta','INTERNAL_NOTE_ADDED'=>'Nota interna','EXTERNAL_RESPONSE_ADDED'=>'Respuesta de proveedor',
+            'RESOLUTION_RECORDED'=>'Caso resuelto','RESOLUTION_RECORDED_INTERNAL'=>'Solución registrada','TICKET_REOPENED'=>'Caso reabierto',
+            'TICKET_FEEDBACK_SUBMITTED'=>'Confirmación del solicitante','EXTERNAL_USER_CREATED'=>'Acceso de colaborador',
+            'USER_CONVERTED_TO_EXTERNAL'=>'Cuenta convertida a colaborador','EXTERNAL_GRANTED'=>'Caso compartido',
+            'EXTERNAL_REVOKED'=>'Participación finalizada',
         ];
     }
 }
