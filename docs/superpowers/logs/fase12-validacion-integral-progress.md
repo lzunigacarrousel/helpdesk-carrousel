@@ -162,3 +162,17 @@ Pendiente: ejecutar regresión estática y `VALIDAR_FASE12_SEGURIDAD.bat` en PC 
 - Producción: sin cambios.
 
 Pendiente: ejecutar sintaxis + contrato estático y `VALIDAR_FASE12_E2E.bat` en PC TEST.
+
+
+### Ajuste de Task 4 — fixtures E2E autocontenidos
+
+- Primer intento de PC TEST detectó tres fallos del validador, no de la aplicación:
+  - assert estático de “continuar atención” dependía de espacios exactos;
+  - no existía usuario activo con rol exacto TECHNICIAN;
+  - no existía artículo de conocimiento interno vigente.
+- El contrato estático ahora valida por fragmentos semánticos y no por formato.
+- El ensayo transaccional selecciona un operador de soporte activo priorizando TECHNICIAN, luego SEMIADMIN y ADMIN.
+- El ensayo crea artículo + revisión de conocimiento temporales dentro de la misma transacción, los usa como referencia y luego hace ROLLBACK.
+- Se corrigió la cantidad de placeholders del INSERT temporal.
+- El rollback final comprueba ausencia tanto del ticket como del artículo temporal.
+- No se modificó funcionalidad de la app ni datos persistentes.
