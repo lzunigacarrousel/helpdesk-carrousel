@@ -89,3 +89,39 @@ Siguiente: Task 2 — integridad de BD, instalación limpia, verificadores e ide
 - BD de producción: sin cambios.
 
 Pendiente: ejecutar `VALIDAR_FASE12_BD.bat` en PC TEST y registrar evidencia GREEN o defectos reales.
+
+
+## Task 2 — Integridad de BD · CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12_BD.bat` GREEN.
+- Backup previo: creado correctamente.
+- Instalación canónica: 43 tablas, 7 perfiles canónicos activos y estructura válida.
+- Estabilidad V2: todos los controles previos a totales quedaron en 0.
+- Fase 5: estructura/permisos/migración OK.
+- Fase 9: `PASS` antes y después de idempotencia.
+- Migraciones Fase 5 y Fase 9: reejecutadas dos veces sin alterar conteos sensibles.
+- Base histórica `helpdesk_carrousel`: fingerprint estructural sin cambios.
+- Producción: sin cambios.
+
+## Task 3 — Seguridad, perfiles, permisos y scopes · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `database/VERIFICAR_FASE12_SEGURIDAD_20260919.sql`.
+- Se creó `tests/phase12_security_scope_regression.php`.
+- Se creó `VALIDAR_FASE12_SEGURIDAD.bat` en modo solo lectura.
+- Matriz esperada:
+  - ADMIN: todos los permisos;
+  - SEMIADMIN: administración + operación amplia;
+  - TECHNICIAN: operación de soporte sin privilegios administrativos;
+  - MANAGEMENT: consulta ejecutiva, sin operación de tickets;
+  - SUPERVISOR: consulta dentro de alcance, sin operación;
+  - REQUESTER: solicitudes propias + respuesta pública + conocimiento;
+  - EXTERNAL: solo colaboración en casos compartidos.
+- Se validan scopes de Supervisor por asignación y de Técnico por `support_scopes`.
+- Se valida que Externo no entre a consultas internas y requiera `external_ticket_access` vigente + caso SPECIAL + EXTERNAL_ALLOWED.
+- Se valida que conversación interna y adjuntos INTERNAL nunca sean visibles fuera de soporte.
+- Nota interna conserva `email=false`.
+- Gate transversal y CI incorporan la regresión estática.
+- BD: sin cambios en Task 3.
+- Producción: sin cambios.
+
+Pendiente: ejecutar regresión estática y `VALIDAR_FASE12_SEGURIDAD.bat` en PC TEST.
