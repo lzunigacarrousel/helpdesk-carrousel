@@ -5,9 +5,7 @@ $root=dirname(__DIR__);
 $_SERVER['SCRIPT_NAME']='/HelpdeskCarrousel/public/index.php';
 $_SERVER['HTTP_HOST']='localhost';
 
-require_once $root.'/config/config.php';
-require_once $root.'/app/Core/Logger.php';
-require_once $root.'/app/Services/MailService.php';
+require_once $root.'/bootstrap.php';
 
 use App\Services\MailService;
 
