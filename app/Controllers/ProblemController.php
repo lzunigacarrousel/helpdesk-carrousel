@@ -65,9 +65,9 @@ final class ProblemController
         if($knowledgeEditor){
             $a=$pdo->prepare(
                 "SELECT ka.id,ka.article_number,ps.is_primary,
-                        COALESCE(wr.title,ir.title,lr.title,ka.title) title,
+                        COALESCE(wr.title,ir.title,lr.title) title,
                         CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED'
-                             ELSE COALESCE(wr.state,ir.state,lr.state,ka.status) END status,
+                             ELSE COALESCE(wr.state,ir.state,lr.state) END status,
                         (ka.current_public_revision_id IS NOT NULL) public_available,
                         u.full_name author_name
                  FROM problem_solutions ps
@@ -82,7 +82,7 @@ final class ProblemController
                      SELECT y.id FROM knowledge_revisions y
                      WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
                  )
-                 LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                 LEFT JOIN users u ON u.id=COALESCE(wr.created_by_user_id,ir.created_by_user_id,lr.created_by_user_id,ka.created_by_user_id)
                  WHERE ps.problem_id=?
                  ORDER BY ps.is_primary DESC,ka.updated_at DESC"
             );
@@ -94,7 +94,7 @@ final class ProblemController
                  FROM problem_solutions ps
                  JOIN knowledge_articles ka ON ka.id=ps.article_id
                  JOIN knowledge_revisions kr ON kr.id=ka.current_internal_revision_id
-                 LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id,ka.author_user_id)
+                 LEFT JOIN users u ON u.id=COALESCE(kr.created_by_user_id,ka.created_by_user_id)
                  WHERE ps.problem_id=? AND ka.lifecycle_status='ACTIVE'
                  ORDER BY ps.is_primary DESC,kr.updated_at DESC"
             );
@@ -105,7 +105,7 @@ final class ProblemController
         $availableArticles=[];
         if(Auth::can('problems.manage')&&Auth::can('knowledge.view')){
             $s=$pdo->prepare(
-                "SELECT ka.id,ka.article_number,COALESCE(wr.title,ir.title,lr.title,ka.title) title
+                "SELECT ka.id,ka.article_number,COALESCE(wr.title,ir.title,lr.title) title
                  FROM knowledge_articles ka
                  LEFT JOIN knowledge_revisions wr ON wr.id=(
                      SELECT x.id FROM knowledge_revisions x
