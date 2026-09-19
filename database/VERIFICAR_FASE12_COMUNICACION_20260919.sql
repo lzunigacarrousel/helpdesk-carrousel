@@ -66,6 +66,7 @@ WHERE d.channel='EMAIL'
 SELECT 'ACCIONES_LOCALHOST_EMAIL' control,COUNT(*) valor
 FROM notification_deliveries
 WHERE channel='EMAIL'
+  AND status='SENT'
   AND action_url IS NOT NULL
   AND (
     LOWER(action_url) LIKE 'http://localhost%'
@@ -102,7 +103,7 @@ SELECT CASE
         JOIN notification_events e ON e.id=d.event_id
         WHERE d.channel='EMAIL' AND e.event_key='OTP_REQUESTED' AND d.attempts>1)=0
    AND (SELECT COUNT(*) FROM notification_deliveries
-        WHERE channel='EMAIL' AND action_url IS NOT NULL
+        WHERE channel='EMAIL' AND status='SENT' AND action_url IS NOT NULL
           AND (LOWER(action_url) LIKE 'http://localhost%'
                OR LOWER(action_url) LIKE 'https://localhost%'
                OR action_url LIKE '%192.168.%'))=0
