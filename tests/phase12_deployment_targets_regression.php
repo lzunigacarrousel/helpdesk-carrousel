@@ -34,8 +34,8 @@ foreach([
 ok(str_contains($readme,'/HelpdeskCarrousel/public/'),'README fija la ruta pública del Helpdesk');
 ok(str_contains($example,'SIEMPRE /HelpdeskCarrousel/public/'),'Ejemplo fija la misma ruta en todos los entornos');
 ok(str_contains($config,"'/HelpdeskCarrousel/public/index.php'"),'Config conserva fallback con la ruta canónica');
-ok(str_contains($readme,'mail_mode=smtp'),'README diferencia SMTP real');
-ok(str_contains($readme,'únicamente cambia `localhost`, `94.74.71.96` o `portal.carrousel-apps.com`'),'README deja claro que solo cambia el host');
+ok(str_contains($readme,'SMTP real Gmail/Outlook')&&str_contains($readme,'`smtp` en producción'),'README diferencia SMTP real');
+ok(str_contains($readme,'La aplicación deriva `APP_BASE_URL` del host actual'),'README deja claro que el host se deriva por entorno');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
