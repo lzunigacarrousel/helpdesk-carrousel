@@ -218,6 +218,9 @@ jobs:
       - name: Phase 11 manual - seven point tutorials
         run: php tests/phase11_tutorial_depth_regression.php
 
+      - name: Phase 11 manual - accessibility and responsive
+        run: php tests/phase11_manual_accessibility_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
