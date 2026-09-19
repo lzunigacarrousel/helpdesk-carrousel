@@ -25,7 +25,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <div class="manual-search" role="search">
     <input class="form-control" type="search" placeholder="Buscar: resolver, proveedor, espera, informe…" data-manual-search aria-label="Buscar en el manual">
     <button class="btn btn-outline-secondary" type="button" data-manual-clear>Limpiar</button>
-    <span class="manual-search-status" data-manual-search-status>Busca una tarea o elige un tema</span>
+    <span class="manual-search-status" data-manual-search-status role="status" aria-live="polite" aria-atomic="true">Busca una tarea o elige un tema</span>
   </div>
 
   <nav class="manual-topic-filter" aria-label="Filtrar manual por tema" data-manual-topics>
@@ -412,6 +412,10 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     const target=hash&&hash!=='#'?document.querySelector(hash):null;
     if(target&&!target.classList.contains('is-hidden')){
       target.scrollIntoView({behavior:'auto',block:'start'});
+      if(target instanceof HTMLElement){
+        target.setAttribute('tabindex','-1');
+        target.focus({preventScroll:true});
+      }
     }
     if(hash==='#preguntas'&&normalize(input.value)!==''){
       const firstVisible=document.querySelector('#preguntas details:not(.is-hidden)');
