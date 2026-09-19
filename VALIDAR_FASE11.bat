@@ -16,6 +16,7 @@ call :run tests\phase11_manual_profile_navigation_regression.php "Fase 11 - perf
 call :run tests\phase11_manual_profile_content_regression.php "Fase 11 - contenido por perfil"
 call :run tests\phase11_contextual_help_regression.php "Fase 11 - ayuda y FAQ contextual"
 call :run tests\phase11_tutorial_depth_regression.php "Fase 11 - tutoriales de siete puntos"
+call :run tests\phase11_manual_accessibility_regression.php "Fase 11 - UI responsive y accesibilidad"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
