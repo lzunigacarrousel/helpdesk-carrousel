@@ -178,11 +178,11 @@ El roadmap de maduración se mantiene como guía funcional. El estado canónico 
 | 9 | Conocimiento | **Cerrada técnicamente en PC TEST** |
 | 10 | Reportes | **Cerrada técnicamente en PC TEST** |
 | 11 | Manual | **Cerrada técnicamente en PC TEST** |
-| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |
+| 12 | Validación integral | **Cerrada técnicamente en PC TEST — producción bloqueada** |
 
-Las Fases 5–11 ya superaron sus gates específicos y la validación automatizada transversal de Fase 12 en PC TEST.
+Las Fases 5–12 ya superaron sus gates específicos y el closeout técnico final en PC TEST.
 
-El cierre técnico **no equivale a despliegue**. Antes de producción siguen pendientes la matriz visual manual real y la prueba SMTP real/Gmail/Outlook con la URL canónica del entorno final. `APP_VERSION` permanece en `2.4.0-dev` hasta completar esa aceptación preproducción.
+El closeout técnico final quedó GREEN en PC TEST. Este cierre **no equivale a despliegue**. Antes de producción siguen pendientes la matriz visual manual real y la prueba SMTP real/Gmail/Outlook con la URL canónica del entorno final. `APP_VERSION` permanece en `2.4.0-dev` hasta completar esa aceptación preproducción.
 
 ### Fase 5 — Actividades / visitas
 
