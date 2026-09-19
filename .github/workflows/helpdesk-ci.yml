@@ -224,6 +224,9 @@ jobs:
       - name: Phase 11 manual - closeout
         run: php tests/phase11_closeout_regression.php
 
+      - name: Phase 12 - release baseline
+        run: php tests/phase12_release_baseline_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
