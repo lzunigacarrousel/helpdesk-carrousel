@@ -14,6 +14,8 @@ function ok(bool $condition,string $message):void
 $readme=(string)file_get_contents($root.'/README.md');
 $config=(string)file_get_contents($root.'/config/config.php');
 $installer=(string)file_get_contents($root.'/INSTALAR_PC_TEST.bat');
+$gate=(string)file_get_contents($root.'/VALIDAR_FASE12.bat');
+$ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
 
 foreach([5,6,7,8,10,11] as $phase){
     ok((bool)preg_match('/\\| '.$phase.' \\| .*\\| \\*\\*Implementada/', $readme),'Roadmap conserva Fase '.$phase.' implementada');
@@ -59,6 +61,17 @@ foreach([
 ok(str_contains($installer,'PROTECTED_DB=helpdesk_carrousel'),'Instalador protege base histórica');
 ok(str_contains($installer,'DB_NAME=carrousel_helpdesk'),'Instalador apunta a base V2');
 ok(str_contains($readme,'Producción')||str_contains($readme,'producción'),'README conserva referencias de producción controlada');
+ok(str_contains($gate,'phase12_release_baseline_regression.php'),'Gate Fase 12 incluye preflight');
+ok(str_contains($gate,'phase5_activities_service_regression.php'),'Gate Fase 12 cubre Actividades');
+ok(str_contains($gate,'phase6_agenda_service_regression.php'),'Gate Fase 12 cubre Agenda');
+ok(str_contains($gate,'phase7_provider_participation_regression.php'),'Gate Fase 12 cubre Proveedores');
+ok(str_contains($gate,'phase9_closeout_regression.php'),'Gate Fase 12 cubre Conocimiento');
+ok(str_contains($gate,'phase10_closeout_regression.php'),'Gate Fase 12 cubre Reportes');
+ok(str_contains($gate,'phase11_closeout_regression.php'),'Gate Fase 12 cubre Manual');
+ok(str_contains($gate,'dark_theme_smoke.php'),'Gate Fase 12 cubre modo oscuro');
+ok(str_contains($gate,'Produccion NO queda autorizada.'),'Gate no autoriza producción');
+ok(str_contains($ci,'tests/phase12_release_baseline_regression.php'),'CI incluye preflight Fase 12');
+
 ok(!is_file($root.'/database/MIGRAR_FASE12.sql'),'Task 1 no introduce migración de Fase 12');
 ok(!is_file($root.'/database/ACTUALIZAR_FASE12.sql'),'Task 1 no introduce parche de Fase 12');
 
