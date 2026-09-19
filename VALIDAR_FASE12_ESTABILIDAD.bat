@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "PHP=C:\xampp\php\php.exe"
@@ -37,7 +37,7 @@ if errorlevel 1 (
       set "FAILED=1"
     )
   )
-  if "%FAILED%"=="0" echo [OK] Sintaxis JavaScript.
+  if "!FAILED!"=="0" echo [OK] Sintaxis JavaScript.
 )
 
 echo.
