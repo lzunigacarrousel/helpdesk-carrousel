@@ -29,12 +29,20 @@ if($body!==''){
     }
 
     ok(
-        str_contains($body,"VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"),
-        'INSERT de artículo alinea 6 placeholders con 6 valores'
+        str_contains($body,"VALUES('', 'ACTIVE',NULL,NULL,?,NULL,NOW(),NOW())"),
+        'INSERT de artículo crea solo identidad y punteros canónicos'
     );
     ok(
-        !str_contains($body,"VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"),
-        'No reaparece INSERT desalineado de artículos'
+        !str_contains($body,'created_by_user_id,title,summary,content,status,visibility,category_id,author_user_id'),
+        'Servicio no vuelve a escribir sombra legacy en knowledge_articles'
+    );
+    ok(
+        !str_contains($body,"knowledge_articles SET visibility='PUBLIC'"),
+        'Publicación pública usa únicamente current_public_revision_id'
+    );
+    ok(
+        !str_contains($body,"lifecycle_status='ARCHIVED',status='ARCHIVED'"),
+        'Archivado usa únicamente lifecycle_status'
     );
 
     if(class_exists($class)){
