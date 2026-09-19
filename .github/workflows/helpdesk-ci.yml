@@ -215,6 +215,9 @@ jobs:
       - name: Phase 11 manual - contextual help and FAQ
         run: php tests/phase11_contextual_help_regression.php
 
+      - name: Phase 11 manual - seven point tutorials
+        run: php tests/phase11_tutorial_depth_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
