@@ -59,7 +59,7 @@ try{
         "INSERT INTO knowledge_articles(
             article_number,lifecycle_status,created_by_user_id,title,summary,content,
             status,visibility,category_id,author_user_id,published_at,created_at,updated_at
-         ) VALUES(?,'ACTIVE',?,?,?,?,?,'PUBLISHED','INTERNAL',?,?,NOW(),NOW(),NOW())"
+         ) VALUES(?,'ACTIVE',?,?,?,?,'PUBLISHED','INTERNAL',?,?,NOW(),NOW(),NOW())"
     )->execute([
         $articleNumber,
         (int)$support['id'],
@@ -176,6 +176,7 @@ try{
 
     $pdo->rollBack();
     ok((int)scalar($pdo,'SELECT COUNT(*) FROM tickets WHERE ticket_number=?',[$ticketNumber])===0,'15. ROLLBACK elimina caso temporal');
+    ok((int)scalar($pdo,'SELECT COUNT(*) FROM knowledge_articles WHERE article_number=?',[$articleNumber])===0,'16. ROLLBACK elimina conocimiento temporal');
 }catch(\Throwable $e){
     if($pdo->inTransaction())$pdo->rollBack();
     fwrite(STDERR,'[ERROR] Ensayo E2E: '.$e->getMessage().PHP_EOL);
