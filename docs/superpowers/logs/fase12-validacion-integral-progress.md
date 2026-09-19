@@ -125,3 +125,40 @@ Pendiente: ejecutar `VALIDAR_FASE12_BD.bat` en PC TEST y registrar evidencia GRE
 - Producción: sin cambios.
 
 Pendiente: ejecutar regresión estática y `VALIDAR_FASE12_SEGURIDAD.bat` en PC TEST.
+
+
+## Task 3 — Seguridad, perfiles, permisos y scopes · CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12_SEGURIDAD.bat` GREEN.
+- Matriz SQL final: `PASS`.
+- ADMIN/SEMIADMIN: capacidades administrativas/operativas válidas.
+- TECHNICIAN: operación sin privilegios administrativos.
+- MANAGEMENT: consulta ejecutiva sin operación de tickets.
+- SUPERVISOR: consulta por scope, sin operación.
+- REQUESTER: información propia.
+- EXTERNAL: colaboración limitada a casos compartidos.
+- Notas/adjuntos internos y Portal permanecen aislados para externos.
+- Producción: sin cambios.
+
+## Task 4 — Flujos E2E · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `tests/phase12_e2e_contract_regression.php`.
+- Se creó `tests/phase12_e2e_transactional.php`.
+- Se creó `VALIDAR_FASE12_E2E.bat`.
+- Contrato cubierto: creación, claim/asignación, conversación PUBLIC/INTERNAL/EXTERNAL, espera por proveedor, continuar, actividad, referencia, resolución, reapertura, cierre/NPS y reportes/XLSX.
+- El ensayo transaccional:
+  - exige `DB_NAME=carrousel_helpdesk`;
+  - usa Técnico, Solicitante, Colaborador, categoría y artículo vigentes;
+  - crea un ticket temporal;
+  - recorre los tres canales de conversación;
+  - habilita colaboración externa;
+  - valida PENDING/IN_PROGRESS;
+  - crea y completa una actividad;
+  - registra referencia de conocimiento;
+  - resuelve, reabre, vuelve a resolver, guarda NPS y cierra;
+  - ejecuta `ROLLBACK` al finalizar o ante excepción.
+- Los AUTO_INCREMENT de MariaDB pueden avanzar aun con rollback; no quedan filas de negocio temporales persistidas.
+- El contrato estático se agregó al gate transversal y CI; el ensayo con BD queda solo para PC TEST.
+- Producción: sin cambios.
+
+Pendiente: ejecutar sintaxis + contrato estático y `VALIDAR_FASE12_E2E.bat` en PC TEST.
