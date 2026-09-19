@@ -108,24 +108,28 @@ El acceso utiliza OTP, no contraseña permanente. En PC TEST con `mail_mode => '
 
 ## Entornos y publicación
 
-La aplicación debe conservar el mismo código y resolver su base URL desde el host/ruta donde se publique. Los destinos previstos son:
+La ruta pública del Helpdesk es fija:
 
-- desarrollo/PC TEST: `localhost`;
-- acceso directo al servidor: `94.74.71.96`;
-- publicación preferida mediante el Portal de Sistemas: `https://portal.carrousel-apps.com/`.
+`/HelpdeskCarrousel/public/`
 
-El Helpdesk **no debe hardcodear** uno de esos hosts dentro de enlaces internos. `APP_BASE_URL` se deriva de la petición actual y de la ruta pública montada, por lo que la aplicación puede vivir bajo una subruta distinta sin reescribir controladores o vistas.
+Solo cambia el host según el entorno:
+
+- desarrollo/PC TEST: `http://localhost/HelpdeskCarrousel/public/`;
+- acceso directo al servidor: `http://94.74.71.96/HelpdeskCarrousel/public/`;
+- publicación preferida mediante el Portal de Sistemas: `https://portal.carrousel-apps.com/HelpdeskCarrousel/public/`.
+
+El Helpdesk **no debe hardcodear el host** dentro de enlaces internos. `APP_BASE_URL` se deriva de la petición actual y conserva la ruta pública `/HelpdeskCarrousel/public`, por lo que el mismo código funciona en PC TEST, servidor por IP y dominio.
 
 El botón **Portal** mantiene como destino el Portal de Sistemas en `https://portal.carrousel-apps.com/portal/`.
 
 Para correo:
 
-- con `mail_mode=log`, `app_url` puede quedar vacía y localhost es válido para pruebas locales;
-- con `mail_mode=smtp`, `app_url` debe ser la URL exacta y alcanzable del Helpdesk en ese entorno;
-- en servidor puede ser la URL pública bajo `portal.carrousel-apps.com` o, mientras corresponda, una URL alcanzable basada en `94.74.71.96`;
-- no usar `localhost` como `app_url` para correos destinados a otros equipos, porque el botón abriría el localhost del destinatario.
+- con `mail_mode=log`, `app_url` puede quedar vacía durante pruebas locales;
+- con `mail_mode=smtp`, `app_url` debe ser la URL completa del Helpdesk correspondiente al entorno;
+- en PC TEST local puede ser `http://localhost/HelpdeskCarrousel/public/` únicamente para pruebas que se abran en la misma PC;
+- para correos que abrirán otros equipos debe usarse `http://94.74.71.96/HelpdeskCarrousel/public/` o, preferiblemente, `https://portal.carrousel-apps.com/HelpdeskCarrousel/public/`.
 
-No asumir una subruta final del Helpdesk hasta que se defina el montaje en Apache/Portal. La configuración local debe registrar la URL completa real cuando exista.
+La ruta `/HelpdeskCarrousel/public/` se conserva igual en todos los entornos; únicamente cambia `localhost`, `94.74.71.96` o `portal.carrousel-apps.com`.
 
 ## Capacidades actuales
 
