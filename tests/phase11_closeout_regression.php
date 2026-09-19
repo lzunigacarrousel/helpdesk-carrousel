@@ -32,7 +32,7 @@ $config=(string)file_get_contents($root.'/config/config.php');
 
 ok(str_contains($readme,'### Fase 11 — Manual consolidado e interactivo'),'README documenta Fase 11');
 ok(str_contains($readme,'| 11 | Manual | **Cerrada técnicamente en PC TEST** |'),'Roadmap marca Fase 11 cerrada técnicamente');
-ok(str_contains($readme,'| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |'),'Roadmap reconoce Fase 12 en validación final');
+ok(str_contains($readme,'| 12 | Validación integral | **Cerrada técnicamente en PC TEST — producción bloqueada** |'),'Roadmap reconoce Fase 12 cerrada técnicamente');
 ok(str_contains($readme,'**BD: sin cambios.** Fase 11'),'README confirma BD sin cambios');
 
 ok(str_contains($changelog,'## Fase 11 · Manual consolidado e interactivo · 2026-09-19'),'CHANGELOG registra Fase 11');
