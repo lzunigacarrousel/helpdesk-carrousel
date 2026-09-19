@@ -368,3 +368,22 @@ Pendiente: ejecutar `VALIDAR_FASE12_CLOSEOUT.bat` en PC TEST. Si queda GREEN, ac
 - Se corrigió la sintaxis del regex de versión en el closeout.
 - Búsqueda posterior en `tests/` no encontró referencias restantes a los textos antiguos del roadmap.
 - No se modificó lógica de negocio, BD ni producción.
+
+## Task 8 — Closeout final · CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12_CLOSEOUT.bat` GREEN.
+- Rama `main`: confirmada.
+- Working tree: limpio.
+- Gate transversal `VALIDAR_FASE12.bat`: GREEN.
+- Regresión `phase12_closeout_regression.php`: GREEN.
+- `git diff --check`: GREEN.
+- Las 12 fases quedan integradas y validadas técnicamente en PC TEST.
+- `APP_VERSION` permanece en `2.4.0-dev`.
+- No se creó tag, release ni despliegue.
+- Producción continúa bloqueada.
+- Pendientes preproducción documentados:
+  - matriz visual manual real;
+  - `app_url` canónica del entorno final;
+  - SMTP real y revisión Gmail/Outlook.
+- Ruta fija del Helpdesk: `/HelpdeskCarrousel/public/`.
+- Hosts previstos: `localhost`, `94.74.71.96` y `portal.carrousel-apps.com`.
