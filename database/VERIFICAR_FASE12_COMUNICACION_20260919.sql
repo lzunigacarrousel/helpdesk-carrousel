@@ -63,10 +63,25 @@ WHERE d.channel='EMAIL'
   AND e.event_key='OTP_REQUESTED'
   AND d.attempts>1;
 
-SELECT 'ACCIONES_LOCALHOST_EMAIL' control,COUNT(*) valor
+SELECT 'BASELINE_DELIVERY_ID' control,COALESCE(@phase12_baseline_delivery_id,0) valor;
+
+SELECT 'ACCIONES_LOCALHOST_EMAIL_HISTORICAS' control,COUNT(*) valor
 FROM notification_deliveries
 WHERE channel='EMAIL'
   AND status='SENT'
+  AND id<=COALESCE(@phase12_baseline_delivery_id,0)
+  AND action_url IS NOT NULL
+  AND (
+    LOWER(action_url) LIKE 'http://localhost%'
+    OR LOWER(action_url) LIKE 'https://localhost%'
+    OR action_url LIKE '%192.168.%'
+  );
+
+SELECT 'ACCIONES_LOCALHOST_EMAIL_NUEVAS' control,COUNT(*) valor
+FROM notification_deliveries
+WHERE channel='EMAIL'
+  AND status='SENT'
+  AND id>COALESCE(@phase12_baseline_delivery_id,0)
   AND action_url IS NOT NULL
   AND (
     LOWER(action_url) LIKE 'http://localhost%'
@@ -103,7 +118,10 @@ SELECT CASE
         JOIN notification_events e ON e.id=d.event_id
         WHERE d.channel='EMAIL' AND e.event_key='OTP_REQUESTED' AND d.attempts>1)=0
    AND (SELECT COUNT(*) FROM notification_deliveries
-        WHERE channel='EMAIL' AND status='SENT' AND action_url IS NOT NULL
+        WHERE channel='EMAIL'
+          AND status='SENT'
+          AND id>COALESCE(@phase12_baseline_delivery_id,0)
+          AND action_url IS NOT NULL
           AND (LOWER(action_url) LIKE 'http://localhost%'
                OR LOWER(action_url) LIKE 'https://localhost%'
                OR action_url LIKE '%192.168.%'))=0
