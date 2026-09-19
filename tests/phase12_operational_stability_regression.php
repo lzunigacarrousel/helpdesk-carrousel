@@ -42,7 +42,7 @@ foreach([
 ok(str_contains($attachment,'is_uploaded_file($tmp)'),'Adjunto exige archivo realmente subido');
 ok(str_contains($attachment,'new \finfo(FILEINFO_MIME_TYPE)'),'Adjunto detecta MIME real');
 ok(str_contains($attachment,'random_bytes(18)'),'Nombre almacenado es aleatorio');
-ok(str_contains($attachment,"hash_file('sha256', $target)"),'Adjunto conserva hash SHA-256');
+ok(str_contains($attachment,"hash_file('sha256', $" . "target)"),'Adjunto conserva hash SHA-256');
 ok(str_contains($attachment,'@unlink($target)'),'Adjunto se elimina si falla persistencia');
 ok(str_contains($attachment,"['PUBLIC', 'INTERNAL', 'EXTERNAL']"),'Adjunto conserva canales válidos');
 ok(str_contains($attachment,'ticket_activity')||str_contains($attachment,'ticket_activities'),'Evidencia de actividad valida pertenencia al ticket');
