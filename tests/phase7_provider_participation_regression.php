@@ -194,7 +194,7 @@ ok(!str_contains($workBody,'WorkflowController'),'Informe externo no invoca Work
 ok(str_contains($ciBody,'Phase 7 provider participation regression'),'CI incluye regresión de Fase 7');
 ok(str_contains($ciBody,'php tests/phase7_provider_participation_regression.php'),'CI ejecuta gate principal de Fase 7');
 
-ok(str_contains($readmeBody,'| 7 | Proveedores | **Implementada — pendiente validación integral Fase 12** |'),'README marca Fase 7 implementada');
+ok(str_contains($readmeBody,'| 7 | Proveedores | **Cerrada técnicamente en PC TEST** |'),'README marca Fase 7 cerrada técnicamente');
 ok(str_contains($readmeBody,'| 8 | Calidad IT → proveedor |'),'README conserva Fase 8 en roadmap');
 ok(str_contains($readmeBody,'### Fase 7 — Proveedores'),'README documenta alcance de Fase 7');
 ok(str_contains($readmeBody,'BD: sin cambios'),'README documenta cero cambios de BD en Fase 7');
