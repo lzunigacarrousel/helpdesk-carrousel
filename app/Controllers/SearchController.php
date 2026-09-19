@@ -99,11 +99,11 @@ final class SearchController
                 if($editor){
                     $s=$pdo->prepare(
                         "SELECT ka.id,ka.article_number,
-                                COALESCE(wr.title,ir.title,lr.title,ka.title) title,
-                                COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) summary,
-                                COALESCE(wr.content,ir.content,lr.content,ka.content) content,
+                                COALESCE(wr.title,ir.title,lr.title) title,
+                                COALESCE(wr.summary,ir.summary,lr.summary) summary,
+                                COALESCE(wr.content,ir.content,lr.content) content,
                                 CASE WHEN ka.lifecycle_status='ARCHIVED' THEN 'ARCHIVED'
-                                     ELSE COALESCE(wr.state,ir.state,lr.state,ka.status) END status,
+                                     ELSE COALESCE(wr.state,ir.state,lr.state) END status,
                                 COALESCE(wr.updated_at,ir.updated_at,lr.updated_at,ka.updated_at) updated_at,
                                 c.name category_name,
                                 (ka.current_public_revision_id IS NOT NULL) public_available
@@ -118,11 +118,11 @@ final class SearchController
                              SELECT y.id FROM knowledge_revisions y
                              WHERE y.article_id=ka.id ORDER BY y.revision_number DESC LIMIT 1
                          )
-                         LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id,ka.category_id)
+                         LEFT JOIN ticket_categories c ON c.id=COALESCE(wr.category_id,ir.category_id,lr.category_id)
                          WHERE (
-                             COALESCE(wr.title,ir.title,lr.title,ka.title) LIKE ?
-                             OR COALESCE(wr.summary,ir.summary,lr.summary,ka.summary) LIKE ?
-                             OR COALESCE(wr.content,ir.content,lr.content,ka.content) LIKE ?
+                             COALESCE(wr.title,ir.title,lr.title) LIKE ?
+                             OR COALESCE(wr.summary,ir.summary,lr.summary) LIKE ?
+                             OR COALESCE(wr.content,ir.content,lr.content) LIKE ?
                              OR ka.article_number LIKE ?
                              OR c.name LIKE ?
                          )
