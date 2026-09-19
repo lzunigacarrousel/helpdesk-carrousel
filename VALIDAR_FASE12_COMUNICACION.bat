@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
 set "PHP=C:\xampp\php\php.exe"
@@ -33,8 +33,8 @@ if exist "%BASELINE_FILE%" (
 ) else (
   for /f "usebackq delims=" %%I in (`"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 -N -B "%DB_NAME%" -e "SELECT COALESCE(MAX(id),0) FROM notification_deliveries;"`) do set "BASELINE_ID=%%I"
   if not defined BASELINE_ID set "BASELINE_ID=0"
-  >"%BASELINE_FILE%" echo %BASELINE_ID%
-  echo [INFO] Linea base de comunicacion creada en ID %BASELINE_ID%.
+  >"%BASELINE_FILE%" echo !BASELINE_ID!
+  echo [INFO] Linea base de comunicacion creada en ID !BASELINE_ID!.
 )
 echo [INFO] Baseline de entregas: %BASELINE_ID%
 
