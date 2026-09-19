@@ -49,3 +49,12 @@ Siguiente: Task 2 — integridad de BD, instalación limpia, verificadores e ide
 - Se actualizaron únicamente los asserts de roadmap.
 - No se modificó funcionalidad, README, configuración, BD ni producción.
 - Debe repetirse primero ambos closeouts y después `VALIDAR_FASE12.bat`.
+
+
+### Segunda corrección de baseline — Fase 8 + diagnóstico de gate
+
+- El segundo gate mostró todas las validaciones visibles GREEN, pero terminó en ERROR porque el inicio del log quedó fuera del texto copiado.
+- Se revisó la porción temprana del gate y se detectó otra expectativa histórica en `phase8_provider_rating_closeout_regression.php`: todavía exigía que Fase 9 fuera “Siguiente fase”.
+- El assert se actualizó para validar el estado canónico actual: Fase 9 implementada y pendiente únicamente de la validación transversal de Fase 12.
+- Se mejoró `VALIDAR_FASE12.bat` para acumular y mostrar un **RESUMEN DE FALLOS** al final; así, aunque la salida larga del terminal se trunque, el bloque final indicará exactamente qué sección falló.
+- No se modificó funcionalidad, BD ni producción.
