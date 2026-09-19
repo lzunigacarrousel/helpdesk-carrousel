@@ -32,7 +32,7 @@ if not exist "%CD%\storage\logs" mkdir "%CD%\storage\logs"
 set "CURRENT_MAX_FILE=%TEMP%\helpdesk_f12_current_delivery_id.txt"
 "%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 -N -B "%DB_NAME%" -e "SELECT COALESCE(MAX(id),0) FROM notification_deliveries;" > "%CURRENT_MAX_FILE%"
 if errorlevel 1 (
-  echo [ERROR] No se pudo consultar el MAX(id) de notification_deliveries.
+  echo [ERROR] No se pudo consultar el ID maximo de notification_deliveries.
   exit /b 1
 )
 set "CURRENT_MAX_ID="
@@ -45,10 +45,12 @@ if not defined BASELINE_ID (
   set "BASELINE_ID=!CURRENT_MAX_ID!"
   set "BASELINE_NEEDS_WRITE=1"
 )
-if "!BASELINE_ID!"=="0" if not "!CURRENT_MAX_ID!"=="0" (
-  set "BASELINE_ID=!CURRENT_MAX_ID!"
-  set "BASELINE_NEEDS_WRITE=1"
-  echo [INFO] Baseline invalido 0 detectado; se recalculara.
+if "!BASELINE_ID!"=="0" (
+  if not "!CURRENT_MAX_ID!"=="0" (
+    set "BASELINE_ID=!CURRENT_MAX_ID!"
+    set "BASELINE_NEEDS_WRITE=1"
+    echo [INFO] Baseline invalido 0 detectado; se recalculara.
+  )
 )
 if "!BASELINE_NEEDS_WRITE!"=="1" (
   >"%BASELINE_FILE%" echo !BASELINE_ID!
