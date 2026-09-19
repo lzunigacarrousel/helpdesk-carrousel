@@ -50,14 +50,40 @@
     actionStatus.setAttribute('aria-hidden','true');
   }
 
+  let helpReturnFocus=null;
+
+  function helpFocusable(panel){
+    return [...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+      .filter(el=>el instanceof HTMLElement&&!el.hidden&&el.offsetParent!==null);
+  }
+
   function setHelp(open){
     const panel=document.querySelector('[data-help-panel]');
     const backdrop=document.querySelector('[data-help-backdrop]');
-    if(!panel)return;
+    const trigger=document.querySelector('[data-help-open]');
+    if(!(panel instanceof HTMLElement))return;
+
+    if(open){
+      const active=document.activeElement;
+      helpReturnFocus=active instanceof HTMLElement?active:(trigger instanceof HTMLElement?trigger:null);
+    }
+
     panel.classList.toggle('open',open);
     panel.setAttribute('aria-hidden',open?'false':'true');
-    if(backdrop)backdrop.hidden=!open;
+    if(trigger instanceof HTMLElement)trigger.setAttribute('aria-expanded',open?'true':'false');
+    if(backdrop instanceof HTMLElement)backdrop.hidden=!open;
     body.classList.toggle('help-open',open);
+
+    if(open){
+      window.requestAnimationFrame(()=>{
+        const close=panel.querySelector('[data-help-close]');
+        if(close instanceof HTMLElement)close.focus({preventScroll:true});
+      });
+    }else if(helpReturnFocus instanceof HTMLElement&&helpReturnFocus.isConnected){
+      const target=helpReturnFocus;
+      helpReturnFocus=null;
+      window.requestAnimationFrame(()=>target.focus({preventScroll:true}));
+    }
   }
 
   function updateSidebarToggle(){
@@ -169,6 +195,19 @@
   });
 
   document.addEventListener('keydown',e=>{
+    const helpPanel=document.querySelector('[data-help-panel]');
+    const helpIsOpen=helpPanel instanceof HTMLElement&&helpPanel.classList.contains('open');
+
+    if(helpIsOpen&&e.key==='Tab'){
+      const focusable=helpFocusable(helpPanel);
+      if(focusable.length){
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+        else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+      }
+      return;
+    }
+
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
       e.preventDefault();openSearch();return;
     }
