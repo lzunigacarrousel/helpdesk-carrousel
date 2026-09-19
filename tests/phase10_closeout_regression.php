@@ -34,8 +34,8 @@ $log=(string)file_get_contents($root.'/docs/superpowers/logs/fase10-reportes-pro
 $config=(string)file_get_contents($root.'/config/config.php');
 
 ok(str_contains($readme,'### Fase 10 — Reportes consolidados'),'README documenta Fase 10');
-ok(str_contains($readme,'| 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |'),'Roadmap marca Fase 10 implementada');
-ok(str_contains($readme,'| 11 | Manual | **Implementada — pendiente validación integral Fase 12** |'),'Roadmap conserva Fase 11 implementada');
+ok(str_contains($readme,'| 10 | Reportes | **Cerrada técnicamente en PC TEST** |'),'Roadmap marca Fase 10 cerrada técnicamente');
+ok(str_contains($readme,'| 11 | Manual | **Cerrada técnicamente en PC TEST** |'),'Roadmap conserva Fase 11 cerrada técnicamente');
 ok(str_contains($readme,'**BD: sin cambios.** Fase 10'),'README confirma BD sin cambios');
 
 ok(str_contains($changelog,'## Fase 10 · Reportes consolidados · 2026-09-18'),'CHANGELOG registra Fase 10');
