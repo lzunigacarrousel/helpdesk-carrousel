@@ -22,7 +22,7 @@ $gate=(string)file_get_contents($root.'/VALIDAR_FASE12.bat');
 $closeoutGate=(string)file_get_contents($root.'/VALIDAR_FASE12_CLOSEOUT.bat');
 $ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
 
-ok((bool)preg_match("/define\(\s*['"]APP_VERSION['"]\s*,\s*['"]2\.4\.0-dev['"]\s*\)/",$config),'Versión permanece 2.4.0-dev');
+ok((bool)preg_match('/define\(\s*[\'"]APP_VERSION[\'"]\s*,\s*[\'"]2\.4\.0-dev[\'"]\s*\)/',$config),'Versión permanece 2.4.0-dev');
 ok(str_contains($readme,'| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |'),'Roadmap marca cierre técnico en validación final');
 
 foreach([5,6,7,8,9,10,11] as $phase){
