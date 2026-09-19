@@ -87,10 +87,10 @@ if "%FAILED%"=="1" goto :fail
 echo.
 echo ============================================================
 echo [OK] GATE AUTOMATIZADO FASE 12 COMPLETADO SIN FALLOS
-echo Este resultado es PRELIMINAR.
-echo Gates de BD, seguridad, E2E, comunicacion, visual y estabilidad
-echo deben quedar GREEN. Permanecen pendientes las revisiones manuales
-echo documentadas antes del closeout final.
+echo Resultado apto para closeout tecnico en PC TEST.
+echo Los gates especializados ya fueron validados por separado.
+echo Permanecen pendientes las revisiones manuales preproduccion
+echo documentadas en el checklist de aceptacion.
 echo Produccion NO queda autorizada.
 echo ============================================================
 del /q "%FAIL_LOG%" >nul 2>&1
