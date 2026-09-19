@@ -350,6 +350,14 @@ C:\xampp\php\php.exe tests\xlsx_smoke.php
 
 Además deben ejecutarse las regresiones específicas de la fase y, cuando corresponda, los verificadores SQL.
 
+Para el cierre técnico consolidado de las 12 fases en PC TEST:
+
+```bat
+VALIDAR_FASE12_CLOSEOUT.bat
+```
+
+Ese gate verifica readiness técnico y documentación, pero **no autoriza ni ejecuta producción**.
+
 Cada fase debe preservar:
 
 - permisos y scopes;
