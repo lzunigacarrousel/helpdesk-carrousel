@@ -323,12 +323,16 @@ Pendiente: ejecutar regresión + health + `VALIDAR_FASE12_ESTABILIDAD.bat` en PC
 
 ## Decisión de despliegue para Task 8
 
-- El mismo código debe funcionar en localhost, acceso directo por `94.74.71.96` y publicación preferida mediante `https://portal.carrousel-apps.com/`.
-- `APP_BASE_URL` continúa derivándose del host/ruta actual; no se hardcodea la ubicación del Helpdesk.
+- La ruta pública del Helpdesk queda fijada en `/HelpdeskCarrousel/public/`.
+- Solo cambia el host según el entorno:
+  - `http://localhost/HelpdeskCarrousel/public/`;
+  - `http://94.74.71.96/HelpdeskCarrousel/public/`;
+  - `https://portal.carrousel-apps.com/HelpdeskCarrousel/public/`.
+- El mismo código funciona en los tres escenarios porque `APP_BASE_URL` deriva host y ruta desde la petición actual.
+- No se hardcodea el host del Helpdesk dentro de controladores/vistas.
 - El botón Portal conserva `https://portal.carrousel-apps.com/portal/`.
-- `config/local.php` define `app_url` por entorno únicamente para URLs canónicas de correo.
-- Para SMTP real, `app_url` debe ser la URL completa y alcanzable del Helpdesk; localhost no sirve para destinatarios en otros equipos.
-- La subruta final del Helpdesk no se inventa antes de configurar Apache/Portal.
-- Se creó `tests/phase12_deployment_targets_regression.php` y se conectó a gate/CI.
+- `config/local.php` define `app_url` por entorno para URLs canónicas de correo.
+- Para SMTP real dirigido a otros equipos, usar la URL por IP o preferiblemente la URL por dominio; localhost solo sirve en la misma PC.
+- Se reforzó `tests/phase12_deployment_targets_regression.php` para exigir las tres URLs exactas y la ruta fija.
 
 Siguiente: Task 8 — closeout final, actualización de README/CHANGELOG, gate final y separación explícita entre cierre técnico y despliegue.
