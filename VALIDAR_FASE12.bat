@@ -5,6 +5,8 @@ cd /d "%~dp0"
 set "PHP=C:\xampp\php\php.exe"
 if not exist "%PHP%" set "PHP=php"
 set "FAILED=0"
+set "FAIL_LOG=%TEMP%\helpdesk_phase12_failures_%RANDOM%.txt"
+type nul > "%FAIL_LOG%"
 
 echo ============================================================
 echo  HELPDESK CARROUSEL - GATE FASE 12 VALIDACION INTEGRAL
@@ -60,6 +62,7 @@ echo Git diff check
 git diff --check
 if errorlevel 1 (
     echo [FALLO] git diff --check
+    >>"%FAIL_LOG%" echo git diff --check
     set "FAILED=1"
 ) else (
     echo [OK] git diff --check
@@ -80,6 +83,7 @@ echo Aun faltan: BD, perfiles/scopes, E2E, correo/notificaciones
 echo y matriz visual manual antes del closeout final.
 echo Produccion NO queda autorizada.
 echo ============================================================
+del /q "%FAIL_LOG%" >nul 2>&1
 exit /b 0
 
 :run
@@ -89,6 +93,7 @@ echo %~2
 "%PHP%" "%~1"
 if errorlevel 1 (
     echo [FALLO] %~2
+    >>"%FAIL_LOG%" echo %~2
     set "FAILED=1"
 ) else (
     echo [OK] %~2
@@ -99,7 +104,12 @@ exit /b 0
 echo.
 echo ============================================================
 echo [ERROR] GATE FASE 12 CON FALLOS
+echo.
+echo RESUMEN DE FALLOS:
+if exist "%FAIL_LOG%" type "%FAIL_LOG%"
+echo.
 echo Corrige solamente defectos reales y agrega regresion.
 echo Produccion permanece bloqueada.
 echo ============================================================
+del /q "%FAIL_LOG%" >nul 2>&1
 exit /b 1
