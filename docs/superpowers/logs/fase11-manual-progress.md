@@ -110,3 +110,26 @@ Siguiente: Task 5 — UI/responsive/accesibilidad final del Manual y ayuda flota
 - BD: sin cambios.
 
 Siguiente: Task 6 — closeout final de Fase 11: README, CHANGELOG, gate final y transición a Fase 12 Validación integral.
+
+## Task 6 — Closeout final · IMPLEMENTADA EN CÓDIGO
+
+- README marca Fase 11 Manual como implementada y Fase 12 Validación integral como siguiente fase funcional.
+- README incorpora la sección canónica `Fase 11 — Manual consolidado e interactivo`.
+- CHANGELOG registra Fase 11 con perfil por rol/capacidad, deep-links, FAQ contextual, tutoriales de siete puntos y accesibilidad.
+- `tests/phase11_closeout_regression.php` valida documentación, versión, gate, CI, log y ausencia de migraciones/parches de BD.
+- `VALIDAR_FASE11.bat` incorpora el closeout y pasa a ser el gate final de la fase.
+- CI incorpora la regresión de closeout de Fase 11.
+- Versión se mantiene en `2.4.0-dev`; no se crea tag ni versión de producción.
+- BD: sin cambios.
+- Producción: sin cambios.
+
+### Estado para cierre
+
+Pendiente únicamente:
+1. sincronizar PC TEST;
+2. ejecutar `phase11_closeout_regression.php`;
+3. ejecutar `VALIDAR_FASE11.bat` completo;
+4. registrar evidencia GREEN;
+5. iniciar Fase 12 — Validación integral.
+
+Fase 12 será el cierre transversal de las 12 fases: funcionalidad, permisos/scopes, correo, notificaciones, datos/BD, claro/oscuro, 1920, 1366, iPad horizontal, iPad vertical, móvil y decisión explícita de despliegue. No se debe desplegar producción antes de ese cierre.
