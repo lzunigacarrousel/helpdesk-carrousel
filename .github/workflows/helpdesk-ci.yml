@@ -257,6 +257,9 @@ jobs:
       - name: Phase 12 - closeout
         run: php tests/phase12_closeout_regression.php
 
+      - name: Preproduction - clean schema
+        run: php tests/preprod_clean_schema_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
