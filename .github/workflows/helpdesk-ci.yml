@@ -251,6 +251,9 @@ jobs:
       - name: Phase 12 - runtime health
         run: php tests/phase12_runtime_health.php
 
+      - name: Phase 12 - deployment targets
+        run: php tests/phase12_deployment_targets_regression.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
