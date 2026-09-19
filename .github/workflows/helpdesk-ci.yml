@@ -245,6 +245,12 @@ jobs:
       - name: Phase 12 - visual responsive contract
         run: php tests/phase12_visual_responsive_regression.php
 
+      - name: Phase 12 - operational stability contract
+        run: php tests/phase12_operational_stability_regression.php
+
+      - name: Phase 12 - runtime health
+        run: php tests/phase12_runtime_health.php
+
       - name: Phase 9 knowledge - closeout
         run: php tests/phase9_closeout_regression.php
 
