@@ -106,6 +106,27 @@ El acceso utiliza OTP, no contraseña permanente. En PC TEST con `mail_mode => '
 
 `storage/logs/mail.log`
 
+## Entornos y publicación
+
+La aplicación debe conservar el mismo código y resolver su base URL desde el host/ruta donde se publique. Los destinos previstos son:
+
+- desarrollo/PC TEST: `localhost`;
+- acceso directo al servidor: `94.74.71.96`;
+- publicación preferida mediante el Portal de Sistemas: `https://portal.carrousel-apps.com/`.
+
+El Helpdesk **no debe hardcodear** uno de esos hosts dentro de enlaces internos. `APP_BASE_URL` se deriva de la petición actual y de la ruta pública montada, por lo que la aplicación puede vivir bajo una subruta distinta sin reescribir controladores o vistas.
+
+El botón **Portal** mantiene como destino el Portal de Sistemas en `https://portal.carrousel-apps.com/portal/`.
+
+Para correo:
+
+- con `mail_mode=log`, `app_url` puede quedar vacía y localhost es válido para pruebas locales;
+- con `mail_mode=smtp`, `app_url` debe ser la URL exacta y alcanzable del Helpdesk en ese entorno;
+- en servidor puede ser la URL pública bajo `portal.carrousel-apps.com` o, mientras corresponda, una URL alcanzable basada en `94.74.71.96`;
+- no usar `localhost` como `app_url` para correos destinados a otros equipos, porque el botón abriría el localhost del destinatario.
+
+No asumir una subruta final del Helpdesk hasta que se defina el montaje en Apache/Portal. La configuración local debe registrar la URL completa real cuando exista.
+
 ## Capacidades actuales
 
 La base estable incluye, entre otras funciones:
