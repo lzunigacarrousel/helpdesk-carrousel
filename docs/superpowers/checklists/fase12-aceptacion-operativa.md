@@ -4,13 +4,13 @@ Completar en PC TEST antes del closeout final.
 
 ## A. Estado técnico automatizado
 
-- [ ] `VALIDAR_FASE12.bat` GREEN.
-- [ ] `VALIDAR_FASE12_BD.bat` GREEN.
-- [ ] `VALIDAR_FASE12_SEGURIDAD.bat` GREEN.
-- [ ] `VALIDAR_FASE12_E2E.bat` GREEN.
-- [ ] `VALIDAR_FASE12_COMUNICACION.bat` GREEN.
-- [ ] `VALIDAR_FASE12_VISUAL.bat` GREEN.
-- [ ] `VALIDAR_FASE12_ESTABILIDAD.bat` GREEN.
+- [x] `VALIDAR_FASE12.bat` GREEN.
+- [x] `VALIDAR_FASE12_BD.bat` GREEN.
+- [x] `VALIDAR_FASE12_SEGURIDAD.bat` GREEN.
+- [x] `VALIDAR_FASE12_E2E.bat` GREEN.
+- [x] `VALIDAR_FASE12_COMUNICACION.bat` GREEN.
+- [x] `VALIDAR_FASE12_VISUAL.bat` GREEN.
+- [x] `VALIDAR_FASE12_ESTABILIDAD.bat` GREEN.
 
 ## B. Runtime y almacenamiento
 
