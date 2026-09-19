@@ -336,3 +336,22 @@ Pendiente: ejecutar regresión + health + `VALIDAR_FASE12_ESTABILIDAD.bat` en PC
 - Se reforzó `tests/phase12_deployment_targets_regression.php` para exigir las tres URLs exactas y la ruta fija.
 
 Siguiente: Task 8 — closeout final, actualización de README/CHANGELOG, gate final y separación explícita entre cierre técnico y despliegue.
+
+## Task 8 — Closeout final · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- README actualiza Fases 5–11 a `Cerrada técnicamente en PC TEST`.
+- Fase 12 queda en `CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada` hasta ejecutar el gate final.
+- CHANGELOG incorpora `Fase 12 · Validación integral y readiness`.
+- `APP_VERSION` permanece en `2.4.0-dev`; no se crea tag ni release estable.
+- Se creó `tests/phase12_closeout_regression.php`.
+- Se creó `VALIDAR_FASE12_CLOSEOUT.bat`.
+- El closeout exige rama `main`, working tree limpio, gate transversal GREEN, regresión final GREEN y `git diff --check` limpio.
+- El closeout no ejecuta despliegue, no crea tag, no crea release y no modifica producción.
+- Los gates automatizados de aceptación quedaron marcados GREEN en `fase12-aceptacion-operativa.md`.
+- Permanecen explícitamente pendientes antes de producción:
+  - matriz visual manual real;
+  - `app_url` canónica del entorno final;
+  - SMTP real y revisión Gmail/Outlook.
+- Ruta fija: `/HelpdeskCarrousel/public/` con host variable `localhost`, `94.74.71.96` o `portal.carrousel-apps.com`.
+
+Pendiente: ejecutar `VALIDAR_FASE12_CLOSEOUT.bat` en PC TEST. Si queda GREEN, actualizar estado canónico de Fase 12 a cierre técnico completado.
