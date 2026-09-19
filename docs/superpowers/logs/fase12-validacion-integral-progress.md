@@ -245,4 +245,58 @@ Pendiente: ejecutar contrato, health check y `VALIDAR_FASE12_COMUNICACION.bat` e
 - `config/local.php` permanece ignorado por Git.
 - No se registran credenciales locales en repositorio ni en documentación.
 - Producción: sin cambios.
-\n## Task 5 — Correo y notificaciones · AUTOMATIZACIÓN CERRADA / SMTP REAL PENDIENTE\n\n- PC TEST ejecutó `VALIDAR_FASE12_COMUNICACION.bat` GREEN.\n- Baseline local reparado y fijado en delivery ID 216.\n- Trazabilidad SQL: PASS.\n- URLs locales históricas SENT: 78, documentadas y no borradas.\n- URLs locales nuevas posteriores al baseline: 0.\n- Nota interna por email: 0.\n- Correos operativos a Gerencia: 0.\n- Duplicados, huérfanos y destinatarios inválidos: 0.\n- SMTP/Composer/PHPMailer/logo CID: técnicamente OK.\n- `app_url` canónica sigue pendiente; por eso `--require-canonical` bloquea correctamente una prueba SMTP real.\n- Gmail/Outlook se mantienen pendientes hasta disponer de URL estable real.\n- Producción: sin cambios.\n\n## Task 6 — Visual / responsive integral · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST\n\n- Se creó `tests/phase12_visual_responsive_regression.php`.\n- Se creó `VALIDAR_FASE12_VISUAL.bat`.\n- Se creó `docs/superpowers/checklists/fase12-visual-responsive-validacion-manual.md`.\n- El contrato automático cubre viewport, ancho útil, tipografía, shell, breakpoints 1260/1100/900/760/430, tablet específica 761–900, iPad 768 no forzado a móvil, formulario público, cola móvil, superficies críticas, dark mode, foco y objetivos táctiles.\n- El gate agrega regresiones existentes de dark mode, botones, Reportes, Manual, Conocimiento, Agenda, Proveedor, Solicitante y tutorial.\n- La matriz manual exige claro/oscuro y 1920×1080, 1366×768, iPad H, iPad V y móvil para perfiles críticos.\n- BD: sin cambios.\n- Producción: sin cambios.\n\nPendiente: ejecutar regresión y `VALIDAR_FASE12_VISUAL.bat` en PC TEST; después completar la matriz visual manual y registrar cualquier defecto real.\n
+
+## Task 5 — Correo y notificaciones · AUTOMATIZACIÓN CERRADA / SMTP REAL PENDIENTE
+
+- PC TEST ejecutó `VALIDAR_FASE12_COMUNICACION.bat` GREEN.
+- Baseline local reparado y fijado en delivery ID 216.
+- Trazabilidad SQL: PASS.
+- URLs locales históricas SENT: 78, documentadas y no borradas.
+- URLs locales nuevas posteriores al baseline: 0.
+- Nota interna por email: 0.
+- Correos operativos a Gerencia: 0.
+- Duplicados, huérfanos y destinatarios inválidos: 0.
+- SMTP/Composer/PHPMailer/logo CID: técnicamente OK.
+- `app_url` canónica sigue pendiente; por eso `--require-canonical` bloquea correctamente una prueba SMTP real.
+- Gmail/Outlook se mantienen pendientes hasta disponer de URL estable real.
+- Producción: sin cambios.
+
+## Task 6 — Visual / responsive integral · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `tests/phase12_visual_responsive_regression.php`.
+- Se creó `VALIDAR_FASE12_VISUAL.bat`.
+- Se creó `docs/superpowers/checklists/fase12-visual-responsive-validacion-manual.md`.
+- El contrato automático cubre viewport, ancho útil, tipografía, shell, breakpoints 1260/1100/900/760/430, tablet específica 761–900, iPad 768 no forzado a móvil, formulario público, cola móvil, superficies críticas, dark mode, foco y objetivos táctiles.
+- El gate agrega regresiones existentes de dark mode, botones, Reportes, Manual, Conocimiento, Agenda, Proveedor, Solicitante y tutorial.
+- La matriz manual exige claro/oscuro y 1920×1080, 1366×768, iPad H, iPad V y móvil para perfiles críticos.
+- BD: sin cambios.
+- Producción: sin cambios.
+
+Pendiente: ejecutar regresión y `VALIDAR_FASE12_VISUAL.bat` en PC TEST; después completar la matriz visual manual y registrar cualquier defecto real.
+
+## Task 6 — Visual / responsive integral · AUTOMATIZACIÓN CERRADA / MATRIZ MANUAL PENDIENTE
+
+- PC TEST ejecutó `VALIDAR_FASE12_VISUAL.bat` GREEN.
+- Contrato transversal visual/responsive: GREEN.
+- Dark mode base/cobertura/superficies públicas/interacción: GREEN.
+- Botones canónicos: GREEN.
+- Reportes, Manual, Conocimiento, Agenda, Proveedor, Solicitante y Tutorial: GREEN.
+- `git diff --check`: GREEN.
+- Breakpoints cubiertos automáticamente: escritorio amplio/compacto, tablet, iPad 768 no forzado a móvil y móvil.
+- Pendiente obligatorio: completar revisión visual real en claro/oscuro para 1920×1080, 1366×768, iPad H, iPad V y móvil.
+- Producción: sin cambios.
+
+## Task 7 — Estabilidad operativa y aceptación · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `tests/phase12_operational_stability_regression.php`.
+- Se creó `tests/phase12_runtime_health.php`.
+- Se creó `VALIDAR_FASE12_ESTABILIDAD.bat`.
+- Se creó `docs/superpowers/checklists/fase12-aceptacion-operativa.md`.
+- Contrato estático cubre handler global de errores, logging, headers de seguridad, adjuntos, MIME/tamaño/hash, visibilidad de descargas, XLSX, auditoría, scopes y navegación.
+- Health runtime valida extensiones PHP, storage/logs, ticket_uploads, escritura/limpieza temporal, conexión DB y consultas básicas con umbrales holgados.
+- Gate reutiliza static checks, project quality, navegación, XLSX, exportaciones generales y proveedor.
+- Sintaxis JavaScript se valida con Node cuando está disponible en PC TEST; CI la mantiene obligatoria.
+- BD: sin cambios.
+- Producción: sin cambios.
+
+Pendiente: ejecutar regresión + health + `VALIDAR_FASE12_ESTABILIDAD.bat` en PC TEST y completar checklist manual de aceptación.
