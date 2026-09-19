@@ -25,6 +25,7 @@ $mailView=(string)file_get_contents($root.'/app/Views/admin/mail.php');
 $shell=(string)file_get_contents($root.'/app/Views/shared/app_start.php');
 $router=(string)file_get_contents($root.'/public/index.php');
 $sql=(string)file_get_contents($root.'/database/VERIFICAR_FASE12_COMUNICACION_20260919.sql');
+$communicationGate=(string)file_get_contents($root.'/VALIDAR_FASE12_COMUNICACION.bat');
 
 ok(str_contains($mail,"private const LOGO_CID='carrousel-logo'"),'Correo define CID estable del logo');
 ok(str_contains($mail,"'cid:'.self::LOGO_CID"),'HTML usa CID cuando existe logo local');
@@ -112,6 +113,13 @@ ok(str_contains($sql,'ACCIONES_LOCALHOST_EMAIL_NUEVAS'),'SQL bloquea nuevas URLs
 ok(str_contains($sql,'@phase12_baseline_delivery_id'),'SQL usa baseline local sin alterar BD');
 ok(str_contains($sql,"status='SENT'"),'Control de URL local se limita a correos realmente enviados');
 ok(str_contains($sql,"THEN 'PASS'"),'SQL emite PASS');
+
+ok(str_contains($communicationGate,'phase12_communication_baseline.txt'),'Gate usa baseline local persistente');
+ok(str_contains($communicationGate,'SELECT COALESCE(MAX(id),0) FROM notification_deliveries'),'Gate calcula baseline desde BD sin command substitution');
+ok(str_contains($communicationGate,'Baseline invalido 0 detectado'),'Gate repara baseline cero de intentos anteriores');
+ok(str_contains($communicationGate,'helpdesk_f12_communication_run.sql'),'Gate compone SQL temporal');
+ok(str_contains($communicationGate,'< "%COMM_SQL_RUN%"'),'Gate ejecuta verificador SQL por stdin');
+ok(!str_contains($communicationGate,'source database/VERIFICAR_FASE12_COMUNICACION_20260919.sql" >'),'Gate no intenta source dentro de --execute');
 
 if($errors){
     fwrite(STDERR,"[ERROR] {$errors} validación(es) fallaron.".PHP_EOL);
