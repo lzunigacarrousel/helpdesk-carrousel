@@ -19,6 +19,7 @@ function ok(bool $condition,string $message):void
 
 $health=MailService::configurationHealth();
 $logo=$root.'/public/assets/images/logo.png';
+$requireCanonical=in_array('--require-canonical',$argv??[],true);
 
 ok(in_array($health['mode'],['log','smtp'],true),'Modo de correo reconocido');
 ok(is_file($logo),'Logo local disponible para CID');
@@ -32,10 +33,15 @@ if($health['mode']==='smtp'){
         require_once $root.'/vendor/autoload.php';
         ok(class_exists('PHPMailer\\PHPMailer\\PHPMailer'),'PHPMailer disponible');
     }
-    ok(APP_CANONICAL_CONFIGURED,'SMTP real exige URL canónica configurada');
-    if(!APP_CANONICAL_CONFIGURED){
+    if(APP_CANONICAL_CONFIGURED){
+        ok(true,'URL canónica lista para envío SMTP real');
+    }elseif($requireCanonical){
+        ok(false,'SMTP real exige URL canónica configurada');
         echo "[ACCION] Configura 'app_url' en config/local.php con la URL estable del Helpdesk que abrirán los destinatarios.".PHP_EOL;
         echo "[ACCION] No uses localhost ni una IP privada/LAN para una prueba SMTP real.".PHP_EOL;
+    }else{
+        echo "[PENDIENTE] URL canónica no configurada; la validación técnica puede continuar porque este test no envía correo.".PHP_EOL;
+        echo "[PENDIENTE] Antes de una prueba SMTP real ejecuta este mismo test con --require-canonical.".PHP_EOL;
     }
 }else{
     echo '[OK] Modo prueba activo: este health check no envía correo.'.PHP_EOL;
