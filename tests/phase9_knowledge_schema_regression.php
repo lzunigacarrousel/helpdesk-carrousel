@@ -37,10 +37,19 @@ foreach(['knowledge.view','knowledge.draft_manage','knowledge.review','knowledge
     ok(str_contains($migration,"'{$permission}'"),"Migración contiene permiso {$permission}");
 }
 
-ok(!str_contains(strtoupper($migration),'DROP TABLE KNOWLEDGE_ARTICLES'),'Migración conserva knowledge_articles');
-ok(!str_contains(strtoupper($migration),'DROP COLUMN TITLE'),'Migración no elimina title legacy');
-ok(!str_contains(strtoupper($migration),'DROP COLUMN CONTENT'),'Migración no elimina content legacy');
-ok(str_contains($migration,'NOT EXISTS'),'Migración incluye guardas idempotentes');
+ok(!str_contains(strtoupper($migration),'DROP TABLE KNOWLEDGE_ARTICLES'),'Migración histórica conserva knowledge_articles');
+ok(!str_contains(strtoupper($migration),'DROP COLUMN TITLE'),'Migración histórica no destruye title legacy');
+ok(!str_contains(strtoupper($migration),'DROP COLUMN CONTENT'),'Migración histórica no destruye content legacy');
+ok(str_contains($migration,'NOT EXISTS'),'Migración histórica incluye guardas idempotentes');
+
+foreach(['title','summary','content','status','visibility','category_id','author_user_id','published_at'] as $legacyColumn){
+    ok(
+        !preg_match('/CREATE TABLE knowledge_articles \([\s\S]*?\b'.preg_quote($legacyColumn,'/').'\b[\s\S]*?\) ENGINE=/i',$install),
+        "INSTALAR limpio no conserva knowledge_articles.{$legacyColumn}"
+    );
+}
+ok(!str_contains($install,"'knowledge.manage'"),'INSTALAR limpio no conserva permiso knowledge.manage');
+ok(!str_contains($install,'CREATE TABLE problem_attachments'),'INSTALAR limpio no conserva tabla problem_attachments');
 ok(str_contains($verify,'published_without_internal_pointer'),'Verificador controla publicados sin puntero interno');
 ok(str_contains($verify,'public_without_public_pointer'),'Verificador controla públicos sin puntero público');
 ok(str_contains($verify,'problem_solutions'),'Verificador controla relaciones problem_solutions');
