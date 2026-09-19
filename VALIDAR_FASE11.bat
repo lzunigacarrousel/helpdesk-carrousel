@@ -17,6 +17,7 @@ call :run tests\phase11_manual_profile_content_regression.php "Fase 11 - conteni
 call :run tests\phase11_contextual_help_regression.php "Fase 11 - ayuda y FAQ contextual"
 call :run tests\phase11_tutorial_depth_regression.php "Fase 11 - tutoriales de siete puntos"
 call :run tests\phase11_manual_accessibility_regression.php "Fase 11 - UI responsive y accesibilidad"
+call :run tests\phase11_closeout_regression.php "Fase 11 - closeout documental"
 call :run tests\button_semantics_regression.php "UI - semantica canonica de botones"
 call :run tests\static_checks.php "Checks estaticos"
 call :run tests\project_quality.php "Calidad de rutas, vistas y CSS"
@@ -42,8 +43,9 @@ if "%FAILED%"=="1" goto :fail
 echo.
 echo ============================================================
 echo [OK] GATE FASE 11 COMPLETADO SIN FALLOS
-echo Este gate crecera con cada Task del Manual.
-echo Produccion sigue fuera de alcance.
+echo Gate final de Fase 11 Manual.
+echo Siguiente fase funcional: Fase 12 Validacion integral.
+echo Produccion sigue fuera de alcance hasta Fase 12 y aprobacion explicita.
 echo ============================================================
 exit /b 0
 
