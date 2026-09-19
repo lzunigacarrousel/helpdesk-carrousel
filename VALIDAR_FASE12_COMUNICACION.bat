@@ -28,13 +28,29 @@ set "MYSQL_AUTH=-u%DB_USER%"
 if defined DB_PASS set "MYSQL_AUTH=-u%DB_USER% -p%DB_PASS%"
 
 if not exist "%CD%\storage\logs" mkdir "%CD%\storage\logs"
-if exist "%BASELINE_FILE%" (
-  set /p BASELINE_ID=<"%BASELINE_FILE%"
-) else (
-  for /f "usebackq delims=" %%I in (`"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 -N -B "%DB_NAME%" -e "SELECT COALESCE(MAX(id),0) FROM notification_deliveries;"`) do set "BASELINE_ID=%%I"
-  if not defined BASELINE_ID set "BASELINE_ID=0"
+
+set "CURRENT_MAX_FILE=%TEMP%\helpdesk_f12_current_delivery_id.txt"
+"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 -N -B "%DB_NAME%" -e "SELECT COALESCE(MAX(id),0) FROM notification_deliveries;" > "%CURRENT_MAX_FILE%"
+if errorlevel 1 (
+  echo [ERROR] No se pudo consultar el MAX(id) de notification_deliveries.
+  exit /b 1
+)
+set "CURRENT_MAX_ID="
+set /p CURRENT_MAX_ID=<"%CURRENT_MAX_FILE%"
+if not defined CURRENT_MAX_ID set "CURRENT_MAX_ID=0"
+
+if exist "%BASELINE_FILE%" set /p BASELINE_ID=<"%BASELINE_FILE%"
+if not defined BASELINE_ID set "BASELINE_ID=%CURRENT_MAX_ID%"
+
+if "%BASELINE_ID%"=="0" if not "%CURRENT_MAX_ID%"=="0" (
+  set "BASELINE_ID=%CURRENT_MAX_ID%"
   >"%BASELINE_FILE%" echo !BASELINE_ID!
-  echo [INFO] Linea base de comunicacion creada en ID !BASELINE_ID!.
+  echo [INFO] Baseline invalido 0 corregido al ID !BASELINE_ID!.
+) else (
+  if not exist "%BASELINE_FILE%" (
+    >"%BASELINE_FILE%" echo !BASELINE_ID!
+    echo [INFO] Linea base de comunicacion creada en ID !BASELINE_ID!.
+  )
 )
 echo [INFO] Baseline de entregas: %BASELINE_ID%
 
@@ -44,7 +60,10 @@ call :run tests\phase12_mail_health.php "Salud de configuracion de correo"
 echo.
 echo ------------------------------------------------------------
 echo Trazabilidad real en BD
-"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 --default-character-set=utf8mb4 -N -B "%DB_NAME%" --execute="SET @phase12_baseline_delivery_id=%BASELINE_ID%; source database/VERIFICAR_FASE12_COMUNICACION_20260919.sql" > "%TEMP%\helpdesk_f12_communication.txt"
+set "COMM_SQL_RUN=%TEMP%\helpdesk_f12_communication_run.sql"
+>"%COMM_SQL_RUN%" echo SET @phase12_baseline_delivery_id=%BASELINE_ID%;
+type "database\VERIFICAR_FASE12_COMUNICACION_20260919.sql" >> "%COMM_SQL_RUN%"
+"%MYSQL%" %MYSQL_AUTH% -h 127.0.0.1 --default-character-set=utf8mb4 -N -B "%DB_NAME%" < "%COMM_SQL_RUN%" > "%TEMP%\helpdesk_f12_communication.txt"
 if errorlevel 1 (
   echo [FALLO] No se pudo ejecutar VERIFICAR_FASE12_COMUNICACION_20260919.sql
   set "FAILED=1"
