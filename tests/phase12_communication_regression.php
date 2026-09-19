@@ -22,6 +22,7 @@ $feedback=(string)file_get_contents($root.'/app/Controllers/TicketFeedbackContro
 $external=(string)file_get_contents($root.'/app/Controllers/ExternalController.php');
 $mailAdmin=(string)file_get_contents($root.'/app/Controllers/MailAdminController.php');
 $mailView=(string)file_get_contents($root.'/app/Views/admin/mail.php');
+$shell=(string)file_get_contents($root.'/app/Views/shared/app_start.php');
 $router=(string)file_get_contents($root.'/public/index.php');
 $sql=(string)file_get_contents($root.'/database/VERIFICAR_FASE12_COMUNICACION_20260919.sql');
 
@@ -101,6 +102,7 @@ ok(str_contains($mailView,"(string)$" . "d['event_key']!=='OTP_REQUESTED'"),'UI 
 ok(str_contains($mailView,'Destinatario'),'UI muestra destinatario');
 ok(str_contains($mailView,'Evento'),'UI muestra evento');
 ok(str_contains($mailView,'Intentos'),'UI muestra intentos');
+ok(str_contains($shell,".' actualizaciones nuevas'"),'Campana resume novedades sin crear otro inbox');
 
 ok(str_contains($sql,'EMAIL_NOTA_INTERNA'),'SQL controla nota interna sin correo');
 ok(str_contains($sql,'EMAIL_OPERATIVO_GERENCIA'),'SQL controla correo operativo a Gerencia');
