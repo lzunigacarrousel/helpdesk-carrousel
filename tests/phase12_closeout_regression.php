@@ -23,7 +23,7 @@ $closeoutGate=(string)file_get_contents($root.'/VALIDAR_FASE12_CLOSEOUT.bat');
 $ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
 
 ok((bool)preg_match('/define\(\s*[\'"]APP_VERSION[\'"]\s*,\s*[\'"]2\.4\.0-dev[\'"]\s*\)/',$config),'Versión permanece 2.4.0-dev');
-ok(str_contains($readme,'| 12 | Validación integral | **CIERRE TÉCNICO EN VALIDACIÓN FINAL — producción bloqueada** |'),'Roadmap marca cierre técnico en validación final');
+ok(str_contains($readme,'| 12 | Validación integral | **Cerrada técnicamente en PC TEST — producción bloqueada** |'),'Roadmap marca Fase 12 cerrada técnicamente');
 
 foreach([5,6,7,8,9,10,11] as $phase){
     ok((bool)preg_match('/\| '.$phase.' \| .*\| \*\*Cerrada técnicamente en PC TEST\*\* \|/',$readme),'Fase '.$phase.' cerrada técnicamente en roadmap');
@@ -50,6 +50,7 @@ foreach([
     'VALIDAR_FASE12_COMUNICACION.bat',
     'VALIDAR_FASE12_VISUAL.bat',
     'VALIDAR_FASE12_ESTABILIDAD.bat',
+    'VALIDAR_FASE12_CLOSEOUT.bat',
 ] as $gateName){
     ok(str_contains($acceptance,'[x] `'.$gateName.'` GREEN'),'Checklist registra GREEN: '.$gateName);
 }
@@ -71,6 +72,7 @@ foreach([
     'Task 5 — Correo y notificaciones · AUTOMATIZACIÓN CERRADA',
     'Task 6 — Visual / responsive integral · AUTOMATIZACIÓN CERRADA',
     'Task 7 — Estabilidad operativa y aceptación · AUTOMATIZACIÓN CERRADA',
+    'Task 8 — Closeout final · CERRADA',
 ] as $marker){
     ok(str_contains($log,$marker),'Log conserva '.$marker);
 }
