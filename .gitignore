@@ -32,3 +32,13 @@
 *.dump
 *.backup
 *.old
+
+# Salidas de release / editores / sistema
+/dist/
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
