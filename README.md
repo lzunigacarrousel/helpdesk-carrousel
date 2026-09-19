@@ -152,8 +152,8 @@ El roadmap de maduración se mantiene como guía funcional. El estado operativo 
 | 8 | Calidad IT → proveedor | **Implementada — pendiente validación integral Fase 12** |
 | 9 | Conocimiento | **Implementada — gate PC TEST GREEN; validación transversal final en Fase 12** |
 | 10 | Reportes | **Implementada — pendiente validación integral Fase 12** |
-| 11 | Manual | **EN CURSO — consolidación final** |
-| 12 | Validación integral | Pendiente |
+| 11 | Manual | **Implementada — pendiente validación integral Fase 12** |
+| 12 | Validación integral | **SIGUIENTE — validación transversal final** |
 
 La validación responsive acumulada, revisión claro/oscuro y cierre transversal se consolidan en Fase 12 aunque las fases previas ya tengan validaciones parciales.
 
@@ -270,6 +270,25 @@ La Fase 10 consolida los informes existentes sin crear un sistema paralelo:
 - gate local `VALIDAR_FASE10.bat` y CI cubren hub, conocimiento, actividades, tickets/SLA, proveedores, equipo, exportaciones, UI y closeout.
 
 **BD: sin cambios.** Fase 10 reutiliza el esquema existente y no requiere migración.
+
+### Fase 11 — Manual consolidado e interactivo
+
+Estado: **IMPLEMENTADA — pendiente validación integral Fase 12**.
+
+La Fase 11 consolida la ayuda existente sin crear un sistema paralelo:
+
+- `/manual` adapta perfil, accesos rápidos, contenido y FAQ a Solicitante, Técnico, Supervisor, Gerencia, Administrador/Semiadmin y Colaborador;
+- búsqueda, filtros por tema e índice trabajan juntos y aceptan enlaces profundos mediante `topic`, `q` y anclas;
+- la ayuda flotante conserva tres niveles máximos: **Iniciar tutorial**, **Abrir manual aquí** y **Preguntas de esta pantalla** cuando existe una FAQ útil;
+- tickets, Agenda, Gestión, Reportes, Proveedores, Equipo, Problemas, Conocimiento, Usuarios, Correo, Auditoría y Búsqueda enlazan al contexto exacto del Manual;
+- los tutoriales cubren siete preguntas: qué estás viendo, para qué sirve, qué hacer primero, qué puede esperar, qué ocurre después, errores comunes y dónde obtener más ayuda;
+- Gerencia y Supervisión reciben orientación de consulta y seguimiento, sin instrucciones para operar tickets;
+- Colaborador recibe únicamente el contexto necesario para casos compartidos y nunca instrucciones sobre notas internas;
+- ayuda, Manual y tutoriales gestionan foco, teclado, `aria-live`, tamaño táctil, `prefers-reduced-motion`, claro/oscuro y responsive;
+- tablet/iPad conserva composición de tablet; móvil pequeño apila filtros y acciones cuando ya no existe ancho útil;
+- gate local `VALIDAR_FASE11.bat` y CI cubren perfil/navegación, contenido por perfil, FAQ contextual, tutoriales y accesibilidad.
+
+**BD: sin cambios.** Fase 11 reutiliza vistas, permisos y servicios existentes y no requiere migración.
 
 ## Flujo Git oficial
 
