@@ -181,11 +181,11 @@ if($canOpenManual){
     }
 }
 ?>
-<button class="help-fab" type="button" data-help-open aria-label="Abrir ayuda" title="Ayuda">?</button>
+<button class="help-fab" type="button" data-help-open aria-label="Abrir ayuda" aria-controls="helpdesk-context-help" aria-expanded="false" title="Ayuda">?</button>
 <div class="help-backdrop" data-help-backdrop hidden></div>
-<aside class="help-panel" data-help-panel data-help-context="<?= htmlspecialchars($helpContext) ?>" aria-hidden="true">
+<aside class="help-panel" id="helpdesk-context-help" data-help-panel data-help-context="<?= htmlspecialchars($helpContext) ?>" role="dialog" aria-modal="true" aria-labelledby="helpdesk-context-help-title" aria-hidden="true">
     <div class="help-panel-head">
-        <div><span class="help-kicker">Ayuda de esta pantalla</span><h2><?= htmlspecialchars($current['title']) ?></h2></div>
+        <div><span class="help-kicker">Ayuda de esta pantalla</span><h2 id="helpdesk-context-help-title"><?= htmlspecialchars($current['title']) ?></h2></div>
         <button class="help-close" type="button" data-help-close aria-label="Cerrar ayuda">×</button>
     </div>
     <p class="help-intro">Consulta la guía rápida o inicia el recorrido guiado para ver cada parte directamente sobre la pantalla.</p>
