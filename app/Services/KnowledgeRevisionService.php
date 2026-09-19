@@ -44,13 +44,10 @@ final class KnowledgeRevisionService
             $article=$pdo->prepare(
                 "INSERT INTO knowledge_articles(
                     article_number,lifecycle_status,current_internal_revision_id,current_public_revision_id,
-                    created_by_user_id,title,summary,content,status,visibility,category_id,author_user_id,
-                    published_at,archived_at,created_at,updated_at
-                 ) VALUES('', 'ACTIVE',NULL,NULL,?,?,?,?,'DRAFT','INTERNAL',?,?,NULL,NULL,NOW(),NOW())"
+                    created_by_user_id,archived_at,created_at,updated_at
+                 ) VALUES('', 'ACTIVE',NULL,NULL,?,NULL,NOW(),NOW())"
             );
-            $article->execute([
-                $userId,$title,$summary!==''?$summary:null,$content,$categoryId>0?$categoryId:null,$userId
-            ]);
+            $article->execute([$userId]);
             $articleId=(int)$pdo->lastInsertId();
             $number='KB-'.date('Y').'-'.str_pad((string)$articleId,4,'0',STR_PAD_LEFT);
             $pdo->prepare('UPDATE knowledge_articles SET article_number=? WHERE id=?')->execute([$number,$articleId]);
@@ -163,15 +160,7 @@ final class KnowledgeRevisionService
                 $changeNote!==''?$changeNote:$revision['change_note'],$revisionId
             ]);
 
-            $articleId=(int)$revision['article_id'];
-            $shadow=$pdo->prepare(
-                "UPDATE knowledge_articles
-                 SET title=?,summary=?,content=?,category_id=?,author_user_id=?,updated_at=NOW()
-                 WHERE id=? AND current_internal_revision_id IS NULL AND status='DRAFT'"
-            );
-            $shadow->execute([
-                $title,$summary!==''?$summary:null,$content,$categoryId>0?$categoryId:null,$userId,$articleId
-            ]);
+            // El contenido vive exclusivamente en knowledge_revisions.
         });
     }
 
@@ -226,15 +215,9 @@ final class KnowledgeRevisionService
 
             $pdo->prepare(
                 "UPDATE knowledge_articles
-                 SET current_internal_revision_id=?,
-                     title=?,summary=?,content=?,category_id=?,status='PUBLISHED',
-                     author_user_id=COALESCE(author_user_id,?),
-                     published_at=COALESCE(published_at,NOW()),updated_at=NOW()
+                 SET current_internal_revision_id=?,updated_at=NOW()
                  WHERE id=?"
-            )->execute([
-                $revisionId,$revision['title'],$revision['summary'],$revision['content'],$revision['category_id'],
-                $reviewerId,(int)$revision['article_id']
-            ]);
+            )->execute([$revisionId,(int)$revision['article_id']]);
         });
     }
 
@@ -260,10 +243,7 @@ final class KnowledgeRevisionService
                 'UPDATE knowledge_articles SET current_public_revision_id=?,updated_at=NOW() WHERE id=?'
             )->execute([$revisionId,(int)$revision['article_id']]);
 
-            if((int)($article['current_internal_revision_id']??0)===$revisionId){
-                $pdo->prepare("UPDATE knowledge_articles SET visibility='PUBLIC',updated_at=NOW() WHERE id=?")
-                    ->execute([(int)$revision['article_id']]);
-            }
+            // La disponibilidad pública se representa únicamente con current_public_revision_id.
         });
     }
 
@@ -288,7 +268,7 @@ final class KnowledgeRevisionService
 
             $pdo->prepare(
                 "UPDATE knowledge_articles
-                 SET lifecycle_status='ARCHIVED',status='ARCHIVED',archived_at=NOW(),updated_at=NOW()
+                 SET lifecycle_status='ARCHIVED',archived_at=NOW(),updated_at=NOW()
                  WHERE id=?"
             )->execute([$articleId]);
         });
