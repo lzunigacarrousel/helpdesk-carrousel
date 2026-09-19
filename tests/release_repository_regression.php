@@ -14,6 +14,8 @@ function ok(bool $condition,string $message):void
 $readme=(string)file_get_contents($root.'/README.md');
 $main=(string)file_get_contents($root.'/MAIN.bat');
 $ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
+$gitignore=(string)file_get_contents($root.'/.gitignore');
+$prodConfigTool=(string)@file_get_contents($root.'/tools/PREPARAR_CONFIG_PRODUCCION.ps1');
 
 ok(str_starts_with($readme,'# Helpdesk Carrousel'),'README usa identidad canónica');
 ok(!str_contains($readme,'Helpdesk Carrousel 360'),'README no usa marca 360');
@@ -22,6 +24,10 @@ ok(str_contains($readme,'PREPRODUCCIÓN TÉCNICA GREEN'),'README refleja estado 
 ok(!str_contains($readme,'Roadmap funcional de 12 fases'),'README no conserva roadmap histórico');
 ok(!str_contains($readme,'VALIDAR_FASE'),'README no expone gates históricos');
 ok(str_contains($main,'Validar PREPRODUCCION'),'MAIN expone gate canónico');
+ok(str_contains($main,'Preparar configuracion PRODUCCION'),'MAIN permite preparar configuración privada de producción');
+ok($prodConfigTool!=='','Existe preparador privado de configuración de producción');
+ok(str_contains($prodConfigTool,'dist\\production-config'),'Preparador escribe únicamente en dist/production-config');
+ok(str_contains($gitignore,'/dist/'),'dist/ permanece ignorado por Git');
 ok(!str_contains($main,'Historial Git'),'MAIN elimina utilidades no esenciales');
 ok(!str_contains($main,'Mostrar URLs'),'MAIN elimina utilidades no esenciales');
 

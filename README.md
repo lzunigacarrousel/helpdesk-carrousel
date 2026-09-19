@@ -75,7 +75,7 @@ Ejecutar:
 MAIN.bat
 ```
 
-El menú canónico permite abrir el Helpdesk, revisar Git, actualizar `main`, validar preproducción, reinstalar PC TEST, respaldar la BD, hacer commit/push e iniciar la instalación controlada de producción.
+El menú canónico permite abrir el Helpdesk, revisar Git, actualizar `main`, validar preproducción, reinstalar PC TEST, respaldar la BD, preparar la configuración privada de producción, hacer commit/push e iniciar la instalación controlada de producción.
 
 ## PC TEST
 
@@ -107,6 +107,20 @@ Datos operativos PC TEST: vacios
 MAIN.bat: disponible
 Produccion: NO modificada
 ```
+
+## Preparar configuración de producción
+
+Desde `MAIN.bat`, la opción **Preparar configuración PRODUCCION** toma el `config/local.php` de PC TEST y genera una copia privada en:
+
+```text
+dist/production-config/config/local.php
+```
+
+La copia conserva DB/SMTP/correo y cambia únicamente `app_url` al destino de producción seleccionado. El script no muestra contraseñas en pantalla.
+
+`dist/` está ignorado por Git, por lo que este archivo **no se sube a GitHub**. Debe transferirse al servidor por un canal privado y colocarse como `config/local.php`.
+
+Si la copia conserva `mail_mode=log` o faltan datos SMTP, el preparador lo advertirá antes del go-live.
 
 ## Producción
 

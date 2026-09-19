@@ -25,9 +25,10 @@ echo [3] Actualizar desde GitHub
 echo [4] Validar PREPRODUCCION
 echo [5] Reinstalar PC TEST
 echo [6] Respaldar BD
-echo [7] Guardar cambios ^(Commit^)
-echo [8] Subir a GitHub ^(Push^)
-echo [9] Instalar PRODUCCION
+echo [7] Preparar configuracion PRODUCCION
+echo [8] Guardar cambios ^(Commit^)
+echo [9] Subir a GitHub ^(Push^)
+echo [10] Instalar PRODUCCION
 echo [0] Salir
 echo.
 set /p "OP=Seleccione una opcion: "
@@ -38,9 +39,10 @@ if "%OP%"=="3" goto pull
 if "%OP%"=="4" goto validate
 if "%OP%"=="5" goto install_test
 if "%OP%"=="6" goto backup
-if "%OP%"=="7" goto commit
-if "%OP%"=="8" goto push
-if "%OP%"=="9" goto install_prod
+if "%OP%"=="7" goto prepare_prod_config
+if "%OP%"=="8" goto commit
+if "%OP%"=="9" goto push
+if "%OP%"=="10" goto install_prod
 if "%OP%"=="0" exit /b 0
 goto menu
 
@@ -108,6 +110,16 @@ if errorlevel 1 (
 ) else (
   echo [OK] backups\%DB_NAME%_%STAMP%.sql
 )
+pause
+goto menu
+
+:prepare_prod_config
+if not exist ".\tools\PREPARAR_CONFIG_PRODUCCION.ps1" (
+  echo [ERROR] Falta tools\PREPARAR_CONFIG_PRODUCCION.ps1
+  pause
+  goto menu
+)
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\tools\PREPARAR_CONFIG_PRODUCCION.ps1"
 pause
 goto menu
 
