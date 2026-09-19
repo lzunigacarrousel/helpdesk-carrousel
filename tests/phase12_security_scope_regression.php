@@ -70,7 +70,7 @@ ok(str_contains($management,"new TicketReportFilterService()"),'Gestión usa fil
 ok(str_contains($shell,"<?php if(\$isSupport): ?>"),'Menú operativo solo aparece a soporte');
 ok(str_contains($shell,"<?php elseif(\$isExternal): ?>"),'Colaborador recibe navegación separada');
 ok(str_contains($shell,"<?php elseif(Auth::isManagementViewer()): ?>"),'Gerencia/Supervisor no reciben menú de solicitudes operativo');
-ok(str_contains($shell,"<?php if(!\$isExternal): ?><a class="btn btn-outline-secondary btn-sm portal-btn""),'Proveedor no ve enlace al Portal');
+ok(str_contains($shell,'<?php if(!$isExternal): ?><a class="btn btn-outline-secondary btn-sm portal-btn"'),'Proveedor no ve enlace al Portal');
 
 ok(!str_contains($externalView,'Nota interna'),'Vista externa no rotula ni expone notas internas');
 ok(!str_contains($externalView,'Portal de Sistemas'),'Vista externa no expone Portal de Sistemas');
