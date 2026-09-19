@@ -206,3 +206,17 @@ Pendiente: ejecutar sintaxis + contrato estático y `VALIDAR_FASE12_E2E.bat` en 
 - Producción: sin cambios.
 
 Pendiente: ejecutar contrato, health check y `VALIDAR_FASE12_COMUNICACION.bat` en PC TEST. Después completar la prueba manual SMTP/Gmail y Outlook si está disponible.
+
+### Ajuste Task 5 — bootstrap de health check y baseline histórica
+
+- Primer intento de PC TEST:
+  - contrato de comunicación: GREEN;
+  - health check falló porque cargaba `config/config.php` directamente y no definía `APP_ROOT`; la aplicación real entra por `bootstrap.php`;
+  - SQL detectó 78 entregas SENT históricas con action_url local.
+- Se corrigió `tests/phase12_mail_health.php` para cargar el bootstrap real.
+- No se borran ni reescriben las 78 entregas históricas.
+- `VALIDAR_FASE12_COMUNICACION.bat` crea una línea base local en `storage/logs/phase12_communication_baseline.txt` (ruta ignorada por Git).
+- El SQL informa URLs locales históricas, pero solo bloquea nuevas entregas SENT con localhost/IP privada posteriores al baseline.
+- La línea base se implementa sin cambios de esquema ni escritura en BD.
+- Se robusteció el BAT con `EnableDelayedExpansion` para Windows CMD.
+- Producción: sin cambios.
