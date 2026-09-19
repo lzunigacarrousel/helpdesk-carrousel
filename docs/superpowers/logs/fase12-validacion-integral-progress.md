@@ -176,3 +176,33 @@ Pendiente: ejecutar sintaxis + contrato estático y `VALIDAR_FASE12_E2E.bat` en 
 - Se corrigió la cantidad de placeholders del INSERT temporal.
 - El rollback final comprueba ausencia tanto del ticket como del artículo temporal.
 - No se modificó funcionalidad de la app ni datos persistentes.
+
+## Task 4 — Flujos E2E · CERRADA
+
+- PC TEST ejecutó `VALIDAR_FASE12_E2E.bat` GREEN.
+- Contrato estático: GREEN.
+- Ensayo transaccional real: GREEN.
+- Se validaron creación, claim/asignación, PUBLIC/INTERNAL/EXTERNAL, proveedor, PENDING/continuar, actividad, referencia, resolución, reapertura, NPS y cierre.
+- Ticket y artículo temporales desaparecieron mediante ROLLBACK.
+- Producción: sin cambios.
+
+## Task 5 — Correo y notificaciones · IMPLEMENTADA EN CÓDIGO / PENDIENTE PC TEST
+
+- Se creó `tests/phase12_communication_regression.php`.
+- Se creó `tests/phase12_mail_health.php`.
+- Se creó `database/VERIFICAR_FASE12_COMUNICACION_20260919.sql`.
+- Se creó `VALIDAR_FASE12_COMUNICACION.bat`.
+- Se creó checklist manual para SMTP/Gmail/Outlook.
+- `MailService` conserva CID `carrousel-logo` y `addEmbeddedImage()` con fallback a URL canónica.
+- OTP pasa por NotificationService, conserva hash/rate limit y no admite reintento de una entrega antigua.
+- Se validan eventos: nuevo, tomado, reasignado, cola, respuesta pública, nota interna, proveedor respondió, espera/cambio de estado, resolución, reapertura, feedback, proveedor agregado y revocado.
+- Nota interna exige `email=false`.
+- Administradores reciben eventos operativos dentro del Helpdesk y no se incluye Gerencia en la audiencia administrativa.
+- SQL controla entregas huérfanas, correo de nota interna, correo operativo a Gerencia, duplicados, destinatarios, intentos OTP y URLs locales en correos realmente SENT.
+- `/admin/correo` amplía etiquetas humanas para eventos actuales.
+- El gate automatizado **no envía correos reales**.
+- Prueba SMTP real queda como acción explícita en `/admin/correo`.
+- BD: sin cambios de esquema.
+- Producción: sin cambios.
+
+Pendiente: ejecutar contrato, health check y `VALIDAR_FASE12_COMUNICACION.bat` en PC TEST. Después completar la prueba manual SMTP/Gmail y Outlook si está disponible.
