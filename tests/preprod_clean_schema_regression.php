@@ -67,7 +67,13 @@ ok(is_file($root.'/MAIN.bat'),'Existe MAIN.bat canónico');
 ok(!is_file($root.'/HELPDESK_ADMIN.bat'),'HELPDESK_ADMIN.bat duplicado fue retirado');
 ok(is_file($root.'/INSTALAR_PRODUCCION.bat'),'Existe instalador seguro de producción');
 ok(str_contains($prodInstaller,'NUNCA ejecuta DROP DATABASE'),'Instalador de producción declara política sin DROP');
-ok(!str_contains(strtoupper($prodInstaller),'DROP DATABASE'),'Instalador de producción no contiene DROP DATABASE');
+ok(
+    !preg_match(
+        '/^[^\r\n]*(?:mysql(?:\.exe)?|%MYSQL%)[^\r\n]*(?:-e|--execute)[^\r\n]*\bDROP\s+DATABASE\b/im',
+        $prodInstaller
+    ),
+    'Instalador de producciÃ³n no ejecuta DROP DATABASE'
+);
 
 $legacyTools=array_merge(
     glob($root.'/tools/apply_*')?:[],

@@ -42,9 +42,21 @@ ok(!str_contains(strtoupper($migration),'DROP COLUMN TITLE'),'Migración histór
 ok(!str_contains(strtoupper($migration),'DROP COLUMN CONTENT'),'Migración histórica no destruye content legacy');
 ok(str_contains($migration,'NOT EXISTS'),'Migración histórica incluye guardas idempotentes');
 
+preg_match(
+    '/CREATE TABLE knowledge_articles \(([\s\S]*?)\) ENGINE=/i',
+    $install,
+    $km
+);
+$knowledgeCreate=$km[1]??'';
+
+ok($knowledgeCreate!=='','INSTALAR define knowledge_articles');
+
 foreach(['title','summary','content','status','visibility','category_id','author_user_id','published_at'] as $legacyColumn){
     ok(
-        !preg_match('/CREATE TABLE knowledge_articles \([\s\S]*?\b'.preg_quote($legacyColumn,'/').'\b[\s\S]*?\) ENGINE=/i',$install),
+        !preg_match(
+            '/^\s*`?'.preg_quote($legacyColumn,'/').'`?\s+/mi',
+            $knowledgeCreate
+        ),
         "INSTALAR limpio no conserva knowledge_articles.{$legacyColumn}"
     );
 }
