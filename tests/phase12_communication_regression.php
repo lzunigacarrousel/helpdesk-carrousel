@@ -107,7 +107,9 @@ ok(str_contains($shell,".' actualizaciones nuevas'"),'Campana resume novedades s
 ok(str_contains($sql,'EMAIL_NOTA_INTERNA'),'SQL controla nota interna sin correo');
 ok(str_contains($sql,'EMAIL_OPERATIVO_GERENCIA'),'SQL controla correo operativo a Gerencia');
 ok(str_contains($sql,'DUPLICADOS_ENTREGA'),'SQL controla duplicados');
-ok(str_contains($sql,'ACCIONES_LOCALHOST_EMAIL'),'SQL controla URLs locales realmente enviadas');
+ok(str_contains($sql,'ACCIONES_LOCALHOST_EMAIL_HISTORICAS'),'SQL conserva evidencia histórica de URLs locales');
+ok(str_contains($sql,'ACCIONES_LOCALHOST_EMAIL_NUEVAS'),'SQL bloquea nuevas URLs locales');
+ok(str_contains($sql,'@phase12_baseline_delivery_id'),'SQL usa baseline local sin alterar BD');
 ok(str_contains($sql,"status='SENT'"),'Control de URL local se limita a correos realmente enviados');
 ok(str_contains($sql,"THEN 'PASS'"),'SQL emite PASS');
 
