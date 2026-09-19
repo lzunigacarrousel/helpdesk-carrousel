@@ -2,7 +2,20 @@
 
 > **Estado canónico · 2026-09-13**
 >
-> La rama estable y fuente de verdad es `main`. El bloque histórico `v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN` documenta trabajo preservado en `archive/v2-rebuild-20260913`; no debe confundirse con las fases canónicas integradas después del checkpoint. La aplicación mantiene `2.4.0-dev` como versión de desarrollo mientras se completa el roadmap de 12 fases.
+> La rama estable y fuente de verdad es `main`. El bloque histórico `v2.4.0-dev · ARCHIVADO / NO INTEGRADO EN MAIN` documenta trabajo preservado en `archive/v2-rebuild-20260913`; no debe confundirse con las fases canónicas integradas después del checkpoint. El roadmap funcional de 12 fases está técnicamente integrado en PC TEST, pero la aplicación mantiene `2.4.0-dev` hasta completar aceptación manual preproducción y despliegue controlado.
+
+## Fase 12 · Validación integral y readiness · 2026-09-19
+- Gate transversal `VALIDAR_FASE12.bat` consolida Fases 5–11, seguridad, conocimiento, reportes, manual, navegación, dark mode, botones, checks estáticos, rutas/CSS y XLSX.
+- Integridad de BD validada en `carrousel_helpdesk`: instalación canónica, estabilidad, Fase 5/Fase 9 e idempotencia de migraciones; `helpdesk_carrousel` permanece protegida.
+- Matriz de perfiles/scopes validada para ADMIN, SEMIADMIN, TECHNICIAN, MANAGEMENT, SUPERVISOR, REQUESTER y EXTERNAL.
+- Flujo E2E transaccional valida creación, claim, conversación pública/interna/proveedor, espera/continuar, actividad, referencia de conocimiento, resolución, reapertura, NPS y cierre con `ROLLBACK`.
+- Correo/notificaciones valida OTP, destinatarios, nota interna sin email, proveedor, reintentos, panel administrativo y logo CID; historial local previo queda documentado mediante baseline sin borrar evidencia.
+- Visual/responsive automatizado cubre claro/oscuro, 1920/1366, tablet/iPad y móvil; la matriz visual manual real queda como aceptación preproducción.
+- Estabilidad operativa valida runtime PHP, MariaDB, storage, adjuntos, navegación, JavaScript, XLSX/exportaciones y `git diff --check`.
+- Ruta fija del Helpdesk: `/HelpdeskCarrousel/public/`; hosts previstos: `localhost`, `94.74.71.96` y `portal.carrousel-apps.com`.
+- `APP_VERSION` permanece en `2.4.0-dev`; no se crea tag ni release estable en este closeout.
+- **Pendientes preproducción:** matriz visual manual y SMTP real/Gmail/Outlook con `app_url` canónica.
+- **Producción: sin cambios. El cierre técnico no autoriza despliegue.**
 
 ## Fase 11 · Manual consolidado e interactivo · 2026-09-19
 - `/manual` se consolida como guía única por perfil con navegación por tareas, buscador, filtros por tema, índice, accesos directos y FAQ.
