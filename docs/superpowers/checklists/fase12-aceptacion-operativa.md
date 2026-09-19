@@ -11,6 +11,7 @@ Completar en PC TEST antes del closeout final.
 - [x] `VALIDAR_FASE12_COMUNICACION.bat` GREEN.
 - [x] `VALIDAR_FASE12_VISUAL.bat` GREEN.
 - [x] `VALIDAR_FASE12_ESTABILIDAD.bat` GREEN.
+- [x] `VALIDAR_FASE12_CLOSEOUT.bat` GREEN.
 
 ## B. Runtime y almacenamiento
 
