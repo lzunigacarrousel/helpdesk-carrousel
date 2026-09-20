@@ -410,7 +410,11 @@
     let shown=0;
     state.optionButtons.forEach(button=>{
       const haystack=normalize(button.dataset.searchTerms||button.dataset.label||'');
-      const show=tokens.length===0||tokens.every(token=>haystack.includes(token));
+      const words=haystack.split(' ').filter(Boolean);
+      const show=tokens.length===0||tokens.every(token=>{
+        if(token.length<=3)return words.some(word=>word.startsWith(token));
+        return words.some(word=>word.includes(token));
+      });
       button.hidden=!show;
       if(show)shown+=1;
     });

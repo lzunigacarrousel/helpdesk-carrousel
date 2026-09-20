@@ -24,6 +24,8 @@ requesterCheck(str_contains($topics,'HELP_BY_PARENT'),'El catálogo dinámico co
 requesterCheck($appJs!=='','Se puede leer app.js');
 requesterCheck(str_contains($appJs,'button.dataset.searchTerms'),'Buscador global de selects usa términos semánticos');
 requesterCheck(str_contains($appJs,'tokens.every'),'Buscador global filtra todas las palabras escritas');
+requesterCheck(str_contains($appJs,"token.length<=3"),'Buscador trata términos cortos como prefijos de palabra');
+requesterCheck(str_contains($appJs,"word.startsWith(token)"),'Buscador evita falsos positivos como NIT dentro de monitor');
 requesterCheck(str_contains($appJs,'option.dataset.categoryHelp'),'Buscador global considera ayuda contextual como NIT');
 requesterCheck(str_contains($view,'data-search-terms'),'Opciones públicas exponen términos de búsqueda');
 requesterCheck(!str_contains($view,'searchable-select.js'),'Vista pública no carga un segundo componente de selects');
