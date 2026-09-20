@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Database;
+use App\Core\{Database,SearchText};
 
 final class ProviderParticipationService
 {
@@ -233,7 +233,7 @@ final class ProviderParticipationService
 
     public static function applyFilters(array $rows,array $filters): array
     {
-        $q=mb_strtolower(trim((string)($filters['q']??'')));
+        $q=trim((string)($filters['q']??''));
         $provider=(int)($filters['provider']??0);
         $state=(string)($filters['state']??'');
         $activity=(string)($filters['activity']??'');
@@ -258,14 +258,16 @@ final class ProviderParticipationService
             if($to!==''&&$day>$to)return false;
 
             if($q!==''){
-                $haystack=mb_strtolower(implode(' ',[
+                $haystack=implode(' ',[
                     (string)($row['organization']??''),
                     (string)($row['contact']??''),
                     (string)($row['email']??''),
                     (string)($row['ticket_number']??''),
                     (string)($row['subject']??''),
-                ]));
-                if(!str_contains($haystack,$q))return false;
+                    (string)($row['activity_label']??''),
+                    (string)($row['provider_rating_label']??''),
+                ]);
+                if(!SearchText::matches($haystack,$q))return false;
             }
             return true;
         }));
