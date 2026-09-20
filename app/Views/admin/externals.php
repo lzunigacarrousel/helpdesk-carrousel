@@ -208,8 +208,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 
   q?.addEventListener('input',()=>{
     closeAllExternalEditors();
-    const term=norm(q.value);let visible=0;
-    rows.forEach(r=>{const show=!term||norm(r.dataset.search).includes(term);r.hidden=!show;if(show)visible++});
+    const term=norm(q.value);const terms=term?term.split(/\s+/).filter(Boolean):[];let visible=0;
+    rows.forEach(r=>{const text=norm(r.dataset.search);const show=terms.length===0||terms.every(token=>text.includes(token));r.hidden=!show;if(show)visible++});
     if(empty)empty.hidden=visible!==0;
   });
 })();
