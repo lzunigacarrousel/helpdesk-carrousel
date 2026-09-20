@@ -20,7 +20,7 @@
 .ticket-classification-summary span,.ticket-classification-summary strong,.ticket-classification-summary small{display:block}.ticket-classification-summary span{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:850}.ticket-classification-summary strong{margin-top:3px;font-size:13.5px;color:var(--ink)}.ticket-classification-summary small{margin-top:3px;font-size:10.5px;color:var(--muted)}
 .ticket-classification-edit{margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
 .ticket-classification-edit>summary{cursor:pointer;color:var(--brand);font-weight:850;font-size:12px}
-.ticket-classification-form{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px 12px;align-items:end;margin-top:12px}
+.ticket-classification-form{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px 12px;align-items:start;margin-top:12px}
 .ticket-classification-form label{min-width:0}.ticket-classification-form .form-label{margin:0 0 5px;font-size:11px}
 .ticket-classification-form .classification-note{grid-column:1/-2}.ticket-classification-form .classification-submit{align-self:end}
 .ticket-classification-form .field-help{margin:4px 0 0;font-size:10.5px}

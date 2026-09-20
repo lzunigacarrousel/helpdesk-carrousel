@@ -33,6 +33,7 @@ $checks=[
 'app/Views/management/external_report.php'=>['<table','data-label='],
 'app/Views/shared/app_end.php'=>['layout-density-v25.css','data-tables.css','table-normalization.js'],
 'public/assets/css/data-tables.css'=>['.data-table','content:attr(data-label)','min-width:0!important'],
+'public/assets/css/itsm-classification.css'=>['.ticket-classification-form{display:grid','align-items:start','.classification-submit{align-self:end}'],
 'public/assets/js/table-normalization.js'=>['.content table:not([data-table-skip])','data-label'],
 'public/index.php'=>['/tickets/feedback','/tickets/feedback/reopen','/tickets/resolve','/gestion/informes/exportar','/admin/users/create','/admin/users/assign','/admin/users/delete']];
 foreach($checks as $file=>$needles){$content=@file_get_contents($root.'/'.$file);foreach($needles as $needle)check(is_string($content)&&str_contains($content,$needle),$file.' contiene '.$needle);}
