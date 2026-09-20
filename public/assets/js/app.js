@@ -406,9 +406,11 @@
 
   function filterOptions(state){
     const query=normalize(state.search.value);
+    const tokens=query?query.split(' ').filter(Boolean):[];
     let shown=0;
     state.optionButtons.forEach(button=>{
-      const show=!query||normalize(button.dataset.label).includes(query);
+      const haystack=normalize(button.dataset.searchTerms||button.dataset.label||'');
+      const show=tokens.length===0||tokens.every(token=>haystack.includes(token));
       button.hidden=!show;
       if(show)shown+=1;
     });
@@ -472,6 +474,15 @@
       button.setAttribute('role','option');
       button.dataset.value=option.value;
       button.dataset.label=option.textContent?.trim()||'';
+      const group=option.parentElement instanceof HTMLOptGroupElement?option.parentElement.label:'';
+      button.dataset.searchTerms=[
+        option.textContent?.trim()||'',
+        option.value||'',
+        group,
+        option.dataset.searchTerms||'',
+        option.dataset.categoryHelp||'',
+        option.dataset.categoryPlaceholder||''
+      ].join(' ');
       button.textContent=option.textContent?.trim()||'—';
       button.disabled=option.disabled;
       button.dataset.optionIndex=String(index);
@@ -518,7 +529,7 @@
     const search=document.createElement('input');
     search.type='search';
     search.className='smart-select-search';
-    search.placeholder='Buscar...';
+    search.placeholder=select.dataset.searchPlaceholder||'Buscar...';
     search.autocomplete='off';
     search.spellcheck=false;
     search.setAttribute('aria-label','Buscar opción');
