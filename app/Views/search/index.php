@@ -2,9 +2,9 @@
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
 $knowledgeStatusLabels=['DRAFT'=>'Borrador','IN_REVIEW'=>'En revisión','PUBLISHED'=>'Publicado para soporte','ARCHIVED'=>'Archivado'];
-$searchTerm=(string)($q??'');$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
+$searchTerm=(string)($q??'');$helpTopics=$helpTopics??[];$pageTitle='Buscar';$pageSection='Buscar';$activeNav='search';$helpContext='search';
 require APP_ROOT.'/app/Views/shared/app_start.php';
-$total=count($tickets)+count($problems)+count($articles);
+$total=count($tickets)+count($problems)+count($articles)+count($helpTopics);
 $normalize=static function(string $value):string{$value=mb_strtolower(trim((string)preg_replace('/\s+/u',' ',$value)),'UTF-8');return trim((string)preg_replace('/[^\p{L}\p{N}]+/u',' ',$value));};
 ?>
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
@@ -19,7 +19,7 @@ $normalize=static function(string $value):string{$value=mb_strtolower(trim((stri
       <input class="form-control" type="search" name="q" value="<?= htmlspecialchars($searchTerm) ?>" placeholder="Número de caso, persona, correo, parque, problema o solución…" autocomplete="off" autofocus>
       <button class="btn btn-primary" type="submit">Buscar</button>
     </form>
-    <div class="search-hints" aria-label="Ejemplos de búsqueda"><span>HD-2026-000001</span><span>Nombre o correo</span><span>Parque / área</span><span>Causa o solución</span></div>
+    <div class="search-hints" aria-label="Ejemplos de búsqueda"><span>HD-2026-000001</span><span>Nombre o correo</span><span>Parque / área</span><span>NIT / factura / sistema</span><span>Causa o solución</span></div>
   </section>
 
   <?php if($searchTerm===''): ?>
@@ -31,9 +31,28 @@ $normalize=static function(string $value):string{$value=mb_strtolower(trim((stri
     <div class="search-scopebar" role="group" aria-label="Filtrar tipo de resultado">
       <button type="button" class="active" data-search-scope="all">Todo <b><?= $total ?></b></button>
       <button type="button" data-search-scope="tickets">Tickets <b><?= count($tickets) ?></b></button>
+      <?php if($helpTopics): ?><button type="button" data-search-scope="help">Ayuda <b><?= count($helpTopics) ?></b></button><?php endif; ?>
       <?php if($problems): ?><button type="button" data-search-scope="problems">Problemas <b><?= count($problems) ?></b></button><?php endif; ?>
       <?php if($articles): ?><button type="button" data-search-scope="articles">Conocimiento <b><?= count($articles) ?></b></button><?php endif; ?>
     </div>
+
+    <?php if($helpTopics): ?>
+      <section class="search-result-section" data-search-section="help">
+        <div class="search-section-head"><div><span class="ticket-kicker">Catálogo de ayuda</span><h2>Opciones relacionadas</h2></div><span><?= count($helpTopics) ?></span></div>
+        <div class="search-knowledge-grid">
+          <?php foreach($helpTopics as $topic): ?>
+            <a class="card search-knowledge-card itsm-result-link" href="<?= APP_BASE_URL ?>/crear-ticket?topic=<?= rawurlencode((string)$topic['key']) ?>">
+              <div class="card-body">
+                <div class="search-knowledge-kicker"><strong><?= htmlspecialchars((string)$topic['group']) ?></strong><span>Solicitar ayuda</span></div>
+                <h3><?= htmlspecialchars((string)$topic['label']) ?></h3>
+                <p><?= htmlspecialchars((string)$topic['help']) ?></p>
+                <small><?= htmlspecialchars((string)$topic['category_code']) ?></small>
+              </div>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      </section>
+    <?php endif; ?>
 
     <?php if($tickets): ?>
       <section class="search-result-section" data-search-section="tickets">
