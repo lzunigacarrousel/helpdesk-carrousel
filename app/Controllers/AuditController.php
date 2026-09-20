@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\Controllers;
 
-use App\Core\{Auth,Database,View};
+use App\Core\{Auth,Database,SearchText,View};
 
 final class AuditController
 {
@@ -22,10 +22,10 @@ final class AuditController
 
         $where = ['1=1'];
         $params = [];
-        if ($q !== '') {
-            $where[] = '(actor_email LIKE ? OR action LIKE ? OR entity_type LIKE ? OR entity_id LIKE ? OR ip_address LIKE ?)';
-            $like = '%'.$q.'%';
-            array_push($params, $like, $like, $like, $like, $like);
+        foreach (SearchText::tokens($q) as $token) {
+            $where[] = '(actor_email LIKE ? OR action LIKE ? OR entity_type LIKE ? OR entity_id LIKE ? OR ip_address LIKE ? OR source LIKE ? OR metadata_json LIKE ?)';
+            $like = '%'.$token.'%';
+            array_push($params, $like, $like, $like, $like, $like, $like, $like);
         }
         if ($action !== '') { $where[] = 'action=?'; $params[] = $action; }
         if ($source !== '') { $where[] = 'source=?'; $params[] = $source; }
