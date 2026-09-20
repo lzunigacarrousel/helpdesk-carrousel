@@ -22,6 +22,9 @@ requesterCheck(str_contains($searchable,'Object.values(option.dataset||{})'),'Bu
 requesterCheck(str_contains($searchable,'tokens.every'),'Buscador filtra todas las palabras escritas');
 requesterCheck(str_contains($searchable,"style.display=show?'flex':'none'"),'Buscador fuerza ocultamiento visual de opciones no coincidentes');
 requesterCheck(str_contains($view,'smart-select-native'),'Selector nativo queda oculto desde el HTML y no se duplica');
+requesterCheck(str_contains($view,'20260920-SEARCHFIX3'),'Vista fuerza version nueva de assets del buscador');
+requesterCheck(str_contains($view,'clip-path:inset(50%)'),'Selector fuente queda oculto aun si falla la caché CSS');
+requesterCheck(str_contains($searchable,"sibling.remove()"),'Inicialización elimina controles duplicados previos');
 requesterCheck(str_contains($view,'data-search-terms'),'Opciones exponen términos semánticos para búsquedas como NIT');
 requesterCheck(str_contains($view,'data-searchable-select'),'Selector público usa buscador controlado por la app');
 requesterCheck(str_contains($view,'searchable-select.css'),'Vista pública carga estilos del buscador');

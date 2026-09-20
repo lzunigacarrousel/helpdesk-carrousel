@@ -5,7 +5,7 @@ $u=$user??null;$assignment=$assignment??null;$locationPolicy=$locationPolicy??['
 $hasAssignedPark=$u&&$defaultParkId>0&&!empty($assignment['park_name']);$knownPhone=$u?trim((string)($u['phone']??'')):'';
 $requesterTopics=RequesterTopicService::options($categories??[]);
 $requesterTopicGroups=[];foreach($requesterTopics as $topic){$requesterTopicGroups[(string)$topic['group']][]=$topic;}
-$helpContext='public_create';$assetVersion='20260912-ITSM21AUTO1';
+$helpContext='public_create';$assetVersion='20260920-SEARCHFIX3';
 ?>
 <!doctype html>
 <html lang="es">
@@ -122,7 +122,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
       <div class="public-help-grid">
         <div>
           <label class="form-label" for="requester_topic"><strong>¿En qué necesitas ayuda?</strong></label>
-          <select class="form-control smart-select-native" id="requester_topic" name="requester_topic" required data-searchable-select data-search-placeholder="Buscar acción, sistema o problema…"><option value="">Selecciona una opción</option><?php foreach($requesterTopicGroups as $group=>$topics): ?><optgroup label="<?= htmlspecialchars((string)$group) ?>"><?php foreach($topics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>" data-search-terms="<?= htmlspecialchars(implode(' ',[(string)$topic['label'],(string)$topic['group'],(string)$topic['category_code'],(string)$topic['help'],(string)$topic['placeholder']]),ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
+          <select class="form-control smart-select-native" id="requester_topic" name="requester_topic" required data-searchable-select data-search-placeholder="Buscar acción, sistema o problema…" style="position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important"><option value="">Selecciona una opción</option><?php foreach($requesterTopicGroups as $group=>$topics): ?><optgroup label="<?= htmlspecialchars((string)$group) ?>"><?php foreach($topics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>" data-search-terms="<?= htmlspecialchars(implode(' ',[(string)$topic['label'],(string)$topic['group'],(string)$topic['category_code'],(string)$topic['help'],(string)$topic['placeholder']]),ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
           <p class="public-category-help" data-category-help-text aria-live="polite">Selecciona una opción y te mostraremos qué información puede ayudarnos.</p>
         </div>
         <div>

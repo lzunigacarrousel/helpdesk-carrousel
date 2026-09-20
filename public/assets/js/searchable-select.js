@@ -96,12 +96,18 @@
 
   const enhance=(select)=>{
     if(!(select instanceof HTMLSelectElement)||select.dataset.searchableReady==='1')return;
-    if(select.nextElementSibling?.matches?.('[data-smart-select]')){select.dataset.searchableReady='1';return;}
+    let sibling=select.nextElementSibling;
+    while(sibling instanceof HTMLElement&&sibling.matches('[data-smart-select]')){
+      const next=sibling.nextElementSibling;
+      sibling.remove();
+      sibling=next;
+    }
     select.dataset.searchableReady='1';
 
     const placeholder=select.options[0]?.value===''?(select.options[0].textContent?.trim()||'Selecciona una opción'):'Selecciona una opción';
     const root=document.createElement('div');
     root.className='smart-select';
+    root.dataset.smartSelect='1';
     root.dataset.smartSelect='';
 
     const trigger=document.createElement('button');
