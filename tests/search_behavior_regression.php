@@ -34,6 +34,8 @@ $searchView=(string)file_get_contents($root.'/app/Views/search/index.php');
 searchCheck(str_contains($searchController,'SearchText::tokens'),'Buscador global usa tokens comunes');
 searchCheck(str_contains($searchController,'RequesterTopicService::options'),'Buscador global incluye catálogo de ayuda');
 searchCheck(str_contains($searchView,'data-search-scope="help"'),'Vista global muestra coincidencias de ayuda');
+searchCheck(!str_contains($searchView,'class="search-page-form"'),'La pagina de resultados no duplica el buscador global');
+searchCheck(str_contains($searchView,'Usa el buscador superior'),'La pagina orienta a usar el buscador unico de la barra superior');
 searchCheck(str_contains($queue,'SearchText::matches'),'Centro de soporte usa coincidencia común');
 searchCheck(str_contains($agenda,'SearchText::tokens'),'Agenda usa coincidencias por palabras');
 searchCheck(str_contains($knowledge,'SearchText::tokens'),'Conocimiento usa coincidencias por palabras');
