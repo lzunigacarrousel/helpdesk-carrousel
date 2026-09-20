@@ -14,8 +14,9 @@
 
   const optionTerms=(option)=>{
     const group=option.parentElement instanceof HTMLOptGroupElement?option.parentElement.label:'';
+    const explicit=option.dataset.searchTerms||'';
     const data=Object.values(option.dataset||{}).join(' ');
-    return norm([option.textContent,option.value,group,data].join(' '));
+    return norm([option.textContent,option.value,group,explicit,data].join(' '));
   };
 
   const positionMenu=(state)=>{
@@ -77,6 +78,7 @@
     state.buttons.forEach(item=>{
       const show=!tokens.length||tokens.every(token=>item.terms.includes(token));
       item.button.hidden=!show;
+      item.button.style.display=show?'flex':'none';
       if(show)visible++;
     });
     state.empty.hidden=visible!==0;
@@ -94,6 +96,7 @@
 
   const enhance=(select)=>{
     if(!(select instanceof HTMLSelectElement)||select.dataset.searchableReady==='1')return;
+    if(select.nextElementSibling?.matches?.('[data-smart-select]')){select.dataset.searchableReady='1';return;}
     select.dataset.searchableReady='1';
 
     const placeholder=select.options[0]?.value===''?(select.options[0].textContent?.trim()||'Selecciona una opción'):'Selecciona una opción';
