@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Core\{Audit,Auth,Csrf,Database,Flash,View};
+use App\Core\{Audit,Auth,Csrf,Database,Flash,SearchText,View};
 use App\Services\KnowledgeRevisionService;
 use PDO;
 
@@ -25,10 +25,10 @@ final class KnowledgeController
         if($editor){
             $workingExpr="COALESCE(wr.state,ir.state,lr.state)";
             $where=['1=1'];
-            if($q!==''){
-                $like='%'.$q.'%';
-                $where[]="(ka.article_number LIKE ? OR COALESCE(wr.title,ir.title,lr.title) LIKE ? OR COALESCE(wr.summary,ir.summary,lr.summary) LIKE ? OR COALESCE(wr.content,ir.content,lr.content) LIKE ?)";
-                array_push($params,$like,$like,$like,$like);
+            foreach(SearchText::tokens($q) as $token){
+                $like='%'.$token.'%';
+                $where[]="(ka.article_number LIKE ? OR COALESCE(wr.title,ir.title,lr.title) LIKE ? OR COALESCE(wr.summary,ir.summary,lr.summary) LIKE ? OR COALESCE(wr.content,ir.content,lr.content) LIKE ? OR c.name LIKE ?)";
+                array_push($params,$like,$like,$like,$like,$like);
             }
             if(isset(self::STATUSES[$status])){
                 if($status==='ARCHIVED')$where[]="ka.lifecycle_status='ARCHIVED'";
@@ -68,10 +68,10 @@ final class KnowledgeController
         }else{
             $pointer=$internal?'current_internal_revision_id':'current_public_revision_id';
             $where=["ka.lifecycle_status='ACTIVE'","ka.{$pointer} IS NOT NULL"];
-            if($q!==''){
-                $like='%'.$q.'%';
-                $where[]='(ka.article_number LIKE ? OR kr.title LIKE ? OR kr.summary LIKE ? OR kr.content LIKE ?)';
-                array_push($params,$like,$like,$like,$like);
+            foreach(SearchText::tokens($q) as $token){
+                $like='%'.$token.'%';
+                $where[]='(ka.article_number LIKE ? OR kr.title LIKE ? OR kr.summary LIKE ? OR kr.content LIKE ? OR c.name LIKE ?)';
+                array_push($params,$like,$like,$like,$like,$like);
             }
             if($category>0){
                 $where[]='kr.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';
