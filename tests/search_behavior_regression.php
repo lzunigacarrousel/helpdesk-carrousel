@@ -50,6 +50,10 @@ searchCheck(str_contains($appJs,'tokens.every'),'Selects buscables usan coincide
 searchCheck(str_contains($appStart,'data-topbar-search-clear'),'Buscador superior tiene limpiador visible');
 searchCheck(str_contains($appJs,'syncTopbarSearchClear'),'Limpiador superior sincroniza su visibilidad');
 searchCheck(str_contains($shellCss,'.topbar-search-clear'),'Limpiador superior tiene estilo propio y tamaño accesible');
-searchCheck(str_contains($shellCss,'::-webkit-search-cancel-button'),'Se oculta la X nativa pequeña del navegador');
+searchCheck(str_contains($appStart,'input type="text" name="q"'),'Buscador superior evita la X nativa del navegador');
+searchCheck(str_contains($shellCss,'display:flex'),'Buscador superior mantiene icono, texto, limpiador y atajo en una sola fila');
+searchCheck(str_contains($shellCss,'.search-empty-state'),'Estado vacio usa layout compacto y alineado');
 
 exit($ok?0:1);
+
+searchCheck(str_contains($appStart,'shellAssetVersion'),'CSS del shell usa version por archivo para evitar cache obsoleta');
