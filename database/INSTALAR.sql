@@ -1024,7 +1024,7 @@ VALUES
 
 (@SEMNOX,'SEMNOX_POS','Problema en POS Semnox','Operacion del punto de venta Semnox/Parafait.','HIGH',1,10),
 (@SEMNOX,'SEMNOX_KIOSK','Problema en kiosco','Kioscos Semnox/Parafait.','HIGH',1,20),
-(@SEMNOX,'SEMNOX_PROMO','Promoción o código no aparece','Promociones, codigos o configuracion comercial Semnox.','HIGH',1,30),
+(@SEMNOX,'SEMNOX_PROMO','Promoción de venta en Semnox / Parafait','Promociones o codigos configurados y utilizados dentro de Semnox/Parafait; no usar para dar salida en Payout.','HIGH',1,30),
 (@SEMNOX,'SEMNOX_CASHIER','Cajero o usuario de Semnox','Usuarios/cajeros o datos mostrados en recibos.','HIGH',1,40),
 (@SEMNOX,'SEMNOX_OPOS','No imprime / AutoPrint / OPOS','Impresion, OPOS y AutoPrint en Semnox/Parafait.','HIGH',1,50),
 
@@ -1040,7 +1040,7 @@ VALUES
 (@PAYOUT,'PAYOUT_REVERSALS','Revertir o corregir un cierre','Reversion de cierres o movimientos autorizados.','HIGH',1,40),
 (@PAYOUT,'PAYOUT_MACHINES','Máquina o activo','Maquinas, activos o configuracion relacionada.','MEDIUM',1,50),
 (@PAYOUT,'PAYOUT_COUNTERS','Contadores o diferencias','Contadores, lecturas y diferencias.','HIGH',1,60),
-(@PAYOUT,'PAYOUT_PROMOS','Promocionales o códigos','Codigos, promocionales o inventario relacionado.','MEDIUM',1,70),
+(@PAYOUT,'PAYOUT_PROMOS','Promocional o código para dar salida','Codigos, promocionales o inventario que no aparecen al dar salida o registrar informacion en Payout.','MEDIUM',1,70),
 
 (@APPS,'APP_PORTAL','Portal Carrousel','Portal corporativo y navegacion entre aplicaciones.','HIGH',1,10),
 (@APPS,'APP_HELPDESK','Helpdesk','Helpdesk Carrousel.','HIGH',1,20),

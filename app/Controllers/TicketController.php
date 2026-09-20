@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\{Audit,Auth,Csrf,Database,Flash,Http,Logger,View};
-use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService,SolutionSuggestionService,KnowledgeMetricsService};
+use App\Services\{NotificationService,ScopeService,SlaPresentationService,TicketClassificationService,RequesterTopicService,RequesterLocationPolicyService,TicketActivityService,ProviderParticipationService,ProviderRatingService,KnowledgeCandidateService,SolutionSuggestionService,KnowledgeMetricsService};
 use PDO;
 
 final class TicketController
@@ -110,6 +110,16 @@ final class TicketController
         $parkId=(new RequesterLocationPolicyService())->resolveParkId($authUser,$parkId);
         $c=$pdo->prepare('SELECT c.id,c.code,p.code parent_code FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.id=? AND c.is_active=1 LIMIT 1');$c->execute([$categoryId]);$category=$c->fetch();
         if(!$category)throw new \RuntimeException('La opción seleccionada no está disponible.');
+        $selectedCategoryCode=strtoupper(trim((string)$category['code']));
+        $resolvedCategoryCode=RequesterTopicService::resolveCategoryCode($selectedCategoryCode,$subject,$description);
+        $categoryAutoAdjusted=$resolvedCategoryCode!==$selectedCategoryCode;
+        if($categoryAutoAdjusted){
+            $rc=$pdo->prepare('SELECT c.id,c.code,p.code parent_code FROM ticket_categories c LEFT JOIN ticket_categories p ON p.id=c.parent_id WHERE c.code=? AND c.is_active=1 LIMIT 1');
+            $rc->execute([$resolvedCategoryCode]);
+            $resolvedCategory=$rc->fetch();
+            if($resolvedCategory){$category=$resolvedCategory;$categoryId=(int)$resolvedCategory['id'];}
+            else{$categoryAutoAdjusted=false;$resolvedCategoryCode=$selectedCategoryCode;}
+        }
         if($parkId>0&&!$this->activeExists('parks',$parkId))throw new \RuntimeException('La ubicación seleccionada no está disponible.');
         if($areaId>0&&!$this->activeExists('areas',$areaId))throw new \RuntimeException('El área seleccionada no está disponible.');
         $classification=TicketClassificationService::inferInitialClassification($category,$subject,$description);
@@ -125,7 +135,7 @@ final class TicketController
             $pdo->prepare("INSERT INTO ticket_events(ticket_id,event_type,actor_user_id,actor_type,new_value,metadata_json,created_at) VALUES(?,'CREATED',NULL,'PUBLIC',?,?,NOW())")->execute([$id,json_encode(['status'=>'AVAILABLE','request_type'=>$requestType,'impact'=>$impact,'urgency'=>$urgency,'priority'=>$priority,'priority_source'=>'CALCULATED'],JSON_UNESCAPED_UNICODE),json_encode(['origin'=>'PUBLIC_WEB'],JSON_UNESCAPED_UNICODE)]);
             return['id'=>$id,'number'=>$number];
         });
-        Audit::log('TICKET_CREATED_PUBLIC','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['number'],'email'=>$email,'request_type'=>$requestType,'impact'=>$impact,'urgency'=>$urgency,'priority'=>$priority,'priority_source'=>'CALCULATED'],[],'PUBLIC_WEB');
+        Audit::log('TICKET_CREATED_PUBLIC','ticket',(int)$ticket['id'],null,['ticket_number'=>$ticket['number'],'email'=>$email,'request_type'=>$requestType,'impact'=>$impact,'urgency'=>$urgency,'priority'=>$priority,'priority_source'=>'CALCULATED','category_code'=>(string)$category['code'],'category_auto_adjusted'=>$categoryAutoAdjusted,'category_selected_code'=>$selectedCategoryCode],[],'PUBLIC_WEB');
         $this->notifyCreated((int)$ticket['id']);
         $_SESSION['public_ticket_created']=$ticket['number'];header('Location: '.APP_BASE_URL.'/ticket-enviado');exit;
     }

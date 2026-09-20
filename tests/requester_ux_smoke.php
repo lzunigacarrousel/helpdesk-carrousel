@@ -34,6 +34,9 @@ requesterCheck(str_contains($topics,"'group'=>\$parentName"),'Los temas conserva
 requesterCheck(str_contains($topics,'isset($hasChildren[$id])'),'El selector evita ofrecer padres que tienen subcategorías');
 requesterCheck(str_contains($topics,'No escribas tu contraseña'),'Ayuda de accesos evita pedir contraseñas');
 requesterCheck(str_contains($topics,'Ejemplo:'),'Los temas incluyen ejemplos escritos como solicitudes reales');
+requesterCheck(str_contains($topics,'SEMNOX_PROMO'),'Existe ayuda específica para promociones de Semnox');
+requesterCheck(str_contains($topics,'PAYOUT_PROMOS'),'Existe ayuda específica para promocionales de Payout');
+requesterCheck(str_contains($controller,'resolveCategoryCode'),'El backend protege contra confusión Semnox/Payout al crear el ticket');
 
 if(is_file($root.'/app/Services/RequesterTopicService.php')){
     require_once $root.'/app/Services/RequesterTopicService.php';
@@ -59,6 +62,9 @@ if(is_file($root.'/app/Services/RequesterTopicService.php')){
     requesterCheck(($byKey['NETWORK_OUTAGE']['group']??'')==='Internet / Conexión','Tema conserva grupo padre');
     requesterCheck(str_contains((string)($byKey['ACCESS_PASSWORD']['help']??''),'No escribas tu contraseña'),'Tema de acceso conserva ayuda segura contextual');
     requesterCheck(str_contains((string)($byKey['ACCESS_PASSWORD']['placeholder']??''),'Ejemplo:'),'Tema dinámico conserva ejemplo contextual');
+    requesterCheck(\App\Services\RequesterTopicService::resolveCategoryCode('SEMNOX_PROMO','Código PRO1153','No me aparece en sistema para dar salida')==='PAYOUT_PROMOS','Dar salida corrige Semnox promo hacia Payout');
+    requesterCheck(\App\Services\RequesterTopicService::resolveCategoryCode('SEMNOX_PROMO','Promoción','No aparece al vender dentro de Semnox')==='SEMNOX_PROMO','Promoción explícita de Semnox permanece en Semnox');
+    requesterCheck(\App\Services\RequesterTopicService::resolveCategoryCode('PAYOUT_PROMOS','Promocional','No aparece para dar salida')==='PAYOUT_PROMOS','Payout promocional permanece en Payout');
 }
 
 requesterCheck(str_contains($controller,'singleActiveAssignment'),'El formulario puede detectar una única asignación activa');

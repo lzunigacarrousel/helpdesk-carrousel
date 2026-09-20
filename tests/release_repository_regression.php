@@ -16,6 +16,7 @@ $main=(string)file_get_contents($root.'/MAIN.bat');
 $ci=(string)file_get_contents($root.'/.github/workflows/helpdesk-ci.yml');
 $gitignore=(string)file_get_contents($root.'/.gitignore');
 $prodConfigTool=(string)@file_get_contents($root.'/tools/PREPARAR_CONFIG_PRODUCCION.ps1');
+$promoMigration=(string)@file_get_contents($root.'/database/MIGRAR_CATEGORIAS_PROMOCIONALES_20260920.sql');
 
 ok(str_starts_with($readme,'# Helpdesk Carrousel'),'README usa identidad canónica');
 ok(!str_contains($readme,'Helpdesk Carrousel 360'),'README no usa marca 360');
@@ -30,6 +31,8 @@ ok(!preg_match('/^\s*echo\b[^\r\n]*[^\^]\([^\r\n]*\)/mi',$prodInstaller),'Instal
 ok($prodConfigTool!=='','Existe preparador privado de configuración de producción');
 ok(str_contains($prodConfigTool,'dist\\production-config'),'Preparador escribe únicamente en dist/production-config');
 ok(str_contains($gitignore,'/dist/'),'dist/ permanece ignorado por Git');
+ok($promoMigration!=='','Existe migración controlada para distinguir promociones Semnox y Payout');
+ok(str_contains($promoMigration,'dar[[:space:]]+salida'),'Migración solo reclasifica cuando existe señal clara de dar salida');
 ok(!str_contains($main,'Historial Git'),'MAIN elimina utilidades no esenciales');
 ok(!str_contains($main,'Mostrar URLs'),'MAIN elimina utilidades no esenciales');
 
