@@ -1,5 +1,5 @@
 <?php
-use App\Core\{Csrf,Auth};
+use App\Core\{Csrf,Auth,SearchText};
 use App\Services\TicketClassificationService;
 $priorityLabels=$priorityLabels??['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
 $statusLabels=$statusLabels??[];$myTickets=$myTickets??[];$tickets=$tickets??[];
@@ -32,8 +32,8 @@ $quickMatch=static function(array $t)use($view,$uid,$isOpen,$isOverdue,$isNearDu
 $filtered=array_values(array_filter($allRows,static function(array $t)use($quickMatch,$search,$parkFilter,$categoryFilter,$requestTypeFilter,$priorityFilter,$statusFilter,$responsibleFilter,$uid):bool{
     if(!$quickMatch($t))return false;
     if($search!==''){
-        $haystack=mb_strtolower(implode(' ',[(string)($t['ticket_number']??''),(string)($t['subject']??''),(string)($t['description']??''),(string)($t['requester_name']??''),(string)($t['requester_email']??''),(string)($t['park_name']??''),(string)($t['category_name']??''),(string)($t['assigned_name']??'')]));
-        if(!str_contains($haystack,mb_strtolower($search)))return false;
+        $haystack=implode(' ',[(string)($t['ticket_number']??''),(string)($t['subject']??''),(string)($t['description']??''),(string)($t['requester_name']??''),(string)($t['requester_email']??''),(string)($t['park_name']??''),(string)($t['area_name']??''),(string)($t['category_name']??''),(string)($t['assigned_name']??'')]);
+        if(!SearchText::matches($haystack,$search))return false;
     }
     if($parkFilter!==''&&(string)($t['park_name']??'')!==$parkFilter)return false;
     if($categoryFilter!==''&&(string)($t['category_name']??'')!==$categoryFilter)return false;
