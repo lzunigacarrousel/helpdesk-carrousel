@@ -12,10 +12,17 @@ function requesterCheck(bool $condition,string $message):void{
 $controller=(string)@file_get_contents($root.'/app/Controllers/TicketController.php');
 $view=(string)@file_get_contents($root.'/app/Views/tickets/public_create.php');
 $topics=(string)@file_get_contents($root.'/app/Services/RequesterTopicService.php');
+$searchable=(string)@file_get_contents($root.'/public/assets/js/searchable-select.js');
 
 requesterCheck($controller!=='','Se puede leer TicketController');
 requesterCheck($view!=='','Se puede leer public_create.php');
 requesterCheck($topics!=='','Se puede leer RequesterTopicService');
+requesterCheck($searchable!=='','Se puede leer searchable-select.js');
+requesterCheck(str_contains($searchable,'Object.values(option.dataset||{})'),'Buscador considera metadatos y ayuda contextual de cada opción');
+requesterCheck(str_contains($searchable,'tokens.every'),'Buscador filtra todas las palabras escritas');
+requesterCheck(str_contains($view,'data-searchable-select'),'Selector público usa buscador controlado por la app');
+requesterCheck(str_contains($view,'searchable-select.css'),'Vista pública carga estilos del buscador');
+requesterCheck(str_contains($view,'searchable-select.js'),'Vista pública carga lógica del buscador');
 requesterCheck(str_contains($topics,'public static function options(array $categories):array'),'Existe catálogo dinámico de temas separado de la presentación');
 requesterCheck(str_contains($topics,'HELP_BY_CODE'),'El catálogo dinámico conserva ayuda contextual por código');
 requesterCheck(str_contains($topics,'HELP_BY_PARENT'),'El catálogo dinámico conserva ayuda contextual por familia');

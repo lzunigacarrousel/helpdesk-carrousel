@@ -76,3 +76,8 @@ html[data-theme="dark"] .smart-select-search-wrap:before{color:var(--dark-muted,
   .smart-select-option{min-height:46px;font-size:16px;padding:10px 11px}
 }
 @media(prefers-reduced-motion:reduce){.smart-select-trigger,.smart-select-chevron{transition:none}}
+
+.smart-select-option{justify-content:space-between}
+.smart-select-option-main{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.smart-select-option-group{flex:0 0 auto;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:10.5px;font-weight:650}
+html[data-theme="dark"] .smart-select-option-group{color:var(--dark-muted,#a9b4c4)}

@@ -20,6 +20,7 @@ $helpContext='public_create';$assetVersion='20260912-ITSM21AUTO1';
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/components.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/dark-refinement.css?v=<?= $assetVersion ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/help-tour-contrast.css?v=20260912-UXHELP2">
+<link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/searchable-select.css?v=<?= $assetVersion ?>">
 <style nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 .public-request-body{min-height:100vh;background:var(--bg);color:var(--ink)}
 .public-request-topbar{position:sticky;top:4px;z-index:20;height:66px;border-bottom:1px solid var(--border);background:var(--card);box-shadow:0 1px 3px rgba(16,24,40,.04)}
@@ -121,7 +122,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
       <div class="public-help-grid">
         <div>
           <label class="form-label" for="requester_topic"><strong>¿En qué necesitas ayuda?</strong></label>
-          <select class="form-control" id="requester_topic" name="requester_topic" required><option value="">Selecciona una opción</option><?php foreach($requesterTopicGroups as $group=>$topics): ?><optgroup label="<?= htmlspecialchars((string)$group) ?>"><?php foreach($topics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
+          <select class="form-control" id="requester_topic" name="requester_topic" required data-searchable-select data-search-placeholder="Buscar acción, sistema o problema…"><option value="">Selecciona una opción</option><?php foreach($requesterTopicGroups as $group=>$topics): ?><optgroup label="<?= htmlspecialchars((string)$group) ?>"><?php foreach($topics as $topic): ?><option value="<?= htmlspecialchars((string)$topic['key'],ENT_QUOTES,'UTF-8') ?>" data-category-id="<?= (int)$topic['category_id'] ?>" data-category-help="<?= htmlspecialchars((string)$topic['help'],ENT_QUOTES,'UTF-8') ?>" data-category-placeholder="<?= htmlspecialchars((string)$topic['placeholder'],ENT_QUOTES,'UTF-8') ?>"><?= htmlspecialchars((string)$topic['label']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
           <p class="public-category-help" data-category-help-text aria-live="polite">Selecciona una opción y te mostraremos qué información puede ayudarnos.</p>
         </div>
         <div>
@@ -142,6 +143,7 @@ html[data-theme="dark"] .public-request-brand img{background:#fff}
 </main>
 <?php require APP_ROOT.'/app/Views/shared/help_widget.php'; ?>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= $assetVersion ?>"></script>
+<script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/searchable-select.js?v=<?= $assetVersion ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/help-tour.js?v=<?= $assetVersion ?>"></script>
 <script nonce="<?= htmlspecialchars(CSP_NONCE) ?>">
 (function(){
