@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\{Auth,Database};
+use App\Core\{Auth,Database,SearchText};
 
 final class AgendaService
 {
@@ -112,16 +112,21 @@ final class AgendaService
     public function searchTickets(string $query,int $limit=10): array
     {
         $query=trim($query);if(mb_strlen($query)<2)return[];
+        $tokens=SearchText::tokens($query);if($tokens===[])return[];
         $limit=max(1,min(10,$limit));
         [$where,$params]=$this->scopedWhere([]);
-        $where[]='(t.ticket_number LIKE ? OR t.subject LIKE ?)';
-        $term='%'.$query.'%';
-        $params[]=$term;
-        $params[]=$term;
+        foreach($tokens as $token){
+            $where[]='(t.ticket_number LIKE ? OR t.subject LIKE ? OR t.description LIKE ? OR COALESCE(req.full_name,t.requester_name) LIKE ? OR COALESCE(req.email,t.requester_email) LIKE ? OR p.name LIKE ? OR c.name LIKE ?)';
+            $term='%'.$token.'%';
+            array_push($params,$term,$term,$term,$term,$term,$term,$term);
+        }
 
         $search=Database::pdo()->prepare(
             'SELECT t.id ticket_id,t.ticket_number ticket_code,t.subject ticket_subject
              FROM tickets t
+             LEFT JOIN users req ON req.id=t.requester_user_id AND req.deleted_at IS NULL
+             LEFT JOIN parks p ON p.id=t.park_id
+             LEFT JOIN ticket_categories c ON c.id=t.category_id
              WHERE '.implode(' AND ',$where).'
              ORDER BY t.ticket_number DESC,t.id DESC
              LIMIT '.$limit
