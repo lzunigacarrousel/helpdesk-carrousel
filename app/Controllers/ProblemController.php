@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace App\Controllers;
 
-use App\Core\{Audit,Auth,Csrf,Database,Flash,View};
+use App\Core\{Audit,Auth,Csrf,Database,Flash,SearchText,View};
 use App\Services\ProblemService;
 use PDO;
 
@@ -15,7 +15,7 @@ final class ProblemController
         Auth::requirePermission('problems.view');$pdo=Database::pdo();
         $q=trim((string)($_GET['q']??''));$status=trim((string)($_GET['status']??''));$category=(int)($_GET['category_id']??0);$park=(int)($_GET['park_id']??0);$owner=(int)($_GET['owner_id']??0);
         $where=['1=1'];$params=[];
-        if($q!==''){$where[]='(kp.problem_number LIKE ? OR kp.title LIKE ? OR kp.description LIKE ? OR kp.root_cause LIKE ? OR kp.workaround LIKE ?)';$like='%'.$q.'%';array_push($params,$like,$like,$like,$like,$like);}
+        foreach(SearchText::tokens($q) as $token){$where[]='(kp.problem_number LIKE ? OR kp.title LIKE ? OR kp.description LIKE ? OR kp.root_cause LIKE ? OR kp.workaround LIKE ? OR kp.permanent_solution LIKE ? OR c.name LIKE ? OR p.name LIKE ? OR u.full_name LIKE ?)';$like='%'.$token.'%';array_push($params,$like,$like,$like,$like,$like,$like,$like,$like,$like);}
         if(isset(self::STATUSES[$status])){$where[]='kp.status=?';$params[]=$status;}
         if($category>0){$where[]='kp.category_id IN (SELECT id FROM ticket_categories WHERE id=? OR parent_id=?)';$params[]=$category;$params[]=$category;}
         if($park>0){$where[]='kp.park_id=?';$params[]=$park;}
