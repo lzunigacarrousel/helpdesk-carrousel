@@ -29,6 +29,8 @@ $problems=(string)file_get_contents($root.'/app/Controllers/ProblemController.ph
 $audit=(string)file_get_contents($root.'/app/Controllers/AuditController.php');
 $providers=(string)file_get_contents($root.'/app/Services/ProviderParticipationService.php');
 $appJs=(string)file_get_contents($root.'/public/assets/js/app.js');
+$appStart=(string)file_get_contents($root.'/app/Views/shared/app_start.php');
+$shellCss=(string)file_get_contents($root.'/public/assets/css/shell-v2.css');
 $searchView=(string)file_get_contents($root.'/app/Views/search/index.php');
 
 searchCheck(str_contains($searchController,'SearchText::tokens'),'Buscador global usa tokens comunes');
@@ -45,5 +47,9 @@ searchCheck(str_contains($audit,'SearchText::tokens'),'Auditoría usa coincidenc
 searchCheck(str_contains($providers,'SearchText::matches'),'Informe de proveedores usa coincidencia común');
 searchCheck(str_contains($appJs,'qTokens.every'),'Usuarios usa coincidencias por palabras');
 searchCheck(str_contains($appJs,'tokens.every'),'Selects buscables usan coincidencias por palabras');
+searchCheck(str_contains($appStart,'data-topbar-search-clear'),'Buscador superior tiene limpiador visible');
+searchCheck(str_contains($appJs,'syncTopbarSearchClear'),'Limpiador superior sincroniza su visibilidad');
+searchCheck(str_contains($shellCss,'.topbar-search-clear'),'Limpiador superior tiene estilo propio y tamaño accesible');
+searchCheck(str_contains($shellCss,'::-webkit-search-cancel-button'),'Se oculta la X nativa pequeña del navegador');
 
 exit($ok?0:1);

@@ -13,6 +13,28 @@
   const toastContainer=document.getElementById('app-toast-container');
   const topbarSearch=document.querySelector('.topbar-search');
   const topbarSearchInput=topbarSearch?.querySelector('input[name="q"]');
+  const topbarSearchClear=topbarSearch?.querySelector('[data-topbar-search-clear]');
+
+  function syncTopbarSearchClear(){
+    if(!(topbarSearchInput instanceof HTMLInputElement)||!(topbarSearchClear instanceof HTMLElement))return;
+    topbarSearchClear.hidden=topbarSearchInput.value.trim()==='';
+  }
+
+  if(topbarSearchInput instanceof HTMLInputElement){
+    topbarSearchInput.addEventListener('input',syncTopbarSearchClear);
+    window.addEventListener('pageshow',syncTopbarSearchClear);
+  }
+  topbarSearchClear?.addEventListener('click',()=>{
+    if(!(topbarSearchInput instanceof HTMLInputElement))return;
+    const hadValue=topbarSearchInput.value.trim()!=='';
+    topbarSearchInput.value='';
+    syncTopbarSearchClear();
+    topbarSearchInput.focus();
+    if(hadValue&&topbarSearch instanceof HTMLFormElement&&/\/buscar\/?$/.test(window.location.pathname)){
+      topbarSearch.requestSubmit();
+    }
+  });
+  syncTopbarSearchClear();
 
   function systemTheme(){return window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
   function readTheme(){return localStorage.getItem(THEME_KEY)||'system';}
