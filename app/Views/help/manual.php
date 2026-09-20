@@ -325,7 +325,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   let activeTopic=topicButtons.some(el=>el.dataset.manualTopic===requestedTopic)?requestedTopic:'all';
   if(requestedQuery)input.value=requestedQuery;
 
-  const normalize=v=>(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  const normalize=v=>(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  const matches=(text,query)=>{const q=normalize(query);const tokens=q?q.split(' ').filter(Boolean):[];const haystack=normalize(text);return tokens.length===0||tokens.every(token=>haystack.includes(token));};
   const labelForTopic=topic=>{
     const button=topicButtons.find(el=>el.dataset.manualTopic===topic);
     return button?button.textContent.trim():'Todo';
@@ -343,7 +344,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     let visible=0;
 
     document.querySelectorAll('.manual-quick-card').forEach(el=>{
-      const textMatch=!q||normalize(el.textContent).includes(q);
+      const textMatch=matches(el.textContent,q);
       el.classList.toggle('is-hidden',!textMatch);
     });
 
@@ -356,14 +357,14 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
       if(faq.length){
         let faqVisible=0;
         faq.forEach(el=>{
-          const match=!q||normalize(el.textContent).includes(q);
+          const match=matches(el.textContent,q);
           el.classList.toggle('is-hidden',!(topicMatch&&match));
           if(match)faqVisible++;
         });
-        const own=normalize(section.querySelector('.manual-section-head')?.textContent||'').includes(q);
+        const own=matches(section.querySelector('.manual-section-head')?.textContent||'',q);
         queryMatch=!q||own||faqVisible>0;
       }else if(q){
-        queryMatch=normalize(section.textContent).includes(q);
+        queryMatch=matches(section.textContent,q);
       }
 
       const show=topicMatch&&queryMatch;
