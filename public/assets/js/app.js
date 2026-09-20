@@ -257,6 +257,7 @@
 
   function applyFilters(){
     const q=norm(search instanceof HTMLInputElement?search.value:'');
+    const qTokens=q?q.split(' ').filter(Boolean):[];
     const roleFilter=norm(role instanceof HTMLSelectElement?role.value:'');
     const statusFilter=norm(status instanceof HTMLSelectElement?status.value:'');
     let visible=0;
@@ -266,7 +267,8 @@
       const text=norm(row.dataset.userSearch||row.textContent||'');
       const rowRole=norm(row.dataset.userRole||'');
       const rowStatus=norm(row.dataset.userStatus||'');
-      const show=(!q||text.includes(q))&&(!roleFilter||rowRole===roleFilter)&&(!statusFilter||rowStatus===statusFilter);
+      const searchMatch=qTokens.length===0||qTokens.every(token=>text.includes(token));
+      const show=searchMatch&&(!roleFilter||rowRole===roleFilter)&&(!statusFilter||rowStatus===statusFilter);
       row.hidden=!show;
       if(show)visible+=1;
     });
