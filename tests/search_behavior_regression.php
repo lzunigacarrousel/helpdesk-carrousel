@@ -35,7 +35,8 @@ searchCheck(str_contains($searchController,'SearchText::tokens'),'Buscador globa
 searchCheck(str_contains($searchController,'RequesterTopicService::options'),'Buscador global incluye catálogo de ayuda');
 searchCheck(str_contains($searchView,'data-search-scope="help"'),'Vista global muestra coincidencias de ayuda');
 searchCheck(!str_contains($searchView,'class="search-page-form"'),'La pagina de resultados no duplica el buscador global');
-searchCheck(str_contains($searchView,'Usa el buscador superior'),'La pagina orienta a usar el buscador unico de la barra superior');
+searchCheck(!str_contains($searchView,'class="search-command"'),'La pagina de resultados no repite un bloque grande de contexto');
+searchCheck(str_contains($searchView,'Escribe en el buscador superior'),'El estado vacio orienta a usar el buscador unico superior');
 searchCheck(str_contains($queue,'SearchText::matches'),'Centro de soporte usa coincidencia común');
 searchCheck(str_contains($agenda,'SearchText::tokens'),'Agenda usa coincidencias por palabras');
 searchCheck(str_contains($knowledge,'SearchText::tokens'),'Conocimiento usa coincidencias por palabras');
