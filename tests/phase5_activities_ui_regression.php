@@ -211,8 +211,8 @@ ok(str_contains($manual,'Reprogramar'),'Manual explica Reprogramar actividades')
 ok(str_contains($manual,'Finalizar'),'Manual explica Finalizar actividades');
 ok(str_contains($manual,'Finalizar una actividad no resuelve ni cierra el ticket'),'Manual aclara independencia entre actividad y estado del ticket');
 ok(str_contains($manual,'Próxima atención')||str_contains($manual,'Proxima atención'),'Manual explica Próxima atención al solicitante');
-ok(str_contains($readme,'| 5 | Actividades / visitas | **Cerrada técnicamente en PC TEST** |'),'README marca Fase 5 cerrada técnicamente');
-ok(str_contains($readme,'| 6 | Agenda | **Cerrada técnicamente en PC TEST** |'),'README conserva Agenda cerrada técnicamente');
+ok(str_contains($readme,'- Actividades y visitas ligadas a tickets.'),'README documenta Actividades y visitas como capacidad vigente');
+ok(str_contains($readme,'- Agenda operativa.'),'README documenta Agenda como capacidad vigente');
 ok(str_contains($changelog,'Fase 5 · Actividades / visitas'),'CHANGELOG registra cierre funcional de Fase 5');
 ok(str_contains($roadmap,'Estado: **IMPLEMENTADA / PENDIENTE VALIDACIÓN INTEGRAL FASE 12**.'),'Roadmap maestro marca Fase 5 implementada');
 
