@@ -293,7 +293,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           </div>
           <div class="ticket-activity-form-grid">
             <label><span class="form-label">Tipo de actividad</span><select class="form-control" name="activity_type" data-activity-type required><option value="">Selecciona</option><?php foreach(($activityTypes??[]) as $type): ?><option value="<?= htmlspecialchars((string)$type) ?>"><?= htmlspecialchars($activityTypeLabels[$type]??str_replace('_',' ',(string)$type)) ?></option><?php endforeach; ?></select></label>
-            <label><span class="form-label">Responsable</span><select class="form-control" name="responsible_user_id" required><option value="">Selecciona responsable</option><?php foreach(($activityResponsibleUsers??[]) as $person): ?><option value="<?= (int)$person['id'] ?>"><?= htmlspecialchars((string)$person['full_name']) ?> · <?= htmlspecialchars((string)$person['email']) ?></option><?php endforeach; ?></select></label>
+            <label><span class="form-label">Responsable</span><select class="form-control" name="responsible_user_id" required data-activity-responsible><option value="">Selecciona responsable</option><?php foreach(($activityResponsibleUsers??[]) as $person): ?><option value="<?= (int)$person['id'] ?>"><?= htmlspecialchars((string)$person['full_name']) ?> · <?= htmlspecialchars((string)$person['email']) ?></option><?php endforeach; ?></select></label>
             <label><span class="form-label">Inicio programado</span><input class="form-control" type="datetime-local" name="scheduled_start_at" required></label>
             <label><span class="form-label">Fin estimado</span><input class="form-control" type="datetime-local" name="scheduled_end_at" required></label>
 
@@ -304,7 +304,28 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
             <label class="activity-span-2"><span class="form-label">Objetivo</span><textarea class="form-control" name="objective" rows="3" required placeholder="Ej. Revisar comunicación del kiosco con el servidor y validar impresión."></textarea></label>
             <details class="ticket-activity-more-options activity-span-2"><summary>Más opciones</summary><div class="ticket-activity-more-options-body">
 <label class="activity-span-2"><span class="form-label">Preparación interna <span class="optional">Opcional</span></span><textarea class="form-control" name="internal_preparation_notes" rows="2" placeholder="Accesos, herramientas o puntos que el equipo debe preparar antes de atender."></textarea></label>
-            <label class="activity-span-2"><span class="form-label">Participantes adicionales <span class="optional">Opcional</span></span><select class="form-control" name="participant_user_ids[]" multiple size="3"><?php foreach(($activityResponsibleUsers??[]) as $person): ?><option value="<?= (int)$person['id'] ?>"><?= htmlspecialchars((string)$person['full_name']) ?></option><?php endforeach; ?></select><span class="field-help">El responsable principal no necesita seleccionarse nuevamente.</span></label>
+            <div class="activity-span-2 ticket-activity-participant-field" data-activity-participants>
+              <div class="ticket-activity-participant-head">
+                <span class="form-label">Participantes adicionales <span class="optional">Opcional</span></span>
+                <span class="ticket-activity-participant-count" data-participant-count>0 seleccionados</span>
+              </div>
+              <div class="ticket-activity-participant-picker">
+                <div class="ticket-activity-participant-search">
+                  <span aria-hidden="true">⌕</span>
+                  <input type="text" data-participant-search placeholder="Buscar participante…" autocomplete="off" aria-label="Buscar participante">
+                </div>
+                <div class="ticket-activity-participant-options" data-participant-options>
+                  <?php foreach(($activityResponsibleUsers??[]) as $person): ?>
+                    <label class="ticket-activity-participant-option" data-participant-option data-search="<?= htmlspecialchars(mb_strtolower((string)$person['full_name'].' '.(string)$person['email']),ENT_QUOTES,'UTF-8') ?>">
+                      <input type="checkbox" name="participant_user_ids[]" value="<?= (int)$person['id'] ?>" data-participant-checkbox>
+                      <span><strong><?= htmlspecialchars((string)$person['full_name']) ?></strong><small><?= htmlspecialchars((string)$person['email']) ?></small></span>
+                    </label>
+                  <?php endforeach; ?>
+                  <div class="ticket-activity-participant-empty" data-participant-empty hidden>Sin coincidencias.</div>
+                </div>
+              </div>
+              <span class="field-help">Marca una o varias personas. El responsable principal se excluye automáticamente.</span>
+            </div>
             <label class="activity-span-2 ticket-activity-visibility"><input type="checkbox" name="requester_visible" value="1" data-requester-visible><span>Mostrar esta actividad al solicitante</span></label>
             <label class="activity-span-2 ticket-activity-requester-summary" hidden><span class="form-label">Resumen visible al solicitante</span><textarea class="form-control" name="requester_summary" rows="2" maxlength="500" placeholder="Ej. Se programó una visita para revisar el equipo reportado."></textarea><span class="field-help">No incluyas notas internas, accesos ni información técnica sensible.</span></label>
 </div></details>

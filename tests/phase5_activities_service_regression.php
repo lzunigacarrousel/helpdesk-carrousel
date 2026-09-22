@@ -65,6 +65,9 @@ foreach(['ACTIVITY_CREATED','ACTIVITY_RESCHEDULED','ACTIVITY_STARTED','ACTIVITY_
 
 ok(str_contains($service,'ticket_events'),'Servicio reutiliza ticket_events para trazabilidad');
 ok(!str_contains($service,'UPDATE tickets SET status'),'Actividad no cambia automáticamente el estado del ticket');
+ok(str_contains($service,"foreach((array)($input['participant_user_ids']??[])"),'Servicio acepta múltiples participantes al crear actividad');
+ok(str_contains($service,'$participantId===$responsibleUserId'),'Servicio excluye al responsable principal de participantes adicionales');
+ok(str_contains($service,'INSERT IGNORE INTO ticket_activity_participants'),'Servicio persiste múltiples participantes sin duplicados');
 
 // Task 5: almacenamiento de adjuntos compartido entre conversación y actividades.
 ok($attachmentService!=='','Existe TicketAttachmentService');

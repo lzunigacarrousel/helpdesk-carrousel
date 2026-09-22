@@ -56,8 +56,50 @@
     const requester=createForm.querySelector('[data-requester-visible]');
     if(type)type.addEventListener('change',()=>syncType(createForm));
     if(requester)requester.addEventListener('change',()=>syncRequesterVisible(createForm));
+
+    const participantRoot=createForm.querySelector('[data-activity-participants]');
+    const participantSearch=participantRoot?.querySelector('[data-participant-search]');
+    const participantOptions=[...(participantRoot?.querySelectorAll('[data-participant-option]')||[])];
+    const participantChecks=[...(participantRoot?.querySelectorAll('[data-participant-checkbox]')||[])];
+    const participantCount=participantRoot?.querySelector('[data-participant-count]');
+    const participantEmpty=participantRoot?.querySelector('[data-participant-empty]');
+    const responsible=createForm.querySelector('[data-activity-responsible]');
+
+    const normalizeParticipant=(value)=>String(value||'').toLocaleLowerCase('es-GT').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+    const syncParticipants=()=>{
+      const responsibleId=responsible instanceof HTMLSelectElement?String(responsible.value||''):'';
+      let selected=0;
+      let visible=0;
+      const query=normalizeParticipant(participantSearch instanceof HTMLInputElement?participantSearch.value:'');
+      const tokens=query?query.split(' ').filter(Boolean):[];
+
+      participantOptions.forEach(option=>{
+        if(!(option instanceof HTMLElement))return;
+        const checkbox=option.querySelector('[data-participant-checkbox]');
+        if(!(checkbox instanceof HTMLInputElement))return;
+        const isResponsible=responsibleId!==''&&checkbox.value===responsibleId;
+        if(isResponsible)checkbox.checked=false;
+        checkbox.disabled=isResponsible;
+        option.classList.toggle('is-responsible',isResponsible);
+
+        const haystack=normalizeParticipant(option.dataset.search||option.textContent||'');
+        const matches=tokens.length===0||tokens.every(token=>haystack.includes(token));
+        option.hidden=!matches;
+        if(matches)visible+=1;
+        if(checkbox.checked)selected+=1;
+      });
+
+      if(participantCount)participantCount.textContent=selected===1?'1 seleccionado':selected+' seleccionados';
+      if(participantEmpty)participantEmpty.hidden=visible!==0;
+    };
+
+    participantSearch?.addEventListener('input',syncParticipants);
+    participantChecks.forEach(check=>check.addEventListener('change',syncParticipants));
+    responsible?.addEventListener('change',syncParticipants);
+
     syncType(createForm);
     syncRequesterVisible(createForm);
+    syncParticipants();
   }
 
   root.querySelectorAll('[data-activity-confirm]').forEach(button=>{

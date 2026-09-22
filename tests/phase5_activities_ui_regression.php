@@ -130,6 +130,15 @@ ok(str_contains($ticketView,'data-activity-panel'),'Vista define panel progresiv
 ok(str_contains($activityJs,'data-activity-type'),'JS controla campos según tipo');
 ok(str_contains($activityJs,'data-requester-visible'),'JS controla resumen visible al solicitante');
 ok(str_contains($activityJs,'data-activity-panel'),'JS controla panel progresivo');
+ok(str_contains($ticketView,'data-activity-participants'),'Formulario usa selector múltiple accesible para participantes');
+ok(substr_count($ticketView,'name="participant_user_ids[]"')>=1,'Participantes se envían como arreglo al backend');
+ok(str_contains($ticketView,'type="checkbox" name="participant_user_ids[]"'),'Cada participante puede marcarse de forma independiente');
+ok(str_contains($ticketView,'data-participant-search'),'Selector múltiple permite buscar participantes');
+ok(str_contains($ticketView,'data-participant-count'),'Selector múltiple muestra cantidad seleccionada');
+ok(str_contains($ticketView,'data-activity-responsible'),'Responsable principal queda identificado para exclusión');
+ok(str_contains($activityJs,'syncParticipants'),'JS sincroniza selección múltiple de participantes');
+ok(str_contains($activityJs,'checkbox.disabled=isResponsible'),'JS impide repetir al responsable principal');
+ok(str_contains($activityCss,'.ticket-activity-participant-picker'),'CSS define componente de multiselección de participantes');
 ok(!str_contains($activityJs,'UPDATE tickets SET status'),'JS no crea transiciones de estado del ticket');
 
 // Pulido visual aprobado: una sola actividad aprovecha el ancho y el formulario es progresivo.
