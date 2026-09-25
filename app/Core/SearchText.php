@@ -45,4 +45,26 @@ final class SearchText
         }
         return true;
     }
+
+    public static function addsDistinctDetail(string $subject,string $description): bool
+    {
+        $subject=self::normalize($subject);
+        $description=self::normalize($description);
+
+        if($description==='')return false;
+        if($subject==='')return true;
+        if($subject===$description)return false;
+
+        $subjectLength=mb_strlen($subject,'UTF-8');
+        $descriptionLength=mb_strlen($description,'UTF-8');
+        $shorter=min($subjectLength,$descriptionLength);
+
+        // Public forms can generate a subject from the beginning of the description.
+        // In compact lists, repeating that same opening line does not add information.
+        if($shorter>=35 && (str_starts_with($description,$subject) || str_starts_with($subject,$description))){
+            return false;
+        }
+
+        return true;
+    }
 }

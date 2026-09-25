@@ -1,4 +1,5 @@
 <?php
+use App\Core\SearchText;
 use App\Core\{Csrf,Auth,SearchText};
 use App\Services\TicketClassificationService;
 $priorityLabels=$priorityLabels??['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
@@ -87,7 +88,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     <div class="queue-table-head"><div><h2><?= count($filtered) ?> caso<?= count($filtered)===1?'':'s' ?></h2></div></div>
     <?php if($filtered): ?>
     <div class="table-responsive queue-table-wrap data-table-wrap"><table class="queue-table responsive data-table"><thead><tr><th>Ticket / asunto</th><th>Solicitante</th><th>Parque</th><th>Prioridad</th><th>Estado</th><th>SLA</th><th>Responsable</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
-      <?php foreach($filtered as $t): $sla=$t['sla_summary']??[];$slaText=(string)($sla['remaining_label']??'Sin SLA');$slaClass=(string)($sla['tone']??'neutral');$slaState=(string)($sla['state_label']??'Sin SLA');$slaPercent=$sla['utilization_percent']??null;$assigned=(int)($t['assigned_to']??0);$subjectText=trim((string)($t['subject']??''));$descriptionText=trim((string)($t['description']??''));$showDescription=$descriptionText!==''&&$normalizeText($descriptionText)!==$normalizeText($subjectText); ?>
+      <?php foreach($filtered as $t): $sla=$t['sla_summary']??[];$slaText=(string)($sla['remaining_label']??'Sin SLA');$slaClass=(string)($sla['tone']??'neutral');$slaState=(string)($sla['state_label']??'Sin SLA');$slaPercent=$sla['utilization_percent']??null;$assigned=(int)($t['assigned_to']??0);$subjectText=trim((string)($t['subject']??''));$descriptionText=trim((string)($t['description']??''));$showDescription=SearchText::addsDistinctDetail($subjectText,$descriptionText); ?>
       <tr class="queue-row priority-row-<?= strtolower((string)$t['priority']) ?>">
         <td data-label="Ticket"><div class="queue-ticket-main"><span><?= htmlspecialchars($t['ticket_number']) ?></span><strong><?= htmlspecialchars($subjectText) ?></strong><div class="queue-ticket-kind"><span class="case-kind-chip"><?= htmlspecialchars(TicketClassificationService::requestTypeLabel($t['request_type']??null)) ?></span></div><?php if($showDescription): ?><p><?= htmlspecialchars(mb_strimwidth($descriptionText,0,150,'…')) ?></p><?php endif; ?></div></td>
         <td data-label="Solicitante"><strong><?= htmlspecialchars($t['current_requester_name']??$t['requester_name']??'Sin nombre') ?></strong><small><?= htmlspecialchars($t['current_requester_email']??$t['requester_email']??'') ?></small></td>

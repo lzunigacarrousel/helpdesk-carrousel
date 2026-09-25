@@ -1,4 +1,5 @@
 <?php
+use App\Core\SearchText;
 $statusLabels=['NEW'=>'Nuevo','AVAILABLE'=>'Pendiente de atención','IN_PROGRESS'=>'En proceso','PENDING'=>'En espera','RESOLVED'=>'Resuelto','CLOSED'=>'Cerrado','REOPENED'=>'Reabierto','CANCELLED'=>'Cancelado'];
 $priorityLabels=['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];
 $knowledgeStatusLabels=['DRAFT'=>'Borrador','IN_REVIEW'=>'En revisión','PUBLISHED'=>'Publicado para soporte','ARCHIVED'=>'Archivado'];
@@ -49,7 +50,7 @@ $normalize=static function(string $value):string{$value=mb_strtolower(trim((stri
       <section class="search-result-section" data-search-section="tickets">
         <div class="search-section-head"><div><span class="ticket-kicker">Tickets</span><h2>Casos relacionados</h2></div><span><?= count($tickets) ?></span></div>
         <div class="search-ticket-list">
-          <?php foreach($tickets as $t): $description=trim((string)$t['description']);$showDescription=$description!==''&&$normalize($description)!==$normalize((string)$t['subject']); ?>
+          <?php foreach($tickets as $t): $description=trim((string)$t['description']);$showDescription=SearchText::addsDistinctDetail((string)$t['subject'],$description); ?>
             <a class="search-ticket-card" href="<?= APP_BASE_URL ?>/tickets/view?id=<?= (int)$t['id'] ?>">
               <div class="search-ticket-top"><span><?= htmlspecialchars($t['ticket_number']) ?></span><span class="ticket-status-pill status-<?= strtolower((string)$t['status']) ?>"><?= htmlspecialchars($statusLabels[$t['status']]??$t['status']) ?></span></div>
               <h3><?= htmlspecialchars($t['subject']) ?></h3>
