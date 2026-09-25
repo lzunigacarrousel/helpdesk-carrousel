@@ -10,6 +10,11 @@ $catalogs=forensicText($root.'/app/Views/admin/catalogs.php');
 $team=forensicText($root.'/app/Views/management/support_team.php');
 $mail=forensicText($root.'/app/Views/admin/mail.php');
 $audit=forensicText($root.'/app/Views/admin/audit.php');
+$adminController=forensicText($root.'/app/Controllers/AdminController.php');
+$externalController=forensicText($root.'/app/Controllers/ExternalController.php');
+$externalTemplateController=forensicText($root.'/app/Controllers/ExternalTemplateController.php');
+$catalogController=forensicText($root.'/app/Controllers/CatalogAdminController.php');
+$router=forensicText($root.'/public/index.php');
 $css=forensicText($root.'/public/assets/css/admin-dialog.css');
 $js=forensicText($root.'/public/assets/js/admin-dialog.js');
 $end=forensicText($root.'/app/Views/shared/app_end.php');
@@ -40,6 +45,15 @@ forensicOk(!str_contains($audit,'Editar'),'Auditoría permanece de solo consulta
 forensicOk(substr_count($users,'name="_csrf"')>=4,'Usuarios mantiene CSRF en operaciones administrativas');
 forensicOk(substr_count($externals,'name="_csrf"')>=5,'Proveedores mantiene CSRF en operaciones administrativas');
 forensicOk(substr_count($catalogs,'name="_csrf"')>=4,'Catálogos mantiene CSRF en operaciones administrativas');
+
+forensicOk(str_contains($adminController,"Auth::requirePermission('users.manage')")&&str_contains($adminController,"Csrf::verify"),'Backend de Usuarios conserva permiso y CSRF');
+forensicOk(str_contains($adminController,"Audit::log('USER_UPDATED'")&&str_contains($adminController,"Audit::log('USER_DELETED'"),'Backend de Usuarios conserva auditoría de edición y retiro');
+forensicOk(str_contains($externalController,"Auth::requirePermission('external.manage')")&&str_contains($externalController,"Csrf::verify"),'Backend de Proveedores conserva permiso y CSRF');
+forensicOk(str_contains($externalController,"Audit::log('EXTERNAL_USER_UPDATED'")&&str_contains($externalController,"Audit::log('EXTERNAL_USER_DISABLED'"),'Backend de Proveedores conserva auditoría de edición y desactivación');
+forensicOk(str_contains($externalTemplateController,"Audit::log('EXTERNAL_REPORT_TEMPLATE_UPDATED'"),'Plantilla de proveedor conserva auditoría');
+forensicOk(str_contains($catalogController,"Auth::requirePermission('catalogs.manage')")&&str_contains($catalogController,"Csrf::verify"),'Backend de Catálogos conserva permiso y CSRF');
+forensicOk(str_contains($catalogController,'REGION_UPDATED')&&str_contains($catalogController,'PARK_UPDATED')&&str_contains($catalogController,'AREA_UPDATED'),'Catálogos conserva auditoría por entidad');
+forensicOk(str_contains($router,"/admin/users/assign")&&str_contains($router,"/admin/externos/actualizar")&&str_contains($router,"/admin/catalogos/parques/guardar"),'Rutas de actualización siguen disponibles');
 
 if($fails){fwrite(STDERR,PHP_EOL.'[ERROR] '.$fails.' hallazgo(s) forense(s) pendientes.'.PHP_EOL);exit(1);}
 echo PHP_EOL.'[OK] Auditoría forense de edición administrativa completada.'.PHP_EOL;

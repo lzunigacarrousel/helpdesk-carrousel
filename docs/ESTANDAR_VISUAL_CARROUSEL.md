@@ -55,6 +55,9 @@ La aplicación usa una sola jerarquía de botones. No crear variantes visuales p
 - Móvil: cada fila debe convertirse en un registro vertical mediante `data-label`, sin depender de scroll horizontal.
 - No simular tablas mediante grids de tarjetas cuando las filas representan registros comparables.
 - Las acciones deben mantenerse dentro de la fila correspondiente y conservar su comportamiento, permisos y CSRF.
+- Para ediciones administrativas cortas, la fila permanece intacta: **Editar abre el diálogo compartido `.admin-record-dialog`** con título contextual, Cancelar/Guardar y retorno al mismo listado.
+- No insertar formularios de edición como filas adicionales dentro de una tabla. Las excepciones deben corresponder a procesos complejos que realmente necesiten una página o panel dedicado.
+- Acciones destructivas o de conversión pueden vivir dentro del diálogo del registro, pero deben conservar confirmación, permisos, CSRF, auditoría y bloqueos de negocio.
 - Una nueva tabla no debe crear su propia estrategia de responsive si el componente común resuelve el caso.
 
 ## Patrón de contenido y copy
