@@ -9,7 +9,7 @@ $required=[
 'app/Core/Auth.php','app/Core/SearchText.php','app/Services/AuthService.php','app/Services/ScopeService.php','app/Services/NotificationService.php','app/Services/MailService.php','app/Services/ProblemService.php','app/Services/SolutionSuggestionService.php','app/Services/XlsxExportService.php',
 'app/Controllers/DashboardController.php','app/Controllers/WorkflowController.php','app/Controllers/ConversationController.php','app/Controllers/ResolutionController.php','app/Controllers/TicketFeedbackController.php','app/Controllers/ProblemController.php','app/Controllers/KnowledgeController.php','app/Controllers/MailAdminController.php','app/Controllers/AdminController.php',
 'app/Views/dashboard/index.php','app/Views/management/dashboard.php','app/Views/tickets/public_create.php','app/Views/tickets/index.php','app/Views/tickets/feedback.php','app/Views/tickets/show.php','app/Views/tickets/show_external.php','app/Views/help/manual.php','app/Views/admin/mail.php','app/Views/admin/users.php','app/Views/shared/app_start.php','app/Views/shared/app_end.php','app/Views/shared/help_widget.php',
-'public/assets/js/help-tour.js','public/assets/js/notifications.js','public/assets/js/table-normalization.js','public/assets/css/ui-refresh.css','public/assets/css/components.css','public/assets/css/searchable-select.css','public/assets/css/visual-system.css','public/assets/css/layout-density-v25.css','public/assets/css/data-tables.css','public/index.php','MAIN.bat','INSTALAR_PRODUCCION.bat','database/VERIFICAR_PRODUCCION_LIMPIA.sql'];
+'public/assets/js/help-tour.js','public/assets/js/notifications.js','public/assets/js/table-normalization.js','public/assets/js/admin-dialog.js','public/assets/css/admin-dialog.css','public/assets/css/ui-refresh.css','public/assets/css/components.css','public/assets/css/searchable-select.css','public/assets/css/visual-system.css','public/assets/css/layout-density-v25.css','public/assets/css/data-tables.css','public/index.php','MAIN.bat','INSTALAR_PRODUCCION.bat','database/VERIFICAR_PRODUCCION_LIMPIA.sql'];
 foreach($required as $file)check(is_file($root.'/'.$file),'Existe '.$file);
 
 $checks=[
@@ -31,7 +31,9 @@ $checks=[
 'app/Views/management/support_team.php'=>['<table','data-label='],
 'app/Views/admin/externals.php'=>['<table','data-label='],
 'app/Views/management/external_report.php'=>['<table','data-label='],
-'app/Views/shared/app_end.php'=>['layout-density-v25.css','data-tables.css','table-normalization.js'],
+'app/Views/shared/app_end.php'=>['layout-density-v25.css','data-tables.css','admin-dialog.css','admin-dialog.js','table-normalization.js'],
+'public/assets/css/admin-dialog.css'=>['.admin-record-dialog','.admin-dialog-host','::backdrop'],
+'public/assets/js/admin-dialog.js'=>['data-admin-dialog-open','showModal()','data-admin-dialog-close'],
 'public/assets/css/data-tables.css'=>['.data-table','content:attr(data-label)','min-width:0!important'],
 'public/assets/css/itsm-classification.css'=>['.ticket-classification-form{display:grid','align-items:start','.classification-submit{align-self:end}'],
 'public/assets/js/table-normalization.js'=>['.content table:not([data-table-skip])','data-label'],

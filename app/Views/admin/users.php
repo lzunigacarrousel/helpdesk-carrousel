@@ -20,11 +20,11 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
 .admin-access-panel{margin:0 0 14px;overflow:hidden}.admin-access-panel[hidden]{display:none!important}.admin-access-panel .card-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 16px;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}.admin-access-panel .card-header strong{font-size:16px;color:var(--brand-dark)}.admin-access-close{border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:4px 6px}
 .admin-access-form{padding:16px;display:grid;gap:12px}.admin-access-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;align-items:start}.admin-access-org{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;align-items:start;padding-top:12px;border-top:1px solid var(--border)}.admin-access-wide{grid-column:span 2}.admin-account-field{align-self:start}.admin-manager-field{grid-column:span 2;align-self:start}.admin-access-actions{display:flex;justify-content:flex-end;gap:8px}[data-location-park][hidden],[data-location-area][hidden],[data-location-region][hidden]{display:none!important}
 .admin-users-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}.admin-users-kpis>div{padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card)}.admin-users-kpis strong,.admin-users-kpis span{display:block}.admin-users-kpis strong{font-size:22px;color:var(--brand)}.admin-users-kpis span{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:850}
-.admin-user-toolbar{display:grid;grid-template-columns:minmax(260px,1.6fr) minmax(150px,.6fr) minmax(150px,.6fr) auto;gap:8px;align-items:end;margin-bottom:10px}.admin-user-toolbar .form-label{margin-bottom:4px}.admin-users-summary{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;color:var(--muted);font-size:11px}.admin-user-table td:first-child strong{font-size:13px}.admin-user-edit-toggle{white-space:nowrap}.admin-user-edit-row[hidden]{display:none!important}.admin-user-edit-row>td{padding:0 10px 14px!important;background:transparent!important}.admin-user-edit-shell{padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--shadow-sm)}.admin-user-edit-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--border)}.admin-user-edit-head strong{display:block;font-size:16px;color:var(--brand-dark)}.admin-user-edit-head small{display:block;margin-top:2px;color:var(--muted)}.admin-user-edit-panel{padding:0}.admin-user-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;align-items:start}.admin-form-action{display:flex;align-items:end}.admin-form-action .btn{width:100%}.admin-user-convert{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-convert summary{cursor:pointer;color:var(--brand);font-weight:850}.admin-user-convert-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--brand) 24%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--info-bg) 42%,var(--card) 58%)}.admin-user-convert-zone>p{margin:4px 0 10px;color:var(--muted);font-size:11px}.admin-user-convert-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-user-convert-form .external-full{grid-column:1/-1}.admin-user-convert-confirm{display:flex;gap:7px;align-items:flex-start;font-size:11px;color:var(--text)}
+.admin-user-toolbar{display:grid;grid-template-columns:minmax(260px,1.6fr) minmax(150px,.6fr) minmax(150px,.6fr) auto;gap:8px;align-items:end;margin-bottom:10px}.admin-user-toolbar .form-label{margin-bottom:4px}.admin-users-summary{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;color:var(--muted);font-size:11px}.admin-user-table td:first-child strong{font-size:13px}.admin-user-edit-toggle{white-space:nowrap}.admin-user-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;align-items:start}.admin-form-action{display:flex;align-items:end}.admin-form-action .btn{width:100%}.admin-user-convert{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-convert summary{cursor:pointer;color:var(--brand);font-weight:850}.admin-user-convert-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--brand) 24%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--info-bg) 42%,var(--card) 58%)}.admin-user-convert-zone>p{margin:4px 0 10px;color:var(--muted);font-size:11px}.admin-user-convert-form{display:grid;grid-template-columns:1fr 1fr;gap:8px}.admin-user-convert-form .external-full{grid-column:1/-1}.admin-user-convert-confirm{display:flex;gap:7px;align-items:flex-start;font-size:11px;color:var(--text)}
 .admin-user-remove{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}.admin-user-remove summary{cursor:pointer;color:var(--danger);font-weight:800}.admin-user-danger-zone{margin-top:8px;padding:10px;border:1px solid color-mix(in srgb,var(--danger) 28%,var(--border));border-radius:10px}.admin-delete-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .admin-users-empty{margin-top:10px;padding:14px;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}
 @media(max-width:1180px){.admin-access-grid,.admin-access-org{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-access-wide{grid-column:span 2}.admin-user-form{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-user-toolbar{grid-template-columns:1fr 1fr 1fr auto}}
-@media(max-width:760px){.admin-user-convert-form{grid-template-columns:1fr}.admin-users-heading{align-items:stretch}.admin-access-toggle{width:100%}.admin-access-grid,.admin-access-org,.admin-user-toolbar{grid-template-columns:1fr}.admin-user-form{grid-template-columns:1fr}.admin-access-wide,.admin-manager-field{grid-column:auto}.admin-access-form{padding:14px}.admin-access-actions{display:grid;grid-template-columns:1fr}.admin-access-actions .btn{width:100%}.admin-users-kpis{grid-template-columns:repeat(3,1fr)}.admin-user-edit-row>td{display:block!important;width:100%!important;padding:8px 0 14px!important}.admin-user-edit-shell{padding:14px}.admin-user-edit-head{align-items:flex-start;flex-direction:column}.admin-user-edit-head .btn{width:100%}.admin-users-summary{align-items:center}}
+@media(max-width:760px){.admin-user-convert-form{grid-template-columns:1fr}.admin-users-heading{align-items:stretch}.admin-access-toggle{width:100%}.admin-access-grid,.admin-access-org,.admin-user-toolbar{grid-template-columns:1fr}.admin-user-form{grid-template-columns:1fr}.admin-access-wide,.admin-manager-field{grid-column:auto}.admin-access-form{padding:14px}.admin-access-actions{display:grid;grid-template-columns:1fr}.admin-access-actions .btn{width:100%}.admin-users-kpis{grid-template-columns:repeat(3,1fr)}.admin-users-summary{align-items:center}}
 </style>
 <div class="admin-users-page">
   <div class="page-heading admin-users-heading">
@@ -93,22 +93,23 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
           <td data-label="Alcance" class="data-table-secondary"><?= htmlspecialchars($scopeText) ?></td>
           <td data-label="Acciones">
           <?php if($canEditThis): ?>
-            <button class="btn btn-outline-secondary admin-user-edit-toggle" type="button" data-user-edit-toggle aria-expanded="false" aria-controls="user-edit-<?= (int)$u['id'] ?>">Editar</button>
+            <button class="btn btn-outline-secondary admin-user-edit-toggle" type="button" data-admin-dialog-open="user-edit-<?= (int)$u['id'] ?>" aria-haspopup="dialog" aria-expanded="false">Editar</button>
           <?php else: ?><span class="data-table-muted">Solo administrador</span><?php endif; ?>
           </td>
         </tr>
         <?php if($canEditThis): ?>
-        <tr class="admin-user-edit-row" data-user-edit-row hidden id="user-edit-<?= (int)$u['id'] ?>">
+        <tr class="admin-dialog-host">
           <td colspan="7">
-            <div class="admin-user-edit-shell" data-user-edit-panel>
-              <div class="admin-user-edit-head">
-                <div><strong>Editar usuario · <?= htmlspecialchars($u['full_name']) ?></strong><small><?= htmlspecialchars($u['email']) ?></small></div>
-                <button class="btn btn-outline-secondary" type="button" data-user-edit-close>Cancelar edición</button>
-              </div>
-              <div class="admin-user-edit-panel">
+            <dialog class="admin-record-dialog admin-record-dialog--wide" data-admin-dialog id="user-edit-<?= (int)$u['id'] ?>" aria-labelledby="user-edit-title-<?= (int)$u['id'] ?>">
+              <div class="admin-record-dialog-shell">
+                <div class="admin-record-dialog-head">
+                  <div><span class="ticket-kicker">Usuario</span><h2 class="admin-record-dialog-title" id="user-edit-title-<?= (int)$u['id'] ?>">Editar usuario · <?= htmlspecialchars($u['full_name']) ?></h2><small class="admin-record-dialog-subtitle"><?= htmlspecialchars($u['email']) ?></small></div>
+                  <button class="admin-record-dialog-close" type="button" data-admin-dialog-close aria-label="Cerrar">×</button>
+                </div>
+                <div class="admin-record-dialog-body">
                 <form method="post" action="<?= APP_BASE_URL ?>/admin/users/assign" data-single-submit class="admin-user-form" data-user-admin-form>
                   <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
-                  <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required></div>
+                  <div><label class="form-label">Nombre completo</label><input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($u['full_name']) ?>" required data-admin-dialog-focus></div>
                   <div><label class="form-label">Correo</label><input class="form-control" type="email" name="email" value="<?= htmlspecialchars($u['email']) ?>" required></div>
                   <div><label class="form-label">Teléfono</label><input class="form-control" type="text" name="phone" value="<?= htmlspecialchars((string)($u['phone']??'')) ?>" placeholder="Opcional"></div>
                   <div><label class="form-label">Perfil</label><select class="form-control" name="role_id" required data-role-select><?php foreach($roles as $r): if(!$isFullAdmin&&$r['code']==='ADMIN')continue; ?><option value="<?= (int)$r['id'] ?>" data-role-code="<?= htmlspecialchars($r['code']) ?>" <?= (int)$r['id']===(int)$u['role_id']?'selected':'' ?>><?= htmlspecialchars($r['name']) ?></option><?php endforeach; ?></select></div>
@@ -159,8 +160,9 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
                 </div></details>
                 <details class="admin-user-remove"><summary>Retirar acceso</summary><div class="admin-user-danger-zone"><strong>Retirar acceso</strong><?php if((int)($u['active_ticket_count']??0)>0): ?><div class="admin-delete-blocked">Tiene <?= (int)$u['active_ticket_count'] ?> caso(s) activo(s). Reasígnalos antes.</div><?php else: ?><form method="post" action="<?= APP_BASE_URL ?>/admin/users/delete" data-single-submit class="admin-delete-form"><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>"><label><input type="checkbox" name="confirm_delete" value="1" required> Confirmo el retiro.</label><button class="btn btn-danger" type="submit">Retirar acceso</button></form><?php endif; ?></div></details>
                 <?php endif; ?>
+                </div>
               </div>
-            </div>
+            </dialog>
           </td>
         </tr>
         <?php endif; ?>
@@ -180,39 +182,6 @@ $pendingCount=count(array_filter($users,static fn(array $u):bool=>($u['status']?
   const setPanel=function(open){if(!panel||!toggle)return;panel.hidden=!open;toggle.setAttribute('aria-expanded',open?'true':'false');toggle.textContent=open?'Cerrar':'+ Dar acceso';if(open){panel.querySelector('input[name="full_name"]')?.focus();}};
   toggle?.addEventListener('click',function(){setPanel(panel?.hidden??true)});
   closeButtons.forEach(function(button){button.addEventListener('click',function(){setPanel(false)})});
-
-  const editToggles=document.querySelectorAll('[data-user-edit-toggle]');
-  const editRows=document.querySelectorAll('[data-user-edit-row]');
-  const closeAllEditors=function(exceptId=''){
-    editRows.forEach(function(row){
-      if(exceptId&&row.id===exceptId)return;
-      row.hidden=true;
-      const button=document.querySelector('[data-user-edit-toggle][aria-controls="'+row.id+'"]');
-      button?.setAttribute('aria-expanded','false');
-    });
-  };
-  editToggles.forEach(function(button){
-    button.addEventListener('click',function(){
-      const row=document.getElementById(button.getAttribute('aria-controls')||'');
-      if(!row)return;
-      const opening=row.hidden;
-      closeAllEditors(opening?row.id:'');
-      row.hidden=!opening;
-      button.setAttribute('aria-expanded',opening?'true':'false');
-      if(opening)row.querySelector('input[name="full_name"]')?.focus();
-    });
-  });
-  document.querySelectorAll('[data-user-edit-close]').forEach(function(button){
-    button.addEventListener('click',function(){
-      const row=button.closest('[data-user-edit-row]');
-      if(!row)return;
-      row.hidden=true;
-      document.querySelector('[data-user-edit-toggle][aria-controls="'+row.id+'"]')?.setAttribute('aria-expanded','false');
-    });
-  });
-  document.querySelectorAll('[data-users-search],[data-users-role-filter],[data-users-status-filter],[data-users-clear]').forEach(function(control){
-    control.addEventListener(control.matches('input')?'input':'change',function(){closeAllEditors();});
-  });
 
   const sync=function(form){
     const type=form.querySelector('[data-assignment-type]');

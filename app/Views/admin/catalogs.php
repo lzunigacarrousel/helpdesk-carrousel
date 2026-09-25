@@ -38,12 +38,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 .catalog-create .field-help{grid-column:1/-1}
 .catalog-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10.5px}
 .catalog-risk{color:var(--warning);font-size:10.5px}
-.catalog-dialog{width:min(720px,calc(100vw - 28px));max-width:720px;border:0;border-radius:16px;padding:0;background:var(--card);color:var(--text);box-shadow:0 24px 70px rgba(15,32,75,.28)}
-.catalog-dialog::backdrop{background:rgba(15,32,75,.48);backdrop-filter:blur(2px)}
-.catalog-dialog-shell{display:grid}
-.catalog-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px 14px;border-bottom:1px solid var(--border)}
-.catalog-dialog-head h2{margin:3px 0 0;font-size:20px}
-.catalog-dialog-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:21px;line-height:1;cursor:pointer}
 .catalog-dialog-context{padding:10px 20px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,var(--card) 96%);color:var(--muted);font-size:11px}
 .catalog-dialog-form{display:grid;gap:14px;padding:18px 20px 20px}
 .catalog-dialog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -61,7 +55,6 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   .catalog-toolbar label{flex:1 1 180px}
   .catalog-toolbar .catalog-search,.catalog-toolbar .catalog-filter{min-width:0;width:100%}
   .catalog-create form,.catalog-create.region form,.catalog-create.area form,.catalog-create.park form{grid-template-columns:1fr}
-  .catalog-dialog{width:calc(100vw - 18px)}
   .catalog-dialog-grid{grid-template-columns:1fr}
   .catalog-dialog-full{grid-column:auto}
   .catalog-dialog-actions{display:grid;grid-template-columns:1fr}
@@ -171,14 +164,14 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   <?php endif; ?>
 
   <?php if($section!=='home'): ?>
-  <dialog class="catalog-dialog" data-catalog-dialog aria-labelledby="catalog-edit-title">
-    <div class="catalog-dialog-shell">
-      <div class="catalog-dialog-head">
-        <div><span class="ticket-kicker">Edición</span><h2 id="catalog-edit-title" data-catalog-dialog-title>Editar registro</h2></div>
-        <button class="catalog-dialog-close" type="button" data-catalog-dialog-close aria-label="Cerrar">×</button>
+  <dialog class="admin-record-dialog" data-admin-dialog data-catalog-dialog aria-labelledby="catalog-edit-title">
+    <div class="admin-record-dialog-shell">
+      <div class="admin-record-dialog-head">
+        <div><span class="ticket-kicker">Edición</span><h2 class="admin-record-dialog-title" id="catalog-edit-title" data-catalog-dialog-title>Editar registro</h2></div>
+        <button class="admin-record-dialog-close" type="button" data-admin-dialog-close aria-label="Cerrar">×</button>
       </div>
       <div class="catalog-dialog-context">Código interno: <strong class="catalog-code" data-catalog-dialog-code>—</strong></div>
-      <form method="post" data-single-submit class="catalog-dialog-form" data-catalog-edit-form>
+      <form method="post" data-single-submit class="catalog-dialog-form admin-record-dialog-body" data-catalog-edit-form>
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
         <input type="hidden" name="id" value="" data-catalog-edit-id>
         <div class="catalog-dialog-grid">
@@ -189,7 +182,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           <label class="catalog-dialog-full" data-catalog-area-field hidden><span class="form-label">Descripción</span><input class="form-control" name="description" maxlength="255" data-catalog-edit-description disabled></label>
         </div>
         <div class="catalog-dialog-actions">
-          <button class="btn btn-outline-secondary" type="button" data-catalog-dialog-close>Cancelar</button>
+          <button class="btn btn-outline-secondary" type="button" data-admin-dialog-close>Cancelar</button>
           <button class="btn btn-primary" type="submit">Guardar cambios</button>
         </div>
       </form>
@@ -257,8 +250,7 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     });
   });
 
-  dialog?.querySelectorAll('[data-catalog-dialog-close]').forEach(function(button){button.addEventListener('click',function(){dialog.close();});});
-  dialog?.addEventListener('click',function(event){if(event.target===dialog)dialog.close();});
+
 })();
 </script>
 <?php endif; ?>

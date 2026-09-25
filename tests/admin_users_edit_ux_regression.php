@@ -17,25 +17,19 @@ function check(bool $condition, string $message): void {
 
 $view = text($root . '/app/Views/admin/users.php');
 
-check(str_contains($view, 'data-user-edit-toggle'), 'Acciones usa control dedicado para editar usuario');
-check(str_contains($view, 'data-user-edit-row'), 'Editor vive en una fila independiente');
-check(str_contains($view, 'colspan="7"'), 'Fila de edición ocupa el ancho completo de la tabla');
-check(str_contains($view, 'data-user-edit-panel'), 'Existe panel de edición de ancho completo');
-check(str_contains($view, 'data-user-edit-row hidden'), 'Fila de edición inicia oculta');
-check(!str_contains($view, '<details class="admin-user-edit"'), 'Editor ya no se incrusta dentro de Acciones');
-check(str_contains($view, 'admin-user-edit-shell'), 'Editor usa contenedor visual dedicado');
-check(str_contains($view, 'admin-user-edit-head'), 'Editor muestra encabezado contextual');
-check(str_contains($view, 'Cancelar edición'), 'Editor ofrece cierre explícito');
+check(str_contains($view, 'data-admin-dialog-open="user-edit-'), 'Acciones abre editor de usuario como diálogo');
+check(str_contains($view, '<dialog class="admin-record-dialog admin-record-dialog--wide"'), 'Editor de usuario usa diálogo administrativo canónico');
+check(str_contains($view, 'data-admin-dialog'), 'Editor declara contrato de diálogo compartido');
+check(str_contains($view, 'admin-record-dialog-title'), 'Diálogo muestra encabezado contextual');
+check(str_contains($view, 'Editar usuario ·'), 'Título identifica al usuario editado');
+check(str_contains($view, 'data-admin-dialog-close'), 'Editor ofrece cierre explícito');
+check(str_contains($view, 'data-admin-dialog-focus'), 'Diálogo enfoca el primer campo editable');
+check(!str_contains($view, 'data-user-edit-row'), 'Usuarios ya no usa filas de edición inline');
+check(!str_contains($view, 'admin-user-edit-shell'), 'Usuarios elimina shell inline anterior');
 
-check(str_contains($view, "querySelectorAll('[data-user-edit-toggle]')"), 'JS controla botones de edición');
-check(str_contains($view, "querySelectorAll('[data-user-edit-row]')"), 'JS controla filas de edición');
-check(str_contains($view, "setAttribute('aria-expanded'"), 'JS actualiza accesibilidad');
-check(str_contains($view, 'row.hidden='), 'JS alterna fila sin recargar');
-check(str_contains($view, 'closeAllEditors'), 'JS cierra editores anteriores');
-
-check(str_contains($view, 'grid-template-columns:repeat(3,minmax(0,1fr))'), 'Escritorio conserva tres columnas');
+check(str_contains($view, '.admin-user-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))'), 'Formulario conserva tres columnas en escritorio');
 check(str_contains($view, '@media(max-width:1180px)'), 'Existe ajuste para tablet');
-check(str_contains($view, '.admin-user-form{grid-template-columns:1fr}'), 'Móvil reduce editor a una columna');
+check(str_contains($view, '.admin-user-form{grid-template-columns:1fr}'), 'Móvil reduce formulario a una columna');
 
 check(str_contains($view, '/admin/users/assign'), 'Se conserva endpoint actual de actualización');
 check(str_contains($view, 'Convertir a proveedor externo'), 'Se conserva conversión a proveedor externo');
