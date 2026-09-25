@@ -20,10 +20,12 @@ $agendaVersion=(string)(@filemtime(APP_ROOT.'/public/assets/js/agenda.js')?:($as
 $appJsVersion=(string)(@filemtime(APP_ROOT.'/public/assets/js/app.js')?:($assetVersion??'1'));
 $adminDialogVersion=(string)(@filemtime(APP_ROOT.'/public/assets/js/admin-dialog.js')?:($assetVersion??'1'));
 $adminDialogCssVersion=(string)(@filemtime(APP_ROOT.'/public/assets/css/admin-dialog.css')?:($assetVersion??'1'));
+$searchableSelectCssVersion=(string)(@filemtime(APP_ROOT.'/public/assets/css/searchable-select.css')?:($assetVersion??'1'));
 ?>
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/layout-density-v25.css?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/data-tables.css?v=<?= htmlspecialchars($assetVersion??'20260908-1710') ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/admin-dialog.css?v=<?= htmlspecialchars($adminDialogCssVersion) ?>">
+<link rel="stylesheet" data-searchable-select-css href="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/css/searchable-select.css?v=<?= htmlspecialchars($searchableSelectCssVersion) ?>">
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/navigation-guards.js?v=<?= htmlspecialchars($navigationGuardVersion) ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/app.js?v=<?= htmlspecialchars($appJsVersion) ?>"></script>
 <script src="<?= htmlspecialchars(APP_PUBLIC_PATH) ?>/assets/js/admin-dialog.js?v=<?= htmlspecialchars($adminDialogVersion) ?>"></script>

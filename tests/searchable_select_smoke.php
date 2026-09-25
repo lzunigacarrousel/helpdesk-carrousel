@@ -4,6 +4,8 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $js=(string)@file_get_contents($root.'/public/assets/js/app.js');
 $css=(string)@file_get_contents($root.'/public/assets/css/searchable-select.css');
+$shell=(string)@file_get_contents($root.'/app/Views/shared/app_end.php');
+$catalogs=(string)@file_get_contents($root.'/app/Views/admin/catalogs.php');
 $ok=true;
 
 function check(bool $condition,string $message): void{
@@ -22,7 +24,11 @@ check(str_contains($js,"event.key==='ArrowDown'"),'Navegación por teclado conte
 check(str_contains($js,"event.key==='ArrowUp'"),'Navegación por teclado contempla ArrowUp');
 check(str_contains($js,"event.key==='Enter'"),'Navegación por teclado contempla Enter');
 check(str_contains($js,"event.key==='Escape'"),'Navegación por teclado contempla Escape');
-check(str_contains($js,'searchable-select.css'),'app.js carga la hoja visual del componente sin depender del módulo');
+check(str_contains($js,'searchable-select.css'),'app.js conserva fallback para cargar la hoja visual');
+check(str_contains($shell,'searchable-select.css')&&str_contains($shell,'data-searchable-select-css'),'Shell carga searchable-select.css globalmente');
+check(str_contains($js,"querySelectorAll('select').forEach(initSearchableSelect)"),'Todos los selects simples se inicializan con el componente global');
+check(str_contains($catalogs,'data-search-placeholder="Buscar región…"'),'Catálogos define búsqueda contextual para Región');
+check(substr_count($catalogs,'data-search-placeholder="Buscar estado…"')>=3,'Catálogos define búsqueda contextual para Estado');
 check(str_contains($css,'.smart-select'),'Existe la capa visual del select buscable');
 check(str_contains($css,'.smart-select-search'),'Existe el campo de búsqueda del desplegable');
 check(str_contains($css,'html[data-theme="dark"] .smart-select'),'El componente tiene tratamiento explícito en modo oscuro');

@@ -26,8 +26,12 @@ catalogCheck(str_contains($nav,'$isAdmin||$canCatalogs'),'Administrador ve Catá
 catalogCheck(substr_count($view,'data-table-shell')>=3,'Tablas usan componente canónico');
 catalogCheck(substr_count($view,'data-table catalog-table')>=3,'Tablas usan geometría canónica');
 catalogCheck(str_contains($view,'data-catalog-search'),'Cada listado conserva buscador');
+catalogCheck(substr_count($view,'data-search-placeholder="Buscar estado…"')>=3,'Filtros Estado usan select buscable con búsqueda explícita');
+catalogCheck(substr_count($view,'data-search-placeholder="Buscar región…"')>=2,'Selección de Región usa el mismo patrón buscable');
+catalogCheck(!str_contains($view,'data-searchable-select="off"'),'Catálogos no excluye selects del componente global');
+catalogCheck(str_contains((string)file_get_contents($root.'/public/assets/js/app.js'),"querySelectorAll('select').forEach(initSearchableSelect)"),'Catálogos hereda el componente global de selects buscables');
 catalogCheck(str_contains($view,'badge-success')&&str_contains($view,'badge-secondary'),'Estados usan badges estándar');
-catalogCheck(str_contains($view,'<dialog class="catalog-dialog"'),'Edición usa diálogo contextual');
+catalogCheck(str_contains($view,'<dialog class="admin-record-dialog"')&&str_contains($view,'data-catalog-dialog'),'Edición usa diálogo contextual compartido');
 catalogCheck(str_contains($view,'data-catalog-dialog-title'),'Diálogo identifica claramente el registro editado');
 catalogCheck(str_contains($view,'dialog.showModal()'),'Editar abre diálogo sin alterar la tabla');
 catalogCheck(!str_contains($view,'<tr class="catalog-edit'),'Edición ya no inserta formularios entre filas');

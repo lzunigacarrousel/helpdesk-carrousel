@@ -31,7 +31,7 @@ $checks=[
 'app/Views/management/support_team.php'=>['<table','data-label='],
 'app/Views/admin/externals.php'=>['<table','data-label='],
 'app/Views/management/external_report.php'=>['<table','data-label='],
-'app/Views/shared/app_end.php'=>['layout-density-v25.css','data-tables.css','admin-dialog.css','admin-dialog.js','table-normalization.js'],
+'app/Views/shared/app_end.php'=>['layout-density-v25.css','data-tables.css','admin-dialog.css','searchable-select.css','admin-dialog.js','table-normalization.js'],
 'public/assets/css/admin-dialog.css'=>['.admin-record-dialog','.admin-dialog-host','::backdrop'],
 'public/assets/js/admin-dialog.js'=>['data-admin-dialog-open','showModal()','data-admin-dialog-close'],
 'public/assets/css/data-tables.css'=>['.data-table','content:attr(data-label)','min-width:0!important'],
@@ -55,6 +55,7 @@ $allowedSql=[
 'VERIFICAR_FASE12_BD_20260919.sql',
 'VERIFICAR_FASE12_SEGURIDAD_20260919.sql',
 'VERIFICAR_FASE12_COMUNICACION_20260919.sql',
+'MIGRAR_CATEGORIAS_PROMOCIONALES_20260920.sql',
 'VERIFICAR_PRODUCCION_LIMPIA.sql',
 ];
 $legacySql=[];

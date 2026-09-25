@@ -41,6 +41,10 @@ La aplicación usa una sola jerarquía de botones. No crear variantes visuales p
 
 ## Patrón de administración
 
+- Todos los `<select>` simples deben usar el componente global buscable (`.smart-select`), igual que **Solicitar ayuda**. Se conserva el `<select>` nativo como fuente de verdad para `name`, `value`, `required`, `disabled` y eventos `change`.
+- La exclusión `data-searchable-select="off"` solo se permite cuando exista una razón funcional documentada (por ejemplo, un control múltiple nativo especializado).
+- Cuando el contexto lo permita, usar `data-search-placeholder` descriptivo: “Buscar región…”, “Buscar estado…”, “Buscar usuario…”.
+
 - Encabezado de página alineado al contenido.
 - Acción principal a la derecha (`Dar acceso`, `Crear`, etc.).
 - Formularios de alta compactos y alineados, no wizards de múltiples tarjetas salvo necesidad real.

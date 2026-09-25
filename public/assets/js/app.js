@@ -553,7 +553,7 @@
     const search=document.createElement('input');
     search.type='search';
     search.className='smart-select-search';
-    search.placeholder=select.dataset.searchPlaceholder||'Buscar...';
+    search.placeholder=select.dataset.searchPlaceholder||'Buscar opción…';
     search.autocomplete='off';
     search.spellcheck=false;
     search.setAttribute('aria-label','Buscar opción');
