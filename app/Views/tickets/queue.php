@@ -1,5 +1,4 @@
 <?php
-use App\Core\SearchText;
 use App\Core\{Csrf,Auth,SearchText};
 use App\Services\TicketClassificationService;
 $priorityLabels=$priorityLabels??['LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'];

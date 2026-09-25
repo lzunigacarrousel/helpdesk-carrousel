@@ -39,4 +39,12 @@ foreach($views as $path){
     summaryCheck(str_contains($content,'SearchText::addsDistinctDetail'),$path.' usa regla común anti-duplicado');
 }
 
+$queue=(string)file_get_contents($root.'/app/Views/tickets/queue.php');
+summaryCheck(substr_count($queue,'SearchText')>=2,'Queue usa SearchText para búsqueda y resumen');
+summaryCheck(
+    substr_count($queue,'use App\\Core\\SearchText;')===0
+    && substr_count($queue,'use App\\Core\\{Csrf,Auth,SearchText};')===1,
+    'Queue importa SearchText una sola vez'
+);
+
 exit($ok?0:1);
