@@ -170,8 +170,9 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <div><span class="ticket-kicker">Edición</span><h2 class="admin-record-dialog-title" id="catalog-edit-title" data-catalog-dialog-title>Editar registro</h2></div>
         <button class="admin-record-dialog-close" type="button" data-admin-dialog-close aria-label="Cerrar">×</button>
       </div>
-      <div class="catalog-dialog-context">Código interno: <strong class="catalog-code" data-catalog-dialog-code>—</strong></div>
-      <form method="post" data-single-submit class="catalog-dialog-form admin-record-dialog-body" data-catalog-edit-form>
+      <div class="admin-record-dialog-body">
+        <div class="catalog-dialog-context">Código interno: <strong class="catalog-code" data-catalog-dialog-code>—</strong></div>
+        <form method="post" data-single-submit class="catalog-dialog-form" data-catalog-edit-form>
         <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
         <input type="hidden" name="id" value="" data-catalog-edit-id>
         <div class="catalog-dialog-grid">
@@ -185,7 +186,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
           <button class="btn btn-outline-secondary" type="button" data-admin-dialog-close>Cancelar</button>
           <button class="btn btn-primary" type="submit">Guardar cambios</button>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   </dialog>
   <?php endif; ?>
