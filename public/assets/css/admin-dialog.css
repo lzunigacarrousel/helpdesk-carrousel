@@ -1,0 +1,48 @@
+/* Shared administrative record editor.
+   Keeps list/table context intact while editing one short administrative record. */
+.admin-dialog-host{height:0!important;min-height:0!important;padding:0!important;border:0!important}
+.admin-dialog-host>td{height:0!important;min-height:0!important;padding:0!important;border:0!important;background:transparent!important}
+.admin-record-dialog{
+  width:min(760px,calc(100vw - 28px));
+  max-width:760px;
+  max-height:min(88vh,920px);
+  padding:0;
+  border:0;
+  border-radius:16px;
+  background:var(--card);
+  color:var(--text);
+  box-shadow:0 24px 70px rgba(15,32,75,.28);
+  overflow:hidden;
+}
+.admin-record-dialog--wide{width:min(1040px,calc(100vw - 28px));max-width:1040px}
+.admin-record-dialog::backdrop{background:rgba(15,32,75,.48);backdrop-filter:blur(2px)}
+.admin-record-dialog-shell{display:grid;grid-template-rows:auto minmax(0,1fr);max-height:min(88vh,920px)}
+.admin-record-dialog-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  background:var(--card);position:sticky;top:0;z-index:2
+}
+.admin-record-dialog-head>div{min-width:0}
+.admin-record-dialog-head .ticket-kicker{display:block}
+.admin-record-dialog-title{margin:3px 0 0;font-size:20px;color:var(--brand-dark);line-height:1.2}
+.admin-record-dialog-subtitle{display:block;margin-top:3px;color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-record-dialog-close{
+  flex:0 0 auto;width:36px;height:36px;display:grid;place-items:center;
+  border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);
+  font-size:21px;line-height:1;cursor:pointer
+}
+.admin-record-dialog-body{min-height:0;overflow:auto;padding:18px 20px 20px}
+.admin-record-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.admin-record-dialog-section{padding-top:12px;margin-top:12px;border-top:1px solid var(--border)}
+.admin-record-dialog-section:first-child{padding-top:0;margin-top:0;border-top:0}
+.admin-record-dialog[open]{animation:adminDialogIn .14s ease-out}
+@keyframes adminDialogIn{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  .admin-record-dialog,.admin-record-dialog--wide{width:calc(100vw - 16px);max-width:none;max-height:94vh}
+  .admin-record-dialog-shell{max-height:94vh}
+  .admin-record-dialog-head{padding:15px 15px 12px}
+  .admin-record-dialog-body{padding:14px 15px 16px}
+  .admin-record-dialog-title{font-size:18px}
+  .admin-record-dialog-actions{display:grid;grid-template-columns:1fr}
+  .admin-record-dialog-actions .btn{width:100%}
+}
