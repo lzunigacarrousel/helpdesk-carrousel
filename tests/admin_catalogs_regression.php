@@ -15,6 +15,12 @@ catalogCheck(str_contains($router,'/admin/catalogos'),'Router expone administrac
 catalogCheck(str_contains($nav,'Catálogos'),'Navegación administrativa expone Catálogos');
 catalogCheck(str_contains($view,'id="regiones"')&&str_contains($view,'id="parques"')&&str_contains($view,'id="areas"'),'Vista administra Regiones, Parques y Áreas');
 catalogCheck(str_contains($view,'data-catalog-search'),'Catálogos tienen buscadores');
+catalogCheck(substr_count($view,'data-table-shell')>=3,'Tablas de catálogos usan componente canónico');
+catalogCheck(substr_count($view,'data-table-wrap')>=3,'Tablas usan contenedor responsivo canónico');
+catalogCheck(substr_count($view,'data-table catalog-table')>=3,'Tablas usan geometría data-table del Helpdesk');
+catalogCheck(str_contains($view,'data-table-actions'),'Acciones usan alineación canónica');
+catalogCheck(str_contains($view,'badge-success')&&str_contains($view,'badge-secondary'),'Estados usan badges estándar');
+catalogCheck(!str_contains($view,'.catalog-table th')&&!str_contains($view,'.catalog-table td'),'Vista no redefine geometría base de tablas');
 catalogCheck(str_contains($view,'Activos')&&str_contains($view,'Inactivos'),'Catálogos filtran activos/inactivos');
 catalogCheck(str_contains($controller,'REGION_CREATED')&&str_contains($controller,'PARK_CREATED')&&str_contains($controller,'AREA_CREATED'),'Altas quedan auditadas');
 catalogCheck(str_contains($controller,'REGION_UPDATED')&&str_contains($controller,'PARK_UPDATED')&&str_contains($controller,'AREA_UPDATED'),'Ediciones quedan auditadas');
