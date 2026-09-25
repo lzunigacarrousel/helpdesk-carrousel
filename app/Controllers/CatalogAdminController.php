@@ -9,9 +9,33 @@ final class CatalogAdminController
 {
     public function index(): void
     {
-        Auth::requirePermission('catalogs.manage');
+        $this->requireAccess();
         $pdo=Database::pdo();
 
+        $summary=[
+            'regions_total'=>(int)$pdo->query('SELECT COUNT(*) FROM regions')->fetchColumn(),
+            'regions_active'=>(int)$pdo->query('SELECT COUNT(*) FROM regions WHERE is_active=1')->fetchColumn(),
+            'parks_total'=>(int)$pdo->query('SELECT COUNT(*) FROM parks')->fetchColumn(),
+            'parks_active'=>(int)$pdo->query('SELECT COUNT(*) FROM parks WHERE is_active=1')->fetchColumn(),
+            'areas_total'=>(int)$pdo->query('SELECT COUNT(*) FROM areas')->fetchColumn(),
+            'areas_active'=>(int)$pdo->query('SELECT COUNT(*) FROM areas WHERE is_active=1')->fetchColumn(),
+        ];
+
+        View::render('admin/catalogs',[
+            'user'=>Auth::user(),
+            'flash'=>Flash::pull(),
+            'section'=>'home',
+            'summary'=>$summary,
+            'regions'=>[],
+            'parks'=>[],
+            'areas'=>[],
+        ]);
+    }
+
+    public function regions(): void
+    {
+        $this->requireAccess();
+        $pdo=Database::pdo();
         $regions=$pdo->query(
             "SELECT r.*,
                     COUNT(DISTINCT p.id) parks_total,
@@ -24,6 +48,13 @@ final class CatalogAdminController
              ORDER BY r.is_active DESC,r.name"
         )->fetchAll();
 
+        $this->renderSection('regions',['regions'=>$regions,'parks'=>[],'areas'=>[]]);
+    }
+
+    public function parks(): void
+    {
+        $this->requireAccess();
+        $pdo=Database::pdo();
         $parks=$pdo->query(
             "SELECT p.*,r.name region_name,r.is_active region_active,
                     (SELECT COUNT(*) FROM user_assignments ua
@@ -37,7 +68,15 @@ final class CatalogAdminController
              LEFT JOIN regions r ON r.id=p.region_id
              ORDER BY p.is_active DESC,p.name"
         )->fetchAll();
+        $regions=$pdo->query('SELECT id,name,is_active FROM regions ORDER BY is_active DESC,name')->fetchAll();
 
+        $this->renderSection('parks',['regions'=>$regions,'parks'=>$parks,'areas'=>[]]);
+    }
+
+    public function areas(): void
+    {
+        $this->requireAccess();
+        $pdo=Database::pdo();
         $areas=$pdo->query(
             "SELECT a.*,
                     (SELECT COUNT(*) FROM user_assignments ua
@@ -49,13 +88,7 @@ final class CatalogAdminController
              ORDER BY a.is_active DESC,a.name"
         )->fetchAll();
 
-        View::render('admin/catalogs',[
-            'user'=>Auth::user(),
-            'flash'=>Flash::pull(),
-            'regions'=>$regions,
-            'parks'=>$parks,
-            'areas'=>$areas,
-        ]);
+        $this->renderSection('areas',['regions'=>[],'parks'=>[],'areas'=>$areas]);
     }
 
     public function saveRegion(): void
@@ -226,9 +259,27 @@ final class CatalogAdminController
         $this->redirect('areas');
     }
 
-    private function gate(): void
+    private function requireAccess(): void
     {
         Auth::requirePermission('catalogs.manage');
+    }
+
+    private function renderSection(string $section,array $data): void
+    {
+        View::render('admin/catalogs',array_merge([
+            'user'=>Auth::user(),
+            'flash'=>Flash::pull(),
+            'section'=>$section,
+            'summary'=>[],
+            'regions'=>[],
+            'parks'=>[],
+            'areas'=>[],
+        ],$data));
+    }
+
+    private function gate(): void
+    {
+        $this->requireAccess();
         Csrf::verify($_POST['_csrf']??null);
     }
 
@@ -284,9 +335,9 @@ final class CatalogAdminController
         }
     }
 
-    private function redirect(string $anchor): never
+    private function redirect(string $section): never
     {
-        header('Location: '.APP_BASE_URL.'/admin/catalogos#'.$anchor);
+        header('Location: '.APP_BASE_URL.'/admin/catalogos/'.$section);
         exit;
     }
 }
