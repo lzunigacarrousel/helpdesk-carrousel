@@ -38,11 +38,17 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
 .catalog-create .field-help{grid-column:1/-1}
 .catalog-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10.5px}
 .catalog-risk{color:var(--warning);font-size:10.5px}
-.catalog-edit td{padding:0!important;background:color-mix(in srgb,var(--card) 96%,var(--bg) 4%)}
-.catalog-edit form{display:grid;gap:10px;align-items:end;padding:13px 14px}
-.catalog-edit.region form,.catalog-edit.area form{grid-template-columns:minmax(220px,1fr) minmax(260px,2fr) auto auto}
-.catalog-edit.park form{grid-template-columns:minmax(180px,1fr) minmax(220px,1.4fr) minmax(130px,.7fr) minmax(240px,1.6fr) auto auto}
-.catalog-edit[hidden]{display:none!important}
+.catalog-dialog{width:min(720px,calc(100vw - 28px));max-width:720px;border:0;border-radius:16px;padding:0;background:var(--card);color:var(--text);box-shadow:0 24px 70px rgba(15,32,75,.28)}
+.catalog-dialog::backdrop{background:rgba(15,32,75,.48);backdrop-filter:blur(2px)}
+.catalog-dialog-shell{display:grid}
+.catalog-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.catalog-dialog-head h2{margin:3px 0 0;font-size:20px}
+.catalog-dialog-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font-size:21px;line-height:1;cursor:pointer}
+.catalog-dialog-context{padding:10px 20px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--brand) 4%,var(--card) 96%);color:var(--muted);font-size:11px}
+.catalog-dialog-form{display:grid;gap:14px;padding:18px 20px 20px}
+.catalog-dialog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.catalog-dialog-full{grid-column:1/-1}
+.catalog-dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding-top:4px}
 .catalog-empty{padding:22px;text-align:center;color:var(--muted)}
 [data-catalog-row][hidden]{display:none!important}
 @media(max-width:900px){
@@ -54,8 +60,12 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
   .catalog-toolbar{width:100%}
   .catalog-toolbar label{flex:1 1 180px}
   .catalog-toolbar .catalog-search,.catalog-toolbar .catalog-filter{min-width:0;width:100%}
-  .catalog-create form,.catalog-create.region form,.catalog-create.area form,.catalog-create.park form,
-  .catalog-edit form,.catalog-edit.region form,.catalog-edit.area form,.catalog-edit.park form{grid-template-columns:1fr}
+  .catalog-create form,.catalog-create.region form,.catalog-create.area form,.catalog-create.park form{grid-template-columns:1fr}
+  .catalog-dialog{width:calc(100vw - 18px)}
+  .catalog-dialog-grid{grid-template-columns:1fr}
+  .catalog-dialog-full{grid-column:auto}
+  .catalog-dialog-actions{display:grid;grid-template-columns:1fr}
+  .catalog-dialog-actions .btn{width:100%}
 }
 </style>
 
@@ -115,9 +125,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="Parques"><?= (int)$r['active_parks'] ?> activos · <?= (int)$r['parks_total'] ?> total</td>
         <td data-label="Asignaciones"><?= (int)$r['active_assignments'] ?></td>
         <td data-label="Estado"><span class="badge <?= (int)$r['is_active']===1?'badge-success':'badge-secondary' ?>"><?= (int)$r['is_active']===1?'Activo':'Inactivo' ?></span></td>
-        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit-toggle="region-<?= $rid ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/regiones/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $rid ?>"><input type="hidden" name="activate" value="<?= (int)$r['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$r['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
+        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit data-kind="region" data-action="<?= APP_BASE_URL ?>/admin/catalogos/regiones/guardar" data-id="<?= $rid ?>" data-name="<?= htmlspecialchars((string)$r['name'],ENT_QUOTES,'UTF-8') ?>" data-code="<?= htmlspecialchars((string)$r['code'],ENT_QUOTES,'UTF-8') ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/regiones/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $rid ?>"><input type="hidden" name="activate" value="<?= (int)$r['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$r['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
       </tr>
-      <tr class="catalog-edit region" id="region-<?= $rid ?>" data-catalog-edit hidden><td colspan="6" data-label=""><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/regiones/guardar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $rid ?>"><label><span class="form-label">Nombre</span><input class="form-control" name="name" value="<?= htmlspecialchars((string)$r['name']) ?>" maxlength="120" required></label><div><span class="form-label">Código interno</span><div class="form-control catalog-code"><?= htmlspecialchars((string)$r['code']) ?></div></div><button class="btn btn-primary" type="submit">Guardar cambios</button><button class="btn btn-outline-secondary" type="button" data-catalog-edit-close>Cancelar</button></form></td></tr>
     <?php endforeach; ?>
     </tbody></table><div class="catalog-empty" data-catalog-empty hidden>No hay regiones que coincidan con esos filtros.</div></div>
   </section>
@@ -135,9 +144,8 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="Centro costo" class="data-table-secondary"><?= htmlspecialchars((string)($p['cost_center']??'—')) ?></td>
         <td data-label="Uso activo"><?= (int)$p['active_assignments'] ?> asign. · <?= (int)$p['open_tickets'] ?> tickets · <?= (int)$p['active_activities'] ?> activ.<?php if($usage>0): ?><small class="catalog-risk">Debe quedar sin uso activo antes de desactivar.</small><?php endif; ?></td>
         <td data-label="Estado"><span class="badge <?= (int)$p['is_active']===1?'badge-success':'badge-secondary' ?>"><?= (int)$p['is_active']===1?'Activo':'Inactivo' ?></span></td>
-        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit-toggle="park-<?= $pid ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/parques/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $pid ?>"><input type="hidden" name="activate" value="<?= (int)$p['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$p['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
+        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit data-kind="park" data-action="<?= APP_BASE_URL ?>/admin/catalogos/parques/guardar" data-id="<?= $pid ?>" data-name="<?= htmlspecialchars((string)$p['name'],ENT_QUOTES,'UTF-8') ?>" data-code="<?= htmlspecialchars((string)$p['code'],ENT_QUOTES,'UTF-8') ?>" data-region-id="<?= (int)$p['region_id'] ?>" data-cost-center="<?= htmlspecialchars((string)($p['cost_center']??''),ENT_QUOTES,'UTF-8') ?>" data-address="<?= htmlspecialchars((string)($p['address']??''),ENT_QUOTES,'UTF-8') ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/parques/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $pid ?>"><input type="hidden" name="activate" value="<?= (int)$p['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$p['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
       </tr>
-      <tr class="catalog-edit park" id="park-<?= $pid ?>" data-catalog-edit hidden><td colspan="6" data-label=""><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/parques/guardar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $pid ?>"><label><span class="form-label">Región</span><select class="form-control" name="region_id" required><?php foreach($regions as $r): $selected=(int)$r['id']===(int)$p['region_id']; ?><option value="<?= (int)$r['id'] ?>" <?= $selected?'selected':'' ?> <?= (int)$r['is_active']!==1&&!$selected?'disabled':'' ?>><?= htmlspecialchars((string)$r['name']) ?><?= (int)$r['is_active']!==1?' · Inactiva':'' ?></option><?php endforeach; ?></select></label><label><span class="form-label">Nombre</span><input class="form-control" name="name" value="<?= htmlspecialchars((string)$p['name']) ?>" maxlength="160" required></label><label><span class="form-label">Centro de costo</span><input class="form-control" name="cost_center" value="<?= htmlspecialchars((string)($p['cost_center']??'')) ?>" maxlength="50"></label><label><span class="form-label">Dirección</span><input class="form-control" name="address" value="<?= htmlspecialchars((string)($p['address']??'')) ?>" maxlength="255"></label><button class="btn btn-primary" type="submit">Guardar cambios</button><button class="btn btn-outline-secondary" type="button" data-catalog-edit-close>Cancelar</button></form></td></tr>
     <?php endforeach; ?>
     </tbody></table><div class="catalog-empty" data-catalog-empty hidden>No hay parques que coincidan con esos filtros.</div></div>
   </section>
@@ -155,12 +163,38 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
         <td data-label="Descripción" class="data-table-secondary"><?= htmlspecialchars((string)($a['description']??'—')) ?></td>
         <td data-label="Uso activo"><?= (int)$a['active_assignments'] ?> asign. · <?= (int)$a['open_tickets'] ?> tickets<?php if($usage>0): ?><small class="catalog-risk">Debe quedar sin uso activo antes de desactivar.</small><?php endif; ?></td>
         <td data-label="Estado"><span class="badge <?= (int)$a['is_active']===1?'badge-success':'badge-secondary' ?>"><?= (int)$a['is_active']===1?'Activo':'Inactivo' ?></span></td>
-        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit-toggle="area-<?= $aid ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/areas/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $aid ?>"><input type="hidden" name="activate" value="<?= (int)$a['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$a['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
+        <td data-label="Acciones" class="data-table-actions"><button class="btn btn-outline-secondary btn-sm" type="button" data-catalog-edit data-kind="area" data-action="<?= APP_BASE_URL ?>/admin/catalogos/areas/guardar" data-id="<?= $aid ?>" data-name="<?= htmlspecialchars((string)$a['name'],ENT_QUOTES,'UTF-8') ?>" data-code="<?= htmlspecialchars((string)$a['code'],ENT_QUOTES,'UTF-8') ?>" data-description="<?= htmlspecialchars((string)($a['description']??''),ENT_QUOTES,'UTF-8') ?>">Editar</button><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/areas/estado" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $aid ?>"><input type="hidden" name="activate" value="<?= (int)$a['is_active']===1?'0':'1' ?>"><button class="btn btn-outline-secondary btn-sm" type="submit"><?= (int)$a['is_active']===1?'Desactivar':'Reactivar' ?></button></form></td>
       </tr>
-      <tr class="catalog-edit area" id="area-<?= $aid ?>" data-catalog-edit hidden><td colspan="6" data-label=""><form method="post" action="<?= APP_BASE_URL ?>/admin/catalogos/areas/guardar" data-single-submit><input type="hidden" name="_csrf" value="<?= Csrf::token() ?>"><input type="hidden" name="id" value="<?= $aid ?>"><label><span class="form-label">Nombre</span><input class="form-control" name="name" value="<?= htmlspecialchars((string)$a['name']) ?>" maxlength="120" required></label><label><span class="form-label">Descripción</span><input class="form-control" name="description" value="<?= htmlspecialchars((string)($a['description']??'')) ?>" maxlength="255"></label><button class="btn btn-primary" type="submit">Guardar cambios</button><button class="btn btn-outline-secondary" type="button" data-catalog-edit-close>Cancelar</button></form></td></tr>
     <?php endforeach; ?>
     </tbody></table><div class="catalog-empty" data-catalog-empty hidden>No hay áreas que coincidan con esos filtros.</div></div>
   </section>
+  <?php endif; ?>
+
+  <?php if($section!=='home'): ?>
+  <dialog class="catalog-dialog" data-catalog-dialog aria-labelledby="catalog-edit-title">
+    <div class="catalog-dialog-shell">
+      <div class="catalog-dialog-head">
+        <div><span class="ticket-kicker">Edición</span><h2 id="catalog-edit-title" data-catalog-dialog-title>Editar registro</h2></div>
+        <button class="catalog-dialog-close" type="button" data-catalog-dialog-close aria-label="Cerrar">×</button>
+      </div>
+      <div class="catalog-dialog-context">Código interno: <strong class="catalog-code" data-catalog-dialog-code>—</strong></div>
+      <form method="post" data-single-submit class="catalog-dialog-form" data-catalog-edit-form>
+        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+        <input type="hidden" name="id" value="" data-catalog-edit-id>
+        <div class="catalog-dialog-grid">
+          <label class="catalog-dialog-full"><span class="form-label">Nombre</span><input class="form-control" name="name" maxlength="160" required data-catalog-edit-name></label>
+          <label data-catalog-park-field hidden><span class="form-label">Región</span><select class="form-control" name="region_id" data-catalog-edit-region disabled><?php foreach($regions as $r): ?><option value="<?= (int)$r['id'] ?>" <?= (int)$r['is_active']!==1?'disabled':'' ?>><?= htmlspecialchars((string)$r['name']) ?><?= (int)$r['is_active']!==1?' · Inactiva':'' ?></option><?php endforeach; ?></select></label>
+          <label data-catalog-park-field hidden><span class="form-label">Centro de costo</span><input class="form-control" name="cost_center" maxlength="50" data-catalog-edit-cost disabled></label>
+          <label class="catalog-dialog-full" data-catalog-park-field hidden><span class="form-label">Dirección</span><input class="form-control" name="address" maxlength="255" data-catalog-edit-address disabled></label>
+          <label class="catalog-dialog-full" data-catalog-area-field hidden><span class="form-label">Descripción</span><input class="form-control" name="description" maxlength="255" data-catalog-edit-description disabled></label>
+        </div>
+        <div class="catalog-dialog-actions">
+          <button class="btn btn-outline-secondary" type="button" data-catalog-dialog-close>Cancelar</button>
+          <button class="btn btn-primary" type="submit">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
   <?php endif; ?>
 </div>
 
@@ -180,10 +214,51 @@ require APP_ROOT.'/app/Views/shared/app_start.php';
     };
     search?.addEventListener('input',apply);status?.addEventListener('change',apply);apply();
   });
-  document.querySelectorAll('[data-catalog-edit-toggle]').forEach(function(button){
-    button.addEventListener('click',function(){const id=button.dataset.catalogEditToggle||'';const row=document.getElementById(id);if(!row)return;document.querySelectorAll('[data-catalog-edit]').forEach(x=>{if(x!==row)x.hidden=true;});row.hidden=!row.hidden;if(!row.hidden)row.querySelector('input,select')?.focus();});
+  const dialog=document.querySelector('[data-catalog-dialog]');
+  const editForm=dialog?.querySelector('[data-catalog-edit-form]');
+  const idInput=dialog?.querySelector('[data-catalog-edit-id]');
+  const nameInput=dialog?.querySelector('[data-catalog-edit-name]');
+  const codeText=dialog?.querySelector('[data-catalog-dialog-code]');
+  const title=dialog?.querySelector('[data-catalog-dialog-title]');
+  const regionInput=dialog?.querySelector('[data-catalog-edit-region]');
+  const costInput=dialog?.querySelector('[data-catalog-edit-cost]');
+  const addressInput=dialog?.querySelector('[data-catalog-edit-address]');
+  const descriptionInput=dialog?.querySelector('[data-catalog-edit-description]');
+  const parkFields=[...dialog?.querySelectorAll('[data-catalog-park-field]')||[]];
+  const areaFields=[...dialog?.querySelectorAll('[data-catalog-area-field]')||[]];
+
+  const setGroup=function(fields,enabled){
+    fields.forEach(function(field){
+      field.hidden=!enabled;
+      field.querySelectorAll('input,select,textarea').forEach(function(control){control.disabled=!enabled;});
+    });
+  };
+
+  document.querySelectorAll('[data-catalog-edit]').forEach(function(button){
+    button.addEventListener('click',function(){
+      if(!dialog||!editForm||!idInput||!nameInput)return;
+      const kind=button.dataset.kind||'';
+      const label=kind==='park'?'parque':kind==='area'?'área':'región';
+      editForm.action=button.dataset.action||'';
+      idInput.value=button.dataset.id||'';
+      nameInput.value=button.dataset.name||'';
+      if(codeText)codeText.textContent=button.dataset.code||'—';
+      if(title)title.textContent='Editar '+label+' · '+(button.dataset.name||'');
+      setGroup(parkFields,kind==='park');
+      setGroup(areaFields,kind==='area');
+      if(kind==='park'){
+        if(regionInput)regionInput.value=button.dataset.regionId||'';
+        if(costInput)costInput.value=button.dataset.costCenter||'';
+        if(addressInput)addressInput.value=button.dataset.address||'';
+      }
+      if(kind==='area'&&descriptionInput)descriptionInput.value=button.dataset.description||'';
+      dialog.showModal();
+      window.setTimeout(function(){nameInput.focus();nameInput.select();},0);
+    });
   });
-  document.querySelectorAll('[data-catalog-edit-close]').forEach(function(button){button.addEventListener('click',function(){const row=button.closest('[data-catalog-edit]');if(row)row.hidden=true;});});
+
+  dialog?.querySelectorAll('[data-catalog-dialog-close]').forEach(function(button){button.addEventListener('click',function(){dialog.close();});});
+  dialog?.addEventListener('click',function(event){if(event.target===dialog)dialog.close();});
 })();
 </script>
 <?php endif; ?>
