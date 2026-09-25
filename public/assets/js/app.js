@@ -5,6 +5,7 @@
   const body=document.body;
   const THEME_KEY='carrousel-theme';
   const SIDEBAR_KEY='helpdesk:sidebar-collapsed';
+  const SIDEBAR_SCROLL_KEY='helpdesk:sidebar-scroll-top';
   const desktopSidebar=window.matchMedia('(min-width:761px)');
   const sidebar=document.getElementById('app-sidebar');
   const sidebarBackdrop=document.querySelector('[data-sidebar-backdrop]');
@@ -131,6 +132,33 @@
     updateSidebarToggle();
   }
 
+  function saveSidebarScroll(){
+    if(!(sidebar instanceof HTMLElement))return;
+    try{sessionStorage.setItem(SIDEBAR_SCROLL_KEY,String(Math.max(0,Math.round(sidebar.scrollTop))));}catch(e){}
+  }
+
+  function restoreSidebarScroll(){
+    if(!(sidebar instanceof HTMLElement))return;
+    let saved=NaN;
+    try{saved=Number.parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY)||'',10);}catch(e){}
+    window.requestAnimationFrame(()=>{
+      if(Number.isFinite(saved))sidebar.scrollTop=Math.max(0,saved);
+      window.requestAnimationFrame(()=>{
+        const active=sidebar.querySelector('.side-link.active');
+        if(!(active instanceof HTMLElement))return;
+        const sidebarRect=sidebar.getBoundingClientRect();
+        const activeRect=active.getBoundingClientRect();
+        const brand=sidebar.querySelector('.sidebar-brand');
+        const brandBottom=brand instanceof HTMLElement?brand.getBoundingClientRect().bottom:sidebarRect.top;
+        const visibleTop=Math.max(sidebarRect.top,brandBottom)+8;
+        const visibleBottom=sidebarRect.bottom-10;
+        if(activeRect.top<visibleTop||activeRect.bottom>visibleBottom){
+          active.scrollIntoView({block:'nearest'});
+        }
+      });
+    });
+  }
+
   function toggleSidebar(){
     if(desktopSidebar.matches){
       const collapsed=body.classList.toggle('sidebar-collapsed');
@@ -184,8 +212,15 @@
 
   applyTheme(readTheme());
   restoreSidebar();
+  restoreSidebarScroll();
   setConnectionState();
-  desktopSidebar.addEventListener?.('change',restoreSidebar);
+  desktopSidebar.addEventListener?.('change',()=>{restoreSidebar();restoreSidebarScroll();});
+  window.addEventListener('pageshow',restoreSidebarScroll);
+  let sidebarScrollFrame=0;
+  sidebar?.addEventListener('scroll',()=>{
+    if(sidebarScrollFrame)return;
+    sidebarScrollFrame=window.requestAnimationFrame(()=>{sidebarScrollFrame=0;saveSidebarScroll();});
+  },{passive:true});
   window.addEventListener('online',()=>{setConnectionState();notify('Conexión restablecida.','success',2200);});
   window.addEventListener('offline',()=>{setConnectionState();notify('Sin conexión. Evita enviar cambios hasta recuperar internet.','warning',4800);});
 
@@ -207,6 +242,7 @@
 
     const link=target.closest('a[href]');
     if(link instanceof HTMLAnchorElement){
+      if(link.closest('#app-sidebar'))saveSidebarScroll();
       if(!desktopSidebar.matches)closeMobileSidebar();
       if(e.defaultPrevented||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;
       if(link.hasAttribute('download')||link.target==='_blank'||link.dataset.noLoading==='1')return;
