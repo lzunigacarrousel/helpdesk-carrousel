@@ -13,6 +13,7 @@ $schema=(string)file_get_contents($root.'/database/INSTALAR.sql');
 catalogCheck(str_contains($controller,"requirePermission('catalogs.manage')"),'Controlador exige catalogs.manage');
 catalogCheck(str_contains($router,'/admin/catalogos'),'Router expone administración de catálogos');
 catalogCheck(str_contains($nav,'Catálogos'),'Navegación administrativa expone Catálogos');
+catalogCheck(str_contains($nav,'$isAdmin||$canCatalogs'),'Administrador ve Catálogos explícitamente aunque el permiso no esté cargado en una BD antigua');
 catalogCheck(str_contains($view,'id="regiones"')&&str_contains($view,'id="parques"')&&str_contains($view,'id="areas"'),'Vista administra Regiones, Parques y Áreas');
 catalogCheck(str_contains($view,'data-catalog-search'),'Catálogos tienen buscadores');
 catalogCheck(substr_count($view,'data-table-shell')>=3,'Tablas de catálogos usan componente canónico');
