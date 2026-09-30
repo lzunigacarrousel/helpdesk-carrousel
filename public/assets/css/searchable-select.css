@@ -33,6 +33,10 @@
   border:1px solid var(--border);border-radius:11px;background:var(--card);color:var(--ink);box-shadow:0 18px 45px rgba(16,24,40,.18);
 }
 .smart-select-menu.is-open{display:block}
+/* Popover coloca el menú en la top layer del navegador. Así un select
+   buscable abierto dentro de <dialog>.showModal() no queda detrás del modal. */
+.smart-select-menu[popover]{margin:0;inset:auto}
+.smart-select-menu[popover]:popover-open{display:block}
 .smart-select-search-wrap{padding:9px;border-bottom:1px solid var(--border);background:var(--card)}
 .smart-select-search{
   width:100%;min-height:40px;padding:8px 10px 8px 34px;border:1px solid #98a2b3;border-radius:8px;
