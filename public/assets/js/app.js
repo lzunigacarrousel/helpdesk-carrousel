@@ -617,7 +617,9 @@
     menu.append(searchWrap,options);
     select.insertAdjacentElement('afterend',wrapper);
     wrapper.appendChild(trigger);
-    document.body.appendChild(menu);
+    const dialogHost=select.closest('dialog');
+    const menuHost=usePopover&&dialogHost?dialogHost:document.body;
+    menuHost.appendChild(menu);
     select.classList.add('smart-select-native');
 
     const state={select,wrapper,trigger,value,menu,search,options,empty,optionButtons:[],activeIndex:-1,usePopover};
