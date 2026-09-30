@@ -34,6 +34,7 @@ check(str_contains($css,'.smart-select-search'),'Existe el campo de búsqueda de
 check(str_contains($css,'html[data-theme="dark"] .smart-select'),'El componente tiene tratamiento explícito en modo oscuro');
 check(str_contains($css,'@media(max-width:760px)')&&str_contains($css,'.smart-select-menu'),'El componente contempla vista móvil');
 check(str_contains($js,"menu.setAttribute('popover','manual')"),'El menú buscable usa Popover API cuando está disponible');
+check(str_contains($js,"select.closest('dialog')")&&str_contains($js,'menuHost.appendChild(menu)'),'Select dentro de dialog conserva el menú como descendiente del modal');
 check(str_contains($js,'state.menu.showPopover()')&&str_contains($js,'state.menu.hidePopover()'),'Popover abre y cierra junto al estado del select');
 check(str_contains($css,'.smart-select-menu[popover]:popover-open'),'CSS contempla el menú en la top layer');
 check(str_contains($js,"document.addEventListener('close'"),'Cerrar un dialog también cierra su select buscable abierto');
