@@ -481,6 +481,9 @@
 
   function closeSelect(state,returnFocus=false){
     if(!state.menu.classList.contains('is-open'))return;
+    if(state.usePopover){
+      try{if(state.menu.matches(':popover-open'))state.menu.hidePopover();}catch(_){}
+    }
     state.menu.classList.remove('is-open');
     state.wrapper.classList.remove('is-open');
     state.trigger.setAttribute('aria-expanded','false');
@@ -499,6 +502,9 @@
     closeOthers(state);
     syncFromNative(state);
     state.menu.classList.add('is-open');
+    if(state.usePopover){
+      try{state.menu.showPopover();}catch(_){}
+    }
     state.wrapper.classList.add('is-open');
     state.trigger.setAttribute('aria-expanded','true');
     openStates.add(state);
@@ -506,6 +512,7 @@
     filterOptions(state);
     positionMenu(state);
     window.requestAnimationFrame(()=>{
+      positionMenu(state);
       state.search.focus();
       if(focusLast){const buttons=visibleButtons(state);if(buttons.length)setActive(state,buttons.length-1);}
     });
@@ -582,6 +589,8 @@
     menu.className='smart-select-menu';
     menu.id=`smart-select-menu-${sequence}`;
     menu.setAttribute('role','presentation');
+    const usePopover=typeof menu.showPopover==='function'&&typeof menu.hidePopover==='function';
+    if(usePopover)menu.setAttribute('popover','manual');
     trigger.setAttribute('aria-controls',menu.id);
 
     const searchWrap=document.createElement('div');
@@ -611,7 +620,7 @@
     document.body.appendChild(menu);
     select.classList.add('smart-select-native');
 
-    const state={select,wrapper,trigger,value,menu,search,options,empty,optionButtons:[],activeIndex:-1};
+    const state={select,wrapper,trigger,value,menu,search,options,empty,optionButtons:[],activeIndex:-1,usePopover};
     states.set(select,state);
 
     trigger.addEventListener('click',()=>{
@@ -673,6 +682,11 @@
   const reposition=()=>openStates.forEach(positionMenu);
   window.addEventListener('resize',reposition,{passive:true});
   window.addEventListener('scroll',reposition,{passive:true,capture:true});
+  document.addEventListener('close',event=>{
+    const dialog=event.target instanceof HTMLDialogElement?event.target:null;
+    if(!dialog)return;
+    [...openStates].forEach(state=>{if(dialog.contains(state.select))closeSelect(state);});
+  },true);
 
   const observer=new MutationObserver(mutations=>{
     mutations.forEach(mutation=>{
