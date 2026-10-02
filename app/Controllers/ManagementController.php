@@ -32,7 +32,7 @@ final class ManagementController
     public function dashboard(): void
     {
         $this->requireManagement();
-        $pdo=Database::pdo();$reportFilters=new TicketReportFilterService();$filters=$reportFilters->filters($_GET);[$where,$params]=$reportFilters->where($filters);
+        $pdo=Database::pdo();$reportFilters=new TicketReportFilterService();$filters=$reportFilters->filters($_GET,date('Y-01-01'));[$where,$params]=$reportFilters->where($filters);
 
         $k=$pdo->prepare("SELECT
             COUNT(*) total,

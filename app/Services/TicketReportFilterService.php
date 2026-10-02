@@ -16,17 +16,18 @@ final class TicketReportFilterService
         'LOW'=>'Baja','MEDIUM'=>'Media','HIGH'=>'Alta','CRITICAL'=>'Crítica'
     ];
 
-    public function filters(array $input): array
+    public function filters(array $input,?string $defaultFrom=null): array
     {
         $today=date('Y-m-d');
         $monthStart=date('Y-m-01');
+        $periodStart=$defaultFrom!==null&&$this->validDate($defaultFrom)?$defaultFrom:$monthStart;
 
-        $from=trim((string)($input['from']??$monthStart));
+        $from=trim((string)($input['from']??$periodStart));
         $to=trim((string)($input['to']??$today));
 
-        if(!$this->validDate($from))$from=$monthStart;
+        if(!$this->validDate($from))$from=$periodStart;
         if(!$this->validDate($to))$to=$today;
-        if($from>$to){$from=$monthStart;$to=$today;}
+        if($from>$to){$from=$periodStart;$to=$today;}
 
         $status=strtoupper(trim((string)($input['status']??'')));
         if(!array_key_exists($status,self::STATUS_LABELS))$status='';
