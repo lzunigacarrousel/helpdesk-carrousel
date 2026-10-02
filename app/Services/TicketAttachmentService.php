@@ -24,6 +24,19 @@ final class TicketAttachmentService
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
     ];
 
+    private const OOXML_CONTAINER_MIME = [
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/x-compressed',
+        'application/octet-stream',
+        'application/vnd.ms-office',
+    ];
+
+    private const OOXML_MARKERS = [
+        'xlsx' => 'xl/workbook.xml',
+        'docx' => 'word/document.xml',
+    ];
+
     public function storeUploadedFile(
         PDO $pdo,
         int $ticketId,
@@ -70,12 +83,12 @@ final class TicketAttachmentService
         }
 
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mime = (string)$finfo->file($tmp);
-        if (!isset(self::ALLOWED_MIME[$mime])) {
-            throw new RuntimeException('Ese tipo de archivo no está permitido.');
+        $mime = strtolower(trim((string)$finfo->file($tmp)));
+        $original = trim((string)($file['name'] ?? 'archivo'));
+        $ext = $this->resolveAllowedExtension($mime, $tmp, $original);
+        if ($ext === null) {
+            throw new RuntimeException('Ese tipo de archivo no está permitido. Formatos admitidos: PDF, imágenes, TXT, CSV, Word y Excel.');
         }
-
-        $ext = self::ALLOWED_MIME[$mime];
         $dir = 'storage/ticket_uploads/'.date('Y').'/'.date('m');
         $absolute = APP_ROOT.'/'.$dir;
         if (!is_dir($absolute) && !mkdir($absolute, 0775, true) && !is_dir($absolute)) {
@@ -89,7 +102,9 @@ final class TicketAttachmentService
         }
 
         $sha = hash_file('sha256', $target) ?: null;
-        $original = trim((string)($file['name'] ?? 'archivo.'.$ext));
+        if ($original === '') {
+            $original = 'archivo.'.$ext;
+        }
 
         try {
             $q = $pdo->prepare(
@@ -117,5 +132,49 @@ final class TicketAttachmentService
         }
 
         return (int)$pdo->lastInsertId();
+    }
+
+    private function resolveAllowedExtension(string $mime, string $tmp, string $originalName): ?string
+    {
+        if (isset(self::ALLOWED_MIME[$mime])) {
+            return self::ALLOWED_MIME[$mime];
+        }
+
+        if (!in_array($mime, self::OOXML_CONTAINER_MIME, true)) {
+            return null;
+        }
+
+        $extension = strtolower((string)pathinfo($originalName, PATHINFO_EXTENSION));
+        if (!isset(self::OOXML_MARKERS[$extension])) {
+            return null;
+        }
+
+        return $this->isValidOoxmlPackage($tmp, self::OOXML_MARKERS[$extension])
+            ? $extension
+            : null;
+    }
+
+    private function isValidOoxmlPackage(string $path, string $requiredMarker): bool
+    {
+        $handle = @fopen($path, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $signature = (string)fread($handle, 4);
+        fclose($handle);
+        if (!str_starts_with($signature, 'PK')) {
+            return false;
+        }
+
+        // Los nombres de entradas ZIP aparecen en claro en el directorio del paquete.
+        // El archivo ya pasó el límite de 10 MB, así que esta inspección queda acotada.
+        $contents = @file_get_contents($path);
+        if (!is_string($contents) || $contents === '') {
+            return false;
+        }
+
+        return str_contains($contents, '[Content_Types].xml')
+            && str_contains($contents, $requiredMarker);
     }
 }

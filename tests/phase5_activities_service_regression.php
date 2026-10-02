@@ -79,6 +79,16 @@ foreach([
 ] as $mime){
     ok(str_contains($attachmentService,$mime),'Servicio compartido permite MIME '.$mime);
 }
+foreach(['application/zip','application/x-zip-compressed','application/octet-stream','application/vnd.ms-office'] as $mime){
+    ok(str_contains($attachmentService,$mime),'Servicio contempla MIME contenedor OOXML '.$mime);
+}
+ok(str_contains($attachmentService,'OOXML_MARKERS'),'Servicio distingue estructura OOXML por extensión');
+ok(str_contains($attachmentService,"'xlsx' => 'xl/workbook.xml'"),'Excel OOXML exige workbook.xml');
+ok(str_contains($attachmentService,"'docx' => 'word/document.xml'"),'Word OOXML exige document.xml');
+ok(str_contains($attachmentService,"'[Content_Types].xml'"),'OOXML exige manifiesto interno');
+ok(str_contains($attachmentService,"str_starts_with(\$signature, 'PK')"),'OOXML exige firma ZIP');
+ok(str_contains($attachmentService,'resolveAllowedExtension'),'MIME genérico pasa por resolución segura');
+ok(str_contains($attachmentService,'isValidOoxmlPackage'),'MIME genérico valida estructura antes de aceptar');
 ok(str_contains($attachmentService,'function storeUploadedFile('),'Servicio compartido expone storeUploadedFile');
 ok(str_contains($attachmentService,'activity_id'),'Servicio compartido persiste activity_id');
 ok(str_contains($attachmentService,'ticket_activities')&&str_contains($attachmentService,'ticket_id'),'Servicio valida que la evidencia pertenezca al mismo ticket');
@@ -86,6 +96,9 @@ ok(str_contains($attachmentService,'move_uploaded_file'),'Servicio compartido ce
 ok(!str_contains($conversation,'move_uploaded_file'),'ConversationController ya no mueve archivos directamente');
 ok(!str_contains($conversation,'function storeUpload('),'ConversationController elimina almacenamiento duplicado');
 ok(str_contains($conversation,'TicketAttachmentService'),'ConversationController usa TicketAttachmentService');
+ok(str_contains($conversation,"catch (\\RuntimeException \$e)"),'Respuesta con adjunto captura errores de validación');
+ok(str_contains($conversation,"Flash::set(\$e->getMessage(),'error')"),'Error de adjunto vuelve al ticket con mensaje claro');
+ok(str_contains($conversation,"#conversacion"),'Error de adjunto regresa al bloque de conversación');
 ok(str_contains($activityController,'TicketAttachmentService'),'Finalización de actividad puede guardar evidencia');
 ok(str_contains($activityController,"\$_FILES['evidence']")||str_contains($activityController,'$_FILES[\'evidence\']'),'Controlador reconoce evidencia de actividad');
 ok(str_contains($activityController,'activity_id')||str_contains($activityController,'$activityId'),'Evidencia se vincula con la actividad');

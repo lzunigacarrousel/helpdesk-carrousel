@@ -32,7 +32,8 @@ final class ConversationController
         }
 
         $commentId=null;$attachmentId=null;
-        Database::transaction(function(PDO $pdo)use($ticketId,$body,$visibility,$hasFile,$isSupport,&$commentId,&$attachmentId):void{
+        try {
+            Database::transaction(function(PDO $pdo)use($ticketId,$body,$visibility,$hasFile,$isSupport,&$commentId,&$attachmentId):void{
             if($body!==''){
                 $u=Auth::user();$q=$pdo->prepare("INSERT INTO ticket_comments(ticket_id,author_user_id,author_name,author_email,visibility,body,created_at) VALUES(?,?,?,?,?,?,NOW())");
                 $q->execute([$ticketId,Auth::id(),$u['full_name']??null,$u['email']??null,$visibility,$body]);$commentId=(int)$pdo->lastInsertId();
@@ -49,7 +50,13 @@ final class ConversationController
             }else{
                 $pdo->prepare('UPDATE tickets SET updated_at=NOW() WHERE id=?')->execute([$ticketId]);
             }
-        });
+            });
+        } catch (\RuntimeException $e) {
+            Logger::error($e);
+            Flash::set($e->getMessage(),'error');
+            header('Location: '.APP_BASE_URL.'/tickets/view?id='.$ticketId.'#conversacion');
+            exit;
+        }
 
         Audit::log('TICKET_RESPONSE_ADDED','ticket',$ticketId,null,['visibility'=>$visibility,'comment_id'=>$commentId,'attachment_id'=>$attachmentId]);
         $this->notifyConversation($ticketId,$ticket,$context,$visibility,$body,$hasFile);
